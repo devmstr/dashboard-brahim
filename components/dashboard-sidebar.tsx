@@ -27,7 +27,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           setShowSidebar(!showSidebar)
         }}
         className={cn(
-          'bg-primary h-[68px] w-full flex pl-[0.4rem] justify-center items-center border-r-2 border-white border-opacity-15  rounded-none'
+          'bg-primary h-[67px] w-full flex pl-[0.4rem] justify-center items-center border-r-2 border-white border-opacity-15  rounded-none'
         )}
       >
         <BurgerMenu state={showSidebar} />
