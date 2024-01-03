@@ -4,7 +4,7 @@ declare global {
   var cachedAxios: AxiosInstance
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000'
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 let axiosInstance: AxiosInstance
 

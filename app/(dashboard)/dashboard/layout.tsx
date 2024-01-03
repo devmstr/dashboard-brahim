@@ -2,8 +2,6 @@ import { DashboardNav } from '@/components/dashboard-nav'
 import { DashboardSidebar } from '@/components/dashboard-sidebar'
 import { EmployeeDashboardConfig } from '@/config/dashboard'
 
-import { authOptions } from '@/lib/auth'
-
 interface LayoutProps {
   children: React.ReactNode
 }
