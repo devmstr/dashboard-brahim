@@ -7,22 +7,22 @@ export const EmployeeDashboardConfig: {
   sidebar: [
     {
       title: 'Dashboard',
-      href: '/dashboard',
+      href: '/',
       icon: 'dashboard'
     },
     {
       title: 'Orders',
-      href: '/dashboard/orders',
+      href: '/orders',
       icon: 'orders'
     },
     {
       title: 'Details',
-      href: '/dashboard/details',
+      href: '/details',
       icon: 'details'
     },
     {
       title: 'Notifications',
-      href: '/dashboard/notification',
+      href: '/notification',
       icon: 'notification'
     }
   ],
@@ -30,11 +30,11 @@ export const EmployeeDashboardConfig: {
     orders: [
       {
         title: 'All',
-        href: '/dashboard/orders'
+        href: '/orders'
       },
       {
         title: 'Status',
-        href: '/dashboard/orders/status'
+        href: '/orders/status'
       }
     ]
   }

@@ -48,7 +48,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 const Icon = Icons[item.icon || 'arrowRight']
                 const delay = (index = 0 ? 80 : index * 80)
                 const active =
-                  segment === item.href?.split('/').slice(2).join('')
+                  segment === item.href?.split('/').slice(1).join('')
 
                 return (
                   item.href && (
