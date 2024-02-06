@@ -31,12 +31,14 @@ import {
   type LucideIcon
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
+import { LuPackageCheck } from 'react-icons/lu'
 
 import { cn } from '@/lib/utils'
 
 export type Icon = LucideIcon
 
 export const Icons = {
+  package: LuPackageCheck,
   menu: Menu,
   details: ListEnd,
   notification: Bell,
