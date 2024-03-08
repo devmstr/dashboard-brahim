@@ -152,7 +152,7 @@ export const EditOrderForm: React.FC<EditOrderFormProps> = ({
         <CardDivider>
           <div className="flex gap-3">
             <Link
-              href={'/dashboard/orders'}
+              href={'/dashboard/timeline'}
               className={cn(
                 buttonVariants({ variant: 'outline' }),
                 'w-full md:w-[8rem] bg-white text-primary border-primary hover:text-white hover:bg-primary'

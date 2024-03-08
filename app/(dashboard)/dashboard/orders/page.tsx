@@ -1,14 +1,17 @@
 import { Card } from '@/components/card'
-import { GanttChart } from '@/components/grant-chart'
+import { OrderTable } from '@/components/orders-table'
+import data from './data.json'
 import React from 'react'
+import { StatusVariant } from '@/types'
 
 interface PageProps {}
 
 const Page: React.FC<PageProps> = async ({}: PageProps) => {
-  // await for 1 second to simulate loading
   return (
     <Card className="">
-      <GanttChart />
+      <OrderTable
+        data={data.map((d) => ({ ...d, status: d.status as StatusVariant }))}
+      />
     </Card>
   )
 }

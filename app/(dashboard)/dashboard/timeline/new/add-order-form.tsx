@@ -75,7 +75,7 @@ export const AddOrderForm: React.FC<
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-1">
         <CardGrid>
           <FormField
             control={form.control}
@@ -151,16 +151,6 @@ export const AddOrderForm: React.FC<
         </CardGrid>
         <CardDivider>
           <div className="flex gap-3">
-            <Link
-              href={'/dashboard/orders'}
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'w-full md:w-[8rem] bg-white text-primary border-primary hover:text-white hover:bg-primary'
-              )}
-              type="submit"
-            >
-              Cancel
-            </Link>
             <Button
               variant={'outline'}
               className={

@@ -1,5 +1,5 @@
 import { Card } from '@/components/card'
-import jsonData from '../data.json'
+import jsonData from '../../timeline/data.json'
 import { EditOrderForm } from './edit-order-form'
 
 interface PageProps {

@@ -28,7 +28,13 @@ import {
   Bell,
   ListEnd,
   Menu,
-  type LucideIcon
+  PlusCircleIcon,
+  Pencil,
+  type LucideIcon,
+  Ban,
+  CheckCircle,
+  Clock,
+  RotateCw
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackageCheck } from 'react-icons/lu'
@@ -38,6 +44,8 @@ import { cn } from '@/lib/utils'
 export type Icon = LucideIcon
 
 export const Icons = {
+  add: PlusCircleIcon,
+  edit: Pencil,
   package: LuPackageCheck,
   menu: Menu,
   details: ListEnd,
@@ -60,7 +68,6 @@ export const Icons = {
   settings: Settings,
   billing: CreditCard,
   ellipsis: MoreVertical,
-  add: Plus,
   warning: AlertTriangle,
   arrowRight: ArrowRight,
   help: HelpCircle,
@@ -69,5 +76,9 @@ export const Icons = {
   moon: Moon,
   laptop: Laptop,
   twitter: Twitter,
-  check: Check
+  check: Check,
+  abandoned: Ban,
+  planned: Clock,
+  done: CheckCircle,
+  ongoing: RotateCw
 }

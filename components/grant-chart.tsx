@@ -8,7 +8,8 @@ import Link from 'next/link'
 import { Button, buttonVariants } from './ui/button'
 import { Selector } from './selector'
 import { Limit, OrderBy, limits, orderBys } from '@/config/gantt-chart.config'
-import orders from '@/app/(dashboard)/dashboard/orders/data.json'
+import orders from '@/app/(dashboard)/dashboard/timeline/data.json'
+import { AddOrderDialog } from './add-order.dialog'
 
 function calculateDayLength(
   startDateStr: string | null,
@@ -26,7 +27,7 @@ function calculateDayLength(
   return Math.floor(dayDifference) + 1
 }
 
-export function GanttChart() {
+export function GanttChart({ params }: { params: { id?: string } }) {
   const [limit, setLimit] = React.useState<Limit>('10')
 
   const [currentPage, setCurrentPage] = React.useState(0)
@@ -53,18 +54,7 @@ export function GanttChart() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-3 justify-between">
-        <Link
-          href={'/dashboard/orders/new'}
-          className={cn(
-            buttonVariants({
-              variant: 'outline'
-            }),
-            'group flex items-center justify-center text-primary bg-white border-primary hover:text-white hover:bg-primary'
-          )}
-        >
-          Add
-          <Icons.add className="w-5 h-5 text-primary group-hover:text-white" />
-        </Link>
+        <AddOrderDialog params={params} />
 
         <div className="flex gap-2 items-center ">
           <span className="text-sm text-muted-foreground/60">Limit</span>

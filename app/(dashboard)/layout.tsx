@@ -9,6 +9,7 @@ import '@/styles/globals.css'
 import { DashboardNav } from '@/components/dashboard-nav'
 import { DashboardSidebar } from '@/components/dashboard-sidebar'
 import { EmployeeDashboardConfig } from '@/config/dashboard'
+import { ScrollArea } from '@/components/scroll-area'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
@@ -36,7 +37,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html>
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
+          'min-h-screen bg-gray-50 font-sans antialiased',
           inter.variable
         )}
       >
@@ -50,7 +51,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <DashboardNav />
               </div>
             </nav>
-            <div>{children}</div>
+            <ScrollArea className="h-screen w-full">{children}</ScrollArea>
             <Toaster />
             <TailwindIndicator />
           </main>

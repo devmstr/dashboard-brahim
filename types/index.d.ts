@@ -17,6 +17,17 @@ export type HomeConfig = {
   nav: MainNavItem[]
 }
 
+export type StatusVariant = 'planned' | 'ongoing' | 'done' | 'abandoned'
+
+export type OrderTableEntry = {
+  id: string
+  deadline: string
+  customer: string
+  progress: number
+  subParts: number
+  status: StatusVariant
+}
+
 export type FooterConfig = {
   companyNav: MainNavItem[]
   resourcesNav: MainNavItem[]

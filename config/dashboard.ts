@@ -6,25 +6,25 @@ export const EmployeeDashboardConfig: {
 } = {
   sidebar: [
     {
-      title: 'Dashboard',
-      href: '/',
+      title: 'Timeline',
+      href: '/dashboard/timeline',
       icon: 'dashboard'
     },
     {
       title: 'Orders',
-      href: '/orders',
+      href: '/dashboard/orders',
       icon: 'orders'
     },
     {
-      title: 'Details',
-      href: '/details',
+      title: 'Components',
+      href: '/dashboard/components',
       icon: 'details'
-    },
-    {
-      title: 'Notifications',
-      href: '/notification',
-      icon: 'notification'
     }
+    // {
+    //   title: 'Notifications',
+    //   href: '/dashboard/notification',
+    //   icon: 'notification'
+    // }
   ],
   pages: {
     orders: [

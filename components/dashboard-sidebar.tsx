@@ -3,7 +3,11 @@ import { Dictionary, SidebarNavItem } from '@/types'
 
 import React from 'react'
 import { Icons } from './icons'
-import { usePathname, useSelectedLayoutSegment } from 'next/navigation'
+import {
+  usePathname,
+  useRouter,
+  useSelectedLayoutSegment
+} from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import Fade from './Fade'
@@ -17,7 +21,7 @@ interface DashboardSidebarProps {
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   items
 }: DashboardSidebarProps) => {
-  const segment = useSelectedLayoutSegment()
+  const pathname = usePathname()
   const [showSidebar, setShowSidebar] = React.useState(false)
   return (
     <div className="flex flex-col left-0 h-screen  z-50  ">
@@ -48,8 +52,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 const Icon = Icons[item.icon || 'arrowRight']
                 const delay = (index = 0 ? 80 : index * 80)
                 const active =
-                  segment === item.href?.split('/').slice(1).join('')
-
+                  pathname?.split('/').slice(2).join('') ===
+                  item.href?.split('/').slice(2).join('')
                 return (
                   item.href && (
                     <Link
