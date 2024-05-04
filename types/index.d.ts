@@ -17,15 +17,18 @@ export type HomeConfig = {
   nav: MainNavItem[]
 }
 
-export type StatusVariant = 'planned' | 'ongoing' | 'done' | 'abandoned'
+export type StatusVariant = 'Non Commencé' | 'Encoure' | 'Fini'
 
 export type OrderTableEntry = {
   id: string
-  deadline: string
-  customer: string
-  progress: number
-  subParts: number
-  status: StatusVariant
+  endDate?: string
+  customer: {
+    fullName: string
+    phone: string
+  }
+  progress?: number
+  quantity: number
+  // status: StatusVariant
 }
 
 export type FooterConfig = {
@@ -56,3 +59,5 @@ export type SocialMediaConfig = {
 }
 
 export type Dictionary = Record<string, string>
+
+declare type UserRole = 'admin' | 'sales' | 'production' | 'engineering'

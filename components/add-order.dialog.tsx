@@ -12,56 +12,43 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog'
 
-import { Dictionary } from '@/types'
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { AddOrderForm } from '@/app/(dashboard)/dashboard/timeline/new/add-order-form'
+import { AddOrderForm } from './add-order.form'
 
-interface AddOrderDialogProps {
-  t?: Dictionary
-  params: { id?: string }
-}
+interface AddOrderDialogProps {}
 
-export const AddOrderDialog: React.FC<AddOrderDialogProps> = ({
-  t,
-  params
-}: AddOrderDialogProps) => {
+export const AddOrderDialog: React.FC<
+  AddOrderDialogProps
+> = ({}: AddOrderDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          variant={'outline'}
-          className="flex gap-3 w-fit   text-primary hover:text-primary/80"
+          variant={'default'}
+          className="flex gap-3 w-fit   text-white hover:text-white/80"
         >
           {'Add'}
           <Icons.add className="w-6 h-6 " />
         </Button>
       </DialogTrigger>
-      <DialogContent className="h-[80vh] sm:h-fit container max-w-5xl">
-        <ScrollArea className="h-full p-0">
-          <DialogHeader>
-            <DialogTitle className="flex">Add Order</DialogTitle>
+      <DialogContent className="sm:h-fit container max-w-6xl">
+        <ScrollArea className="h-[75vh] pt-3 pb-7">
+          <DialogHeader className="px-2">
+            <DialogTitle className="flex">Ajouter une commande</DialogTitle>
             <DialogDescription className="flex text-left max-w-4xl">
-              Introducing structured orders enhances clarity, streamlines
-              workflow, and optimizes team efficiency.
+              En cliquant sur 'Ajouter commande', votre commande sera
+              enregistrée en toute sécurité dans notre base de données. Soyez
+              rassuré, vous pourrez modifier les informations de votre commande
+              à tout moment si nécessaire.
             </DialogDescription>
           </DialogHeader>
           {/* start  content */}
-          <div className="pt-8 pb-4">
+          <div className="px-2">
             <AddOrderForm />
           </div>
+
           {/* end content */}
-          <DialogFooter className="sm:justify-start mt-8">
-            <DialogClose asChild>
-              <p className="text-xs text-muted-foreground">
-                Read more about{' '}
-                <Link href={'#'} className="text-primary hover:underline">
-                  orders{' '}
-                </Link>
-                .{' '}
-              </p>
-            </DialogClose>
-          </DialogFooter>
         </ScrollArea>
       </DialogContent>
     </Dialog>

@@ -8,8 +8,11 @@ import Link from 'next/link'
 import { Button, buttonVariants } from './ui/button'
 import { Selector } from './selector'
 import { Limit, OrderBy, limits, orderBys } from '@/config/gantt-chart.config'
-import orders from '@/app/(dashboard)/dashboard/timeline/data.json'
-import { AddOrderDialog } from './add-order.dialog'
+import { z } from 'zod'
+import { OrderSchema } from '@/lib/validations/order'
+import { AddOrderDialog } from '@/components/add-order.dialog'
+import { Alert } from './ui/alert'
+import { toast } from './ui/use-toast'
 
 function calculateDayLength(
   startDateStr: string | null,
@@ -27,7 +30,15 @@ function calculateDayLength(
   return Math.floor(dayDifference) + 1
 }
 
-export function GanttChart({ params }: { params: { id?: string } }) {
+export function GanttChart({
+  data: orders,
+  abilityToAdd = false,
+  abilityToMove = false
+}: {
+  data: z.infer<typeof OrderSchema>[] & { id: string }
+  abilityToAdd: boolean
+  abilityToMove: boolean
+}) {
   const [limit, setLimit] = React.useState<Limit>('10')
 
   const [currentPage, setCurrentPage] = React.useState(0)
@@ -36,11 +47,17 @@ export function GanttChart({ params }: { params: { id?: string } }) {
     orders
       .slice(0, +limit)
       // Sort the orders by start date automatically
-      .sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-      )
+      .sort((a, b) => +a.id!.slice(2) - +b.id!.slice(2))
   )
+
+  React.useEffect(() => {
+    setPage(
+      orders
+        .slice(0, +limit)
+        // Sort the orders by start date automatically
+        .sort((a, b) => +a.id!.slice(2) - +b.id!.slice(2))
+    )
+  }, [orders])
 
   const nextPage = () => setCurrentPage((oldPage) => oldPage + 1)
   const prevPage = () => setCurrentPage((oldPage) => oldPage - 1)
@@ -54,9 +71,7 @@ export function GanttChart({ params }: { params: { id?: string } }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-3 justify-between">
-        <AddOrderDialog params={params} />
-
-        <div className="flex gap-2 items-center ">
+        <div className="flex ml-1 gap-2 items-center ">
           <span className="text-sm text-muted-foreground/60">Limit</span>
           <Selector
             value={limit}
@@ -68,6 +83,7 @@ export function GanttChart({ params }: { params: { id?: string } }) {
             items={limits}
           />
         </div>
+        {abilityToAdd && <AddOrderDialog />}
       </div>
       <div className="w-full h-[500px]">
         <RcGantt
@@ -75,7 +91,7 @@ export function GanttChart({ params }: { params: { id?: string } }) {
           locale={enUS}
           columns={[
             {
-              name: 'title',
+              name: 'id',
               label: 'Order',
               align: 'left',
               render: (record) => {
@@ -86,7 +102,7 @@ export function GanttChart({ params }: { params: { id?: string } }) {
                       className="text-foreground group-hover:underline group-hover:text-primary"
                       href={'orders/' + record.id}
                     >
-                      {record.title}
+                      {record.id}
                     </Link>
                   </div>
                 )
@@ -101,9 +117,27 @@ export function GanttChart({ params }: { params: { id?: string } }) {
             }
           ]}
           scrollTop={true}
+          onBarClick={(e) => false}
           onUpdate={async (record) => {
-            console.log('onUpdate', record)
-            return true
+            if (abilityToMove) {
+              const res = await fetch(`/api/order/production/${record.id}`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  startDate: record.startDate,
+                  endDate: record.endDate,
+                  actualEndDate: record.actualEndDate
+                })
+              })
+              toast({
+                title: 'Success',
+                description: <p>You have successfully update your order. </p>
+              })
+              return true
+            }
+            return false
           }}
           renderLeftText={() => false}
           renderRightText={() => false}

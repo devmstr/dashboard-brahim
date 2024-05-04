@@ -43,12 +43,14 @@ import { useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
 import { Progress } from './progress'
 import { StatusBudge } from './status-badge'
+import { AddOrderDialog } from '@/components/add-order.dialog'
 
 interface OrderTableProps {
   data: OrderTableEntry[]
+  abilityToAdd: boolean
 }
 
-export function OrderTable({ data }: OrderTableProps) {
+export function OrderTable({ data, abilityToAdd = false }: OrderTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [isDeleting, setIsDeleting] = React.useState(false)
@@ -63,20 +65,17 @@ export function OrderTable({ data }: OrderTableProps) {
     table.setPageSize(limit)
   }, [limit])
 
-  //   const api = useClientApi()
   const { refresh } = useRouter()
-  const handleDelete = async (employeeId: string) => {
+
+  const handleDelete = async (orderId: string) => {
     try {
       setIsDeleting(true)
-      //   const { data } = await api.delete('/api/auth/' + employeeId)
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'DELETE'
+      })
       refresh()
     } catch (error) {
-      const axiosError = error as any
-      toast({
-        title: axiosError.response.data.error,
-        description: <p>{axiosError.response.data.message}</p>,
-        variant: 'destructive'
-      })
+      console.log(error)
     } finally {
       setIsDeleting(false)
     }
@@ -91,7 +90,7 @@ export function OrderTable({ data }: OrderTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Order'}
+            {'Commande'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -109,34 +108,56 @@ export function OrderTable({ data }: OrderTableProps) {
       )
     },
     {
-      accessorKey: 'customer',
+      accessorKey: 'customer.fullName',
       header: ({ column }) => {
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Customer ID'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {'Status'}
+            {'Client'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
-      cell: ({ row }) => <StatusBudge variant={row.original.status} />
+      cell: ({ row }) => {
+        const fullName = row.original.customer.fullName
+        return <div className="flex items-center">{fullName}</div>
+      }
     },
+    {
+      accessorKey: 'customer.phone',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {'Tél'}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        const phone = row.original.customer.phone
+        return <div className="flex items-center">{phone}</div>
+      }
+    },
+    // {
+    //   accessorKey: 'status',
+    //   header: ({ column }) => {
+    //     return (
+    //       <div
+    //         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+    //         className=" flex gap-2 hover:text-primary  cursor-pointer "
+    //       >
+    //         {'Statut'}
+    //         <ArrowUpDown className="ml-2 h-4 w-4" />
+    //       </div>
+    //     )
+    //   },
+    //   cell: ({ row }) => <StatusBudge variant={row.original.status} />
+    // },
     {
       accessorKey: 'progress',
       header: ({ column }) => {
@@ -145,59 +166,66 @@ export function OrderTable({ data }: OrderTableProps) {
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Progress'}
+            {'Avancement'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
-      cell: ({ row }) => (
-        <div className="relative flex justify-start gap-1 items-center">
-          <Progress
-            value={row.original.progress}
-            className="h-[0.65rem] max-w-10"
-          />
-          <span
-            className={cn(
-              row.original.progress > 80 && 'text-green-500',
-              row.original.progress <= 80 && 'text-yellow-500',
-              row.original.progress <= 60 && 'text-orange-500',
-              row.original.progress <= 20 && 'text-red-500',
-              row.original.progress == 0 && 'text-gray-500'
-            )}
-          >
-            {row.original.progress + '%'}
-          </span>
-        </div>
-      )
+      cell: ({ row }) => {
+        const progress = row.original.progress || 0
+        const quantity = row.original.quantity || 0
+        const percentage = Math.floor((progress / quantity) * 100)
+        return (
+          <div className="relative flex justify-start gap-1 items-center">
+            <Progress value={percentage} className="h-[0.65rem] max-w-10" />
+            <span
+              className={cn(
+                progress > 80 && 'text-green-500',
+                progress <= 80 && 'text-yellow-500',
+                progress <= 60 && 'text-orange-500',
+                progress <= 20 && 'text-red-500',
+                progress == 0 && 'text-gray-500'
+              )}
+            >
+              {percentage + '%'}
+            </span>
+          </div>
+        )
+      }
     },
     {
-      accessorKey: 'deadline',
+      accessorKey: 'endDate',
       header: ({ column }) => {
         return (
           <div
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Deadline'}
+            {'Délai'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
-      cell: ({ row }) => (
-        <div className="flex items-center">
-          {format(new Date(row.original.deadline || ''), 'dd/MM/yyyy')}
-        </div>
-      )
+      cell: ({ row }) => {
+        const endDate = row.original.endDate
+        return (
+          <div className="flex items-center">
+            {endDate
+              ? format(new Date(endDate), 'dd/MM/yyyy')
+              : 'Non Déterminé'}
+          </div>
+        )
+      }
     },
     {
-      accessorKey: 'subParts',
+      accessorKey: 'quantity',
       header: ({ column }) => {
         return (
           <div
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Components'}
+            {'Quantité'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -265,76 +293,79 @@ export function OrderTable({ data }: OrderTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-4">
-        <Input
-          placeholder="Search by name or email or department..."
-          value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
-          onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
-          className="max-w-sm"
-        />
-        <div className="hidden md:flex gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="ml-auto text-muted-foreground hover:text-foreground"
-              >
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize text-muted-foreground hover:text-foreground "
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  )
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="
+      <div className="flex items-center justify-between pb-4">
+        <div className="flex gap-3">
+          <Input
+            placeholder="Search by Id or Customer..."
+            value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
+            onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
+            className="w-80"
+          />
+          <div className="hidden md:flex gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="ml-auto text-muted-foreground hover:text-foreground"
+                >
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize text-muted-foreground hover:text-foreground "
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="
                 text-muted-foreground hover:text-foreground
               "
-              >
-                Limit ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="">
-              <DropdownMenuSeparator />
-              <DropdownMenuRadioGroup
-                value={limit.toString()}
-                onValueChange={(value) => setLimit(parseInt(value))}
-              >
-                {['10', '25', '50', '100'].map((value) => (
-                  <DropdownMenuRadioItem
-                    className={cn(
-                      'text-muted-foreground font-medium hover:text-primary',
-                      limit === parseInt(value) && 'text-primary'
-                    )}
-                    key={value}
-                    value={value}
-                  >
-                    {value}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                >
+                  Limit ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="">
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={limit.toString()}
+                  onValueChange={(value) => setLimit(parseInt(value))}
+                >
+                  {['10', '25', '50', '100'].map((value) => (
+                    <DropdownMenuRadioItem
+                      className={cn(
+                        'text-muted-foreground font-medium hover:text-primary',
+                        limit === parseInt(value) && 'text-primary'
+                      )}
+                      key={value}
+                      value={value}
+                    >
+                      {value}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
+        {abilityToAdd && <AddOrderDialog />}
       </div>
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
@@ -348,7 +379,7 @@ export function OrderTable({ data }: OrderTableProps) {
                       className={cn(
                         'px-2 py-1 whitespace-nowrap',
                         header.id === 'customer' && 'hidden sm:table-cell',
-                        header.id === 'status' && 'hidden md:table-cell',
+                        // header.id === 'status' && 'hidden md:table-cell',
                         header.id === 'subParts' && 'hidden md:table-cell',
                         header.id === 'deadline' && 'hidden md:table-cell'
                       )}

@@ -27,6 +27,7 @@ import {
   Languages,
   Bell,
   ListEnd,
+  Eye,
   Menu,
   PlusCircleIcon,
   Pencil,
@@ -34,7 +35,11 @@ import {
   Ban,
   CheckCircle,
   Clock,
-  RotateCw
+  RotateCw,
+  LucideProps,
+  EyeOff,
+  Users,
+  UserRoundPlus
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackageCheck } from 'react-icons/lu'
@@ -44,6 +49,15 @@ import { cn } from '@/lib/utils'
 export type Icon = LucideIcon
 
 export const Icons = {
+  eye: (
+    props: LucideProps & {
+      open?: boolean
+    }
+  ) => {
+    if (props.open) return <Eye {...props} />
+    return <EyeOff {...props} />
+  },
+  users: UserRoundPlus,
   add: PlusCircleIcon,
   edit: Pencil,
   package: LuPackageCheck,
@@ -53,7 +67,6 @@ export const Icons = {
   orders: List,
   dashboard: GanttChartSquare,
   user: FaUser,
-
   mail: Mail,
   dropdown: ChevronDown,
   languages: Languages,

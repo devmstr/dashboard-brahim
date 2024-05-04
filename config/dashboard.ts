@@ -2,7 +2,6 @@ import { NavItem, SidebarNavItem } from '@/types'
 
 export const EmployeeDashboardConfig: {
   sidebar: SidebarNavItem[]
-  pages: Record<string, NavItem[]>
 } = {
   sidebar: [
     {
@@ -16,26 +15,9 @@ export const EmployeeDashboardConfig: {
       icon: 'orders'
     },
     {
-      title: 'Components',
-      href: '/dashboard/components',
-      icon: 'details'
+      title: 'Ajouter',
+      href: '/dashboard/employees',
+      icon: 'users'
     }
-    // {
-    //   title: 'Notifications',
-    //   href: '/dashboard/notification',
-    //   icon: 'notification'
-    // }
-  ],
-  pages: {
-    orders: [
-      {
-        title: 'All',
-        href: '/orders'
-      },
-      {
-        title: 'Status',
-        href: '/orders/status'
-      }
-    ]
-  }
+  ]
 }

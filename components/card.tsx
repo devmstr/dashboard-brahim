@@ -24,7 +24,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card = ({ children, className }: CardProps) => (
   <div
     className={cn(
-      'w-full bg-white px-3 sm:px-3 md:px-4 lg:px-5 py-8 rounded-lg shadow-sm',
+      'w-full bg-white px-3 sm:px-3 md:px-4 lg:px-5 pt-8 pb-4 rounded-lg drop-shadow-md',
       className
     )}
   >
@@ -49,7 +49,7 @@ export const CardGrid = ({ children, className }: CardGridProps) => (
 interface CardDividerProps extends React.HTMLAttributes<HTMLDivElement> {}
 export const CardDivider = ({ children, className }: CardDividerProps) => (
   <div className={'flex flex-col gap-4'}>
-    <div className="w-full h-[1px] bg-gray-200/60 " />
+    <div className="w-full h-[1px] bg-gray-200/60 mt-7 " />
     <div className={cn('w-full flex justify-end gap-4', className)}>
       {children}
     </div>

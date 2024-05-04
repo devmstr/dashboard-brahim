@@ -13,12 +13,12 @@ type SiteConfig = {
 }
 
 export const siteConfig: SiteConfig = {
-  name: 'Brahim Admin',
+  name: 'Product Management System',
   description: 'Cloud-based HCM SasS Application',
-  url: 'https://perfectassesspro.com',
+  url: '#',
   authors: [
     {
-      name: 'DevMSTR',
+      name: 'Dev_MSTR',
       emails: [
         'contact@ismailsahli.me',
         'mohamed.ismail.sahli@gmail.com',
