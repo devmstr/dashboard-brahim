@@ -6,6 +6,7 @@ import { User } from 'next-auth'
 import { ROLES } from '@/config/accounts'
 import { CopyMinus } from 'lucide-react'
 import { JWT } from 'next-auth/jwt'
+import { UserRole } from '@/types'
 
 export const authOptions: AuthOptions = {
   // Configure one or more authentication providers
@@ -37,7 +38,7 @@ export const authOptions: AuthOptions = {
             credentials.password === password &&
             credentials.username === user.name
           )
-            return { sub: user.id, ...user }
+            return { ...user, sub: user.id, role: user.role as UserRole }
           else throw new Error('Wrong Credentials')
         } catch (error) {
           console.log(error)
@@ -75,7 +76,7 @@ export const authOptions: AuthOptions = {
                 role: credentials.role
               }
             })
-          return user
+          return { ...user, sub: user.id, role: user.role as UserRole }
         } catch (error) {
           console.log(error)
           return null
