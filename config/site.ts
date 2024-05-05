@@ -13,8 +13,8 @@ type SiteConfig = {
 }
 
 export const siteConfig: SiteConfig = {
-  name: 'Product Management System',
-  description: 'Cloud-based HCM SasS Application',
+  name: 'Système de Gestion de Produit',
+  description: '',
   url: '#',
   authors: [
     {
