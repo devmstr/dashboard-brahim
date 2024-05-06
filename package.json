@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npx prisma migrate deploy",
+    "prebuild": "npx prisma migrate deploy & npx prisma generate",
     "build": "next build",
     "postbuild": "node ./scripts/on-boarding",
     "start": "next start",
