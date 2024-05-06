@@ -28,6 +28,10 @@ type FormData = z.infer<typeof userLoginSchema>
 
 export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
   const form = useForm<FormData>({
+    defaultValues: {
+      name: 'admin',
+      password: 'Admin1234'
+    },
     resolver: zodResolver(userLoginSchema)
   })
   const [isLoading, setIsLoading] = React.useState<boolean>(false)

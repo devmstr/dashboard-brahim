@@ -5,14 +5,14 @@ interface StatusBudgeProps {
   variant?: FrenchStatusNames
 }
 
-type FrenchStatusNames = 'Annuler' | 'Non Commence' | 'Encoure' | 'Fini'
+type FrenchStatusNames = 'Annuler' | 'Non Commence' | 'Encours' | 'Fini'
 const getStatusIcon = (variant: FrenchStatusNames) => {
   switch (variant) {
     case 'Annuler':
       return 'abandoned'
     case 'Non Commence':
       return 'planned'
-    case 'Encoure':
+    case 'Encours':
       return 'ongoing'
     case 'Fini':
       return 'done'
@@ -31,7 +31,7 @@ export const StatusBudge: React.FC<StatusBudgeProps> = ({
         className={cn(
           variant == 'Non Commence' &&
             'bg-[#d9f5fd] text-[#0967b9] rounded-full capitalize',
-          variant == 'Encoure' &&
+          variant == 'Encours' &&
             'bg-[#feefcb] text-[#8f500d] rounded-full capitalize',
           variant == 'Fini' &&
             'bg-[#e9f5ce] text-[#447003] rounded-full capitalize',

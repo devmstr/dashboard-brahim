@@ -24,7 +24,7 @@ export type OrderTableEntry = {
     fullName: string
     phone: string
   }
-  status: 'Annuler' | 'Non Commence' | 'Encoure' | 'Fini'
+  status: 'Annuler' | 'Non Commence' | 'Encours' | 'Fini'
   progress?: number
   quantity: number
 }
