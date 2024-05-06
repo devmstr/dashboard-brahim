@@ -64,6 +64,7 @@ export async function PATCH(req: Request, params: { params: Params }) {
         price: +orderData.price!,
         deposit: +orderData.deposit!,
         remaining: +orderData.remaining!,
+        status: orderData.status,
         Technical: {
           create: {
             ...technical,

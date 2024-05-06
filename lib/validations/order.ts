@@ -2,7 +2,10 @@ import * as z from 'zod'
 
 const Customer = z.object({
   fullName: z.string().optional(),
-  phone: z.string()
+  phone: z
+    .string()
+    .min(9, { message: 'A phone should be at least 9 digits' })
+    .max(10, { message: 'A phone should be at most 10 digits' })
 })
 
 const TechnicalDetails = z.object({
@@ -20,16 +23,17 @@ const TechnicalDetails = z.object({
 export const OrderSchema = z.object({
   id: z.string().optional(),
   serialNumber: z.string().optional(),
+  status: z.string().optional(),
   receivingDate: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   actualEndDate: z.string().optional(),
-  quantity: z.number().positive(),
-  price: z.number().positive(),
-  deposit: z.number().positive(),
-  remaining: z.number().positive(),
+  quantity: z.string().optional(),
+  price: z.string().optional(),
+  deposit: z.string().optional(),
+  remaining: z.string().optional(),
   customer: Customer,
-  progress: z.number().positive(),
+  progress: z.string().optional(),
   technical: TechnicalDetails
 })
 
@@ -41,6 +45,7 @@ export const OrderCommercialView = z.object({
   price: z.string().optional(),
   deposit: z.string().optional(),
   remaining: z.string().optional(),
+  status: z.string().optional(),
   customer: Customer,
   technical: TechnicalDetails
 })
@@ -54,9 +59,10 @@ export const OrderTechnicalView = z.object({
 export const OrderProductionView = z.object({
   id: z.string().optional(),
   startDate: z.string().optional(),
+  status: z.string().optional(),
   endDate: z.string().optional(),
   actualEndDate: z.string().optional(),
-  quantity: z.number().positive(),
-  progress: z.number().positive(),
+  quantity: z.number().min(0),
+  progress: z.number().min(0),
   technical: TechnicalDetails
 })

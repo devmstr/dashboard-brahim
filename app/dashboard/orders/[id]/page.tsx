@@ -2,7 +2,6 @@ import { Card } from '@/components/card'
 import { OrderTechnicianEditForm } from './technician'
 import { OrderProductionEditForm } from './production'
 import { OrderCommercialEditForm } from './commercial.form'
-import data from '../data.json'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { ROLES } from '@/config/accounts'
@@ -34,8 +33,14 @@ const getData = async (id: string) => {
 const Page: React.FC<PageProps> = async ({ params: { id } }: PageProps) => {
   const session = await getServerSession(authOptions)
   const data = await getData(id)
+  console.log(data)
   return (
     <Card className="">
+      <div className="w-full flex justify-end select-none">
+        <span className="w-fit text-4xl font-extrabold text-gray-400/30">
+          {id}
+        </span>
+      </div>
       {session?.user?.role == ROLES.PRODUCTION && (
         <OrderProductionEditForm data={data} />
       )}

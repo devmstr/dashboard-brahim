@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "pre:build": "npx prisma migrate deploy",
-    "build": "npm run pre:build & next build",
+    "prebuild": "npx prisma migrate deploy",
+    "build": "next build",
+    "postbuild": "node ./scripts/on-boarding",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:local": "next dev -H 0.0.0.0"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",
@@ -15,6 +17,7 @@
     "@internationalized/date": "^3.5.1",
     "@next-auth/prisma-adapter": "^0.4.4-canary.81",
     "@prisma/client": "^5.13.0",
+    "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -60,6 +63,7 @@
     "postcss": "^8.4.34",
     "prisma": "^5.13.0",
     "tailwindcss": "^3.3.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

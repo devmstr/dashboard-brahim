@@ -39,7 +39,7 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
       case 'Commerciale':
         return 'sales'
       case 'Production':
-        return 'sales'
+        return 'production'
       case 'Technicien':
         return 'engineering'
     }

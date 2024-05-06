@@ -16,11 +16,13 @@ import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AddOrderForm } from './add-order.form'
 
-interface AddOrderDialogProps {}
+interface AddOrderDialogProps {
+  id: string
+}
 
-export const AddOrderDialog: React.FC<
-  AddOrderDialogProps
-> = ({}: AddOrderDialogProps) => {
+export const AddOrderDialog: React.FC<AddOrderDialogProps> = ({
+  id
+}: AddOrderDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -45,9 +47,8 @@ export const AddOrderDialog: React.FC<
           </DialogHeader>
           {/* start  content */}
           <div className="px-2">
-            <AddOrderForm />
+            <AddOrderForm id={id} />
           </div>
-
           {/* end content */}
         </ScrollArea>
       </DialogContent>

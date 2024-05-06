@@ -33,9 +33,9 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
       icon: 'users'
     })
   return (
-    <div className={cn('bg-gray-50 bg-opacity-90 flex')}>
+    <div className={cn('bg-gray-50 min-h-[93vh] bg-opacity-90 flex')}>
       <DashboardSidebar items={sideBarNavItems} />
-      <div className="relative container py-10 left-0 flex flex-col w-full ">
+      <div className="relative container py-10  left-0 flex flex-col w-full ">
         {children}
       </div>
     </div>

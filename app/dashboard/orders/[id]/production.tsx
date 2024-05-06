@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
-import { ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
+import { ORDER_STATUS, ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
 import { cn } from '@/lib/utils'
 import {
   OrderCommercialView,
@@ -76,6 +76,7 @@ export const OrderProductionEditForm: React.FC<
         body: JSON.stringify(productionData)
       })
       router.refresh()
+      router.back()
       toast({
         title: 'Success',
         description: <p>You have successfully update your order. </p>
@@ -94,6 +95,7 @@ export const OrderProductionEditForm: React.FC<
   const pas = form.watch('technical.pas')
   const progress = form.watch('progress')
   const quantity = form.watch('quantity')
+  const status = form.watch('status')
 
   return (
     <Form {...form}>
@@ -101,7 +103,7 @@ export const OrderProductionEditForm: React.FC<
         <div className="pt-3 flex text-xl gap-1  ">
           <strong className="text-gray-400/30">Avancement</strong>{' '}
         </div>
-        <CardGrid>
+        <div className="flex gap-3">
           <FormField
             control={form.control}
             name="progress"
@@ -144,7 +146,25 @@ export const OrderProductionEditForm: React.FC<
               </FormItem>
             )}
           />
-        </CardGrid>
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem className="w-56">
+                <FormLabel>Statut</FormLabel>
+                <FormControl>
+                  <Selector
+                    {...field}
+                    items={ORDER_STATUS}
+                    setValue={(value) => form.setValue('status', value)}
+                    value={status || ORDER_STATUS[0]}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <CardGrid>
           <FormField
             control={form.control}

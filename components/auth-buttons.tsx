@@ -14,8 +14,8 @@ export const AuthButtons: React.FC<
   return (
     <div>
       <Button
-        variant={'ghost'}
-        className="text-white"
+        variant={'outline'}
+        className="text-white bg-primary border-[1.5px]"
         onClick={(e) => signOut()}
       >
         Sortir

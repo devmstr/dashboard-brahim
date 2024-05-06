@@ -1,29 +1,43 @@
 import { cn } from '@/lib/utils'
 import { Icons } from './icons'
-import { StatusVariant } from '@/types'
 
 interface StatusBudgeProps {
-  variant?: StatusVariant
+  variant?: FrenchStatusNames
 }
-const StatusIconName = {
-  'Non Commencé': 'planned',
-  Encoure: 'ongoing',
-  Fini: 'done'
+
+type FrenchStatusNames = 'Annuler' | 'Non Commence' | 'Encoure' | 'Fini'
+const getStatusIcon = (variant: FrenchStatusNames) => {
+  switch (variant) {
+    case 'Annuler':
+      return 'abandoned'
+    case 'Non Commence':
+      return 'planned'
+    case 'Encoure':
+      return 'ongoing'
+    case 'Fini':
+      return 'done'
+  }
 }
 
 export const StatusBudge: React.FC<StatusBudgeProps> = ({
-  variant = 'Non Commencé'
+  variant
 }: StatusBudgeProps) => {
   const Icon =
-    Icons[StatusIconName[variant] as keyof typeof Icons] || Icons['close']
+    Icons[getStatusIcon(variant as FrenchStatusNames) as keyof typeof Icons] ||
+    Icons['close']
   return (
     <div className="flex items-center">
       <div
         className={cn(
-          variant == 'Non Commencé' && 'bg-[#f5f6f7] text-[#686868]',
-          variant == 'Encoure' && 'bg-[#feefcb] text-[#8f500d]',
-          variant == 'Fini' && 'bg-[#e9f5ce] text-[#447003]',
-          'h-5 pl-1 pr-2 flex gap-1 w-fit text-md rounded-full capitalize'
+          variant == 'Non Commence' &&
+            'bg-[#d9f5fd] text-[#0967b9] rounded-full capitalize',
+          variant == 'Encoure' &&
+            'bg-[#feefcb] text-[#8f500d] rounded-full capitalize',
+          variant == 'Fini' &&
+            'bg-[#e9f5ce] text-[#447003] rounded-full capitalize',
+          'h-5 pl-1 pr-2 flex gap-1 w-fit text-md rounded-full capitalize',
+          variant == 'Annuler' &&
+            'bg-[#f5f6f7] text-[#686868]  rounded-full capitalize'
         )}
       >
         <Icon className="w-auto h-full p-[0.15rem]" /> {variant}

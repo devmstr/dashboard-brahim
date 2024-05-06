@@ -37,20 +37,26 @@ import {
 import Link from 'next/link'
 import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { OrderTableEntry, StatusVariant } from '@/types'
+import { OrderTableEntry } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
 import { Progress } from './progress'
 import { StatusBudge } from './status-badge'
 import { AddOrderDialog } from '@/components/add-order.dialog'
+import { OrderTableActions } from './order-table-actions'
 
 interface OrderTableProps {
   data: OrderTableEntry[]
   abilityToAdd: boolean
+  newUserId: string
 }
 
-export function OrderTable({ data, abilityToAdd = false }: OrderTableProps) {
+export function OrderTable({
+  data,
+  abilityToAdd = false,
+  newUserId
+}: OrderTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [isDeleting, setIsDeleting] = React.useState(false)
@@ -143,21 +149,21 @@ export function OrderTable({ data, abilityToAdd = false }: OrderTableProps) {
         return <div className="flex items-center">{phone}</div>
       }
     },
-    // {
-    //   accessorKey: 'status',
-    //   header: ({ column }) => {
-    //     return (
-    //       <div
-    //         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-    //         className=" flex gap-2 hover:text-primary  cursor-pointer "
-    //       >
-    //         {'Statut'}
-    //         <ArrowUpDown className="ml-2 h-4 w-4" />
-    //       </div>
-    //     )
-    //   },
-    //   cell: ({ row }) => <StatusBudge variant={row.original.status} />
-    // },
+    {
+      accessorKey: 'status',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {'Statut'}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => <StatusBudge variant={row.original.status} />
+    },
     {
       accessorKey: 'progress',
       header: ({ column }) => {
@@ -234,37 +240,7 @@ export function OrderTable({ data, abilityToAdd = false }: OrderTableProps) {
     {
       id: 'actions',
       enableHiding: false,
-      cell: ({ row }) => {
-        const orderId = row.original.id
-        return (
-          <div className="flex gap-4 text-gray-500 justify-start md:justify-end items-center">
-            <Button
-              onClick={() => {
-                setDeletingId(orderId)
-                handleDelete(orderId)
-              }}
-              variant={'ghost'}
-              className={cn('hover:text-red-500')}
-              disabled={isDeleting}
-            >
-              {isDeleting && deletingId == orderId ? (
-                <Icons.spinner className="w-4 h-4 animate-spin text-red-500 " />
-              ) : (
-                <Icons.trash className="w-[1.15rem] h-[1.15rem]" />
-              )}
-            </Button>
-            <Link
-              className={cn(
-                buttonVariants({ variant: 'ghost' }),
-                'hover:text-primary'
-              )}
-              href={'/dashboard/orders/' + orderId}
-            >
-              <Icons.edit className="w-[1.15rem] h-[1.15rem]   " />
-            </Link>
-          </div>
-        )
-      }
+      cell: ({ row }) => <OrderTableActions id={row.original.id} />
     }
   ]
 
@@ -365,7 +341,7 @@ export function OrderTable({ data, abilityToAdd = false }: OrderTableProps) {
             </DropdownMenu>
           </div>
         </div>
-        {abilityToAdd && <AddOrderDialog />}
+        {abilityToAdd && <AddOrderDialog id={newUserId} />}
       </div>
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
@@ -379,7 +355,7 @@ export function OrderTable({ data, abilityToAdd = false }: OrderTableProps) {
                       className={cn(
                         'px-2 py-1 whitespace-nowrap',
                         header.id === 'customer' && 'hidden sm:table-cell',
-                        // header.id === 'status' && 'hidden md:table-cell',
+                        header.id === 'status' && 'hidden md:table-cell',
                         header.id === 'subParts' && 'hidden md:table-cell',
                         header.id === 'deadline' && 'hidden md:table-cell'
                       )}

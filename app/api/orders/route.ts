@@ -2,22 +2,9 @@ import { NextApiRequest } from 'next'
 import db from '@/lib/db'
 import { z } from 'zod'
 import { OrderSchema } from '@/lib/validations/order'
-import { Order } from '@prisma/client'
 import { truncate } from 'lodash'
-
-async function coid() {
-  const currentYear = new Date().getUTCFullYear()
-  const lastOrder = await db.order.findFirst({
-    orderBy: {
-      id: 'desc'
-    }
-  })
-  const orderNumber = parseInt(lastOrder?.id.slice(3)!) + 1
-  const id = `${currentYear.toString().slice(2)}-${orderNumber
-    .toString()
-    .padStart(4, '0')}`
-  return id
-}
+import { Order } from '@prisma/client'
+import { coid } from '@/lib/utils'
 
 type FullOrder = z.infer<typeof OrderSchema>
 
@@ -48,13 +35,14 @@ export async function POST(request: Request) {
       (await request.json()) as FullOrder
     const order = await db.order.create({
       data: {
-        id: await coid(),
+        id: await coid(db),
         serialNumber: orderData.serialNumber,
         receivingDate: new Date(orderData.receivingDate!),
         quantity: +orderData.quantity!,
         price: +orderData.price!,
         deposit: +orderData.deposit!,
         remaining: +orderData.remaining!,
+        status: orderData.status,
         Technical: {
           create: {
             ...technical,

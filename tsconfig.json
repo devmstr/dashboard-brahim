@@ -31,7 +31,10 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "i18n.ts",
-    "env.mjs"
+    "env.mjs",
+    "scripts/on-boarding.js",
+    "scripts/add-default-user.mjs",
+    "scripts/on-boarding.js"
   ],
   "exclude": ["node_modules"]
 }

@@ -4,7 +4,8 @@ import React from 'react'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { OrderTableEntry } from '@/types'
-
+import { coid } from '@/lib/utils'
+import db from '@/lib/db'
 interface PageProps {}
 
 const getData = async () => {
@@ -27,9 +28,11 @@ const Page: React.FC<PageProps> = async () => {
   // await for 1 second to simulate loading
   const session = await getServerSession(authOptions)
   const data = await getData()
+  const newOrderId = await coid(db)
   return (
     <Card className="">
       <GanttChart
+        newOrderId={newOrderId}
         abilityToMove={
           session?.user?.role === 'production' ||
           session?.user?.role === 'admin'

@@ -17,8 +17,6 @@ export type HomeConfig = {
   nav: MainNavItem[]
 }
 
-export type StatusVariant = 'Non Commencé' | 'Encoure' | 'Fini'
-
 export type OrderTableEntry = {
   id: string
   endDate?: string
@@ -26,9 +24,9 @@ export type OrderTableEntry = {
     fullName: string
     phone: string
   }
+  status: 'Annuler' | 'Non Commence' | 'Encoure' | 'Fini'
   progress?: number
   quantity: number
-  // status: StatusVariant
 }
 
 export type FooterConfig = {

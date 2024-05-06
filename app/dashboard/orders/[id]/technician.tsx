@@ -76,6 +76,7 @@ export const OrderTechnicianEditForm: React.FC<
       })
 
       router.refresh()
+      router.back()
     } catch (error) {
       const axiosError = error as any
       toast({

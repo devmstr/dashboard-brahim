@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
-import { ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
+import { ORDER_STATUS, ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
 import { cn } from '@/lib/utils'
 import { OrderCommercialView } from '@/lib/validations/order'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -45,7 +45,9 @@ export const OrderCommercialEditForm: React.FC<
       price: data?.price?.toString(),
       deposit: data?.deposit?.toString(),
       remaining: data?.remaining?.toString(),
+      status: data?.status,
       technical: {
+        type: data?.technical.type || '',
         brand: data?.technical.brand || '',
         model: data?.technical.model || '',
         pas: +data?.technical.pas! || 8,
@@ -69,12 +71,12 @@ export const OrderCommercialEditForm: React.FC<
         },
         body: JSON.stringify(formData)
       })
-      console.info(await res.json())
       toast({
         title: 'Success!',
         description: <p>You have successfully update your order. </p>
       })
       router.refresh()
+      router.back()
     } catch (error) {
       console.info(error)
     } finally {
@@ -88,6 +90,7 @@ export const OrderCommercialEditForm: React.FC<
   const price = form.watch('price')
   const deposit = form.watch('deposit')
   const remaining = form.watch('remaining')
+  const status = form.watch('status')
 
   function calculateRemaining() {
     if (price && deposit) if (+deposit < +price) return `${+price - +deposit}`
@@ -367,6 +370,24 @@ export const OrderCommercialEditForm: React.FC<
                     onFocus={(e) =>
                       form.setValue('remaining', calculateRemaining())
                     }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut</FormLabel>
+                <FormControl>
+                  <Selector
+                    {...field}
+                    items={ORDER_STATUS}
+                    setValue={(value) => form.setValue('status', value)}
+                    value={status || ORDER_STATUS[0]}
                   />
                 </FormControl>
                 <FormMessage />

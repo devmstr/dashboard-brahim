@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
 import { ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
 import { cn } from '@/lib/utils'
-import { OrderCommercialView } from '@/lib/validations/order'
+import { OrderCommercialView, OrderSchema } from '@/lib/validations/order'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Erica_One } from 'next/font/google'
 import Link from 'next/link'
@@ -28,21 +28,28 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-type FormData = z.infer<typeof OrderCommercialView>
+type FormData = z.infer<typeof OrderSchema>
 
-interface AddOrderFormProps {}
+interface AddOrderFormProps {
+  id: string
+}
 
-export const AddOrderForm: React.FC<
-  AddOrderFormProps
-> = ({}: AddOrderFormProps) => {
+export const AddOrderForm: React.FC<AddOrderFormProps> = ({
+  id
+}: AddOrderFormProps) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [isCustomModel, setIsCustomModel] = React.useState<boolean>(false)
   const form = useForm<FormData>({
     defaultValues: {
+      id,
       quantity: '1',
       price: '0',
       deposit: '0',
       remaining: '0',
+      status: 'Non Commence',
+      receivingDate: new Date().toISOString(),
+      startDate: new Date().toISOString(),
+      endDate: new Date().toISOString(),
       technical: {
         pas: PAS_TYPES[0],
         type: ORDER_TYPES[0],
@@ -53,7 +60,7 @@ export const AddOrderForm: React.FC<
         lar2: '0'
       }
     },
-    resolver: zodResolver(OrderCommercialView)
+    resolver: zodResolver(OrderSchema)
   })
   const router = useRouter()
   async function onSubmit(formData: FormData) {
@@ -289,6 +296,19 @@ export const AddOrderForm: React.FC<
           <strong className="text-gray-400/30">Détail Commande</strong>{' '}
         </div>
         <CardGrid>
+          <FormField
+            control={form.control}
+            name="id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>ID De Commande</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder={id} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="receivingDate"

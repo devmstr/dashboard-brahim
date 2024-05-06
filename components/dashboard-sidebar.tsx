@@ -22,7 +22,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   items
 }: DashboardSidebarProps) => {
   const pathname = usePathname()
-  const [showSidebar, setShowSidebar] = React.useState(false)
+  const [showSidebar, setShowSidebar] = React.useState(true)
   return (
     <div
       className={cn(

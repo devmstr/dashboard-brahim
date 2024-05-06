@@ -33,11 +33,13 @@ function calculateDayLength(
 export function GanttChart({
   data: orders,
   abilityToAdd = false,
-  abilityToMove = false
+  abilityToMove = false,
+  newOrderId
 }: {
   data: z.infer<typeof OrderSchema>[] & { id: string }
   abilityToAdd: boolean
   abilityToMove: boolean
+  newOrderId: string
 }) {
   const [limit, setLimit] = React.useState<Limit>('10')
 
@@ -83,7 +85,7 @@ export function GanttChart({
             items={limits}
           />
         </div>
-        {abilityToAdd && <AddOrderDialog />}
+        {abilityToAdd && <AddOrderDialog id={newOrderId} />}
       </div>
       <div className="w-full h-[500px]">
         <RcGantt
@@ -153,8 +155,8 @@ export function GanttChart({
               }}
             >
               {calculateDayLength(
-                barInfo.task.startDate,
-                barInfo.task.endDate
+                barInfo.record.startDate ?? '',
+                barInfo.record.endDate ?? ''
               ) + ' Days'}
             </div>
           )}
