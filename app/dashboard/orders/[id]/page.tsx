@@ -33,7 +33,6 @@ const getData = async (id: string) => {
 const Page: React.FC<PageProps> = async ({ params: { id } }: PageProps) => {
   const session = await getServerSession(authOptions)
   const data = await getData(id)
-  console.log(data)
   return (
     <Card className="">
       <div className="w-full flex justify-end select-none">

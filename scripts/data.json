@@ -3,6 +3,7 @@
     "id": "24-0299",
     "startDate": "2024-05-05T12:00:00Z",
     "endDate": "2024-05-17T12:00:00Z",
+    "actualEnd": "2024-05-17T12:00:00Z",
     "customer": {
       "fullName": "Acme Corporation",
       "phone": "0665763539"
@@ -15,6 +16,7 @@
     "id": "24-0300",
     "startDate": "2024-05-05T12:00:00Z",
     "endDate": "2024-05-16T12:00:00Z",
+    "actualEnd": "2024-05-16T12:00:00Z",
     "customer": {
       "fullName": "Acme Corporation",
       "phone": "0665763542"
@@ -27,18 +29,20 @@
     "id": "24-0301",
     "startDate": "2024-05-09T12:00:00Z",
     "endDate": "2024-05-25T12:00:00Z",
+    "actualEnd": "2024-05-25T12:00:00Z",
     "customer": {
       "fullName": "Acme Corporation",
       "phone": "0665763544"
     },
     "progress": 18,
     "quantity": 22,
-    "status": "Encoure"
+    "status": "Encours"
   },
   {
     "id": "24-0302",
     "startDate": "2024-05-05T12:00:00Z",
     "endDate": "2024-05-08T12:00:00Z",
+    "actualEnd": "2024-05-08T12:00:00Z",
     "customer": {
       "fullName": "Acme Corporation",
       "phone": "0665763546"
@@ -51,6 +55,7 @@
     "id": "24-0303",
     "startDate": "2024-05-08T12:00:00Z",
     "endDate": "2024-05-15T12:00:00Z",
+    "actualEnd": "2024-05-15T12:00:00Z",
     "customer": {
       "fullName": "Beta Enterprises",
       "phone": "0688432510"
@@ -63,6 +68,7 @@
     "id": "24-0304",
     "startDate": "2024-05-14T12:00:00Z",
     "endDate": "2024-05-18T12:00:00Z",
+    "actualEnd": "2024-05-18T12:00:00Z",
     "customer": {
       "fullName": "Gamma Solutions",
       "phone": "0645987123"
@@ -75,6 +81,7 @@
     "id": "24-0305",
     "startDate": "2024-05-12T12:00:00Z",
     "endDate": "2024-05-22T12:00:00Z",
+    "actualEnd": "2024-05-22T12:00:00Z",
     "customer": {
       "fullName": "Delta Corp",
       "phone": "0678123590"
@@ -87,6 +94,7 @@
     "id": "24-0306",
     "startDate": "2024-05-11T12:00:00Z",
     "endDate": "2024-05-13T12:00:00Z",
+    "actualEnd": "2024-05-13T12:00:00Z",
     "customer": {
       "fullName": "Epsilon Ltd",
       "phone": "0695321480"
@@ -99,6 +107,7 @@
     "id": "24-0307",
     "startDate": "2024-05-03T12:00:00Z",
     "endDate": "2024-05-09T12:00:00Z",
+    "actualEnd": "2024-05-09T12:00:00Z",
     "customer": {
       "fullName": "Zeta Inc.",
       "phone": "0657894321"
@@ -111,6 +120,7 @@
     "id": "24-0308",
     "startDate": "2024-05-01T12:00:00Z",
     "endDate": "2024-05-08T12:00:00Z",
+    "actualEnd": "2024-05-08T12:00:00Z",
     "customer": {
       "fullName": "Eta Services",
       "phone": "0665432198"
@@ -123,6 +133,7 @@
     "id": "24-0309",
     "startDate": "2024-05-08T12:00:00Z",
     "endDate": "2024-05-10T12:00:00Z",
+    "actualEnd": "2024-05-10T12:00:00Z",
     "customer": {
       "fullName": "Theta Technologies",
       "phone": "0687654321"
@@ -135,6 +146,7 @@
     "id": "24-0310",
     "startDate": "2024-05-05T12:00:00Z",
     "endDate": "2024-05-08T12:00:00Z",
+    "actualEnd": "2024-05-08T12:00:00Z",
     "customer": {
       "fullName": "Iota Productions",
       "phone": "0656789342"

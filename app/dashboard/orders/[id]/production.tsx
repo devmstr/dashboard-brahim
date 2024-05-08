@@ -50,14 +50,14 @@ export const OrderProductionEditForm: React.FC<
       actualEndDate:
         data?.actualEndDate || new Date(Date.now() + 86400000).toString(),
       technical: {
-        brand: data?.technical.brand || '',
-        model: data?.technical.model || '',
-        pas: +data?.technical.pas! || 8,
-        nr: data?.technical.nr?.toString() || '',
-        ec: data?.technical.ec?.toString() || '',
-        lar1: data?.technical.lar1?.toString() || '',
-        lon: data?.technical.lon?.toString() || '',
-        lar2: data?.technical.lar2?.toString() || ''
+        brand: data?.technical?.brand || '',
+        model: data?.technical?.model || '',
+        pas: +data?.technical?.pas! || 8,
+        nr: data?.technical?.nr?.toString() || '',
+        ec: data?.technical?.ec?.toString() || '',
+        lar1: data?.technical?.lar1?.toString() || '',
+        lon: data?.technical?.lon?.toString() || '',
+        lar2: data?.technical?.lar2?.toString() || ''
       }
     },
     resolver: zodResolver(OrderProductionView)
@@ -68,6 +68,23 @@ export const OrderProductionEditForm: React.FC<
     try {
       setIsLoading(true)
       const { technical, quantity, ...productionData } = formData
+      if (
+        new Date(startDate!).getTime() > new Date(actualEndDate!).getTime() ||
+        new Date(startDate!).getTime() > new Date(endDate!).getTime()
+      ) {
+        toast({
+          title: 'Conflict',
+          description: (
+            <p>
+              Wrong dates input! deadline and actual end date should be bigger
+              than start date{' '}
+            </p>
+          ),
+          variant: 'destructive'
+        })
+        return
+      }
+
       const res = await fetch(`/api/order/production/${data?.id}`, {
         method: 'PATCH',
         headers: {

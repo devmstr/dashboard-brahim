@@ -1,34 +1,19 @@
 'use client'
 import React from 'react'
-import RcGantt, { Gantt, GanttProps, enUS } from 'rc-gantt'
+import RcGantt, { enUS } from 'rc-gantt'
 import { cn } from '@/lib/utils'
 import { Icons } from './icons'
-import { DefaultRecordType } from 'rc-gantt/dist/types/types'
 import Link from 'next/link'
-import { Button, buttonVariants } from './ui/button'
+import { Button } from './ui/button'
 import { Selector } from './selector'
-import { Limit, OrderBy, limits, orderBys } from '@/config/gantt-chart.config'
+import { Limit, limits } from '@/config/gantt-chart.config'
 import { z } from 'zod'
 import { OrderSchema } from '@/lib/validations/order'
 import { AddOrderDialog } from '@/components/add-order.dialog'
-import { Alert } from './ui/alert'
 import { toast } from './ui/use-toast'
+import { useRouter } from 'next/navigation'
 
-function calculateDayLength(
-  startDateStr: string | null,
-  endDateStr: string | null
-) {
-  const startDate = new Date(startDateStr || '')
-  const endDate = new Date(endDateStr || '')
-
-  // Calculate the difference in milliseconds
-  const timeDifference = endDate.getTime() - startDate.getTime()
-
-  // Convert milliseconds to days
-  const dayDifference = timeDifference / (1000 * 60 * 60 * 24)
-
-  return Math.floor(dayDifference) + 1
-}
+type TimeLineRecord = z.infer<typeof OrderSchema> & { id: string }
 
 export function GanttChart({
   data: orders,
@@ -36,7 +21,7 @@ export function GanttChart({
   abilityToMove = false,
   newOrderId
 }: {
-  data: z.infer<typeof OrderSchema>[] & { id: string }
+  data: TimeLineRecord[] | []
   abilityToAdd: boolean
   abilityToMove: boolean
   newOrderId: string
@@ -44,20 +29,18 @@ export function GanttChart({
   const [limit, setLimit] = React.useState<Limit>('10')
 
   const [currentPage, setCurrentPage] = React.useState(0)
-
+  const { push } = useRouter()
   const [page, setPage] = React.useState(
-    orders
-      .slice(0, +limit)
-      // Sort the orders by start date automatically
-      .sort((a, b) => +a.id!.slice(2) - +b.id!.slice(2))
+    orders.slice(0, +limit)
+    // Sort the orders by start date automatically
+    // .sort((a, b) => +a.id!.split('-')[1] - +b.id!.split('-')[1])
   )
 
   React.useEffect(() => {
     setPage(
-      orders
-        .slice(0, +limit)
-        // Sort the orders by start date automatically
-        .sort((a, b) => +a.id!.slice(2) - +b.id!.slice(2))
+      orders.slice(0, +limit)
+      // Sort the orders by start date automatically
+      // .sort((a, b) => +a.id!.split('-')[1] - +b.id!.split('-')[1])
     )
   }, [orders])
 
@@ -69,6 +52,51 @@ export function GanttChart({
     const end = start + +limit
     setPage(orders.slice(start, end))
   }, [currentPage, limit])
+
+  function calculateDayLength(
+    startDateStr: string | null,
+    endDateStr: string | null
+  ) {
+    const startDate = new Date(startDateStr || '')
+    const endDate = new Date(endDateStr || '')
+
+    // Calculate the difference in milliseconds
+    const timeDifference = endDate.getTime() - startDate.getTime()
+
+    // Convert milliseconds to days
+    const dayDifference = timeDifference / (1000 * 60 * 60 * 24)
+
+    return Math.floor(dayDifference) + 1
+  }
+
+  const onMove = async (
+    record: TimeLineRecord,
+    startDate: string,
+    endDate: string
+  ) => {
+    if (abilityToMove) {
+      const res = await fetch(`/api/order/production/${record.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          startDate: new Date(startDate).toISOString(), //update new dates
+          actualEndDate: new Date(endDate).toISOString(), //update new dates
+          endDate: record.endDate,
+          progress: record.progress,
+          status: record.status
+        })
+      })
+      if (res.ok)
+        toast({
+          title: 'Success',
+          description: <p>You have successfully update your order. </p>
+        })
+      return true
+    }
+    return false
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -119,36 +147,19 @@ export function GanttChart({
             }
           ]}
           scrollTop={true}
-          onBarClick={(e) => false}
-          onUpdate={async (record) => {
-            if (abilityToMove) {
-              const res = await fetch(`/api/order/production/${record.id}`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  startDate: record.startDate,
-                  endDate: record.endDate,
-                  actualEndDate: record.actualEndDate
-                })
-              })
-              toast({
-                title: 'Success',
-                description: <p>You have successfully update your order. </p>
-              })
-              return true
-            }
-            return false
-          }}
+          onBarClick={() => false}
+          // onUpdate={onMove}
+          onUpdate={async () => false}
           renderLeftText={() => false}
           renderRightText={() => false}
+          alwaysShowTaskBar={false}
           unit="day"
           showUnitSwitch={false}
           renderBar={(barInfo, { width }) => (
-            <div
+            <Link
+              href={'orders/' + barInfo.record.id}
               className={cn(
-                'relative -top-[9px] z-20 flex items-center justify-center bg-primary h-[25px] rounded-full text-white text-xs font-inter font-medium'
+                'relative -top-[9px] z-20 flex items-center justify-center bg-primary h-[27px] rounded-sm text-white text-xs font-inter font-medium'
               )}
               style={{
                 width
@@ -157,8 +168,8 @@ export function GanttChart({
               {calculateDayLength(
                 barInfo.record.startDate ?? '',
                 barInfo.record.endDate ?? ''
-              ) + ' Days'}
-            </div>
+              ) + ' Jours'}
+            </Link>
           )}
         />
       </div>
