@@ -1,158 +1,191 @@
 [
   {
     "id": "24-0299",
-    "startDate": "2024-05-05T12:00:00Z",
-    "endDate": "2024-05-17T12:00:00Z",
-    "actualEnd": "2024-05-17T12:00:00Z",
-    "customer": {
-      "fullName": "Acme Corporation",
-      "phone": "0665763539"
-    },
-    "progress": 2,
+    "serialNumber": null,
+    "status": "Fini",
     "quantity": 5,
-    "status": "Non Commence"
+    "receivingDate": "2024-04-28T12:00:00.000Z",
+    "startDate": "2024-05-03T00:00:00.000Z",
+    "endDate": "2024-05-06T00:00:00.000Z",
+    "actualEnd": "2024-05-08T16:38:51.722Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 5,
+
+    "customer": {
+      "phone": "0665763539",
+      "fullName": "Acme Corporation"
+    }
   },
   {
     "id": "24-0300",
-    "startDate": "2024-05-05T12:00:00Z",
-    "endDate": "2024-05-16T12:00:00Z",
-    "actualEnd": "2024-05-16T12:00:00Z",
-    "customer": {
-      "fullName": "Acme Corporation",
-      "phone": "0665763542"
-    },
-    "progress": 1,
+    "serialNumber": null,
+    "status": "Fini",
     "quantity": 6,
-    "status": "Fini"
+    "receivingDate": "2024-04-25T12:00:00.000Z",
+    "startDate": "2024-05-02T00:00:00.000Z",
+    "endDate": "2024-05-06T00:00:00.000Z",
+    "actualEnd": "2024-05-08T16:37:41.415Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 6,
+
+    "customer": {
+      "phone": "0665763542",
+      "fullName": "Acme Corporation"
+    }
   },
   {
     "id": "24-0301",
-    "startDate": "2024-05-09T12:00:00Z",
-    "endDate": "2024-05-25T12:00:00Z",
-    "actualEnd": "2024-05-25T12:00:00Z",
-    "customer": {
-      "fullName": "Acme Corporation",
-      "phone": "0665763544"
-    },
-    "progress": 18,
+    "serialNumber": null,
+    "status": "Encours",
     "quantity": 22,
-    "status": "Encours"
+    "receivingDate": "2024-05-01T12:00:00.000Z",
+    "startDate": "2024-05-04T00:00:00.000Z",
+    "endDate": "2024-05-07T00:00:00.000Z",
+    "actualEnd": "2024-05-07T00:00:00.000Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 20,
+    "customer": {
+      "phone": "0665763544",
+      "fullName": "Acme Corporation"
+    }
   },
   {
     "id": "24-0302",
-    "startDate": "2024-05-05T12:00:00Z",
-    "endDate": "2024-05-08T12:00:00Z",
-    "actualEnd": "2024-05-08T12:00:00Z",
-    "customer": {
-      "fullName": "Acme Corporation",
-      "phone": "0665763546"
-    },
-    "progress": 4,
+    "serialNumber": null,
+    "status": "Encours",
     "quantity": 15,
-    "status": "Annuler"
+    "receivingDate": "2024-04-29T12:00:00.000Z",
+    "startDate": "2024-05-04T00:00:00.000Z",
+    "endDate": "2024-05-07T00:00:00.000Z",
+    "actualEnd": "2024-05-07T00:00:00.000Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 9,
+
+    "customer": {
+      "phone": "0665763546",
+      "fullName": "Acme Corporation"
+    }
   },
   {
     "id": "24-0303",
-    "startDate": "2024-05-08T12:00:00Z",
-    "endDate": "2024-05-15T12:00:00Z",
-    "actualEnd": "2024-05-15T12:00:00Z",
-    "customer": {
-      "fullName": "Beta Enterprises",
-      "phone": "0688432510"
-    },
-    "progress": 0,
+    "serialNumber": null,
+    "status": "Fini",
     "quantity": 10,
-    "status": "Non Commence"
+    "receivingDate": "2024-04-21T12:00:00.000Z",
+    "startDate": "2024-05-01T00:00:00.000Z",
+    "endDate": "2024-05-06T00:00:00.000Z",
+    "actualEnd": "2024-05-08T16:42:02.020Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 10,
+
+    "customer": {
+      "phone": "0688432510",
+      "fullName": "Beta Enterprises"
+    }
   },
   {
     "id": "24-0304",
-    "startDate": "2024-05-14T12:00:00Z",
-    "endDate": "2024-05-18T12:00:00Z",
-    "actualEnd": "2024-05-18T12:00:00Z",
-    "customer": {
-      "fullName": "Gamma Solutions",
-      "phone": "0645987123"
-    },
-    "progress": 7,
+    "serialNumber": null,
+    "status": "Fini",
     "quantity": 20,
-    "status": "Encours"
+    "receivingDate": "2024-05-02T12:00:00.000Z",
+    "startDate": "2024-05-01T00:00:00.000Z",
+    "endDate": "2024-05-06T00:00:00.000Z",
+    "actualEnd": "2024-05-08T16:42:35.436Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 20,
+
+    "customer": {
+      "phone": "0645987123",
+      "fullName": "Gamma Solutions"
+    }
   },
   {
     "id": "24-0305",
-    "startDate": "2024-05-12T12:00:00Z",
-    "endDate": "2024-05-22T12:00:00Z",
-    "actualEnd": "2024-05-22T12:00:00Z",
-    "customer": {
-      "fullName": "Delta Corp",
-      "phone": "0678123590"
-    },
-    "progress": 15,
+    "serialNumber": null,
+    "status": "Encours",
     "quantity": 8,
-    "status": "Encours"
+    "receivingDate": "2024-05-04T12:00:00.000Z",
+    "startDate": "2024-05-02T00:00:00.000Z",
+    "endDate": "2024-05-09T00:00:00.000Z",
+    "actualEnd": "2024-05-09T00:00:00.000Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 15,
+
+    "customer": {
+      "phone": "0678123590",
+      "fullName": "Delta Corp"
+    }
   },
   {
     "id": "24-0306",
-    "startDate": "2024-05-11T12:00:00Z",
-    "endDate": "2024-05-13T12:00:00Z",
-    "actualEnd": "2024-05-13T12:00:00Z",
-    "customer": {
-      "fullName": "Epsilon Ltd",
-      "phone": "0695321480"
-    },
-    "progress": 10,
+    "serialNumber": null,
+    "status": "Encours",
     "quantity": 12,
-    "status": "Fini"
+    "receivingDate": "2024-05-01T12:00:00.000Z",
+    "startDate": "2024-05-03T00:00:00.000Z",
+    "endDate": "2024-05-11T00:00:00.000Z",
+    "actualEnd": "2024-05-11T00:00:00.000Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 10,
+
+    "customer": {
+      "phone": "0695321480",
+      "fullName": "Epsilon Ltd"
+    }
   },
   {
     "id": "24-0307",
-    "startDate": "2024-05-03T12:00:00Z",
-    "endDate": "2024-05-09T12:00:00Z",
-    "actualEnd": "2024-05-09T12:00:00Z",
-    "customer": {
-      "fullName": "Zeta Inc.",
-      "phone": "0657894321"
-    },
-    "progress": 0,
+    "serialNumber": null,
+    "status": "Non Commence",
     "quantity": 30,
-    "status": "Non Commence"
+    "receivingDate": "2024-05-03T12:00:00.000Z",
+    "startDate": "2024-05-05T00:00:00.000Z",
+    "endDate": "2024-05-21T00:00:00.000Z",
+    "actualEnd": "2024-05-21T00:00:00.000Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 19,
+
+    "customer": {
+      "phone": "0657894321",
+      "fullName": "Zeta Inc."
+    }
   },
   {
     "id": "24-0308",
-    "startDate": "2024-05-01T12:00:00Z",
-    "endDate": "2024-05-08T12:00:00Z",
-    "actualEnd": "2024-05-08T12:00:00Z",
-    "customer": {
-      "fullName": "Eta Services",
-      "phone": "0665432198"
-    },
-    "progress": 8,
+    "serialNumber": null,
+    "status": "Encours",
     "quantity": 25,
-    "status": "Encours"
-  },
-  {
-    "id": "24-0309",
-    "startDate": "2024-05-08T12:00:00Z",
-    "endDate": "2024-05-10T12:00:00Z",
-    "actualEnd": "2024-05-10T12:00:00Z",
+    "receivingDate": "2024-05-04T12:00:00.000Z",
+    "startDate": "2024-05-06T00:00:00.000Z",
+    "endDate": "2024-05-13T00:00:00.000Z",
+    "actualEnd": "2024-05-13T00:00:00.000Z",
+    "price": null,
+    "deposit": null,
+    "remaining": null,
+    "progress": 8,
+
     "customer": {
-      "fullName": "Theta Technologies",
-      "phone": "0687654321"
-    },
-    "progress": 20,
-    "quantity": 5,
-    "status": "Fini"
-  },
-  {
-    "id": "24-0310",
-    "startDate": "2024-05-05T12:00:00Z",
-    "endDate": "2024-05-08T12:00:00Z",
-    "actualEnd": "2024-05-08T12:00:00Z",
-    "customer": {
-      "fullName": "Iota Productions",
-      "phone": "0656789342"
-    },
-    "progress": 3,
-    "quantity": 18,
-    "status": "Annuler"
+      "phone": "0665432198",
+      "fullName": "Eta Services"
+    }
   }
 ]

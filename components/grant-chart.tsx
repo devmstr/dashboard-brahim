@@ -1,7 +1,6 @@
 'use client'
-import React from 'react'
-import RcGantt, { enUS } from 'rc-gantt'
-import { cn } from '@/lib/utils'
+import React, { useRef } from 'react'
+import RcGantt, { enUS, GanttRef } from 'rc-gantt'
 import { Icons } from './icons'
 import Link from 'next/link'
 import { Button } from './ui/button'
@@ -12,6 +11,9 @@ import { OrderSchema } from '@/lib/validations/order'
 import { AddOrderDialog } from '@/components/add-order.dialog'
 import { toast } from './ui/use-toast'
 import { useRouter } from 'next/navigation'
+import { getDate, getDay } from 'date-fns'
+import { cn, dateDiff } from '@/lib/utils'
+import dayjs from 'dayjs'
 
 type TimeLineRecord = z.infer<typeof OrderSchema> & { id: string }
 
@@ -27,7 +29,7 @@ export function GanttChart({
   newOrderId: string
 }) {
   const [limit, setLimit] = React.useState<Limit>('10')
-
+  const ganttRef = useRef<GanttRef>(null!)
   const [currentPage, setCurrentPage] = React.useState(0)
   const { push } = useRouter()
   const [page, setPage] = React.useState(
@@ -52,22 +54,6 @@ export function GanttChart({
     const end = start + +limit
     setPage(orders.slice(start, end))
   }, [currentPage, limit])
-
-  function calculateDayLength(
-    startDateStr: string | null,
-    endDateStr: string | null
-  ) {
-    const startDate = new Date(startDateStr || '')
-    const endDate = new Date(endDateStr || '')
-
-    // Calculate the difference in milliseconds
-    const timeDifference = endDate.getTime() - startDate.getTime()
-
-    // Convert milliseconds to days
-    const dayDifference = timeDifference / (1000 * 60 * 60 * 24)
-
-    return Math.floor(dayDifference) + 1
-  }
 
   const onMove = async (
     record: TimeLineRecord,
@@ -98,6 +84,8 @@ export function GanttChart({
     return false
   }
 
+  const getWidth = ganttRef?.current?.getWidthByDate
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-3 justify-between">
@@ -119,11 +107,14 @@ export function GanttChart({
         <RcGantt
           data={page}
           locale={enUS}
+          startDateKey="receivingDate"
+          endDateKey="actualEndDate"
+          innerRef={ganttRef}
           columns={[
             {
               name: 'id',
-              label: 'Order',
-              align: 'left',
+              label: 'Orders',
+              align: 'center',
               render: (record) => {
                 return (
                   <div className="group flex items-center space-x-2">
@@ -155,22 +146,85 @@ export function GanttChart({
           alwaysShowTaskBar={false}
           unit="day"
           showUnitSwitch={false}
-          renderBar={(barInfo, { width }) => (
-            <Link
-              href={'orders/' + barInfo.record.id}
-              className={cn(
-                'relative -top-[9px] z-20 flex items-center justify-center bg-primary h-[27px] rounded-sm text-white text-xs font-inter font-medium'
-              )}
-              style={{
-                width
-              }}
-            >
-              {calculateDayLength(
-                barInfo.record.startDate ?? '',
-                barInfo.record.endDate ?? ''
-              ) + ' Jours'}
-            </Link>
-          )}
+          renderBar={(barInfo, { width }) => {
+            const coldStartDays = dateDiff(
+              barInfo.record.receivingDate!,
+              barInfo.record.startDate!
+            )
+            const inScheduleDays = dateDiff(
+              barInfo.record.startDate!,
+              barInfo.record.endDate!
+            )
+            const delayDays = dateDiff(
+              barInfo.record.endDate!,
+              barInfo.record.actualEndDate!
+            )
+
+            const inScheduledWidth = getWidth(
+              dayjs(new Date(barInfo.record.startDate!)),
+              dayjs(new Date(barInfo.record.endDate!))
+            )
+            const couldStartWidth = getWidth(
+              dayjs(new Date(barInfo.record.receivingDate!)),
+              dayjs(new Date(barInfo.record.startDate!))
+            )
+            const delayWidth = getWidth(
+              dayjs(new Date(barInfo.record.endDate!)),
+              dayjs(new Date(barInfo.record.actualEndDate!))
+            )
+            return (
+              <Link
+                href={'orders/' + barInfo.record.id}
+                className={
+                  'relative -top-[9px] z-20 flex items-center   h-[27px] rounded-sm text-xs text-white font-inter font-medium'
+                }
+              >
+                {couldStartWidth > 0 && (
+                  <div
+                    className={
+                      'flex justify-center items-center w-full h-full text-gray-700 z-40 rounded-l-sm '
+                    }
+                    style={{
+                      width: couldStartWidth,
+                      backgroundColor: '#e5e4e2'
+                    }}
+                  >
+                    {coldStartDays > 1
+                      ? `${coldStartDays} Jours`
+                      : `${coldStartDays} J`}
+                  </div>
+                )}
+                <div
+                  className={cn(
+                    'flex justify-center items-center w-full h-full z-40',
+                    delayWidth <= 0 && 'rounded-r-sm',
+                    couldStartWidth <= 0 && 'rounded-l-sm'
+                  )}
+                  style={{
+                    width: inScheduledWidth,
+                    backgroundColor: '#7C3AED'
+                  }}
+                >
+                  {inScheduleDays > 1
+                    ? `${inScheduleDays} Jours`
+                    : `${inScheduleDays} J`}
+                </div>
+                {delayWidth > 0 && (
+                  <div
+                    className={
+                      'flex justify-center items-center w-full h-full   text-center z-40 bg-primary rounded-r-sm'
+                    }
+                    style={{
+                      width: delayWidth,
+                      backgroundColor: '#FF5730'
+                    }}
+                  >
+                    {delayDays > 1 ? `${delayDays} Jours` : `${delayDays} J`}
+                  </div>
+                )}
+              </Link>
+            )
+          }}
         />
       </div>
       <div className="flex items-center justify-end space-x-2">

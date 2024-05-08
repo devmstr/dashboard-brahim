@@ -36,6 +36,12 @@ export function toScreamingSnakeCase(str: string): string {
     .toUpperCase()
 }
 
+export const dateDiff = (startDate: string, endDate: string) => {
+  const start = new Date(startDate).getTime()
+  const end = new Date(endDate).getTime()
+  return Math.round((end - start) / (1000 * 60 * 60 * 24))
+}
+
 export async function coid(db: PrismaClient) {
   let lastOrder: Partial<Order> | null = null
   try {

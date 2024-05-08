@@ -47,10 +47,10 @@ export const OrderCommercialEditForm: React.FC<
       remaining: data?.remaining?.toString(),
       status: data?.status,
       technical: {
-        type: data?.technical?.type || '',
+        type: data?.technical?.type ? data?.technical?.type : '',
         brand: data?.technical?.brand || '',
         model: data?.technical?.model || '',
-        pas: +data?.technical?.pas! || 8,
+        pas: data?.technical?.pas ? +data?.technical?.pas! : 0,
         nr: data?.technical?.nr?.toString() || '',
         ec: data?.technical?.ec?.toString() || '',
         lar1: data?.technical?.lar1?.toString() || '',

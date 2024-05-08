@@ -17,7 +17,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
 import { ORDER_STATUS, ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
-import { cn } from '@/lib/utils'
+import { cn, dateDiff } from '@/lib/utils'
 import {
   OrderCommercialView,
   OrderProductionView
@@ -33,26 +33,27 @@ import { z } from 'zod'
 type FormData = z.infer<typeof OrderProductionView>
 
 interface OrderProductionEditFormProps {
-  data?: FormData & { id: string }
+  data?: any & { id: string }
 }
 
 export const OrderProductionEditForm: React.FC<
   OrderProductionEditFormProps
 > = ({ data }: OrderProductionEditFormProps) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
+  const [showTechnical, setShowTechnical] = React.useState<boolean>(false)
   const form = useForm<FormData>({
     defaultValues: {
       ...data,
       progress: data?.progress || 0,
-      quantity: data?.quantity || 1,
-      startDate: data?.startDate || new Date().toString(),
-      endDate: data?.endDate || new Date(Date.now() + 86400000).toString(),
-      actualEndDate:
-        data?.actualEndDate || new Date(Date.now() + 86400000).toString(),
+      quantity: data?.quantity,
+      startDate: data?.startDate,
+      endDate: data?.endDate,
+      actualEndDate: data?.actualEnd,
       technical: {
+        type: data?.technical?.type,
         brand: data?.technical?.brand || '',
         model: data?.technical?.model || '',
-        pas: +data?.technical?.pas! || 8,
+        pas: +data?.technical?.pas || 8,
         nr: data?.technical?.nr?.toString() || '',
         ec: data?.technical?.ec?.toString() || '',
         lar1: data?.technical?.lar1?.toString() || '',
@@ -62,28 +63,48 @@ export const OrderProductionEditForm: React.FC<
     },
     resolver: zodResolver(OrderProductionView)
   })
+  const startDate = form.watch('startDate')
+  const endDate = form.watch('endDate')
+  const type = form.watch('technical.type')
+  const pas = form.watch('technical.pas')
+  const progress = form.watch('progress')
+  const quantity = form.watch('quantity')
+  const status = form.watch('status')
+  const receivingDate = form.watch('receivingDate')
+  const actualEndDate = form.watch('actualEndDate')
   const router = useRouter()
+
   async function onSubmit(formData: FormData) {
-    console.info('HiT....')
     try {
       setIsLoading(true)
       const { technical, quantity, ...productionData } = formData
-      if (
-        new Date(startDate!).getTime() > new Date(actualEndDate!).getTime() ||
-        new Date(startDate!).getTime() > new Date(endDate!).getTime()
-      ) {
+
+      if (progress! < quantity! && status == 'Fini') {
         toast({
-          title: 'Conflict',
+          title: 'Conflict!',
           description: (
             <p>
-              Wrong dates input! deadline and actual end date should be bigger
-              than start date{' '}
+              Status should be ongoing when progress is less then quantity .
             </p>
           ),
           variant: 'destructive'
         })
         return
       }
+      if (dateDiff(productionData.startDate!, productionData.endDate!) < 0) {
+        toast({
+          title: 'Conflict',
+          description: (
+            <p>Wrong dates input! deadline should be bigger than start date </p>
+          ),
+          variant: 'destructive'
+        })
+        return
+      }
+
+      if (progress == quantity)
+        productionData.actualEndDate = new Date().toISOString()
+      else productionData.actualEndDate = productionData.endDate
 
       const res = await fetch(`/api/order/production/${data?.id}`, {
         method: 'PATCH',
@@ -92,8 +113,10 @@ export const OrderProductionEditForm: React.FC<
         },
         body: JSON.stringify(productionData)
       })
+
       router.refresh()
       router.back()
+
       toast({
         title: 'Success',
         description: <p>You have successfully update your order. </p>
@@ -104,15 +127,6 @@ export const OrderProductionEditForm: React.FC<
       setIsLoading(false)
     }
   }
-
-  const startDate = form.watch('startDate')
-  const endDate = form.watch('endDate')
-  const actualEndDate = form.watch('actualEndDate')
-  const type = form.watch('technical.type')
-  const pas = form.watch('technical.pas')
-  const progress = form.watch('progress')
-  const quantity = form.watch('quantity')
-  const status = form.watch('status')
 
   return (
     <Form {...form}>
@@ -132,8 +146,10 @@ export const OrderProductionEditForm: React.FC<
                     <Button
                       onClick={(e) => {
                         e.preventDefault()
-                        if (progress > 0)
-                          form.setValue('progress', progress - 1)
+                        if (progress! > 0) {
+                          form.setValue('progress', progress! - 1)
+                          form.setValue('status', 'Encours')
+                        }
                       }}
                       className="font-bold"
                       variant={'outline'}
@@ -144,13 +160,18 @@ export const OrderProductionEditForm: React.FC<
                       {...field}
                       className="w-16 "
                       value={progress + '/' + quantity}
-                      onChange={(e) => form.setValue('progress', progress)}
+                      onChange={(e) => {
+                        form.setValue('progress', progress)
+                      }}
                     />
                     <Button
                       onClick={(e) => {
                         e.preventDefault()
-                        if (progress < quantity)
-                          form.setValue('progress', progress + 1)
+                        if (progress! < quantity!)
+                          form.setValue('progress', progress! + 1)
+                        if (progress! + 1 === quantity) {
+                          form.setValue('status', 'Fini')
+                        }
                       }}
                       className="font-bold"
                       variant={'outline'}
@@ -185,12 +206,32 @@ export const OrderProductionEditForm: React.FC<
         <CardGrid>
           <FormField
             control={form.control}
+            name="receivingDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date de reception</FormLabel>
+                <FormControl>
+                  <DatePicker
+                    isDisabled={true}
+                    date={receivingDate ? new Date(receivingDate) : new Date()}
+                    onDateChange={(value: Date) =>
+                      form.setValue('receivingDate', value.toISOString())
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="startDate"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Date Début</FormLabel>
                 <FormControl>
                   <DatePicker
+                    // id="start-date"
                     date={startDate ? new Date(startDate) : new Date()}
                     onDateChange={(value: Date) =>
                       form.setValue('startDate', value.toISOString())
@@ -209,10 +250,11 @@ export const OrderProductionEditForm: React.FC<
                 <FormLabel>Délai (Approximatif)</FormLabel>
                 <FormControl>
                   <DatePicker
+                    // id="end-date"
                     date={endDate ? new Date(endDate) : new Date()}
-                    onDateChange={(value: Date) =>
+                    onDateChange={(value: Date) => {
                       form.setValue('endDate', value.toISOString())
-                    }
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -223,14 +265,15 @@ export const OrderProductionEditForm: React.FC<
             control={form.control}
             name="actualEndDate"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date Fin (Réelle)</FormLabel>
+              <FormItem className="hidden">
+                <FormLabel>Date de reception</FormLabel>
                 <FormControl>
                   <DatePicker
+                    // id="end-date"
                     date={actualEndDate ? new Date(actualEndDate) : new Date()}
-                    onDateChange={(value: Date) =>
+                    onDateChange={(value: Date) => {
                       form.setValue('actualEndDate', value.toISOString())
-                    }
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -238,138 +281,175 @@ export const OrderProductionEditForm: React.FC<
             )}
           />
         </CardGrid>
-        <div className="pt-3 flex text-xl gap-1  ">
+        <div className="pt-3 flex text-xl gap-3 items-center  ">
           <strong className="text-gray-400/30">Détail Technique</strong>{' '}
+          <Switcher
+            checked={showTechnical}
+            onCheckedChange={(checked) => setShowTechnical(checked)}
+          />
         </div>
-        <CardGrid>
-          <FormField
-            control={form.control}
-            name="technical.model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Marque</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Marque..." />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.brand"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Modèle</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Modèle..." />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Order Type</FormLabel>
-                <FormControl>
-                  <Selector
-                    {...field}
-                    items={ORDER_TYPES}
-                    setValue={(value) => form.setValue('technical.type', value)}
-                    value={type || ORDER_TYPES[0]}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.pas"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>PAS</FormLabel>
-                <FormControl>
-                  <Selector
-                    {...field}
-                    items={PAS_TYPES.map((i) => i.toString())}
-                    setValue={(value) => form.setValue('technical.pas', +value)}
-                    value={pas.toString()}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.nr"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>N°R</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="N°R..." type="number" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.ec"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>EC</FormLabel>
-                <FormControl>
-                  <Input {...field} type="number" placeholder="EC..." />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.lar1"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>LAR1</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="LAR1..." type="number" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.lon"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>LON</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="LON..." type="number" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="technical.lar2"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>LAR2</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="LAR2..." type="number" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardGrid>
+        {showTechnical && (
+          <CardGrid>
+            <FormField
+              control={form.control}
+              name="technical.model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Marque</FormLabel>
+                  <FormControl>
+                    <Input disabled {...field} placeholder="Marque..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.brand"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Modèle</FormLabel>
+                  <FormControl>
+                    <Input disabled {...field} placeholder="Modèle..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Order Type</FormLabel>
+                  <FormControl>
+                    <Selector
+                      {...field}
+                      items={ORDER_TYPES}
+                      setValue={(value) =>
+                        form.setValue('technical.type', value)
+                      }
+                      value={type || ORDER_TYPES[0]}
+                      disabled
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.pas"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>PAS</FormLabel>
+                  <FormControl>
+                    <Selector
+                      {...field}
+                      items={PAS_TYPES.map((i) => i.toString())}
+                      setValue={(value) =>
+                        form.setValue('technical.pas', +value)
+                      }
+                      value={pas.toString()}
+                      disabled
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.nr"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>N°R</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      {...field}
+                      placeholder="N°R..."
+                      type="number"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.ec"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>EC</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      {...field}
+                      type="number"
+                      placeholder="EC..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.lar1"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LAR1</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      {...field}
+                      placeholder="LAR1..."
+                      type="number"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.lon"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LON</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      {...field}
+                      placeholder="LON..."
+                      type="number"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="technical.lar2"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>LAR2</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled
+                      {...field}
+                      placeholder="LAR2..."
+                      type="number"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardGrid>
+        )}
         <CardDivider>
           <div className="flex gap-3">
             <Link

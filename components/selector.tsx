@@ -8,19 +8,21 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { toCapitalize, toScreamingSnakeCase } from '@/lib/utils'
+import { cn, toCapitalize, toScreamingSnakeCase } from '@/lib/utils'
 
 interface MartialStatusSelectorProms
   extends React.HTMLAttributes<HTMLDivElement> {
   value: string
   setValue: (value: string) => void
   items: string[]
+  disabled?: boolean
 }
 
 export function Selector({
   setValue,
   value,
-  items
+  items,
+  disabled = false
 }: MartialStatusSelectorProms) {
   return (
     <Select
@@ -29,14 +31,22 @@ export function Selector({
       }}
       value={value}
     >
-      <SelectTrigger className="w-full border-primary bg-white text-primary">
+      <SelectTrigger
+        disabled={disabled}
+        className={cn('w-full border-primary bg-white text-primary')}
+      >
         <SelectValue placeholder={value} />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup className="text-foreground">
           {items.map((item, index) => {
             return (
-              <SelectItem className="capitalize" key={index} value={item}>
+              <SelectItem
+                disabled={disabled}
+                className="capitalize"
+                key={index}
+                value={item}
+              >
                 {item}
               </SelectItem>
             )

@@ -31,12 +31,14 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           ? 'w-[12rem] transition-all duration-300 ease-in'
           : 'w-16  transition-all duration-500 ease-out'
       )}
-      onMouseEnter={(e) => setShowSidebar(true)}
-      onMouseLeave={(e) => setShowSidebar(false)}
     >
-      <div className={cn(showSidebar ? '' : '')}>
+      <div>
         {items?.length && (
-          <nav className={cn('flex flex-col gap-8 ')}>
+          <nav
+            onMouseEnter={(e) => setShowSidebar(true)}
+            onMouseLeave={(e) => setShowSidebar(false)}
+            className={cn('flex flex-col gap-8')}
+          >
             {items?.map((item, index) => {
               const Icon = Icons[item.icon || 'arrowRight']
               const delay = (index = 0 ? 80 : index * 80)
@@ -49,7 +51,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     key={index}
                     href={item.disabled ? '#' : item.href!}
                     className={cn(
-                      'flex items-center text-gray-500    font-medium fill-current w-48',
+                      'flex items-center text-gray-500 font-medium fill-current',
                       active
                         ? 'text-primary opacity-100'
                         : 'opacity-80 hover:opacity-100 hover:text-foreground',
@@ -58,13 +60,18 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   >
                     <Icon
                       className={cn(
-                        'flex h-[1.4rem] w-[1.4rem]',
+                        'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
                         showSidebar ? 'mr-2' : 'mr-0'
                       )}
                     />
                     {showSidebar && (
                       <Fade
-                        className={cn('text-md sm:text-sm')}
+                        className={cn(
+                          'text-md sm:text-sm'
+                          // showSidebar
+                          //   ? 'flex transition-all duration-300 ease-in'
+                          //   : 'hidden transition-all duration-500 ease-out'
+                        )}
                         from={'top'}
                         amount={0.4}
                         duration={250}

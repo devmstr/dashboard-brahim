@@ -7,7 +7,11 @@ import {
   useDatePicker,
   useInteractOutside
 } from 'react-aria'
-import { DatePickerStateOptions, useDatePickerState } from 'react-stately'
+import {
+  DatePickerState,
+  DatePickerStateOptions,
+  useDatePickerState
+} from 'react-stately'
 import { useForwardedRef } from '@/lib/useForwardedRef'
 import { cn } from '@/lib/utils'
 
@@ -23,11 +27,17 @@ import { CalendarIcon } from 'lucide-react'
 import { DateField } from './date-picker/date-field'
 import { TimeField } from './date-picker/time-field'
 import dynamic from 'next/dynamic'
+import { Skeleton } from './ui/skeleton'
+import { Icons } from './icons'
 const HeavyCalendar = dynamic(
   () => import('./date-picker/calendar').then((mod) => mod.Calendar),
   {
     ssr: false,
-    loading: () => <p>Loading...</p>
+    loading: () => (
+      <Skeleton className="w-56 h-60 border-none  flex justify-center items-center">
+        <Icons.spinner className="animate-spin opacity-40" />
+      </Skeleton>
+    )
   }
 )
 
@@ -46,7 +56,6 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
     const contentRef = useRef<HTMLDivElement | null>(null)
 
     const [open, setOpen] = useState(false)
-
     const state = useDatePickerState(props)
 
     useEffect(() => {
@@ -62,6 +71,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
 
     // Call the onDateChange function whenever the date changes
     useEffect(() => {
+      console.log('HiT date picker ...')
       if (state.dateValue) {
         const date = new Date(
           Date.UTC(
@@ -100,7 +110,11 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
           'flex items-center rounded-md ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2'
         )}
       >
-        <DateField locale={props.locale || 'en'} {...fieldProps} />
+        <DateField
+          aria-labelledby={props.id}
+          locale={props.locale || 'en'}
+          {...fieldProps}
+        />
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -115,7 +129,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
           </PopoverTrigger>
           <PopoverContent
             ref={contentRef}
-            className="w-full bg-popover p-5 rounded-md shadow-md"
+            className="w-full bg-popover p-5 z-50 rounded-md shadow-md"
           >
             <div {...dialogProps} className="space-y-3">
               <HeavyCalendar locale={props.locale || 'en'} {...calendarProps} />

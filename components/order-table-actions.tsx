@@ -29,9 +29,13 @@ import { Button, buttonVariants } from './ui/button'
 
 interface OrderTableActionsProps {
   id: string
+  abilityToDelete: boolean
 }
 
-export function OrderTableActions({ id }: OrderTableActionsProps) {
+export function OrderTableActions({
+  id,
+  abilityToDelete = false
+}: OrderTableActionsProps) {
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [deletingId, setDeletingId] = React.useState<string | null>(null)
   const [showDeleteAlert, setShowDeleteAlert] = React.useState<boolean>(false)
@@ -70,52 +74,58 @@ export function OrderTableActions({ id }: OrderTableActionsProps) {
               <Icons.edit className="w-4 h-4 group-hover:text-primary" />
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Button
-              variant={'ghost'}
-              className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
-              onClick={() => setShowDeleteAlert(true)}
-            >
-              <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
-            </Button>
-          </DropdownMenuItem>
+          <DropdownMenuSeparator
+            className={!abilityToDelete ? 'hidden' : 'flex'}
+          />
+          {abilityToDelete && (
+            <DropdownMenuItem asChild>
+              <Button
+                variant={'ghost'}
+                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
+                onClick={() => setShowDeleteAlert(true)}
+              >
+                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
+              </Button>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Are you sure you want to delete this IDP?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Be careful this action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction asChild>
-              <Button
-                className={cn(
-                  buttonVariants({ variant: 'outline' }),
-                  ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                )}
-                onClick={() => {
-                  setDeletingId(id)
-                  handleDelete(id)
-                }}
-              >
-                {isDeleting && deletingId == id ? (
-                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Icons.trash className="mr-2 h-4 w-4" />
-                )}
-                Delete
-              </Button>
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {abilityToDelete && (
+        <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Are you sure you want to delete this IDP?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Be careful this action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                  )}
+                  onClick={() => {
+                    setDeletingId(id)
+                    handleDelete(id)
+                  }}
+                >
+                  {isDeleting && deletingId == id ? (
+                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                  )}
+                  Delete
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   )
 }

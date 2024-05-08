@@ -121,7 +121,7 @@ function CalendarGrid({
   return (
     <table
       {...gridProps}
-      className={cn(gridProps.className, 'w-full border-collapse space-y-1')}
+      className={cn(gridProps.className, 'w-full  border-collapse space-y-1')}
     >
       <thead {...headerProps}>
         <tr className="flex">

@@ -9,6 +9,7 @@ import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import db from '@/lib/db'
 import { coid } from '@/lib/utils'
+import { ROLES } from '@/config/accounts'
 
 interface PageProps {}
 
@@ -36,7 +37,10 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
     <Card className="">
       <OrderTable
         newUserId={newOrderId}
-        abilityToAdd={session?.user?.role === 'sales'}
+        abilityToAdd={
+          session?.user?.role === ROLES.SALES ||
+          session?.user?.role === ROLES.ADMIN
+        }
         data={data}
       />
     </Card>

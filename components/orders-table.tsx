@@ -127,7 +127,7 @@ export function OrderTable({
         )
       },
       cell: ({ row }) => {
-        const fullName = row.original.customer.fullName
+        const fullName = row.original?.customer?.fullName || ''
         return <div className="flex items-center">{fullName}</div>
       }
     },
@@ -145,7 +145,7 @@ export function OrderTable({
         )
       },
       cell: ({ row }) => {
-        const phone = row.original.customer.phone
+        const phone = row.original?.customer?.phone || ''
         return <div className="flex items-center">{phone}</div>
       }
     },
@@ -184,17 +184,7 @@ export function OrderTable({
         return (
           <div className="relative flex justify-start gap-1 items-center">
             <Progress value={percentage} className="h-[0.65rem] max-w-10" />
-            <span
-              className={cn(
-                progress > 80 && 'text-green-500',
-                progress <= 80 && 'text-yellow-500',
-                progress <= 60 && 'text-orange-500',
-                progress <= 20 && 'text-red-500',
-                progress == 0 && 'text-gray-500'
-              )}
-            >
-              {percentage + '%'}
-            </span>
+            <span className="text-foreground">{percentage + '%'}</span>
           </div>
         )
       }
@@ -240,7 +230,12 @@ export function OrderTable({
     {
       id: 'actions',
       enableHiding: false,
-      cell: ({ row }) => <OrderTableActions id={row.original.id} />
+      cell: ({ row }) => (
+        <OrderTableActions
+          abilityToDelete={abilityToAdd}
+          id={row.original.id}
+        />
+      )
     }
   ]
 

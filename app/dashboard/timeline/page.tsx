@@ -42,8 +42,10 @@ const Page: React.FC<PageProps> = async () => {
         abilityToAdd={session?.user?.role === ROLES.SALES}
         data={data.map((dp: any) => ({
           id: dp.id,
-          startDate: dp.startDate,
-          endDate: dp.actualEnd,
+          receivingDate: dp.receivingDate,
+          startDate: dp?.startDate,
+          endDate: dp?.endDate,
+          actualEndDate: dp?.actualEnd,
           collapsed: true
         }))}
       />

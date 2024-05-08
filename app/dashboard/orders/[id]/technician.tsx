@@ -45,14 +45,15 @@ export const OrderTechnicianEditForm: React.FC<
       ...data,
       serialNumber: data?.serialNumber || '',
       technical: {
-        brand: data?.technical.brand || '',
-        model: data?.technical.model || '',
-        pas: +data?.technical.pas! || 8,
-        nr: data?.technical.nr?.toString() || '',
-        ec: data?.technical.ec?.toString() || '',
-        lar1: data?.technical.lar1?.toString() || '',
-        lon: data?.technical.lon?.toString() || '',
-        lar2: data?.technical.lar2?.toString() || ''
+        type: data?.technical?.type ? data?.technical?.type : '',
+        brand: data?.technical?.brand || '',
+        model: data?.technical?.model || '',
+        pas: data?.technical?.pas ? +data?.technical?.pas : 0,
+        nr: data?.technical?.nr?.toString() || '',
+        ec: data?.technical?.ec?.toString() || '',
+        lar1: data?.technical?.lar1?.toString() || '',
+        lon: data?.technical?.lon?.toString() || '',
+        lar2: data?.technical?.lar2?.toString() || ''
       }
     },
     resolver: zodResolver(OrderTechnicalView)

@@ -62,7 +62,8 @@ export const OrderProductionView = z.object({
   status: z.string().optional(),
   endDate: z.string().optional(),
   actualEndDate: z.string().optional(),
-  quantity: z.number().min(0),
-  progress: z.number().min(0),
-  technical: TechnicalDetails
+  quantity: z.number().positive().optional(),
+  progress: z.number().min(-1).optional(),
+  receivingDate: z.string().optional(),
+  technical: TechnicalDetails.optional()
 })

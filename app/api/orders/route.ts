@@ -32,10 +32,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const { technical, customer, ...orderData } =
-      (await request.json()) as FullOrder
+      (await request.json()) as FullOrder & { id: string }
     const order = await db.order.create({
       data: {
-        id: await coid(db),
+        id: orderData.id,
         serialNumber: orderData.serialNumber,
         receivingDate: new Date(orderData.receivingDate!),
         quantity: +orderData.quantity!,
