@@ -1,7 +1,6 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const data = require('./data.json')
-const { create } = require('lodash')
 async function addAdminAccount() {
   await prisma.user.create({
     data: {
@@ -41,7 +40,7 @@ async function main() {
   await prisma.client.deleteMany()
   await prisma.order.deleteMany()
   addAdminAccount()
-  // addFakeData()
+  addFakeData()
 }
 
 main()
