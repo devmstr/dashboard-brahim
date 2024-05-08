@@ -40,7 +40,7 @@ async function main() {
   await prisma.client.deleteMany()
   await prisma.order.deleteMany()
   addAdminAccount()
-  addFakeData()
+  // addFakeData()
 }
 
 main()
