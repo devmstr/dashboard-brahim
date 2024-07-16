@@ -3,7 +3,6 @@
 import { CardDivider, CardGrid } from '@/components/card'
 import { DatePicker } from '@/components/date-picker'
 import { Icons } from '@/components/icons'
-import { ScrollArea } from '@/components/scroll-area'
 import { Selector } from '@/components/selector'
 import { Switcher } from '@/components/switcher'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -17,16 +16,22 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
-import { ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
+import { LEVELS } from '@/config/calculator.config'
+import {
+  ORDER_MANUFACTURING,
+  MANUFACTURING_TYPES,
+  PAS_TYPES,
+  ORDER_TYPE
+} from '@/config/order.config'
 import { cn } from '@/lib/utils'
-import { OrderCommercialView, OrderSchema } from '@/lib/validations/order'
+import { OrderSchema } from '@/lib/validations/order'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Erica_One } from 'next/font/google'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
+import { useProductionDays } from './production-days.provider'
 
 type FormData = z.infer<typeof OrderSchema>
 
@@ -37,8 +42,11 @@ interface AddOrderFormProps {
 export const AddOrderForm: React.FC<AddOrderFormProps> = ({
   id
 }: AddOrderFormProps) => {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [isCustomModel, setIsCustomModel] = React.useState<boolean>(false)
+  const [isLoading, setIsLoading] = React.useState<boolean>(false)
+
+  const { days } = useProductionDays()
+
   const form = useForm<FormData>({
     defaultValues: {
       id,
@@ -46,13 +54,18 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
       price: '0',
       deposit: '0',
       remaining: '0',
+      type: 'Faisceau',
       status: 'Non Commence',
+      productionDays: days || 0,
+      manufacturing: 'Renovation',
       receivingDate: new Date().toISOString(),
       startDate: new Date().toISOString(),
-      endDate: new Date().toISOString(),
+      endDate: new Date(
+        new Date().getTime() + 24 * 60 * 60 * 1000
+      ).toISOString(),
       technical: {
-        pas: PAS_TYPES[0],
-        type: ORDER_TYPES[0],
+        pas: 8,
+        type: 'Platte',
         nr: '0',
         ec: '0',
         lar1: '0',
@@ -83,7 +96,9 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
   }
 
   const receivingDate = form.watch('receivingDate')
-  const type = form.watch('technical.type')
+  const manufacturing = form.watch('manufacturing')
+  const technicalType = form.watch('technical.type')
+  const type = form.watch('type')
   const pas = form.watch('technical.pas')
   const price = form.watch('price')
   const deposit = form.watch('deposit')
@@ -161,6 +176,24 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
           <CardGrid>
             <FormField
               control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <FormControl>
+                    <Selector
+                      {...field}
+                      items={ORDER_TYPE}
+                      setValue={(value) => form.setValue('type', value)}
+                      value={type || ORDER_TYPE[0]}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="technical.model"
               render={({ field }) => (
                 <FormItem>
@@ -185,26 +218,28 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="technical.type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Order Type</FormLabel>
-                  <FormControl>
-                    <Selector
-                      {...field}
-                      items={ORDER_TYPES}
-                      setValue={(value) =>
-                        form.setValue('technical.type', value)
-                      }
-                      value={type || ORDER_TYPES[0]}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {type == ORDER_TYPE[0] && (
+              <FormField
+                control={form.control}
+                name="technical.type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ligne Ailette</FormLabel>
+                    <FormControl>
+                      <Selector
+                        {...field}
+                        items={MANUFACTURING_TYPES}
+                        setValue={(value) =>
+                          form.setValue('technical.type', value)
+                        }
+                        value={technicalType || MANUFACTURING_TYPES[0]}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="technical.pas"
@@ -311,6 +346,37 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
           />
           <FormField
             control={form.control}
+            name="manufacturing"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fabrication</FormLabel>
+                <FormControl>
+                  <Selector
+                    {...field}
+                    items={ORDER_MANUFACTURING}
+                    setValue={(value) => form.setValue('manufacturing', value)}
+                    value={manufacturing || ORDER_MANUFACTURING[0]}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantité</FormLabel>
+                <FormControl>
+                  <Input {...field} type="number" placeholder="0 pièce..." />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="receivingDate"
             render={({ field }) => (
               <FormItem>
@@ -329,17 +395,28 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
           />
           <FormField
             control={form.control}
-            name="quantity"
+            name="productionDays"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantité</FormLabel>
+                <FormLabel>Jours (Estimation)</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} placeholder="0 pièce..." />
+                  <Input
+                    type="number"
+                    {...field}
+                    placeholder="0 Jour..."
+                    value={
+                      Number.isInteger(field.value)
+                        ? field.value
+                        : field.value.toFixed(1)
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </CardGrid>
+        <CardGrid>
           <FormField
             control={form.control}
             name="price"
@@ -389,16 +466,6 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
         </CardGrid>
         <CardDivider>
           <div className="flex gap-3">
-            <Link
-              href={'/dashboard/timeline'}
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'w-full md:w-[8rem] bg-white text-primary border-primary hover:text-white hover:bg-primary'
-              )}
-              type="submit"
-            >
-              Annuler
-            </Link>
             <Button
               variant={'outline'}
               className={

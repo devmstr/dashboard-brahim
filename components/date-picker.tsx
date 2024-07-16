@@ -57,6 +57,7 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
 
     const [open, setOpen] = useState(false)
     const state = useDatePickerState(props)
+    const [internalDate, setInternalDate] = useState<CalendarDate | null>(null)
 
     useEffect(() => {
       if (!state.dateValue) {
@@ -69,9 +70,27 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
       }
     }, [])
 
+    // Update dateValue whenever props.date changes
+    useEffect(() => {
+      const newDateValue = new CalendarDate(
+        props.date.getFullYear(),
+        props.date.getMonth() + 1,
+        props.date.getDate()
+      )
+
+      if (
+        !internalDate ||
+        internalDate.year !== newDateValue.year ||
+        internalDate.month !== newDateValue.month ||
+        internalDate.day !== newDateValue.day
+      ) {
+        state.setDateValue(newDateValue)
+        setInternalDate(newDateValue)
+      }
+    }, [props.date])
+
     // Call the onDateChange function whenever the date changes
     useEffect(() => {
-      console.log('HiT date picker ...')
       if (state.dateValue) {
         const date = new Date(
           Date.UTC(
@@ -80,7 +99,14 @@ const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
             state.dateValue.day
           )
         )
-        props.onDateChange(date)
+        if (
+          !internalDate ||
+          internalDate.year !== state.dateValue.year ||
+          internalDate.month !== state.dateValue.month ||
+          internalDate.day !== state.dateValue.day
+        ) {
+          props.onDateChange(date)
+        }
       }
     }, [state.dateValue])
 

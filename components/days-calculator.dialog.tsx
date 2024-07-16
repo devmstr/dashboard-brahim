@@ -3,8 +3,10 @@ import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger
@@ -13,14 +15,13 @@ import {
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AddOrderForm } from './add-order.form'
+import { CalculatorForm } from './calculator.form'
 
-interface AddOrderDialogProps {
-  id: string
-}
+interface DaysCalculatorDialogProps {}
 
-export const AddOrderDialog: React.FC<AddOrderDialogProps> = ({
-  id
-}: AddOrderDialogProps) => {
+export const DaysCalculatorDialog: React.FC<
+  DaysCalculatorDialogProps
+> = ({}: DaysCalculatorDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -28,24 +29,22 @@ export const AddOrderDialog: React.FC<AddOrderDialogProps> = ({
           variant={'default'}
           className="flex gap-3 w-fit   text-white hover:text-white/80"
         >
-          {'Add'}
-          <Icons.add className="w-6 h-6 " />
+          {'Calculatrice'}
+          <Icons.calculator className="w-6 h-6 " />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:h-fit container max-w-6xl">
+      <DialogContent className="sm:h-fit container max-w-md">
         <ScrollArea className="h-[75vh] pt-3 pb-7">
           <DialogHeader className="px-2">
-            <DialogTitle className="flex">Ajouter une commande</DialogTitle>
+            <DialogTitle className="flex">Calculer le Délai</DialogTitle>
             <DialogDescription className="flex text-left max-w-4xl">
-              En cliquant sur 'Ajouter commande', votre commande sera
-              enregistrée en toute sécurité dans notre base de données. Soyez
-              rassuré, vous pourrez modifier les informations de votre commande
-              à tout moment si nécessaire.
+              Veuillez remplir le formulaire ci-dessous pour estimer le nombre
+              de jours jusqu'à l'achèvement de votre commande.
             </DialogDescription>
           </DialogHeader>
           {/* start  content */}
           <div className="px-2">
-            <AddOrderForm id={id} />
+            <CalculatorForm />
           </div>
           {/* end content */}
         </ScrollArea>

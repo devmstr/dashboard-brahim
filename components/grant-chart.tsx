@@ -7,7 +7,7 @@ import { Button } from './ui/button'
 import { Selector } from './selector'
 import { Limit, limits } from '@/config/gantt-chart.config'
 import { z } from 'zod'
-import { OrderSchema } from '@/lib/validations/order'
+import { OrderSchema, TimeLineRecord } from '@/lib/validations/order'
 import { AddOrderDialog } from '@/components/add-order.dialog'
 import { toast } from './ui/use-toast'
 import { useRouter } from 'next/navigation'
@@ -15,23 +15,18 @@ import { getDate, getDay } from 'date-fns'
 import { cn, dateDiff } from '@/lib/utils'
 import dayjs from 'dayjs'
 
-type TimeLineRecord = z.infer<typeof OrderSchema> & { id: string }
-
 export function GanttChart({
   data: orders,
-  abilityToAdd = false,
-  abilityToMove = false,
-  newOrderId
+  abilityToMove = false
 }: {
   data: TimeLineRecord[] | []
-  abilityToAdd: boolean
   abilityToMove: boolean
-  newOrderId: string
 }) {
   const [limit, setLimit] = React.useState<Limit>('10')
   const ganttRef = useRef<GanttRef>(null!)
   const [currentPage, setCurrentPage] = React.useState(0)
   const { push } = useRouter()
+
   const [page, setPage] = React.useState(
     orders.slice(0, +limit)
     // Sort the orders by start date automatically
@@ -101,7 +96,6 @@ export function GanttChart({
             items={limits}
           />
         </div>
-        {abilityToAdd && <AddOrderDialog id={newOrderId} />}
       </div>
       <div className="w-full h-[500px]">
         <RcGantt

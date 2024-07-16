@@ -16,7 +16,11 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
-import { ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
+import {
+  MANUFACTURING_TYPES,
+  ORDER_TYPE,
+  PAS_TYPES
+} from '@/config/order.config'
 import { cn } from '@/lib/utils'
 import {
   OrderCommercialView,
@@ -44,6 +48,7 @@ export const OrderTechnicianEditForm: React.FC<
     defaultValues: {
       ...data,
       serialNumber: data?.serialNumber || '',
+      type: data?.type,
       technical: {
         type: data?.technical?.type ? data?.technical?.type : '',
         brand: data?.technical?.brand || '',
@@ -88,7 +93,8 @@ export const OrderTechnicianEditForm: React.FC<
       setIsLoading(false)
     }
   }
-  const type = form.watch('technical.type')
+  const type = form.watch('type')
+  const technicalType = form.watch('technical.type')
   const pas = form.watch('technical.pas')
 
   return (
@@ -118,6 +124,24 @@ export const OrderTechnicianEditForm: React.FC<
         <CardGrid>
           <FormField
             control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type</FormLabel>
+                <FormControl>
+                  <Selector
+                    {...field}
+                    items={ORDER_TYPE}
+                    setValue={(value) => form.setValue('type', value)}
+                    value={type || ORDER_TYPE[0]}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="technical.model"
             render={({ field }) => (
               <FormItem>
@@ -142,24 +166,29 @@ export const OrderTechnicianEditForm: React.FC<
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="technical.type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Order Type</FormLabel>
-                <FormControl>
-                  <Selector
-                    {...field}
-                    items={ORDER_TYPES}
-                    setValue={(value) => form.setValue('technical.type', value)}
-                    value={type || ORDER_TYPES[0]}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {type == 'Faisceau' && (
+            <FormField
+              control={form.control}
+              name="technical.type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ligne Ailette</FormLabel>
+                  <FormControl>
+                    <Selector
+                      {...field}
+                      items={MANUFACTURING_TYPES}
+                      setValue={(value) =>
+                        form.setValue('technical.type', value)
+                      }
+                      value={technicalType || MANUFACTURING_TYPES[0]}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={form.control}
             name="technical.pas"

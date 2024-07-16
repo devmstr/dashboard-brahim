@@ -1,3 +1,5 @@
-export const ORDER_TYPES = ['Zigzag', 'Droit', 'AERE']
+export const MANUFACTURING_TYPES = ['Zigzag', 'Platte']
 export const PAS_TYPES = [8, 10, 12]
 export const ORDER_STATUS = ['Annuler', 'Non Commence', 'Encours', 'Fini']
+export const ORDER_MANUFACTURING = ['Renovation', 'Confection']
+export const ORDER_TYPE = ['Faisceau', 'Radiateur']

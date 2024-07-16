@@ -1,45 +1,43 @@
+import React from 'react'
+import db from '@/lib/db'
 import { Card } from '@/components/card'
 import { GanttChart } from '@/components/grant-chart'
-import React from 'react'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { coid } from '@/lib/utils'
-import db from '@/lib/db'
-import { z } from 'zod'
-import { OrderSchema } from '@/lib/validations/order'
+import { TimeLineRecord } from '@/lib/validations/order'
 import { ROLES } from '@/config/accounts'
+import { AddOrderDialog } from '@/components/add-order.dialog'
+import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
+import { ProductionDaysProvider } from '@/components/production-days.provider'
 
 interface PageProps {}
 
-type TimeLineRecord = z.infer<typeof OrderSchema> & { id: string }
-
-const getData = async () => {
-  try {
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/orders`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const jsonData = await res.json()
-    return jsonData
-  } catch (error) {
-    console.log(error)
-    return []
-  }
-}
-
 const Page: React.FC<PageProps> = async () => {
-  // await for 1 second to simulate loading
   const session = await getServerSession(authOptions)
-  const data = await getData()
+  const res = await fetch(`${process.env.NEXTAUTH_URL}/api/orders`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+
+  const data = await res.json()
+
   const newOrderId = await coid(db)
+
   return (
     <Card className="">
+      {session?.user?.role === ROLES.SALES && (
+        <ProductionDaysProvider>
+          <div className="flex justify-end items-center gap-3">
+            <DaysCalculatorDialog />
+            <AddOrderDialog id={newOrderId} />
+          </div>
+        </ProductionDaysProvider>
+      )}
       <GanttChart
-        newOrderId={newOrderId}
         abilityToMove={false}
-        abilityToAdd={session?.user?.role === ROLES.SALES}
         data={data.map((dp: any) => ({
           id: dp.id,
           receivingDate: dp.receivingDate,

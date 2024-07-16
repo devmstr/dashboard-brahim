@@ -16,7 +16,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
-import { ORDER_STATUS, ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
+import {
+  ORDER_STATUS,
+  MANUFACTURING_TYPES,
+  PAS_TYPES,
+  ORDER_MANUFACTURING,
+  ORDER_TYPE
+} from '@/config/order.config'
 import { cn } from '@/lib/utils'
 import { OrderCommercialView } from '@/lib/validations/order'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -45,12 +51,15 @@ export const OrderCommercialEditForm: React.FC<
       price: data?.price?.toString(),
       deposit: data?.deposit?.toString(),
       remaining: data?.remaining?.toString(),
+      type: data?.type,
+      manufacturing: data?.manufacturing,
+      productionDays: data?.productionDays || 0,
       status: data?.status,
       technical: {
         type: data?.technical?.type ? data?.technical?.type : '',
         brand: data?.technical?.brand || '',
         model: data?.technical?.model || '',
-        pas: data?.technical?.pas ? +data?.technical?.pas! : 0,
+        pas: data?.technical?.pas ? +data?.technical?.pas! : 8,
         nr: data?.technical?.nr?.toString() || '',
         ec: data?.technical?.ec?.toString() || '',
         lar1: data?.technical?.lar1?.toString() || '',
@@ -85,12 +94,13 @@ export const OrderCommercialEditForm: React.FC<
   }
 
   const receivingDate = form.watch('receivingDate')
-  const type = form.watch('technical.type')
+  const manufacturing = form.watch('manufacturing')
+  const technicalType = form.watch('technical.type')
+  const type = form.watch('type')
   const pas = form.watch('technical.pas')
   const price = form.watch('price')
   const deposit = form.watch('deposit')
   const remaining = form.watch('remaining')
-  const status = form.watch('status')
 
   function calculateRemaining() {
     if (price && deposit) if (+deposit < +price) return `${+price - +deposit}`
@@ -164,6 +174,24 @@ export const OrderCommercialEditForm: React.FC<
           <CardGrid>
             <FormField
               control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <FormControl>
+                    <Selector
+                      {...field}
+                      items={ORDER_TYPE}
+                      setValue={(value) => form.setValue('type', value)}
+                      value={type || ORDER_TYPE[0]}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="technical.model"
               render={({ field }) => (
                 <FormItem>
@@ -188,26 +216,28 @@ export const OrderCommercialEditForm: React.FC<
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="technical.type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Order Type</FormLabel>
-                  <FormControl>
-                    <Selector
-                      {...field}
-                      items={ORDER_TYPES}
-                      setValue={(value) =>
-                        form.setValue('technical.type', value)
-                      }
-                      value={type || ORDER_TYPES[0]}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {type == 'Faisceau' && (
+              <FormField
+                control={form.control}
+                name="technical.type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ligne Ailette</FormLabel>
+                    <FormControl>
+                      <Selector
+                        {...field}
+                        items={MANUFACTURING_TYPES}
+                        setValue={(value) =>
+                          form.setValue('technical.type', value)
+                        }
+                        value={technicalType || MANUFACTURING_TYPES[0]}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="technical.pas"
@@ -301,6 +331,50 @@ export const OrderCommercialEditForm: React.FC<
         <CardGrid>
           <FormField
             control={form.control}
+            name="id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>ID De Commande</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={true} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="manufacturing"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fabrication</FormLabel>
+                <FormControl>
+                  <Selector
+                    {...field}
+                    items={ORDER_MANUFACTURING}
+                    setValue={(value) => form.setValue('manufacturing', value)}
+                    value={manufacturing || ORDER_MANUFACTURING[0]}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="quantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Quantité</FormLabel>
+                <FormControl>
+                  <Input {...field} type="number" placeholder="0 pièce..." />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="receivingDate"
             render={({ field }) => (
               <FormItem>
@@ -319,17 +393,31 @@ export const OrderCommercialEditForm: React.FC<
           />
           <FormField
             control={form.control}
-            name="quantity"
+            name="productionDays"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Quantité</FormLabel>
+                <FormLabel>Jours (Estimation)</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} placeholder="0 pièce..." />
+                  <Input
+                    {...field}
+                    type="number"
+                    placeholder="0 Jour..."
+                    value={
+                      Number.isInteger(field.value)
+                        ? field.value
+                        : field.value.toFixed(2)
+                    }
+                    onChange={({ target: { value } }) =>
+                      form.setValue('productionDays', parseInt(value))
+                    }
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+        </CardGrid>
+        <CardGrid>
           <FormField
             control={form.control}
             name="price"
@@ -376,24 +464,6 @@ export const OrderCommercialEditForm: React.FC<
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Statut</FormLabel>
-                <FormControl>
-                  <Selector
-                    {...field}
-                    items={ORDER_STATUS}
-                    setValue={(value) => form.setValue('status', value)}
-                    value={status || ORDER_STATUS[0]}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </CardGrid>
         <CardDivider>
           <div className="flex gap-3">
@@ -405,7 +475,7 @@ export const OrderCommercialEditForm: React.FC<
               )}
               type="submit"
             >
-              Cancel
+              Back
             </Link>
             <Button
               variant={'outline'}

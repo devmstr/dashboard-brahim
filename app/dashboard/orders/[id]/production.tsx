@@ -16,17 +16,26 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/use-toast'
-import { ORDER_STATUS, ORDER_TYPES, PAS_TYPES } from '@/config/order.config'
+import {
+  ORDER_STATUS,
+  MANUFACTURING_TYPES,
+  PAS_TYPES,
+  ORDER_TYPE
+} from '@/config/order.config'
 import { cn, dateDiff } from '@/lib/utils'
 import {
   OrderCommercialView,
   OrderProductionView
 } from '@/lib/validations/order'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ZonedDateTime } from '@internationalized/date'
+import { format, parseISO } from 'date-fns'
+import { cp } from 'fs'
 import { Minus, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React, { useEffect } from 'react'
+import { DateValue } from 'react-aria'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -41,13 +50,19 @@ export const OrderProductionEditForm: React.FC<
 > = ({ data }: OrderProductionEditFormProps) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [showTechnical, setShowTechnical] = React.useState<boolean>(false)
+
   const form = useForm<FormData>({
     defaultValues: {
       ...data,
       progress: data?.progress || 0,
       quantity: data?.quantity,
       startDate: data?.startDate,
-      endDate: data?.endDate,
+      type: data?.type,
+      endDate:
+        data?.endDate ||
+        new Date(
+          new Date(data?.receivingDate).getDate() + data?.productionDays
+        ).toISOString(),
       actualEndDate: data?.actualEnd,
       technical: {
         type: data?.technical?.type,
@@ -65,14 +80,29 @@ export const OrderProductionEditForm: React.FC<
   })
   const startDate = form.watch('startDate')
   const endDate = form.watch('endDate')
-  const type = form.watch('technical.type')
+  const technicalType = form.watch('technical.type')
+  const type = form.watch('type')
   const pas = form.watch('technical.pas')
   const progress = form.watch('progress')
   const quantity = form.watch('quantity')
   const status = form.watch('status')
   const receivingDate = form.watch('receivingDate')
   const actualEndDate = form.watch('actualEndDate')
+
   const router = useRouter()
+
+  React.useEffect(() => {
+    form.setValue(
+      'endDate',
+      new Date(
+        new Date(startDate!).getTime() + data?.productionDays * 24 * 3600 * 1000
+      ).toISOString()
+    )
+  }, [startDate])
+
+  React.useEffect(() => {
+    form.setValue('actualEndDate', endDate)
+  }, [endDate])
 
   async function onSubmit(formData: FormData) {
     try {
@@ -101,10 +131,6 @@ export const OrderProductionEditForm: React.FC<
         })
         return
       }
-
-      if (progress == quantity)
-        productionData.actualEndDate = new Date().toISOString()
-      else productionData.actualEndDate = productionData.endDate
 
       const res = await fetch(`/api/order/production/${data?.id}`, {
         method: 'PATCH',
@@ -247,14 +273,11 @@ export const OrderProductionEditForm: React.FC<
             name="endDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Délai (Approximatif)</FormLabel>
+                <FormLabel>Délai (Estimation)</FormLabel>
                 <FormControl>
-                  <DatePicker
-                    // id="end-date"
-                    date={endDate ? new Date(endDate) : new Date()}
-                    onDateChange={(value: Date) => {
-                      form.setValue('endDate', value.toISOString())
-                    }}
+                  <Input
+                    value={format(parseISO(endDate!), 'dd/MM/yyyy')}
+                    disabled={true}
                   />
                 </FormControl>
                 <FormMessage />
@@ -265,8 +288,8 @@ export const OrderProductionEditForm: React.FC<
             control={form.control}
             name="actualEndDate"
             render={({ field }) => (
-              <FormItem className="hidden">
-                <FormLabel>Date de reception</FormLabel>
+              <FormItem>
+                <FormLabel>Date fin actuelle</FormLabel>
                 <FormControl>
                   <DatePicker
                     // id="end-date"
@@ -290,6 +313,25 @@ export const OrderProductionEditForm: React.FC<
         </div>
         {showTechnical && (
           <CardGrid>
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <FormControl>
+                    <Selector
+                      {...field}
+                      items={ORDER_TYPE}
+                      setValue={(value) => form.setValue('type', value)}
+                      value={type || ORDER_TYPE[0]}
+                      disabled={true}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="technical.model"
@@ -316,27 +358,29 @@ export const OrderProductionEditForm: React.FC<
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="technical.type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Order Type</FormLabel>
-                  <FormControl>
-                    <Selector
-                      {...field}
-                      items={ORDER_TYPES}
-                      setValue={(value) =>
-                        form.setValue('technical.type', value)
-                      }
-                      value={type || ORDER_TYPES[0]}
-                      disabled
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {type == 'Faisceau' && (
+              <FormField
+                control={form.control}
+                name="technical.type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ligne Ailette</FormLabel>
+                    <FormControl>
+                      <Selector
+                        {...field}
+                        items={MANUFACTURING_TYPES}
+                        setValue={(value) =>
+                          form.setValue('technical.type', value)
+                        }
+                        value={technicalType || MANUFACTURING_TYPES[0]}
+                        disabled={true}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="technical.pas"
@@ -460,7 +504,7 @@ export const OrderProductionEditForm: React.FC<
               )}
               type="submit"
             >
-              Cancel
+              Back
             </Link>
             <Button
               variant={'outline'}

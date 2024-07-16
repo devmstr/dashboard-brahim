@@ -1,28 +1,26 @@
 'use client'
 
+import { Icons } from '@/components/icons'
+import { ROLES_MAP } from '@/config/accounts'
+import { cn } from '@/lib/utils'
+import { userSignUpSchema } from '@/lib/validations/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { signIn, useSession } from 'next-auth/react'
-import { useSearchParams } from 'next/navigation'
+import { Button } from '@ui/button'
+import { Input } from '@ui/input'
+import { toast } from '@ui/use-toast'
+import { signIn } from 'next-auth/react'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import { Button, buttonVariants } from '@ui/button'
-import { Input } from '@ui/input'
-import { toast } from '@ui/use-toast'
-import { cn } from '@/lib/utils'
-import { userSignUpSchema } from '@/lib/validations/auth'
-import Link from 'next/link'
-import { Icons } from '@/components/icons'
+import { Selector } from './selector'
 import {
+  Form,
+  FormControl,
+  FormField,
   FormItem,
   FormLabel,
-  FormControl,
-  FormMessage,
-  FormField,
-  Form
+  FormMessage
 } from './ui/form'
-import { ROLES, ROLES_MAP } from '@/config/accounts'
-import { Selector } from './selector'
 
 interface UserSingUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -52,7 +50,6 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
     resolver: zodResolver(userSignUpSchema)
   })
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
-  const [isGoogleLoading, setIsGoogleLoading] = React.useState<boolean>(false)
   const [isPasswordVisible, setIsPasswordVisible] =
     React.useState<boolean>(false)
 
@@ -60,7 +57,6 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
 
   async function onSubmit(formData: FormData) {
     setIsLoading(true)
-
     try {
       await signIn('register', {
         username: formData.name,

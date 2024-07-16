@@ -7,6 +7,14 @@ type NavItem = {
   disabled?: boolean
 }
 
+export type EmployeePasswordsEntry = {
+  id: string
+  name: string
+  role: string | null
+  password: string
+  updatedAt: Date
+}
+
 export type MainNavItem = NavItem
 
 export type DashboardConfig = {

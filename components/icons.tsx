@@ -43,8 +43,7 @@ import {
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackageCheck } from 'react-icons/lu'
-
-import { cn } from '@/lib/utils'
+import { AiOutlineCalculator } from 'react-icons/ai'
 
 export type Icon = LucideIcon
 
@@ -58,6 +57,7 @@ export const Icons = {
     return <EyeOff {...props} />
   },
   users: UserRoundPlus,
+  calculator: AiOutlineCalculator,
   add: PlusCircleIcon,
   edit: Pencil,
   package: LuPackageCheck,

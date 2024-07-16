@@ -1,15 +1,33 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const data = require('./data.json')
+
 async function addAdminAccount() {
-  await prisma.user.create({
-    data: {
-      name: 'admin',
-      role: 'admin',
-      password: 'Admin1234' // Use hashed passwords in production
-    }
+  await prisma.user.createMany({
+    data: [
+      {
+        name: 'admin',
+        role: 'admin',
+        password: 'Password1234' // Use hashed passwords in production
+      }
+      // {
+      //   name: 'production',
+      //   role: 'production',
+      //   password: 'Password1234'
+      // },
+      // {
+      //   name: 'sales',
+      //   role: 'sales',
+      //   password: 'Password1234'
+      // },
+      // {
+      //   name: 'engineering',
+      //   role: 'engineering',
+      //   password: 'Password1234'
+      // }
+    ]
   })
-  console.log('Admin user created')
+  console.log('Fake Users list created successfully...')
 }
 
 async function addFakeData() {
@@ -32,7 +50,7 @@ async function addFakeData() {
       })
     })
   )
-  console.log('Fake data uploaded successfully created')
+  console.log('Fake orders data created successfully...')
 }
 
 async function main() {
@@ -40,7 +58,7 @@ async function main() {
   await prisma.client.deleteMany()
   await prisma.order.deleteMany()
   addAdminAccount()
-  addFakeData()
+  // addFakeData()
 }
 
 main()

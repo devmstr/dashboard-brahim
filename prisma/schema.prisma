@@ -29,22 +29,25 @@ model Technical {
 }
 
 model Order {
-  id            String     @id
-  serialNumber  String?
-  status        String?
-  quantity      Int?
-  receivingDate DateTime?
-  startDate     DateTime?
-  endDate       DateTime?
-  actualEnd     DateTime?
-  price         Int?
-  deposit       Int?
-  remaining     Int?
-  progress      Int?
-  Client        Client?    @relation(fields: [clientId], references: [id])
-  clientId      String?
-  Technical     Technical? @relation(fields: [technicalId], references: [id])
-  technicalId   String?
+  id             String     @id
+  serialNumber   String?
+  status         String?
+  quantity       Int?
+  productionDays Int?
+  type           String?
+  manufacturing  String?
+  receivingDate  DateTime?
+  startDate      DateTime?
+  endDate        DateTime?
+  actualEnd      DateTime?
+  price          Int?
+  deposit        Int?
+  remaining      Int?
+  progress       Int?
+  Client         Client?    @relation(fields: [clientId], references: [id])
+  clientId       String?
+  Technical      Technical? @relation(fields: [technicalId], references: [id])
+  technicalId    String?
 }
 
 model Account {
