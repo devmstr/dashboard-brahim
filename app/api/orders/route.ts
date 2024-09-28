@@ -14,6 +14,10 @@ export async function GET(request: Request) {
       include: {
         Client: true,
         Technical: true
+      },
+      //order by id desc
+      orderBy: {
+        id: 'desc' // Order by 'id' in descending order
       }
     })
     const mappedOrders = orders.map((i) => ({

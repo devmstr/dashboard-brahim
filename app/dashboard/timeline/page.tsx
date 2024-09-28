@@ -1,7 +1,7 @@
 import React from 'react'
 import db from '@/lib/db'
 import { Card } from '@/components/card'
-import { GanttChart } from '@/components/grant-chart'
+import { DependenceType, GanttChart } from '@/components/grant-chart'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { coid } from '@/lib/utils'
@@ -37,7 +37,6 @@ const Page: React.FC<PageProps> = async () => {
         </ProductionDaysProvider>
       )}
       <GanttChart
-        abilityToMove={false}
         data={data.map((dp: any) => ({
           id: dp.id,
           receivingDate: dp.receivingDate,
@@ -46,6 +45,18 @@ const Page: React.FC<PageProps> = async () => {
           actualEndDate: dp?.actualEnd,
           collapsed: true
         }))}
+        // dependencies={data.map(({ id }: { id: string }) => {
+        //   const prefix = id.slice(0, 2)
+        //   const nextId = `${prefix}-${(parseInt(id.slice(3)) + 1)
+        //     .toString()
+        //     .padStart(4, '0')}`
+        //   return {
+        //     from: id,
+        //     to: nextId,
+        //     type: 'finish_start',
+        //     color: 'purple'
+        //   }
+        // })}
       />
     </Card>
   )

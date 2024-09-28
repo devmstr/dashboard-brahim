@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Button } from './ui/button'
 import { Selector } from './selector'
 import { Limit, limits } from '@/config/gantt-chart.config'
-import { z } from 'zod'
+import { any, z } from 'zod'
 import { OrderSchema, TimeLineRecord } from '@/lib/validations/order'
 import { AddOrderDialog } from '@/components/add-order.dialog'
 import { toast } from './ui/use-toast'
@@ -14,18 +14,65 @@ import { useRouter } from 'next/navigation'
 import { getDate, getDay } from 'date-fns'
 import { cn, dateDiff } from '@/lib/utils'
 import dayjs from 'dayjs'
+import { DefaultRecordType } from 'rc-gantt/dist/types/types'
+import { useMutation } from '@tanstack/react-query'
+import { moveChartRecord } from '@/lib/actions'
+
+export type DependenceType =
+  | 'start_finish'
+  | 'finish_start'
+  | 'start_start'
+  | 'finish_finish'
 
 export function GanttChart({
-  data: orders,
-  abilityToMove = false
-}: {
+  data: orders
+}: // dependencies
+{
   data: TimeLineRecord[] | []
-  abilityToMove: boolean
+  // dependencies?: {
+  //   from: string
+  //   to: string
+  //   type: DependenceType
+  //   color: 'purple' | 'black'
+  // }[]
 }) {
   const [limit, setLimit] = React.useState<Limit>('10')
   const ganttRef = useRef<GanttRef>(null!)
   const [currentPage, setCurrentPage] = React.useState(0)
   const { push } = useRouter()
+
+  const { mutate: server_moveChartRecord, isPending } = useMutation({
+    mutationFn: ({
+      row,
+      startDate,
+      endDate
+    }: {
+      row: any
+      startDate: string
+      endDate: string
+    }) => {
+      return moveChartRecord({ row, startDate, endDate })
+    }, // Replace with your actual function
+    onSuccess: (data) => {
+      toast({
+        title: 'Success',
+        description: <p>Success ! The order has been moved successfully.</p>,
+        variant: 'default'
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: (
+          <p>
+            Sorry ! something went wrong try to refresh page and retry the
+            moving action
+          </p>
+        ),
+        variant: 'destructive'
+      })
+    }
+  })
 
   const [page, setPage] = React.useState(
     orders.slice(0, +limit)
@@ -50,35 +97,6 @@ export function GanttChart({
     setPage(orders.slice(start, end))
   }, [currentPage, limit])
 
-  const onMove = async (
-    record: TimeLineRecord,
-    startDate: string,
-    endDate: string
-  ) => {
-    if (abilityToMove) {
-      const res = await fetch(`/api/order/production/${record.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          startDate: new Date(startDate).toISOString(), //update new dates
-          actualEndDate: new Date(endDate).toISOString(), //update new dates
-          endDate: record.endDate,
-          progress: record.progress,
-          status: record.status
-        })
-      })
-      if (res.ok)
-        toast({
-          title: 'Success',
-          description: <p>You have successfully update your order. </p>
-        })
-      return true
-    }
-    return false
-  }
-
   const getWidth = ganttRef?.current?.getWidthByDate
 
   return (
@@ -100,6 +118,7 @@ export function GanttChart({
       <div className="w-full h-[500px]">
         <RcGantt
           data={page}
+          // dependencies={dependencies}
           locale={enUS}
           startDateKey="receivingDate"
           endDateKey="actualEndDate"
@@ -133,8 +152,10 @@ export function GanttChart({
           ]}
           scrollTop={true}
           onBarClick={() => false}
-          // onUpdate={onMove}
-          onUpdate={async () => false}
+          onUpdate={async (row, startDate, endDate) => {
+            server_moveChartRecord({ row, startDate, endDate })
+            return true
+          }}
           renderLeftText={() => false}
           renderRightText={() => false}
           alwaysShowTaskBar={false}
@@ -166,57 +187,63 @@ export function GanttChart({
               dayjs(new Date(barInfo.record.endDate!)),
               dayjs(new Date(barInfo.record.actualEndDate!))
             )
+
             return (
-              <Link
-                href={'orders/' + barInfo.record.id}
+              <div
                 className={
-                  'relative -top-[9px] z-20 flex items-center   h-[27px] rounded-sm text-xs text-white font-inter font-medium'
+                  'relative -top-[9px] z-20 flex items-center   h-[27px] rounded-sm text-xs text-white font-inter font-medium text-nowrap '
                 }
               >
-                {couldStartWidth > 0 && (
+                {/* {couldStartWidth >= 1 && ( */}
+                {coldStartDays > 0 && (
                   <div
-                    className={
-                      'flex justify-center items-center w-full h-full text-gray-700 z-40 rounded-l-sm '
-                    }
+                    className={cn(
+                      'flex justify-center items-center w-full h-full text-gray-700 z-40 rounded-l-sm select-none '
+                    )}
                     style={{
                       width: couldStartWidth,
                       backgroundColor: '#e5e4e2'
                     }}
                   >
-                    {coldStartDays > 1
+                    {coldStartDays >= 2
                       ? `${coldStartDays} Jours`
                       : `${coldStartDays} J`}
                   </div>
                 )}
-                <div
-                  className={cn(
-                    'flex justify-center items-center w-full h-full z-40',
-                    delayWidth <= 0 && 'rounded-r-sm',
-                    couldStartWidth <= 0 && 'rounded-l-sm'
-                  )}
-                  style={{
-                    width: inScheduledWidth,
-                    backgroundColor: '#7C3AED'
-                  }}
-                >
-                  {inScheduleDays > 1
-                    ? `${inScheduleDays} Jours`
-                    : `${inScheduleDays} J`}
-                </div>
-                {delayWidth > 0 && (
+                {/* )} */}
+                {inScheduleDays > 0 && (
                   <div
-                    className={
-                      'flex justify-center items-center w-full h-full   text-center z-40 bg-primary rounded-r-sm'
-                    }
+                    className={cn(
+                      'flex justify-center items-center w-full h-full z-40 text-nowrap  select-none',
+                      delayDays <= 0 && 'rounded-r-sm',
+                      coldStartDays <= 0 && 'rounded-l-sm'
+                    )}
+                    style={{
+                      width: inScheduledWidth,
+                      backgroundColor: '#7C3AED'
+                    }}
+                  >
+                    {inScheduleDays >= 2
+                      ? `${inScheduleDays} Jours`
+                      : `${inScheduleDays} J`}
+                  </div>
+                )}
+                {/* {delayWidth >= 1 && ( */}
+                {delayDays > 0 && (
+                  <div
+                    className={cn(
+                      'flex justify-center items-center w-full h-full   text-center z-40 bg-primary rounded-r-sm text-nowrap select-none'
+                    )}
                     style={{
                       width: delayWidth,
                       backgroundColor: '#FF5730'
                     }}
                   >
-                    {delayDays > 1 ? `${delayDays} Jours` : `${delayDays} J`}
+                    {delayDays >= 2 ? `${delayDays} Jours` : `${delayDays} J`}
                   </div>
                 )}
-              </Link>
+                {/* )} */}
+              </div>
             )
           }}
         />

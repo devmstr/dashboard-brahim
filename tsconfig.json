@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -32,9 +32,12 @@
     ".next/types/**/*.ts",
     "i18n.ts",
     "env.mjs",
-    "scripts/on-boarding.js",
+    "scripts/seed-users.mjs",
     "scripts/add-default-user.mjs",
-    "scripts/on-boarding.js"
+    "scripts/seed-users.mjs",
+    "scripts/faker.mjs",
+    "scripts/seed.ts",
+    "scripts/seed-orders.mjs"
   ],
   "exclude": ["node_modules"]
 }

@@ -1,4 +1,5 @@
 import { DashboardSidebar } from '@/components/dashboard-sidebar'
+import { Toaster } from '@/components/ui/toaster'
 import { ROLES } from '@/config/accounts'
 import { EmployeeDashboardConfig } from '@/config/dashboard'
 import { authOptions } from '@/lib/auth'
@@ -38,6 +39,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
       <div className="relative   py-10 pl-16 flex items-center flex-col w-full ">
         <div className="container">{children}</div>
       </div>
+      <Toaster />
     </div>
   )
 }

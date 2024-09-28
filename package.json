@@ -6,10 +6,12 @@
     "dev": "next dev",
     "prebuild": "npx prisma migrate deploy & npx prisma generate",
     "build": "next build",
-    "postbuild": "node ./scripts/on-boarding",
     "start": "next start",
     "lint": "next lint",
-    "dev:local": "next dev -H 0.0.0.0"
+    "dev:local": "next dev -H 0.0.0.0",
+    "seed:users": "node ./scripts/seed-users",
+    "seed:orders": "node ./scripts/seed-orders",
+    "studio": "npx prisma studio"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",
@@ -32,6 +34,7 @@
     "@radix-ui/react-tabs": "^1.1.0",
     "@radix-ui/react-toast": "^1.1.5",
     "@t3-oss/env-nextjs": "^0.7.1",
+    "@tanstack/react-query": "^5.56.2",
     "@tanstack/react-table": "^8.12.0",
     "axios": "^1.6.3",
     "class-variance-authority": "^0.7.0",
@@ -56,6 +59,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.0.3",
     "@types/lodash": "^4.14.202",
     "@types/negotiator": "^0.6.3",
     "@types/node": "^20",
