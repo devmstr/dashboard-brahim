@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npx prisma migrate deploy & npx prisma generate",
+    "postinstall": "npx prisma migrate deploy & npx prisma generate",
     "build": "next build",
+    "postbuild": "node ./scripts/seed-users",
     "start": "next start",
     "lint": "next lint",
     "dev:local": "next dev -H 0.0.0.0",
-    "seed:users": "node ./scripts/seed-users",
     "seed:orders": "node ./scripts/seed-orders",
     "studio": "npx prisma studio"
   },
