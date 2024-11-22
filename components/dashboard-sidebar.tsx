@@ -4,35 +4,53 @@ import { SidebarNavItem } from '@/types'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React from 'react'
+import React, { Dispatch } from 'react'
 import Fade from './Fade'
 import { Icons } from './icons'
+import { Button } from './ui/button'
+import { useSidebarState } from './open-sidebar-provider'
 
-interface DashboardSidebarProps {
+interface DashboardSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   items?: SidebarNavItem[]
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
-  items
+  items,
+  className,
+
+  ...props
 }: DashboardSidebarProps) => {
+  const { open, setOpen } = useSidebarState()
   const pathname = usePathname()
-  const [showSidebar, setShowSidebar] = React.useState(false)
+
   return (
     <div
       className={cn(
-        'fixed bg-white h-screen z-30 flex flex-col pl-5 justify-center drop-shadow-md',
-        showSidebar
-          ? 'w-[12rem] transition-all duration-300 ease-in'
-          : 'w-16  transition-all duration-500 ease-out'
+        'flex flex-col gap-3 items-center shadow-md ',
+        open
+          ? 'w-64 px-5 items-start transition-all duration-300 ease-in'
+          : 'w-16  transition-all duration-500 ease-out',
+        className
       )}
+      {...props}
     >
-      <div>
-        {items?.length && (
-          <nav
-            onMouseEnter={(e) => setShowSidebar(true)}
-            onMouseLeave={(e) => setShowSidebar(false)}
-            className={cn('flex flex-col gap-8')}
+      <div className="flex gap-3 pt-3 items-center">
+        <Icons.logo className={'flex w-11 h-auto'} />
+        {open && (
+          <Fade
+            from={'top'}
+            amount={0.4}
+            duration={300}
+            delay={200}
+            easing={'easeOut'}
           >
+            <Icons.identity className={cn('flex h-4 w-auto mt-1')} />
+          </Fade>
+        )}
+      </div>
+      <div className="h-full flex flex-col justify-start mt-8">
+        {items?.length && (
+          <nav className={cn('flex flex-col gap-8')}>
             {items?.map((item, index) => {
               const Icon = Icons[item.icon || 'arrowRight']
               const delay = (index = 0 ? 80 : index * 80)
@@ -47,18 +65,18 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     className={cn(
                       'flex items-center text-gray-500 font-medium fill-current',
                       active
-                        ? 'text-primary opacity-100'
-                        : 'opacity-80 hover:opacity-100 hover:text-foreground',
+                        ? 'text-secondary opacity-100'
+                        : 'opacity-80 hover:opacity-100 hover:text-secondary',
                       item.disabled && 'cursor-not-allowed opacity-80'
                     )}
                   >
                     <Icon
                       className={cn(
                         'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
-                        showSidebar ? 'mr-2' : 'mr-0'
+                        open ? 'mr-2' : 'mr-0'
                       )}
                     />
-                    {showSidebar && (
+                    {open && (
                       <Fade
                         className={cn(
                           'text-md sm:text-sm'
@@ -68,9 +86,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                         )}
                         from={'top'}
                         amount={0.4}
-                        duration={250}
+                        duration={300}
                         delay={delay}
-                        easing={'easeInOut'}
+                        easing={'easeOut'}
                       >
                         <span>{item.title}</span>
                       </Fade>

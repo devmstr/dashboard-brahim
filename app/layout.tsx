@@ -32,9 +32,11 @@ interface RootLayoutProps {
 
 export default async function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html className="w-screen overflow-x-hidden">
+    <html className="w-screen overflow-x-hidden ">
       <ReactQueryProvider>
-        <body className={cn('flex flex-col h-full ', inter.variable)}>
+        <body
+          className={cn('flex flex-col h-full bg-slate-100 ', inter.variable)}
+        >
           <AuthProvider>{children}</AuthProvider>
           <Toaster />
         </body>
