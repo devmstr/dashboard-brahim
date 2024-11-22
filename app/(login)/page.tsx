@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default async function LoginPage() {
   return (
-    <div className="relative flex flex-col items-center justify-center h-[93vh] w-full bg-slate-100">
+    <div className="relative flex flex-col items-center justify-center h-screen w-full bg-slate-100">
       <div className="container flex justify-center">
         <div className="flex bg-background  rounded-md w-fit h-fit p-8  flex-col  space-y-6 drop-shadow-md">
           <div className="flex flex-col space-y-2 text-center">
