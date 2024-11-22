@@ -1,9 +1,9 @@
 'use client'
 
 import { Icons } from '@/components/icons'
-import { ROLES_MAP } from '@/config/accounts'
+import { ROLES, ROLES_MAP } from '@/config/accounts'
 import { cn } from '@/lib/utils'
-import { userSignUpSchema } from '@/lib/validations/auth'
+import { userSignUpSchema, UserSignUpSchemaType } from '@/lib/validations/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@ui/button'
 import { Input } from '@ui/input'
@@ -24,49 +24,31 @@ import {
 
 interface UserSingUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-type FormData = z.infer<typeof userSignUpSchema>
-
 export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
   className,
   ...props
 }: UserSingUpFormProps) => {
-  const getUserRole = (role: string) => {
-    switch (role) {
-      case 'Admin':
-        return 'admin'
-      case 'Commerciale':
-        return 'sales'
-      case 'Production':
-        return 'production'
-      case 'Technicien':
-        return 'engineering'
-    }
-  }
-
-  const form = useForm<FormData>({
+  const form = useForm<UserSignUpSchemaType>({
     defaultValues: {
-      role: ROLES_MAP[1]
+      role: 'SALES'
     },
     resolver: zodResolver(userSignUpSchema)
   })
+  const role = form.watch('role')
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [isPasswordVisible, setIsPasswordVisible] =
     React.useState<boolean>(false)
 
-  const role = form.watch('role')
-
-  async function onSubmit(formData: FormData) {
+  async function onSubmit(formData: UserSignUpSchemaType) {
     setIsLoading(true)
     try {
-      await signIn('register', {
-        username: formData.name,
-        password: formData.password,
-        role: getUserRole(formData.role)
-      })
+      await signIn('register', formData)
+
       toast({
         title: 'Success!',
         description: 'A new Account has been created successfully.'
       })
+      form.reset()
     } catch (error) {
       console.log(error)
       // toast({
@@ -86,12 +68,55 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
           <div className="space-y-1">
             <FormField
               control={form.control}
-              name="name"
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>E-mail</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      autoComplete="email"
+                      placeholder="E-mail ici..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="employeeId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Numero Employee</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      placeholder="Numero D'Employee ici..."
+                      onChange={({ target: { value } }) =>
+                        form.setValue('employeeId', Number(value))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="username"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nom D'utilisateur</FormLabel>
                   <FormControl>
-                    <Input placeholder="Username here..." {...field} />
+                    <Input
+                      type="text"
+                      placeholder="Username here..."
+                      autoComplete="username"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,20 +155,17 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
                   <FormControl>
                     <Selector
                       {...field}
-                      items={ROLES_MAP}
-                      setValue={(value) => form.setValue('role', value)}
-                      value={role!}
+                      items={Array.from(ROLES_MAP.keys())}
+                      setValue={(value) =>
+                        form.setValue('role', ROLES_MAP.get(value) as string)
+                      }
+                      value={ROLES_MAP.get(role) || 'Commerciale'}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {/* 
-
-              TODO: check box for marketing emails acceptance 
-             
-            */}
           </div>
           <Button className="w-full" type="submit">
             {isLoading && (

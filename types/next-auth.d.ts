@@ -3,9 +3,11 @@ import NextAuth, { DefaultSession } from 'next-auth'
 declare module 'next-auth' {
   interface User {
     sub: string
-    name: string
-    role?: UserRole
+    username: string
+    email: string | null
+    employeeId: number
     image: string | null
+    role?: UserRole
   }
 
   interface Session extends DefaultSession {

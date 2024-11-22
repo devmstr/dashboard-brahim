@@ -8,7 +8,7 @@ import * as z from 'zod'
 
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
-import { userLoginSchema } from '@/lib/validations/auth'
+import { userLoginSchema, UserLoginSchemaType } from '@/lib/validations/auth'
 import { Button } from '@ui/button'
 import { Input } from '@ui/input'
 import { toast } from '@ui/use-toast'
@@ -24,14 +24,8 @@ import {
 
 interface UserLoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-type FormData = z.infer<typeof userLoginSchema>
-
 export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
-  const form = useForm<FormData>({
-    defaultValues: {
-      name: 'admin',
-      password: 'Admin1234'
-    },
+  const form = useForm<UserLoginSchemaType>({
     resolver: zodResolver(userLoginSchema)
   })
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
@@ -39,17 +33,17 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
     React.useState<boolean>(false)
   const { push } = useRouter()
 
-  async function onSubmit(data: FormData) {
+  async function onSubmit(data: UserLoginSchemaType) {
     setIsLoading(true)
     try {
       const res = await signIn('singIn', {
-        username: data.name.toLowerCase(),
+        username: data.input.toLowerCase(),
         password: data.password,
         redirect: false,
         callbackUrl: '/dashboard'
       })
       if (res?.ok) {
-        push('/dashboard/timeline')
+        push('/dashboard')
       } else {
         toast({
           title: 'Veuillez réessayer.',
@@ -77,12 +71,17 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
           <div className="space-y-1">
             <FormField
               control={form.control}
-              name="name"
+              name="input"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom D'utilisateur</FormLabel>
+                  <FormLabel>
+                    E-mail ou Nom D'utilisateur ou Number Employee
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Username Ici..." {...field} />
+                    <Input
+                      placeholder="E-mail ou Nom D'utilisateur ou Number Employee Ici..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

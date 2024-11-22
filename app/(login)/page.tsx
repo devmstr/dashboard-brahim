@@ -12,8 +12,6 @@ export const metadata: Metadata = {
 }
 
 export default async function LoginPage() {
-  const session = await getServerSession(authOptions)
-  if (session) redirect('/dashboard')
   return (
     <div className="relative flex flex-col items-center justify-center h-[93vh] w-full bg-slate-100">
       <div className="container flex justify-center">

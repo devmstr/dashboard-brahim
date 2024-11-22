@@ -35,12 +35,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     <html className="w-screen overflow-x-hidden">
       <ReactQueryProvider>
         <body className={cn('flex flex-col h-full ', inter.variable)}>
-          <AuthProvider>
-            <DashboardNav className="relative w-full flex inset-0 h-16 z-[9999] bg-primary " />
-            <main className="relative left-0 flex flex-col w-full ">
-              {children}
-            </main>
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
           <Toaster />
         </body>
       </ReactQueryProvider>

@@ -1,8 +1,12 @@
 export enum ROLES {
-  ADMIN = 'admin',
-  SALES = 'sales',
-  PRODUCTION = 'production',
-  ENGINEERING = 'engineering'
+  ADMIN = 'ADMIN',
+  SALES = 'SALES',
+  PRODUCTION = 'PRODUCTION',
+  ENGINEERING = 'ENGINEER'
 }
 
-export const ROLES_MAP = ['Admin', 'Commerciale', 'Production', 'Technicien']
+export const ROLES_MAP = new Map<string, string>([
+  ['Commerciale', 'SALES'],
+  ['Production', 'PRODUCTION'],
+  ['Technicien', 'ENGINEER']
+])
