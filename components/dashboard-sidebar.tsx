@@ -1,18 +1,12 @@
 'use client'
-import { Dictionary, SidebarNavItem } from '@/types'
+import { SidebarNavItem } from '@/types'
 
-import React from 'react'
-import { Icons } from './icons'
-import {
-  usePathname,
-  useRouter,
-  useSelectedLayoutSegment
-} from 'next/navigation'
-import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import React from 'react'
 import Fade from './Fade'
-import { BurgerMenu } from './nav-icon'
-import { Button } from './ui/button'
+import { Icons } from './icons'
 
 interface DashboardSidebarProps {
   items?: SidebarNavItem[]
@@ -26,7 +20,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   return (
     <div
       className={cn(
-        'fixed top-0 left-0 bg-white h-screen z-10 flex flex-col pl-5 justify-center drop-shadow-md',
+        'fixed bg-white h-screen z-30 flex flex-col pl-5 justify-center drop-shadow-md',
         showSidebar
           ? 'w-[12rem] transition-all duration-300 ease-in'
           : 'w-16  transition-all duration-500 ease-out'

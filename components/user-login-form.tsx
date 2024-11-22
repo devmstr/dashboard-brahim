@@ -28,40 +28,38 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
   const form = useForm<UserLoginSchemaType>({
     resolver: zodResolver(userLoginSchema)
   })
-  const [isLoading, setIsLoading] = React.useState<boolean>(false)
+  const [isLoading, startTransaction] = React.useTransition()
   const [isPasswordVisible, setIsPasswordVisible] =
     React.useState<boolean>(false)
   const { push } = useRouter()
 
   async function onSubmit(data: UserLoginSchemaType) {
-    setIsLoading(true)
-    try {
-      const res = await signIn('singIn', {
-        username: data.input.toLowerCase(),
-        password: data.password,
-        redirect: false,
-        callbackUrl: '/dashboard'
-      })
-      if (res?.ok) {
-        push('/dashboard')
-      } else {
+    startTransaction(async () => {
+      try {
+        const res = await signIn('singIn', {
+          username: data.input.toLowerCase(),
+          password: data.password,
+          redirect: false,
+          callbackUrl: '/dashboard'
+        })
+        if (res?.ok) {
+          push('/dashboard')
+        } else {
+          toast({
+            title: 'Veuillez réessayer.',
+            description:
+              "Vos identifiants sont incorrects. Veuillez vérifier votre nom d'utilisateur et votre mot de passe puis réessayer.",
+            variant: 'destructive'
+          })
+        }
+      } catch (error: any) {
         toast({
-          title: 'Veuillez réessayer.',
-          description:
-            "Vos identifiants sont incorrects. Veuillez vérifier votre nom d'utilisateur et votre mot de passe puis réessayer.",
+          title: 'Error Occurred',
+          description: error.message,
           variant: 'destructive'
         })
       }
-    } catch (error: any) {
-      console.info(error)
-      toast({
-        title: 'Error Occurred',
-        description: error.message,
-        variant: 'destructive'
-      })
-    } finally {
-      setIsLoading(false)
-    }
+    })
   }
 
   return (
@@ -113,7 +111,10 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
               )}
             />
           </div>
-          <Button className="w-full" type="submit">
+          <Button disabled={isLoading} className="w-full" type="submit">
+            {isLoading && (
+              <Icons.spinner className="w-4 h-4 mr-3 animate-spin" />
+            )}{' '}
             Connecter
           </Button>
         </form>

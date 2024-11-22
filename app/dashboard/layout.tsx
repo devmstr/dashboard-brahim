@@ -27,10 +27,10 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
   ]
 
   return (
-    <div className="bg-gray-50 min-h-screen w-full">
-      <DashboardNav className="relative w-full flex inset-0 h-16 z-[9999] bg-primary " />
-      <div className="">
-        <DashboardSidebar items={sideBarNavItems} />
+    <div className="flex">
+      <DashboardSidebar items={sideBarNavItems} />
+      <div className="flex flex-col bg-gray-50 min-h-screen w-full">
+        <DashboardNav className="w-full flex h-16 z-30 bg-primary " />
         <main className="container py-8">{children}</main>
       </div>
     </div>
