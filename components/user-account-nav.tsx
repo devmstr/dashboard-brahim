@@ -50,7 +50,7 @@ export const UserAccountNav: React.FC<UserAccountNavProps> = ({
           <div className="flex flex-col space-y-1 leading-none">
             <div className="flex gap-1">
               <p className="font-medium">{toCapitalize(username)}</p>
-              <p className="font-medium text-muted-foreground">
+              <p className="font-medium text-muted-foreground/65">
                 #{toCapitalize(employeeId.toString())}
               </p>
             </div>

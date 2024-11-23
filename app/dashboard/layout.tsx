@@ -17,14 +17,19 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
 
   const sideBarNavItems: SidebarNavItem[] = [
     {
-      title: 'Timeline',
+      title: 'Planning',
       href: '/dashboard',
+      icon: 'timeline'
+    },
+    {
+      title: 'Commandes',
+      href: '/dashboard/orders',
       icon: 'dashboard'
     },
     {
-      title: 'Orders',
-      href: '/dashboard/orders',
-      icon: 'orders'
+      title: 'Paramètres',
+      href: '/dashboard/settings',
+      icon: 'settings'
     }
   ]
 
@@ -37,7 +42,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
         />
         <div className="flex flex-col  min-h-screen w-full">
           <DashboardNav className="w-full bg-white flex items-center z-30 h-16 shadow-md " />
-          <ScrollArea className="w-full h-full">
+          <ScrollArea className="w-full h-full max-h-[calc(100vh-4rem)]">
             <main className="container py-8">{children}</main>
           </ScrollArea>
         </div>

@@ -51,54 +51,106 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       <div className="h-full flex flex-col justify-start mt-8">
         {items?.length && (
           <nav className={cn('flex flex-col gap-8')}>
-            {items?.map((item, index) => {
-              const Icon = Icons[item.icon || 'arrowRight']
-              const delay = (index = 0 ? 80 : index * 80)
-              const active =
-                pathname?.split('/').slice(2).join('') ===
-                item.href?.split('/').slice(2).join('')
-              return (
-                item.href && (
-                  <Link
-                    key={index}
-                    href={item.disabled ? '#' : item.href!}
-                    className={cn(
-                      'flex items-center text-gray-500 font-medium fill-current',
-                      active
-                        ? 'text-secondary opacity-100'
-                        : 'opacity-80 hover:opacity-100 hover:text-secondary',
-                      item.disabled && 'cursor-not-allowed opacity-80'
-                    )}
-                  >
-                    <Icon
+            {items
+              ?.filter((item) => item.title !== 'Paramètres')
+              .map((item, index) => {
+                const Icon = Icons[item.icon || 'arrowRight']
+                const delay = (index = 0 ? 80 : index * 80)
+                const active =
+                  pathname?.split('/').slice(2).join('') ===
+                  item.href?.split('/').slice(2).join('')
+                return (
+                  item.href && (
+                    <Link
+                      key={index}
+                      href={item.disabled ? '#' : item.href!}
                       className={cn(
-                        'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
-                        open ? 'mr-2' : 'mr-0'
+                        'flex items-center text-gray-500 font-medium fill-current',
+                        active
+                          ? 'text-secondary opacity-100'
+                          : 'opacity-80 hover:opacity-100 hover:text-secondary',
+                        item.disabled && 'cursor-not-allowed opacity-80'
                       )}
-                    />
-                    {open && (
-                      <Fade
+                    >
+                      <Icon
                         className={cn(
-                          'text-md sm:text-sm'
-                          // showSidebar
-                          //   ? 'flex transition-all duration-300 ease-in'
-                          //   : 'hidden transition-all duration-500 ease-out'
+                          'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
+                          open ? 'mr-2' : 'mr-0'
                         )}
-                        from={'top'}
-                        amount={0.4}
-                        duration={300}
-                        delay={delay}
-                        easing={'easeOut'}
-                      >
-                        <span>{item.title}</span>
-                      </Fade>
-                    )}
-                  </Link>
+                      />
+                      {open && (
+                        <Fade
+                          className={cn(
+                            'text-md sm:text-sm'
+                            // showSidebar
+                            //   ? 'flex transition-all duration-300 ease-in'
+                            //   : 'hidden transition-all duration-500 ease-out'
+                          )}
+                          from={'top'}
+                          amount={0.4}
+                          duration={300}
+                          delay={delay}
+                          easing={'easeOut'}
+                        >
+                          <span>{item.title}</span>
+                        </Fade>
+                      )}
+                    </Link>
+                  )
                 )
-              )
-            })}
+              })}
           </nav>
         )}
+      </div>
+      <div className="pb-10">
+        {items
+          ?.filter((item) => item.title == 'Paramètres')
+          .map((item, index) => {
+            const Icon = Icons[item.icon || 'arrowRight']
+            const delay = (index = 0 ? 80 : index * 80)
+            const active =
+              pathname?.split('/').slice(2).join('') ===
+              item.href?.split('/').slice(2).join('')
+            return (
+              item.href && (
+                <Link
+                  key={index}
+                  href={item.disabled ? '#' : item.href!}
+                  className={cn(
+                    'flex items-center text-gray-500 font-medium fill-current',
+                    active
+                      ? 'text-secondary opacity-100'
+                      : 'opacity-80 hover:opacity-100 hover:text-secondary',
+                    item.disabled && 'cursor-not-allowed opacity-80'
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
+                      open ? 'mr-2' : 'mr-0'
+                    )}
+                  />
+                  {open && (
+                    <Fade
+                      className={cn(
+                        'text-md sm:text-sm'
+                        // showSidebar
+                        //   ? 'flex transition-all duration-300 ease-in'
+                        //   : 'hidden transition-all duration-500 ease-out'
+                      )}
+                      from={'top'}
+                      amount={0.4}
+                      duration={300}
+                      delay={delay}
+                      easing={'easeOut'}
+                    >
+                      <span>{item.title}</span>
+                    </Fade>
+                  )}
+                </Link>
+              )
+            )
+          })}
       </div>
     </div>
   )
