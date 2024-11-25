@@ -1,181 +1,63 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
-import {
-  DateValue,
-  useButton,
-  useDatePicker,
-  useInteractOutside
-} from 'react-aria'
-import {
-  DatePickerState,
-  DatePickerStateOptions,
-  useDatePickerState
-} from 'react-stately'
-import { useForwardedRef } from '@/lib/useForwardedRef'
-import { cn } from '@/lib/utils'
+import * as React from 'react'
+import { format } from 'date-fns'
+import { CalendarIcon } from 'lucide-react'
 
-import { CalendarDate } from '@internationalized/date'
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
-  PopoverTrigger,
-  PopoverContent
-} from '@radix-ui/react-popover'
-import { Button } from './ui/button'
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover'
 
-import { CalendarIcon } from 'lucide-react'
-import { DateField } from './date-picker/date-field'
-import { TimeField } from './date-picker/time-field'
-import dynamic from 'next/dynamic'
-import { Skeleton } from './ui/skeleton'
-import { Icons } from './icons'
-const HeavyCalendar = dynamic(
-  () => import('./date-picker/calendar').then((mod) => mod.Calendar),
-  {
-    ssr: false,
-    loading: () => (
-      <Skeleton className="w-56 h-60 border-none  flex justify-center items-center">
-        <Icons.spinner className="animate-spin opacity-40" />
-      </Skeleton>
-    )
-  }
-)
-
-type DatePickerProps = DatePickerStateOptions<DateValue> & {
-  locale?: 'en' | 'fr'
-  id?: string
-  /** Sets the time portion of the value. */
-  date: Date
-  onDateChange: (date: Date) => void // Add this line
+// Add props for `date` and `setDate`
+interface DatePickerProps extends React.HtmlHTMLAttributes<HTMLButtonElement> {
+  date: Date | undefined
+  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>
 }
 
-const DatePicker = React.forwardRef<HTMLDivElement, DatePickerProps>(
-  (props, forwardedRef) => {
-    const ref = useForwardedRef(forwardedRef)
-    const buttonRef = useRef<HTMLButtonElement | null>(null)
-    const contentRef = useRef<HTMLDivElement | null>(null)
+export function DatePicker({
+  date,
+  setDate,
+  className,
+  ...props
+}: DatePickerProps) {
+  const [isOpen, setIsOpen] = React.useState(false)
 
-    const [open, setOpen] = useState(false)
-    const state = useDatePickerState(props)
-    const [internalDate, setInternalDate] = useState<CalendarDate | null>(null)
-
-    useEffect(() => {
-      if (!state.dateValue) {
-        const defaultDate = new CalendarDate(
-          props.date.getFullYear(),
-          props.date.getMonth() + 1,
-          props.date.getDate()
-        )
-        state.setDateValue(defaultDate)
-      }
-    }, [])
-
-    // Update dateValue whenever props.date changes
-    useEffect(() => {
-      const newDateValue = new CalendarDate(
-        props.date.getFullYear(),
-        props.date.getMonth() + 1,
-        props.date.getDate()
-      )
-
-      if (
-        !internalDate ||
-        internalDate.year !== newDateValue.year ||
-        internalDate.month !== newDateValue.month ||
-        internalDate.day !== newDateValue.day
-      ) {
-        state.setDateValue(newDateValue)
-        setInternalDate(newDateValue)
-      }
-    }, [props.date])
-
-    // Call the onDateChange function whenever the date changes
-    useEffect(() => {
-      if (state.dateValue) {
-        const date = new Date(
-          Date.UTC(
-            state.dateValue.year,
-            state.dateValue.month - 1,
-            state.dateValue.day
-          )
-        )
-        if (
-          !internalDate ||
-          internalDate.year !== state.dateValue.year ||
-          internalDate.month !== state.dateValue.month ||
-          internalDate.day !== state.dateValue.day
-        ) {
-          props.onDateChange(date)
-        }
-      }
-    }, [state.dateValue])
-
-    const {
-      groupProps,
-      fieldProps,
-      buttonProps: _buttonProps,
-      dialogProps,
-      calendarProps
-    } = useDatePicker(props, state, ref)
-
-    const { buttonProps } = useButton(_buttonProps, buttonRef)
-    useInteractOutside({
-      ref: contentRef,
-      onInteractOutside: (e) => {
-        setOpen(false)
-      }
-    })
-
-    return (
-      <div
-        {...groupProps}
-        id={props.id}
-        ref={ref}
-        className={cn(
-          groupProps.className,
-          'flex items-center rounded-md ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2'
-        )}
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant={'outline'}
+          className={cn(
+            'w-[240px] justify-start text-left font-normal',
+            !date && 'text-muted-foreground',
+            className
+          )}
+          {...props}
+        >
+          <CalendarIcon />
+          {date ? format(date, 'PPP') : <span>Pick a date</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        onMouseDown={(e) => e.stopPropagation()}
+        className="w-auto p-0"
+        align="start"
       >
-        <DateField
-          aria-labelledby={props.id}
-          locale={props.locale || 'en'}
-          {...fieldProps}
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={(selectedDate) => {
+            setDate(selectedDate)
+            setIsOpen(false) // Explicitly close the Popover
+          }}
+          initialFocus
         />
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              {...buttonProps}
-              variant="outline"
-              className="rounded-l-none"
-              disabled={props.isDisabled}
-              onClick={() => setOpen(true)}
-            >
-              <CalendarIcon className="h-5 w-5" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            ref={contentRef}
-            className="w-full bg-popover p-5 z-50 rounded-md shadow-md"
-          >
-            <div {...dialogProps} className="space-y-3">
-              <HeavyCalendar locale={props.locale || 'en'} {...calendarProps} />
-              {!!state.hasTime && (
-                <TimeField
-                  locale={props.locale || 'en'}
-                  value={state.timeValue}
-                  onChange={(value) => {
-                    state.setTimeValue(value)
-                  }}
-                />
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-    )
-  }
-)
-
-DatePicker.displayName = 'DatePicker'
-
-export { DatePicker }
+      </PopoverContent>
+    </Popover>
+  )
+}

@@ -31,7 +31,6 @@ import { useRouter } from 'next/navigation'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useProductionDays } from './production-days.provider'
 
 type FormData = z.infer<typeof OrderSchema>
 
@@ -45,8 +44,6 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
   const [isCustomModel, setIsCustomModel] = React.useState<boolean>(false)
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
 
-  const { days } = useProductionDays()
-
   const form = useForm<FormData>({
     defaultValues: {
       id,
@@ -56,7 +53,7 @@ export const AddOrderForm: React.FC<AddOrderFormProps> = ({
       remaining: '0',
       type: 'Faisceau',
       status: 'Non Commence',
-      productionDays: days || 0,
+      productionDays: 0,
       manufacturing: 'Renovation',
       receivingDate: new Date().toISOString(),
       startDate: new Date().toISOString(),

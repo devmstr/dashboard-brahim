@@ -3,52 +3,52 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL_PROD")
 }
 
-model Client {
-  id       String  @id @default(cuid())
-  phone    String  @unique
-  fullName String?
-  Order    Order[]
-}
+// model Client {
+//   id       String  @id @default(cuid())
+//   phone    String  @unique
+//   fullName String?
+//   Order    Order[]
+// }
 
-model Technical {
-  id    String  @id @default(cuid())
-  brand String?
-  model String?
-  type  String?
-  pas   String?
-  nr    Int?
-  ec    Int?
-  lar1  Int?
-  lon   Int?
-  lar2  Int?
-  Order Order[]
-}
+// model Technical {
+//   id    String  @id @default(cuid())
+//   brand String?
+//   model String?
+//   type  String?
+//   pas   String?
+//   nr    Int?
+//   ec    Int?
+//   lar1  Int?
+//   lon   Int?
+//   lar2  Int?
+//   Order Order[]
+// }
 
-model Order {
-  id             String     @id
-  serialNumber   String?
-  status         String?
-  quantity       Int?
-  productionDays Int?
-  type           String?
-  manufacturing  String?
-  receivingDate  DateTime?
-  startDate      DateTime?
-  endDate        DateTime?
-  actualEnd      DateTime?
-  price          Int?
-  deposit        Int?
-  remaining      Int?
-  progress       Int?
-  Client         Client?    @relation(fields: [clientId], references: [id])
-  clientId       String?
-  Technical      Technical? @relation(fields: [technicalId], references: [id])
-  technicalId    String?
-}
+// model Order {
+//   id             String     @id
+//   serialNumber   String?
+//   status         String?
+//   quantity       Int?
+//   productionDays Int?
+//   type           String?
+//   manufacturing  String?
+//   receivingDate  DateTime?
+//   startDate      DateTime?
+//   endDate        DateTime?
+//   actualEnd      DateTime?
+//   price          Int?
+//   deposit        Int?
+//   remaining      Int?
+//   progress       Int?
+//   Client         Client?    @relation(fields: [clientId], references: [id])
+//   clientId       String?
+//   Technical      Technical? @relation(fields: [technicalId], references: [id])
+//   technicalId    String?
+// }
 
 model Account {
   id                 String    @id @default(cuid())
@@ -100,4 +100,28 @@ model VerificationRequest {
   updatedAt  DateTime @updatedAt
 
   @@unique([identifier, token])
+}
+
+model Country {
+  id      Int    @id @default(autoincrement())
+  code    String @unique
+  name    String
+  name_ar String
+}
+
+model Wilaya {
+  id      Int     @id @default(autoincrement())
+  code    String  @unique
+  name_ar String
+  name    String
+  Dairas  Daira[]
+}
+
+model Daira {
+  id       Int    @id @default(autoincrement())
+  code     String
+  name_ar  String
+  name     String
+  wilayaId Int
+  Wilaya   Wilaya @relation(fields: [wilayaId], references: [id])
 }

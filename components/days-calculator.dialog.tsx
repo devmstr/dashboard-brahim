@@ -27,7 +27,7 @@ export const DaysCalculatorDialog: React.FC<
       <DialogTrigger asChild>
         <Button
           variant={'default'}
-          className="flex gap-3 w-fit   text-white hover:text-white/80"
+          className="flex gap-3 w-fit   text-secondary hover:text-secondary/80"
         >
           {'Calculatrice'}
           <Icons.calculator className="w-6 h-6 " />

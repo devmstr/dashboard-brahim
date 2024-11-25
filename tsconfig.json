@@ -1,43 +1,9 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "typeRoots": ["./node_modules/@types", "./types"],
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"],
-      "@fonts/*": ["./assets/fonts/*"],
-      "@ui/*": ["./components/ui/*"]
-    }
+    "module": "ESNext",
+    "moduleResolution": "node"
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "i18n.ts",
-    "env.mjs",
-    "scripts/seed-users.mjs",
-    "scripts/add-default-user.mjs",
-    "scripts/seed-users.mjs",
-    "scripts/faker.mjs",
-    "scripts/seed.ts",
-    "scripts/seed-orders.mjs"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

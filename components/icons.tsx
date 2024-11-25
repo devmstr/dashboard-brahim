@@ -39,7 +39,8 @@ import {
   LucideProps,
   EyeOff,
   Users,
-  UserRoundPlus
+  UserRoundPlus,
+  PackagePlus
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackageCheck } from 'react-icons/lu'
@@ -54,7 +55,7 @@ export const Icons = {
   sidebar: FiSidebar,
   users: UserRoundPlus,
   calculator: AiOutlineCalculator,
-  add: PlusCircleIcon,
+  add: PackagePlus,
   edit: Pencil,
   package: LuPackageCheck,
   menu: Menu,

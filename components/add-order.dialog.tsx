@@ -26,10 +26,10 @@ export const AddOrderDialog: React.FC<AddOrderDialogProps> = ({
       <DialogTrigger asChild>
         <Button
           variant={'default'}
-          className="flex gap-3 w-fit   text-white hover:text-white/80"
+          className="flex gap-3 w-fit   text-secondary hover:text-secondary/80"
         >
-          {'Add'}
           <Icons.add className="w-6 h-6 " />
+          {'Add'}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:h-fit container max-w-6xl">

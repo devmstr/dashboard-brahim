@@ -38,7 +38,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       <OrderTable
         newUserId={newOrderId}
         abilityToAdd={
-          session?.user?.role === ROLES.SALES ||
+          // session?.user?.role === ROLES.SALES ||
           session?.user?.role === ROLES.ADMIN
         }
         data={data}
