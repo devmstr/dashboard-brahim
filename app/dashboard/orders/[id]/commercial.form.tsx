@@ -1,7 +1,7 @@
 'use client'
 
 import { CardDivider, CardGrid } from '@/components/card'
-import { DatePicker } from '@/components/date-picker'
+import { DatePicker } from '@/components/date-picker-obti'
 import { Icons } from '@/components/icons'
 import { Selector } from '@/components/selector'
 import { Switcher } from '@/components/switcher'
@@ -381,8 +381,8 @@ export const OrderCommercialEditForm: React.FC<
                 <FormLabel>Date de reception</FormLabel>
                 <FormControl>
                   <DatePicker
-                    date={receivingDate ? new Date(receivingDate) : new Date()}
-                    onDateChange={(value: Date) =>
+                    value={receivingDate ? new Date(receivingDate) : new Date()}
+                    onChange={(value: Date) =>
                       form.setValue('receivingDate', value.toISOString())
                     }
                   />

@@ -1,7 +1,7 @@
 'use client'
 
 import { CardDivider, CardGrid } from '@/components/card'
-import { DatePicker } from '@/components/date-picker'
+import { DatePicker } from '@/components/date-picker-obti'
 import { Icons } from '@/components/icons'
 import { Selector } from '@/components/selector'
 import { Switcher } from '@/components/switcher'
@@ -238,9 +238,8 @@ export const OrderProductionEditForm: React.FC<
                 <FormLabel>Date de reception</FormLabel>
                 <FormControl>
                   <DatePicker
-                    isDisabled={true}
-                    date={receivingDate ? new Date(receivingDate) : new Date()}
-                    onDateChange={(value: Date) =>
+                    value={receivingDate ? new Date(receivingDate) : new Date()}
+                    onChange={(value: Date) =>
                       form.setValue('receivingDate', value.toISOString())
                     }
                   />
@@ -258,8 +257,8 @@ export const OrderProductionEditForm: React.FC<
                 <FormControl>
                   <DatePicker
                     // id="start-date"
-                    date={startDate ? new Date(startDate) : new Date()}
-                    onDateChange={(value: Date) =>
+                    value={startDate ? new Date(startDate) : new Date()}
+                    onChange={(value: Date) =>
                       form.setValue('startDate', value.toISOString())
                     }
                   />
@@ -293,8 +292,8 @@ export const OrderProductionEditForm: React.FC<
                 <FormControl>
                   <DatePicker
                     // id="end-date"
-                    date={actualEndDate ? new Date(actualEndDate) : new Date()}
-                    onDateChange={(value: Date) => {
+                    value={actualEndDate ? new Date(actualEndDate) : new Date()}
+                    onChange={(value: Date) => {
                       form.setValue('actualEndDate', value.toISOString())
                     }}
                   />

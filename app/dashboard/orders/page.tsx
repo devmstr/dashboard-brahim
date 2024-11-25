@@ -36,7 +36,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
   return (
     <Card className="">
       <OrderTable
-        newUserId={newOrderId}
+        newUserId={'newOrderId'}
         abilityToAdd={
           // session?.user?.role === ROLES.SALES ||
           session?.user?.role === ROLES.ADMIN

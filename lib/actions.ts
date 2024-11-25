@@ -35,14 +35,14 @@ export const moveChartRecord = async ({
   const startDate = addDays(row.startDate!, daysDiff)
   const endDate = addDays(row.endDate!, daysDiff)
   const actualEndDate = addDays(row.actualEndDate!, daysDiff)
-  await db.order.update({
-    where: { id: row.id },
-    data: {
-      receivingDate,
-      startDate,
-      endDate,
-      actualEnd: actualEndDate
-    }
-  })
+  // await db.order.update({
+  //   where: { id: row.id },
+  //   data: {
+  //     receivingDate,
+  //     startDate,
+  //     endDate,
+  //     actualEnd: actualEndDate
+  //   }
+  // })
   revalidatePath('dashboard/timeline')
 }
