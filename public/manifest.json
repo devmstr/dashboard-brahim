@@ -1,6 +1,7 @@
 {
-  "name": "perfect assess pro",
-  "short_name": "PAP",
+  "name": "SONERASFlow",
+  "short_name": "SF",
+  "description": "Production Flow and Scheduling application.",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
