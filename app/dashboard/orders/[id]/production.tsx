@@ -238,8 +238,8 @@ export const OrderProductionEditForm: React.FC<
                 <FormLabel>Date de reception</FormLabel>
                 <FormControl>
                   <DatePicker
-                    value={receivingDate ? new Date(receivingDate) : new Date()}
-                    onChange={(value: Date) =>
+                    date={receivingDate ? new Date(receivingDate) : new Date()}
+                    onDateChange={(value: Date) =>
                       form.setValue('receivingDate', value.toISOString())
                     }
                   />
@@ -257,8 +257,8 @@ export const OrderProductionEditForm: React.FC<
                 <FormControl>
                   <DatePicker
                     // id="start-date"
-                    value={startDate ? new Date(startDate) : new Date()}
-                    onChange={(value: Date) =>
+                    date={startDate ? new Date(startDate) : new Date()}
+                    onDateChange={(value: Date) =>
                       form.setValue('startDate', value.toISOString())
                     }
                   />
@@ -292,8 +292,8 @@ export const OrderProductionEditForm: React.FC<
                 <FormControl>
                   <DatePicker
                     // id="end-date"
-                    value={actualEndDate ? new Date(actualEndDate) : new Date()}
-                    onChange={(value: Date) => {
+                    date={actualEndDate ? new Date(actualEndDate) : new Date()}
+                    onDateChange={(value: Date) => {
                       form.setValue('actualEndDate', value.toISOString())
                     }}
                   />

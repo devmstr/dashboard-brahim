@@ -381,8 +381,8 @@ export const OrderCommercialEditForm: React.FC<
                 <FormLabel>Date de reception</FormLabel>
                 <FormControl>
                   <DatePicker
-                    value={receivingDate ? new Date(receivingDate) : new Date()}
-                    onChange={(value: Date) =>
+                    date={receivingDate ? new Date(receivingDate) : new Date()}
+                    onDateChange={(value: Date) =>
                       form.setValue('receivingDate', value.toISOString())
                     }
                   />
