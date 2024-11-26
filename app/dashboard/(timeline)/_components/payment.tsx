@@ -1,41 +1,27 @@
 'use client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem
-} from '@radix-ui/react-select'
-import { Selector } from '@/components/selector'
-import { Textarea } from '@/components/ui/textarea'
 import { AddOrderSchemaType, InputNameType } from '../add-order.dialog'
 
-import { Switcher } from '@/components/switcher'
-import React, { useState } from 'react'
 import { Combobox } from '@/components/combobox'
-import {
-  COOLING_SYSTEMS_TYPES,
-  FABRICATION_TYPES,
-  ORDER_TYPES,
-  PACKAGING_TYPES,
-  PAYMENT_TYPES
-} from '@/config/global'
-import { DatePicker } from '@/components/date-picker-obti'
+import { DatePicker } from '@/components/date-picker'
+import { PAYMENT_TYPES } from '@/config/global'
+import React, { useEffect } from 'react'
 
 interface Props {
   data: AddOrderSchemaType
   onChange: (name: InputNameType, value: any) => void
 }
 
-export const PaymentForm: React.FC<Props> = ({ data, onChange }: Props) => {
-  const [mode, setMode] = useState(data?.paymentMode)
-  const [price, setPrice] = useState(data?.price)
-  const [deposit, setDeposit] = useState(data?.deposit)
-  const [endDate, setEndDate] = React.useState<Date>(
-    new Date(data.endDate as string)
-  )
+export const PaymentForm: React.FC<Props> = ({
+  data: input,
+  onChange
+}: Props) => {
+  const [date, setDate] = React.useState(new Date())
+  const [data, setData] = React.useState(input)
+  useEffect(() => {
+    setData(input)
+  }, [input])
   return (
     <form className="space-y-5 pt-2">
       <div className="relative border rounded-md px-3 pb-3">
@@ -56,10 +42,7 @@ export const PaymentForm: React.FC<Props> = ({ data, onChange }: Props) => {
               type="number"
               value={data?.price}
               className="w-full"
-              onChange={({ target: { value } }) => {
-                onChange('price', value)
-                setPrice(Number(value))
-              }}
+              onChange={({ target: { value } }) => onChange('price', value)}
             />
           </div>
           <div className=" w-full space-y-2">
@@ -72,7 +55,6 @@ export const PaymentForm: React.FC<Props> = ({ data, onChange }: Props) => {
               className="w-full"
               onChange={({ target: { value } }) => {
                 onChange('deposit', value)
-                setDeposit(Number(value))
               }}
             />
           </div>
@@ -82,12 +64,18 @@ export const PaymentForm: React.FC<Props> = ({ data, onChange }: Props) => {
               id="remaining"
               name="remaining"
               type="number"
-              value={price && deposit && price > deposit ? price - deposit : 0}
+              value={
+                data.price && data.deposit && data.price > data.deposit
+                  ? data.price - data.deposit
+                  : 0
+              }
               className="w-full"
               onChange={() => {
                 onChange(
                   'remaining',
-                  price && deposit && price > deposit ? price - deposit : 0
+                  data.price && data.deposit && data.price > data.deposit
+                    ? data.price - data.deposit
+                    : 0
                 )
               }}
               disabled={true}
@@ -98,14 +86,13 @@ export const PaymentForm: React.FC<Props> = ({ data, onChange }: Props) => {
             <Combobox
               id="mode"
               items={PAYMENT_TYPES}
+              value={data.paymentMode}
               setValue={(v) => {
                 onChange('paymentMode', v)
-                setMode(v)
               }}
-              value={mode}
             />
           </div>
-          {mode === 'Versement (Banque)' && (
+          {data.paymentMode === 'Versement (Banque)' && (
             <div className=" w-full space-y-2">
               <Label htmlFor="iban">{'IBAN'}</Label>
               <Input
@@ -132,12 +119,17 @@ export const PaymentForm: React.FC<Props> = ({ data, onChange }: Props) => {
               </span>
             </Label>
             <DatePicker
-              id={'endDate'}
-              value={endDate}
+              id="endDate"
               className="w-full"
-              onChange={(date) => {
-                setEndDate(date)
-                onChange('endDate', date.toISOString())
+              // date={data.endDate ? new Date(data.endDate) : new Date()}
+              date={date}
+              // onDateChange={(date) => {
+              //   console.log(date)
+              //   onChange('endDate', date.toISOString())
+              // }}
+              onDateChange={(v) => {
+                setDate(v)
+                console.log(v)
               }}
             />
           </div>

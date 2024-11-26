@@ -23,6 +23,7 @@ import { Country, Daira, Wilaya } from '@prisma/client'
 import { ScrollArea } from '@/components/scroll-area'
 import { PaymentForm } from './_components/payment'
 import { previousDay } from 'date-fns'
+import { contentSchema } from '@/lib/validations'
 
 const positiveNumberFromString = (name: string) =>
   z
@@ -44,6 +45,8 @@ const positiveNumberFromString = (name: string) =>
 const addOrderSchema = z.object({
   isCompany: z.boolean().default(false),
   name: z.string().optional(),
+  otherChoseDescription: contentSchema,
+  modification: contentSchema,
   email: z.string().email('Invalid email address').optional(),
   phone: z
     .string()
@@ -73,7 +76,7 @@ const addOrderSchema = z.object({
   nif: z.string().optional(),
   nis: z.string().optional(),
   na: z.string().optional(),
-  quantity: positiveNumberFromString('quantity'),
+  quantity: positiveNumberFromString('Quantity'),
   orderType: z.string(),
   buildType: z.string(),
   coolingSystem: z.string(),
@@ -83,20 +86,26 @@ const addOrderSchema = z.object({
   model: z.string().optional(),
   carType: z.string().optional(),
   fins: z.string(),
-  finsPitch: positiveNumberFromString('finsPitch'),
+  tubePitch: positiveNumberFromString('Tube Pitch'),
   tube: z.string(),
-  tubePitch: positiveNumberFromString('tubePitch'),
+  isLowerCollectorDeferent: z.boolean().default(false),
   collectorType: z.string().optional(),
   collectorPosition: z.string().optional(),
   collectorMaterial: z.string().optional(),
+  collectorDepth: positiveNumberFromString('Collector Depth'),
+  collectorWidth: positiveNumberFromString('Collector Width'),
+  collectorLength: positiveNumberFromString('Collector Length'),
+  lowerCollectorDepth: positiveNumberFromString('Lower Collector Depth'),
+  lowerCollectorWidth: positiveNumberFromString('Lower Collector Width'),
+  lowerCollectorLength: positiveNumberFromString('Lower Collector Length'),
+  perforation: z.string(),
   isCollectorTinned: z.boolean().default(false).optional(),
-  layersNumber: positiveNumberFromString('layersNumber'),
-  coreWidth: positiveNumberFromString('coreWidth'),
-  coreLength: positiveNumberFromString('coreLength'),
-  coreDepth: positiveNumberFromString('coreDepth'),
-  price: positiveNumberFromString('price'),
-  deposit: positiveNumberFromString('deposit'),
-  remaining: positiveNumberFromString('remaining'),
+  layersNumber: positiveNumberFromString('Layers Number'),
+  coreWidth: positiveNumberFromString('Core Width'),
+  coreLength: positiveNumberFromString('Core Length'),
+  price: positiveNumberFromString('Price'),
+  deposit: positiveNumberFromString('Deposit'),
+  remaining: positiveNumberFromString('Remaining'),
   paymentMode: z.string().optional(),
   iban: z.string().optional(),
   receivingDate: z
@@ -131,21 +140,25 @@ export function AddOrderDialog({ countries, provinces }: Props) {
     coolingSystem: 'Eau',
     packaging: 'Carton',
     quantity: 1,
+    perforation: 'Perforé',
     isModificationRequired: false,
     fins: 'Droite (Normale)',
-    finsPitch: 10,
-    tube: 'Étiré 7 (ET7)',
     tubePitch: 10,
+    tube: 'Étiré 7 (ET7)',
     collectorType: 'Plié',
     collectorPosition: 'Centrer',
     collectorMaterial: 'Laiton',
+    collectorDepth: 1.5,
+    collectorWidth: 0,
+    collectorLength: 0,
+    isLowerCollectorDeferent: false,
     isCollectorTinned: false,
     coreLength: 700,
     coreWidth: 500,
-    coreDepth: 1.5,
     paymentMode: 'Espèces',
+    receivingDate: new Date().toISOString(),
     endDate: new Date().toISOString()
-  }
+  } as AddOrderSchemaType
   const { refresh } = useRouter()
   const [isTransitioning, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
@@ -236,7 +249,8 @@ export function AddOrderDialog({ countries, provinces }: Props) {
         </DialogTrigger>
       </div>
       <DialogContent
-        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        onPointerDownOutside={(e) => e.preventDefault()}
         className="w-full lg:max-w-6xl md:max-w-3xl pt-7 pb-10"
       >
         <StepIndicator steps={steps} currentStep={currentStep} />
@@ -251,7 +265,9 @@ export function AddOrderDialog({ countries, provinces }: Props) {
           </ScrollArea>
         )}
         {currentStep === 2 && (
-          <FabricationForm data={orderData} onChange={handleChange} />
+          <ScrollArea className="max-h-[70vh]">
+            <FabricationForm data={orderData} onChange={handleChange} />
+          </ScrollArea>
         )}
         {currentStep === 3 && (
           <ScrollArea className="max-h-[70vh]">
@@ -259,7 +275,9 @@ export function AddOrderDialog({ countries, provinces }: Props) {
           </ScrollArea>
         )}
         {currentStep === 4 && (
-          <PaymentForm data={orderData} onChange={handleChange} />
+          <ScrollArea className="max-h-[70vh]">
+            <PaymentForm data={orderData} onChange={handleChange} />
+          </ScrollArea>
         )}
         <div className="flex justify-between mt-4">
           <Button

@@ -11,7 +11,7 @@ export const COMPANY_LABELS_TYPE = [
   'Établissement Public à Caractère Industriel et Commercial (EPIC)'
 ]
 export const FABRICATION_TYPES = ['Confection', 'Rénovation']
-export const ORDER_TYPES = ['Radiateur', 'Faisceau']
+export const ORDER_TYPES = ['Radiateur', 'Faisceau', 'Autre']
 export const COOLING_SYSTEMS_TYPES = ['Eau', 'Air', 'Huile']
 export const COLLECTOR_MATERIALS_TYPES = ['Acier', 'Laiton']
 export const PACKAGING_TYPES = ['Carton', 'Bois']
@@ -26,3 +26,4 @@ export const TUBE_SIZES = [10, 12]
 export const CLAMPING_TYPES = ['Plié', 'Boulonné']
 export const COLLECTOR_POSITION_TYPES = ['Centrer', 'Déplacer']
 export const PAYMENT_TYPES = ['Espèces', 'Versement (Banque)', 'Carte']
+export const PERFORATION_TYPES = ['Perforé', 'Non Perforé']

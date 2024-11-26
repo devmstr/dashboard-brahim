@@ -14,9 +14,9 @@ interface CountryData {
 
 async function upload() {
   try {
-    // Fetch country data from the public API
-    const response = await axios.get('https://restcountries.com/v3.1/all')
-
+    const response = await axios.get('https://restcountries.com/v3.1/all', {
+      signal: AbortSignal.timeout(10000) // Timeout after 10 seconds
+    })
     const countries = response.data as {
       cca2: string
       translations: { ara: { common: string } }
@@ -30,11 +30,11 @@ async function upload() {
       name: country.name.common
     }))
 
-    // Insert the country data into the database
-    await prisma.country.createMany({
-      data: countryData
-    })
-
+    // // Insert the country data into the database
+    // await prisma.country.createMany({
+    //   data: countryData
+    // })
+    console.log(countryData)
     console.log('[======= done! =======]')
   } catch (error) {
     console.error('Error uploading countries:', error)

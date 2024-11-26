@@ -9,22 +9,23 @@ import {
   ORDER_TYPES,
   PACKAGING_TYPES
 } from '@/config/global'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AddOrderSchemaType, InputNameType } from '../add-order.dialog'
+import { MdEditor } from '@/components/md-editor'
 
 interface Props {
   data: AddOrderSchemaType
   onChange: (name: InputNameType, value: any) => void
 }
 
-export const FabricationForm: React.FC<Props> = ({ data, onChange }: Props) => {
-  const [isModificationRequired, setIsModificationRequired] = useState(
-    data.isModificationRequired!
-  )
-  const [type, setType] = useState(data.orderType)
-  const [buildType, setBuildType] = useState(data.buildType)
-  const [coolingSystem, setCoolingSystem] = useState(data.coolingSystem)
-  const [packaging, setPackaging] = useState(data.packaging)
+export const FabricationForm: React.FC<Props> = ({
+  data: input,
+  onChange
+}: Props) => {
+  const [data, setData] = React.useState(input)
+  useEffect(() => {
+    setData(input)
+  }, [input])
   return (
     <form className="pt-2">
       <div className="relative border rounded-md px-3 py-3">
@@ -38,24 +39,39 @@ export const FabricationForm: React.FC<Props> = ({ data, onChange }: Props) => {
             </Label>
             <Switcher
               id="isModificationRequired"
-              checked={isModificationRequired}
+              checked={data.isModificationRequired as boolean}
               onCheckedChange={(v) => {
                 onChange('isModificationRequired', v)
-                setIsModificationRequired(v)
               }}
             />
           </div>
+          {data.isModificationRequired && (
+            <div className="md:col-span-2 lg:col-span-3 space-y-2">
+              <Label htmlFor="isModificationRequired" className="capitalize">
+                {'Les Modifications'}
+              </Label>
+              <MdEditor
+                editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+                className="w-full min-h-36 group"
+                placeholder="Listez les changements à effectuer..."
+                value={data.modification}
+                setValue={(markdown) => {
+                  onChange('modification', markdown)
+                }}
+              />
+            </div>
+          )}
+
           <div className=" w-full space-y-2">
             <Label htmlFor="type">{'Type'}</Label>
             <Combobox
               id="type"
               items={ORDER_TYPES}
               setValue={(v) => {
+                if (v == 'Faisceau') onChange('buildType', 'Confection')
                 onChange('orderType', v)
-                if (v == 'Faisceau') setBuildType('Confection')
-                setType(v)
               }}
-              value={type}
+              value={data.orderType}
             />
           </div>
           <div className=" w-full space-y-2">
@@ -63,15 +79,14 @@ export const FabricationForm: React.FC<Props> = ({ data, onChange }: Props) => {
             <Combobox
               id="buildType"
               items={
-                type === 'Faisceau'
+                data.orderType === 'Faisceau'
                   ? FABRICATION_TYPES.filter((i) => i !== 'Rénovation')
                   : FABRICATION_TYPES
               }
               setValue={(v) => {
                 onChange('buildType', v)
-                setBuildType(v)
               }}
-              value={buildType}
+              value={data.buildType}
             />
           </div>
           <div className=" w-full space-y-2">
@@ -93,9 +108,8 @@ export const FabricationForm: React.FC<Props> = ({ data, onChange }: Props) => {
               setValue={(v) => {
                 onChange('coolingSystem', v)
                 if (v != 'Eau') onChange('collectorType', 'Plié')
-                setCoolingSystem(v)
               }}
-              value={coolingSystem}
+              value={data.coolingSystem}
             />
           </div>
           <div className="space-y-2 w-full">
@@ -105,11 +119,26 @@ export const FabricationForm: React.FC<Props> = ({ data, onChange }: Props) => {
               items={PACKAGING_TYPES}
               setValue={(v) => {
                 onChange('packaging', v)
-                setPackaging(v)
               }}
-              value={packaging}
+              value={data.packaging}
             />
           </div>
+          {data.orderType == 'Autre' && (
+            <div className="md:col-span-2 lg:col-span-3 space-y-2">
+              <Label htmlFor="isModificationRequired" className="capitalize">
+                {'Description de la commande'}
+              </Label>
+              <MdEditor
+                editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+                className="w-full min-h-36 group"
+                placeholder="Décrivez ce que vous souhaitez..."
+                value={data.otherChoseDescription}
+                setValue={(markdown) => {
+                  onChange('otherChoseDescription', markdown)
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </form>

@@ -1,17 +1,8 @@
-import React from 'react'
-import db from '@/lib/db'
 import { Card } from '@/components/card'
-import { DependenceType, GanttChart } from '@/components/grant-chart'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { coid } from '@/lib/utils'
-import { TimeLineRecord } from '@/lib/validations/order'
-import { ROLES } from '@/config/accounts'
-import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
-import { ProductionDaysProvider } from '@/components/production-days.provider'
+import { GanttChart } from '@/components/grant-chart'
+import db from '@/lib/db'
+import React from 'react'
 import { AddOrderDialog } from './add-order.dialog'
-import { getUser } from '@/lib/session'
-import { CalculatorForm } from '@/components/calculator.form'
 
 interface PageProps {}
 

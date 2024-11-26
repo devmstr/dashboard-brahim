@@ -1,7 +1,7 @@
 'use client'
 
 import { CardDivider, CardGrid } from '@/components/card'
-import { DatePicker } from '@/components/date-picker-obti'
+import { DatePicker } from '@/components/date-picker'
 import { Icons } from '@/components/icons'
 import { Selector } from '@/components/selector'
 import { Switcher } from '@/components/switcher'

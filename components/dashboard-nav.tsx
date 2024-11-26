@@ -13,12 +13,6 @@ export const DashboardNav = async (props: DashboardNavProps) => {
   const user = await getUser()
   if (!user) return <Loading />
   let items: SidebarNavItem[] = [
-    // {
-    //   title: 'Profile',
-    //   href: `/dashboard/profile/${user.sub}`,
-    //   translationKey: 'profile',
-    //   icon: 'user'
-    // },
     {
       title: 'Settings',
       href: '/dashboard/settings',

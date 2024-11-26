@@ -5,7 +5,7 @@ import { Switcher } from '@/components/switcher'
 import { Input } from '@/components/ui/input'
 import { COMPANY_LABELS_TYPE } from '@/config/global'
 import { Label } from '@radix-ui/react-label'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AddOrderSchemaType, InputNameType } from '../add-order.dialog'
 
 interface Props {
@@ -17,14 +17,14 @@ interface Props {
 
 export const ClientInfoForm: React.FC<Props> = ({
   onChange,
-  data,
+  data: input,
   countries,
   provinces
 }: Props) => {
-  const [isCompany, setIsCompany] = useState(data.isCompany)
-  const [country, setCountry] = useState(data.country)
-  const [province, setProvince] = useState(data.province)
-  const [label, setLabel] = useState(COMPANY_LABELS_TYPE.at(4))
+  const [data, setData] = useState(input)
+  useEffect(() => {
+    setData(input)
+  }, [input])
   return (
     <form className="space-y-4 pt-2">
       <div className="relative border rounded-md px-3 py-3">
@@ -38,14 +38,13 @@ export const ClientInfoForm: React.FC<Props> = ({
             </Label>
             <Switcher
               id="isCompany"
-              checked={isCompany}
+              checked={data.isCompany}
               onCheckedChange={(v) => {
                 onChange('isCompany', v)
-                setIsCompany(v)
               }}
             />
           </div>
-          {isCompany && (
+          {data.isCompany && (
             <div className="space-y-2">
               <Label htmlFor="label" className="capitalize  ">
                 {'Forme juridique'}
@@ -56,20 +55,21 @@ export const ClientInfoForm: React.FC<Props> = ({
                 items={COMPANY_LABELS_TYPE}
                 setValue={(v) => {
                   onChange('label', v)
-                  setLabel(v)
                 }}
-                value={label}
+                value={data.label || COMPANY_LABELS_TYPE.at(4)}
               />
             </div>
           )}
           <div className="space-y-2 w-full">
             <Label htmlFor="name" className="capitalize">
-              {isCompany ? "nom d'entreprise" : 'nom du client'}
+              {data.isCompany ? "nom d'entreprise" : 'nom du client'}
             </Label>
             <Input
               id="name"
               name="name"
-              placeholder={isCompany ? "nom d'entreprise" : 'nom du client'}
+              placeholder={
+                data.isCompany ? "nom d'entreprise" : 'nom du client'
+              }
               value={data.name}
               onChange={({ target: { value } }) => onChange('name', value)}
             />
@@ -100,7 +100,7 @@ export const ClientInfoForm: React.FC<Props> = ({
             />
           </div>
 
-          {isCompany && (
+          {data.isCompany && (
             <div className="space-y-2">
               <Label htmlFor="website" className="capitalize max-w-xs">
                 {'site web'}
@@ -118,7 +118,7 @@ export const ClientInfoForm: React.FC<Props> = ({
           )}
         </div>
 
-        {isCompany && (
+        {data.isCompany && (
           <>
             <div className="space-y-4 items-end md:grid md:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="space-y-2">
@@ -218,9 +218,8 @@ export const ClientInfoForm: React.FC<Props> = ({
               items={countries.map(({ name }) => name)}
               setValue={(value) => {
                 onChange('country', value)
-                setCountry(value)
               }}
-              value={country!}
+              value={data.country || 'Algeria'}
               className="w-full"
             />
           </div>
@@ -233,9 +232,8 @@ export const ClientInfoForm: React.FC<Props> = ({
               items={provinces.map(({ name }) => name)}
               setValue={(value) => {
                 onChange('province', value)
-                setProvince(value)
               }}
-              value={province || ''}
+              value={data.province || 'Ghardia'}
               className="w-full"
             />
           </div>
@@ -248,7 +246,7 @@ export const ClientInfoForm: React.FC<Props> = ({
               name="city"
               placeholder="Commune..."
               type="text"
-              value={data.city}
+              value={data.city || 'Ghardia'}
               onChange={({ target: { value } }) => onChange('city', value)}
             />
           </div>
