@@ -8,7 +8,6 @@ import { Selector } from './selector'
 import { Limit, limits } from '@/config/gantt-chart.config'
 import { any, z } from 'zod'
 import { OrderSchema, TimeLineRecord } from '@/lib/validations/order'
-import { AddOrderDialog } from '@/components/add-order.dialog'
 import { toast } from './ui/use-toast'
 import { useRouter } from 'next/navigation'
 import { getDate, getDay } from 'date-fns'
@@ -134,7 +133,7 @@ export function GanttChart({
                     <Icons.package className="min-w-5 min-h-5 text-foreground group-hover:text-primary" />
                     <Link
                       className="text-foreground group-hover:underline group-hover:text-primary"
-                      href={'orders/' + record.id}
+                      href={'/dashboard/orders/' + record.id}
                     >
                       {record.id}
                     </Link>
@@ -152,10 +151,11 @@ export function GanttChart({
           ]}
           scrollTop={true}
           onBarClick={() => false}
-          onUpdate={async (row, startDate, endDate) => {
-            server_moveChartRecord({ row, startDate, endDate })
-            return true
-          }}
+          // onUpdate={async (row, startDate, endDate) => {
+          //   server_moveChartRecord({ row, startDate, endDate })
+          //   return true
+          // }}
+          onUpdate={async () => false}
           renderLeftText={() => false}
           renderRightText={() => false}
           alwaysShowTaskBar={false}

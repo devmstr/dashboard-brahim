@@ -4,7 +4,7 @@ import { ROLES } from './config/accounts'
 export default withAuth({
   callbacks: {
     authorized: async ({ req, token }) => {
-      if (req.nextUrl.pathname.startsWith('/admin'))
+      if (req.nextUrl.pathname.startsWith('/dashboard/settings'))
         return token?.role === ROLES.ADMIN
       return !!token
     }

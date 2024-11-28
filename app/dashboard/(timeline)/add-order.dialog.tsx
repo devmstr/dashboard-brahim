@@ -10,9 +10,9 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog'
 import React, { useState, useTransition } from 'react'
-import { ClientInfoForm } from './_components/client.form'
-import { FabricationForm } from './_components/fabrication.form'
-import { TechnicalDataForm } from './_components/technical.form'
+import { ClientInfoForm } from './_components/timeline-client.form'
+import { FabricationForm } from './_components/timeline-fabrication.form'
+import { TechnicalDataForm } from './_components/timeline-technical.form'
 import { StepIndicator } from './_components/step-indicator'
 import { Icons } from '@/components/icons'
 import { toast } from '@/components/ui/use-toast'
@@ -21,7 +21,7 @@ import { useRouter } from 'next/navigation'
 import { Dictionary } from '@/types'
 import { Country, Daira, Wilaya } from '@prisma/client'
 import { ScrollArea } from '@/components/scroll-area'
-import { PaymentForm } from './_components/payment'
+import { PaymentForm } from './_components/timeline-payment'
 import { previousDay } from 'date-fns'
 import { contentSchema } from '@/lib/validations'
 
@@ -42,7 +42,7 @@ const positiveNumberFromString = (name: string) =>
     .optional() // Make it optional if required
 
 // Define the Zod schema for employee data validation
-const addOrderSchema = z.object({
+export const addOrderSchema = z.object({
   isCompany: z.boolean().default(false),
   name: z.string().optional(),
   otherChoseDescription: contentSchema,
@@ -240,7 +240,7 @@ export function AddOrderDialog({ countries, provinces }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div className="w-full flex justify-end">
+      <div className="">
         <DialogTrigger asChild>
           <Button className="flex gap-3 items-center justify-center ">
             <Icons.add className="w-6 h-6" />
@@ -250,7 +250,7 @@ export function AddOrderDialog({ countries, provinces }: Props) {
       </div>
       <DialogContent
         onClick={(e) => e.stopPropagation()}
-        onPointerDownOutside={(e) => e.preventDefault()}
+        // onPointerDownOutside={(e) => e.preventDefault()}
         className="w-full lg:max-w-6xl md:max-w-3xl pt-7 pb-10"
       >
         <StepIndicator steps={steps} currentStep={currentStep} />

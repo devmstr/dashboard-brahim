@@ -2,6 +2,7 @@ import { DashboardNav } from '@/components/dashboard-nav'
 import { DashboardSidebar } from '@/components/dashboard-sidebar'
 import { Loading } from '@/components/loading'
 import { SidebarStateProvider } from '@/components/open-sidebar-provider'
+import { ProductionDaysProvider } from '@/components/production-days.provider'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { getUser } from '@/lib/session'
 import { SidebarNavItem } from '@/types'
@@ -27,6 +28,22 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
       icon: 'dashboard'
     },
     {
+      title: 'Finis',
+      href: '/dashboard/completes',
+      icon: 'completeProduct'
+    },
+    {
+      title: 'Semi-Finis',
+      href: '/dashboard/partials',
+      icon: 'partials'
+    },
+
+    {
+      title: 'Clients',
+      href: '/dashboard/clients',
+      icon: 'clients'
+    },
+    {
       title: 'Paramètres',
       href: '/dashboard/settings',
       icon: 'settings'
@@ -43,7 +60,9 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
         <div className="flex flex-col  min-h-screen w-full">
           <DashboardNav className="w-full bg-white flex items-center z-30 h-16 shadow-md " />
           <ScrollArea className="w-full h-full max-h-[calc(100vh-4rem)]">
-            <main className="container py-8">{children}</main>
+            <ProductionDaysProvider>
+              <main className="container py-8">{children}</main>
+            </ProductionDaysProvider>
           </ScrollArea>
         </div>
       </div>

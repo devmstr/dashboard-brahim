@@ -40,19 +40,34 @@ import {
   EyeOff,
   Users,
   UserRoundPlus,
-  PackagePlus
+  PackagePlus,
+  Puzzle,
+  UsersRoundIcon,
+  Tag,
+  UserRoundPlusIcon
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackageCheck } from 'react-icons/lu'
 import { AiOutlineCalculator } from 'react-icons/ai'
 import { FiSidebar } from 'react-icons/fi'
 import { RiLogoutCircleLine } from 'react-icons/ri'
+import {
+  TbLayoutSidebarLeftExpandFilled,
+  TbLayoutSidebarRightExpandFilled
+} from 'react-icons/tb'
+import { cn } from '@/lib/utils'
+import clsx from 'clsx'
 
 export type Icon = LucideIcon
 
 export const Icons = {
+  addClient: UserRoundPlusIcon,
+  sell: Tag,
+  clients: UsersRoundIcon,
+  partials: ({ className, ...props }: LucideProps) => (
+    <Puzzle className={cn('scale-95', className)} {...props} />
+  ),
   logout: RiLogoutCircleLine,
-  sidebar: FiSidebar,
   users: UserRoundPlus,
   calculator: AiOutlineCalculator,
   add: PackagePlus,
@@ -91,6 +106,7 @@ export const Icons = {
   planned: Clock,
   done: CheckCircle,
   ongoing: RotateCw,
+
   eye: (
     props: LucideProps & {
       open?: boolean
@@ -99,6 +115,13 @@ export const Icons = {
     if (props.open) return <Eye {...props} />
     return <EyeOff {...props} />
   },
+
+  sidebar: ({ direction, ...props }: LucideProps) => {
+    if (direction == 'left')
+      return <TbLayoutSidebarLeftExpandFilled {...props} />
+    else return <TbLayoutSidebarRightExpandFilled {...props} />
+  },
+
   logo: ({ color = '#ffd831', ...props }: LucideProps) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -130,12 +153,13 @@ export const Icons = {
       />
     </svg>
   ),
-  timeline: ({ color = '#ffd831', ...props }) => (
+  timeline: ({ color = '#ffd831', className, ...props }: LucideProps) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="17.049"
       height="21.535"
       viewBox="0 0 17.049 21.535"
+      className={cn('scale-95', className)}
       {...props}
     >
       <g id="timeline-icon" transform="translate(-27.036 -168)">
@@ -157,6 +181,21 @@ export const Icons = {
           transform="translate(24.625 177.553)"
         />
       </g>
+    </svg>
+  ),
+  completeProduct: ({ className, ...props }: LucideProps) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      height="800px"
+      width="800px"
+      version="1.2"
+      viewBox="0 0 256 256.3"
+      xmlSpace="preserve"
+      className={cn('scale-[85%]', className)}
+      {...props}
+    >
+      <path d="M243.2,1.4H11.5c-6,0-10.8,4.8-10.8,10.8v231.9c0,6,4.8,10.8,10.8,10.8h231.7c6,0,10.8-4.8,10.8-10.8V12.2  C254,6.2,249.2,1.4,243.2,1.4z M242,127.9h-30.2c-9.4-1.7-16.1-15.1-8.9-20.9c6.5-4.8,10.8-12.5,10.8-21.1  c0-14.4-11.5-25.9-25.9-25.9s-25.9,11.5-25.9,25.9c0,8.6,4.3,16.3,10.8,21.1c7.2,6,0.5,19.7-9.6,20.9h-35.8V92.1v-0.5  c0-9.8-13.7-17-19.4-10.1c-4.3,6-11.5,10.1-19.4,10.1c-13.2,0-24-10.8-24-24s10.8-24,24-24c8.2,0,15.1,4.1,19.4,10.1  c5.8,7,19.4-0.5,19.4-9.8V13.4H242V127.9z M12.7,128.4h30c9.4,1.7,16.1,15.1,8.9,20.9c-6.5,4.8-10.8,12.5-10.8,21.1  c0,14.4,11.5,25.9,25.9,25.9s25.9-11.5,25.9-25.9c0-8.6-4.3-16.3-10.8-21.1c-7.2-6-0.5-19.9,9.6-20.9h35.8v35.8v0.5  c0,9.8,13.7,17,19.4,10.1c4.3-6,11.5-10.1,19.4-10.1c13.2,0,24,10.8,24,24s-10.8,24-24,24c-8.2,0-15.1-4.1-19.4-10.1  c-5.8-7-19.4,0.5-19.4,9.8v30.5H12.7V128.4z" />
     </svg>
   )
 }

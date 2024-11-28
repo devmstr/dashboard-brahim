@@ -29,9 +29,12 @@ export const OrderSchema = z.object({
   receivingDate: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
-  productionDays: z.number().min(1, {
-    message: 'Le nombre de jours de production doit être supérieur à un jour.'
-  }),
+  productionDays: z
+    .number()
+    .min(1, {
+      message: 'Le nombre de jours de production doit être supérieur à un jour.'
+    })
+    .optional(),
   actualEndDate: z.string().optional(),
   quantity: z.string().optional(),
   price: z.string().optional(),
@@ -39,9 +42,9 @@ export const OrderSchema = z.object({
   remaining: z.string().optional(),
   manufacturing: z.string().optional(),
   type: z.string().optional(),
-  customer: Customer,
+  customer: Customer.optional(),
   progress: z.string().optional(),
-  technical: TechnicalDetails
+  technical: TechnicalDetails.optional()
 })
 
 export type TimeLineRecord = z.infer<typeof OrderSchema>
@@ -62,8 +65,8 @@ export const OrderCommercialView = z.object({
   type: z.string().optional(),
   remaining: z.string().optional(),
   status: z.string().optional(),
-  customer: Customer,
-  technical: TechnicalDetails
+  customer: Customer.optional(),
+  technical: TechnicalDetails.optional()
 })
 
 export const OrderTechnicalView = z.object({

@@ -27,14 +27,26 @@ export type HomeConfig = {
 
 export type OrderTableEntry = {
   id: string
+  title: string
   endDate?: string
   customer: {
-    fullName: string
+    name: string
     phone: string
   }
   status: 'Annuler' | 'Non Commence' | 'Encours' | 'Fini'
   progress?: number
   quantity: number
+}
+
+export type ClientTableEntry = {
+  id: string
+  label?: string
+  country: string
+  province: string
+  city?: string
+  name: string
+  phone: string
+  orderCount?: number
 }
 
 export type FooterConfig = {

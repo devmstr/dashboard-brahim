@@ -24,6 +24,6 @@ export const TUBE_TYPES = [
 ]
 export const TUBE_SIZES = [10, 12]
 export const CLAMPING_TYPES = ['Plié', 'Boulonné']
-export const COLLECTOR_POSITION_TYPES = ['Centrer', 'Déplacer']
+export const COLLECTOR_POSITION_TYPES = ['Centrer', 'Dépassée']
 export const PAYMENT_TYPES = ['Espèces', 'Versement (Banque)', 'Carte']
 export const PERFORATION_TYPES = ['Perforé', 'Non Perforé']

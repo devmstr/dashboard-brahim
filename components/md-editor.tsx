@@ -25,7 +25,8 @@ export const MdEditor = ({
   setValue,
   className,
   placeholder = 'Type something here...',
-  isReadOnly = false
+  isReadOnly = false,
+  autoFocus
 }: MdEditorProps) => {
   return (
     <TooltipProvider>
@@ -37,7 +38,7 @@ export const MdEditor = ({
         editorContentClassName={editorContentClassName}
         output="json"
         placeholder={placeholder}
-        autofocus={!isReadOnly}
+        autofocus={autoFocus}
         immediatelyRender={true}
         editable={!isReadOnly}
         injectCSS={true}

@@ -38,7 +38,7 @@ import {
 import Link from 'next/link'
 import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { OrderTableEntry } from '@/types'
+import { ClientTableEntry, OrderTableEntry } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
@@ -56,11 +56,11 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 
-interface OrderTableProps {
-  data: OrderTableEntry[]
+interface Props {
+  data: ClientTableEntry[]
 }
 
-export function OrderTable({ data }: OrderTableProps) {
+export function ClientTable({ data }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -77,7 +77,7 @@ export function OrderTable({ data }: OrderTableProps) {
 
   const handleDelete = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/orders/${orderId}`, {
+      const res = await fetch(`/api/clients/${orderId}`, {
         method: 'DELETE'
       })
       refresh()
@@ -86,7 +86,7 @@ export function OrderTable({ data }: OrderTableProps) {
     }
   }
 
-  const columns: ColumnDef<OrderTableEntry>[] = [
+  const columns: ColumnDef<ClientTableEntry>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -113,126 +113,103 @@ export function OrderTable({ data }: OrderTableProps) {
       )
     },
     {
-      accessorKey: 'quantity',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {'Quantité'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'title',
+      accessorKey: 'name',
       header: ({ column }) => {
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Titre'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => (
-        <div className="flex items-center">{row.original.title}</div>
-      )
-    },
-
-    {
-      accessorKey: 'status',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {'Statut'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => <StatusBudge variant={row.original.status} />
-    },
-    {
-      accessorKey: 'progress',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {'Avancement'}
+            {'Nom'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
       cell: ({ row }) => {
-        const progress = row.original.progress || 0
-        const quantity = row.original.quantity || 0
-        const percentage = Math.floor((progress / quantity) * 100)
-        return (
-          <div className="relative flex justify-start gap-1 items-center">
-            <Progress value={percentage} className="h-[0.65rem] max-w-10" />
-            <span className="text-foreground">{percentage + '%'}</span>
-          </div>
-        )
-      }
-    },
-
-    {
-      accessorKey: 'endDate',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {'Délai'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        const endDate = row.original.endDate
-        return (
-          <div className="flex items-center">
-            {endDate
-              ? format(new Date(endDate), 'dd/MM/yyyy')
-              : 'Non Déterminé'}
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'customer.fullName',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {'Client'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        const fullName = row.original?.customer?.name || ''
+        const fullName = row.original.name
         return <div className="flex items-center">{fullName}</div>
+      }
+    },
+    {
+      accessorKey: 'phone',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {'Tél'}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        const phone = row.original.phone || ''
+        return <div className="flex items-center">{phone}</div>
+      }
+    },
+    {
+      accessorKey: 'location',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {'Location'}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-1">
+            <span className="">{row.original.country},</span>
+            <span className="">{row.original.province},</span>
+            {row.original.city && <span className="">{row.original.city}</span>}
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: 'label',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {'Forme Juridique'}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        return <div className="">{row.original.label || '/'}</div>
+      }
+    },
+    {
+      accessorKey: 'orderCount',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {'N°Commandes'}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
       }
     },
     {
       id: 'actions',
       enableHiding: false,
-      cell: ({ row }) => (
-        <Actions id={row.original.id} onDelete={handleDelete} />
-      )
+      cell: ({
+        row: {
+          original: { id }
+        }
+      }) => <Actions id={id} onDelete={handleDelete} />
     }
   ]
 

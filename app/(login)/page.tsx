@@ -1,11 +1,8 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
-import { UserLoginForm } from '@/components/user-login-form'
-import { getServerSession } from 'next-auth/next'
-import { redirect } from 'next/navigation'
-import { authOptions } from '@/lib/auth'
-import { signIn } from 'next-auth/react'
 import { Icons } from '@/components/icons'
+import { UserLoginForm } from '@/components/user-login-form'
+import { getUser } from '@/lib/session'
+import { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: 'Login',
@@ -13,6 +10,8 @@ export const metadata: Metadata = {
 }
 
 export default async function LoginPage() {
+  const user = await getUser()
+  if (user) redirect('/dashboard')
   return (
     <div className="relative flex flex-col items-center justify-center h-screen w-full">
       <div className="container flex justify-center h-[80vh] max-w-5xl p-10">

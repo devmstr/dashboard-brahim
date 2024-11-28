@@ -50,7 +50,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       </div>
       <div className="h-full flex flex-col justify-start mt-8">
         {items?.length && (
-          <nav className={cn('flex flex-col gap-8')}>
+          <nav className={cn('flex flex-col gap-6')}>
             {items
               ?.filter((item) => item.title !== 'Paramètres')
               .map((item, index) => {

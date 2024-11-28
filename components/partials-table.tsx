@@ -56,11 +56,11 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 
-interface OrderTableProps {
+interface Props {
   data: OrderTableEntry[]
 }
 
-export function OrderTable({ data }: OrderTableProps) {
+export function PartialsTable({ data }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -77,7 +77,7 @@ export function OrderTable({ data }: OrderTableProps) {
 
   const handleDelete = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/orders/${orderId}`, {
+      const res = await fetch(`/api/partials/${orderId}`, {
         method: 'DELETE'
       })
       refresh()
@@ -104,7 +104,7 @@ export function OrderTable({ data }: OrderTableProps) {
         <div className="flex items-center">
           <Link
             className="hover:text-primary hover:underline"
-            href={'orders/' + row.original.id}
+            href={'partials/' + row.original.id}
           >
             {' '}
             {row.original.id}
@@ -125,23 +125,6 @@ export function OrderTable({ data }: OrderTableProps) {
           </div>
         )
       }
-    },
-    {
-      accessorKey: 'title',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {'Titre'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => (
-        <div className="flex items-center">{row.original.title}</div>
-      )
     },
 
     {
@@ -184,7 +167,6 @@ export function OrderTable({ data }: OrderTableProps) {
         )
       }
     },
-
     {
       accessorKey: 'endDate',
       header: ({ column }) => {
@@ -225,6 +207,24 @@ export function OrderTable({ data }: OrderTableProps) {
       cell: ({ row }) => {
         const fullName = row.original?.customer?.name || ''
         return <div className="flex items-center">{fullName}</div>
+      }
+    },
+    {
+      accessorKey: 'customer.phone',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {'Tél'}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        const phone = row.original?.customer?.phone || ''
+        return <div className="flex items-center">{phone}</div>
       }
     },
     {

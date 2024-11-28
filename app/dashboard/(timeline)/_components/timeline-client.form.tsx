@@ -11,7 +11,7 @@ import { AddOrderSchemaType, InputNameType } from '../add-order.dialog'
 interface Props {
   countries: { name: string }[]
   provinces: { name: string }[]
-  data: AddOrderSchemaType
+  data: Partial<AddOrderSchemaType>
   onChange: (name: InputNameType, value: any) => void
 }
 
@@ -38,7 +38,7 @@ export const ClientInfoForm: React.FC<Props> = ({
             </Label>
             <Switcher
               id="isCompany"
-              checked={data.isCompany}
+              checked={data.isCompany as boolean}
               onCheckedChange={(v) => {
                 onChange('isCompany', v)
               }}

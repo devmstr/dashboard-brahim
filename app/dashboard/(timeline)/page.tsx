@@ -3,6 +3,7 @@ import { GanttChart } from '@/components/grant-chart'
 import db from '@/lib/db'
 import React from 'react'
 import { AddOrderDialog } from './add-order.dialog'
+import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
 
 interface PageProps {}
 
@@ -21,11 +22,20 @@ const Page: React.FC<PageProps> = async () => {
 
   return (
     <Card className="">
-      <div className="flex justify-end items-center gap-3">
+      <div className="w-full flex justify-end items-center gap-3">
+        <DaysCalculatorDialog />
         <AddOrderDialog provinces={provinces} countries={countries} />
       </div>
       <GanttChart
-        data={[]}
+        data={[
+          {
+            id: 'RX4C8GLA',
+            receivingDate: '',
+            startDate: '',
+            endDate: '',
+            actualEndDate: ''
+          }
+        ]}
         // data={data?.map((dp: any) => ({
         //   id: dp.id,
         //   receivingDate: dp.receivingDate,

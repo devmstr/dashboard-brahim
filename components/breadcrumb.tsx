@@ -1,28 +1,20 @@
 'use client'
 import {
   Breadcrumb,
-  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import { capitalize } from 'lodash'
-import { usePathname, useSelectedLayoutSegment } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 export function LinkerList() {
+  const router = useRouter()
   const pathname = usePathname()
-  const segment = useSelectedLayoutSegment() || 'timeline'
   const segments = pathname.split('/').filter((i) => i !== '')
-  if (segments[segments.length - 1] !== segment)
-    segments.push(segment?.replace(/\(|\)/g, ''))
+  if (segments[segments.length - 1] === 'dashboard') segments.push('timeline')
+
   return (
     <Breadcrumb className="">
       <BreadcrumbList className="flex flex-nowrap items-center gap-1">
@@ -30,8 +22,15 @@ export function LinkerList() {
           <div className="flex items-center gap-1 " key={`${index}-${link}`}>
             <BreadcrumbItem>
               <BreadcrumbLink
-                className="hover:text-secondary"
-                href={index == segments.length - 1 ? '#' : `/${link}`}
+                className="hover:text-secondary cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault()
+                  router.replace(
+                    link === 'dashboard' || link === 'timeline'
+                      ? '/dashboard'
+                      : `/dashboard/${link}`
+                  )
+                }}
               >
                 {capitalize(link)}
               </BreadcrumbLink>

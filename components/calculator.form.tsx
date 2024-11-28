@@ -59,6 +59,7 @@ export const CalculatorForm: React.FC<
   const [model, setModel] = useState<string>('faisceau')
 
   useEffect(() => setDays(0), [])
+  useEffect(() => console.log(days), [days])
 
   const calculate = () => {
     let capacity
@@ -66,9 +67,22 @@ export const CalculatorForm: React.FC<
     else capacity = getRadiatorCapacity(level)
     setDays((quantity * 390) / (capacity * nr))
   }
+  function formatTime(totalMinutes: number): string {
+    const days = Math.floor(totalMinutes / (24 * 60))
+    const hours = Math.floor((totalMinutes % (24 * 60)) / 60)
+    const minutes = Math.floor(totalMinutes % 60)
+
+    const parts = [
+      days > 0 ? `${days}j` : '',
+      hours > 0 ? `${hours}h` : '',
+      minutes > 0 ? `${minutes}m` : ''
+    ].filter(Boolean)
+
+    return parts.join(' ') || '0m'
+  }
   return (
     <div className="space-y-6">
-      <div className="border-b-2 text-muted-foreground my-4 opacity-60 " />
+      <div className="border-b-2 text-muted-foreground opacity-60 " />
       <Tabs defaultValue={model} onValueChange={setModel}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="faisceau">Faisceau</TabsTrigger>
@@ -108,7 +122,9 @@ export const CalculatorForm: React.FC<
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={calculate}>Calculer</Button>
+              <Button className="w-full" onClick={calculate}>
+                Calculer
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -154,17 +170,18 @@ export const CalculatorForm: React.FC<
                 />
               </div>
             </CardContent>
-            <CardFooter>
-              <Button onClick={calculate}>Calculer</Button>
+            <CardFooter className="w-full">
+              <Button className="w-full" onClick={calculate}>
+                Calculer
+              </Button>
             </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
-      <div className="w-60 m-auto p-5 rounded-md bg-gray-200/70 flex gap-1 items-end">
-        <span className="text-muted-foreground font-bold text-4xl ">
-          {Number.isInteger(days) ? days : days.toFixed(1)}
+      <div className="w-full m-auto p-5 rounded-md bg-gray-200/70 flex gap-1 items-end">
+        <span className="text-primary font-bold text-4xl ">
+          {formatTime(days)}
         </span>
-        <span className="text-muted-foreground text-sm mb-1 ">Jours</span>
       </div>
     </div>
   )

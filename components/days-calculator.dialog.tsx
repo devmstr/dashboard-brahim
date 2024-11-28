@@ -14,7 +14,6 @@ import {
 
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { AddOrderForm } from './add-order.form'
 import { CalculatorForm } from './calculator.form'
 
 interface DaysCalculatorDialogProps {}
@@ -27,26 +26,19 @@ export const DaysCalculatorDialog: React.FC<
       <DialogTrigger asChild>
         <Button
           variant={'default'}
-          className="flex gap-3 w-fit   text-secondary hover:text-secondary/80"
+          className="flex gap-2 w-fit   text-secondary hover:text-secondary"
         >
-          {'Calculatrice'}
           <Icons.calculator className="w-6 h-6 " />
+          <span>{'Calculatrice'}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:h-fit container max-w-md">
-        <ScrollArea className="h-[75vh] pt-3 pb-7">
-          <DialogHeader className="px-2">
-            <DialogTitle className="flex">Calculer le Délai</DialogTitle>
-            <DialogDescription className="flex text-left max-w-4xl">
-              Veuillez remplir le formulaire ci-dessous pour estimer le nombre
-              de jours jusqu'à l'achèvement de votre commande.
-            </DialogDescription>
-          </DialogHeader>
-          {/* start  content */}
-          <div className="px-2">
-            <CalculatorForm />
-          </div>
-          {/* end content */}
+        <DialogHeader className="px-2">
+          <DialogTitle className="flex">Calculer le Délai</DialogTitle>
+        </DialogHeader>
+        {/* start  content */}
+        <ScrollArea className="max-h-[75vh]">
+          <CalculatorForm />
         </ScrollArea>
       </DialogContent>
     </Dialog>

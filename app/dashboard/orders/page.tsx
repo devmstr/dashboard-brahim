@@ -10,6 +10,10 @@ import { z } from 'zod'
 import db from '@/lib/db'
 import { coid } from '@/lib/utils'
 import { ROLES } from '@/config/accounts'
+import { AddOrderDialog } from '../(timeline)/add-order.dialog'
+import { CalculatorForm } from '@/components/calculator.form'
+import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
+import { ProductionDaysProvider } from '@/components/production-days.provider'
 
 interface PageProps {}
 
@@ -33,16 +37,24 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
   const session = await getServerSession(authOptions)
   const data = await getData()
   const newOrderId = await coid(db)
+  // get all countries from db
+  const countries = await db.country.findMany({
+    select: {
+      name: true
+    }
+  })
+  const provinces = await db.wilaya.findMany({
+    select: {
+      name: true
+    }
+  })
   return (
     <Card className="">
-      <OrderTable
-        newUserId={'newOrderId'}
-        abilityToAdd={
-          // session?.user?.role === ROLES.SALES ||
-          session?.user?.role === ROLES.ADMIN
-        }
-        data={data}
-      />
+      <div className="w-full flex justify-end items-center gap-3">
+        <DaysCalculatorDialog />
+        <AddOrderDialog provinces={provinces} countries={countries} />
+      </div>
+      <OrderTable data={data} />
     </Card>
   )
 }

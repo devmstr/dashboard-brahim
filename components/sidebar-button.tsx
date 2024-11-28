@@ -12,9 +12,12 @@ export const SidebarButton: React.FC<Props> = ({}: Props) => {
   return (
     <Button
       onClick={(e) => setOpen(!open)}
-      className="bg-transparent border-none hover:bg-transparent text-muted-foreground hover:text-secondary"
+      className="bg-transparent border-none hover:bg-transparent text-muted-foreground/40 hover:text-secondary ring-0 focus-visible:ring-0"
     >
-      <Icons.sidebar className="w-7 h-auto cursor-pointer" />
+      <Icons.sidebar
+        direction={open ? 'right' : 'left'}
+        className="w-7 h-auto cursor-pointer "
+      />
     </Button>
   )
 }
