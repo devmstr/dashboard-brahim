@@ -28,22 +28,25 @@ export type HomeConfig = {
 export type OrderTableEntry = {
   id: string
   title: string
-  endDate?: string
-  customer: {
-    name: string
-    phone: string
-  }
+  deadline?: string
+  customer: string
+  phone: string
   status: 'Annuler' | 'Non Commence' | 'Encours' | 'Fini'
   progress?: number
   quantity: number
+}
+export type StockTableEntry = {
+  id: string
+  title: string
+  quantity: number
+  price?: number
+  bulkPrice?: number
 }
 
 export type ClientTableEntry = {
   id: string
   label?: string
-  country: string
-  province: string
-  city?: string
+  location?: string
   name: string
   phone: string
   orderCount?: number

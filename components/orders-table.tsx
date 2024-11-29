@@ -38,7 +38,7 @@ import {
 import Link from 'next/link'
 import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { OrderTableEntry } from '@/types'
+import { OrderTableEntry, StockTableEntry } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
@@ -55,20 +55,34 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
+import Cookies from 'js-cookie'
+import { usePersistedState } from '@/hooks/ues-persisted-state'
 
 interface OrderTableProps {
   data: OrderTableEntry[]
+  t: {
+    placeholder: string
+    columns: string
+    id: string
+    title: string
+    deadline: string
+    customer: string
+    phone: string
+    status: string
+    progress: string
+    quantity: string
+    limit: string
+  }
 }
 
-export function OrderTable({ data }: OrderTableProps) {
+export function OrderTable({ data, t }: OrderTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-
+    usePersistedState<VisibilityState>('order-table-columns-visibility', {})
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
@@ -95,7 +109,7 @@ export function OrderTable({ data }: OrderTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Matricule'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -106,7 +120,6 @@ export function OrderTable({ data }: OrderTableProps) {
             className="hover:text-primary hover:underline"
             href={'orders/' + row.original.id}
           >
-            {' '}
             {row.original.id}
           </Link>
         </div>
@@ -120,7 +133,7 @@ export function OrderTable({ data }: OrderTableProps) {
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Quantité'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -134,7 +147,7 @@ export function OrderTable({ data }: OrderTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Titre'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -152,7 +165,7 @@ export function OrderTable({ data }: OrderTableProps) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Statut'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -167,7 +180,7 @@ export function OrderTable({ data }: OrderTableProps) {
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Avancement'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -186,20 +199,20 @@ export function OrderTable({ data }: OrderTableProps) {
     },
 
     {
-      accessorKey: 'endDate',
+      accessorKey: 'deadline',
       header: ({ column }) => {
         return (
           <div
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Délai'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
       cell: ({ row }) => {
-        const endDate = row.original.endDate
+        const endDate = row.original.deadline
         return (
           <div className="flex items-center">
             {endDate
@@ -210,21 +223,37 @@ export function OrderTable({ data }: OrderTableProps) {
       }
     },
     {
-      accessorKey: 'customer.fullName',
+      accessorKey: 'customer',
       header: ({ column }) => {
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Client'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
       cell: ({ row }) => {
-        const fullName = row.original?.customer?.name || ''
-        return <div className="flex items-center">{fullName}</div>
+        return <div className="flex items-center">{row.original?.customer}</div>
+      }
+    },
+    {
+      accessorKey: 'phone',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        return <div className="flex items-center">{row.original?.phone}</div>
       }
     },
     {
@@ -255,7 +284,8 @@ export function OrderTable({ data }: OrderTableProps) {
       pagination: {
         pageSize: limit,
         pageIndex: 0
-      }
+      },
+      columnVisibility
     }
   })
 
@@ -264,7 +294,7 @@ export function OrderTable({ data }: OrderTableProps) {
       <div className="flex items-center justify-between pb-4">
         <div className="flex gap-3">
           <Input
-            placeholder="Rechercher..."
+            placeholder={t['placeholder']}
             value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
             onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
             className="w-80"
@@ -276,7 +306,8 @@ export function OrderTable({ data }: OrderTableProps) {
                   variant="outline"
                   className="ml-auto text-muted-foreground hover:text-foreground"
                 >
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                  {t['columns'] || 'Columns'}
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -293,7 +324,7 @@ export function OrderTable({ data }: OrderTableProps) {
                           column.toggleVisibility(!!value)
                         }
                       >
-                        {column.id}
+                        {t[column.id as keyof typeof t]}
                       </DropdownMenuCheckboxItem>
                     )
                   })}
@@ -307,7 +338,8 @@ export function OrderTable({ data }: OrderTableProps) {
                 text-muted-foreground hover:text-foreground
               "
                 >
-                  Limit ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
+                  {t['limit'] || 'Limit'} ({limit}){' '}
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="">

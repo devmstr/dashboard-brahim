@@ -58,7 +58,7 @@ export const PaymentForm: React.FC<Props> = ({
               }}
             />
           </div>
-          <div className=" w-full space-y-2">
+          <div className="w-full space-y-2">
             <Label htmlFor="remaining">{'Restant'}</Label>
             <Input
               id="remaining"

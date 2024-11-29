@@ -44,6 +44,8 @@ import {
   Puzzle,
   UsersRoundIcon,
   Tag,
+  Boxes,
+  PackagePlusIcon,
   UserRoundPlusIcon
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
@@ -61,6 +63,8 @@ import clsx from 'clsx'
 export type Icon = LucideIcon
 
 export const Icons = {
+  packagePlus: PackagePlusIcon,
+  stock: Boxes,
   addClient: UserRoundPlusIcon,
   sell: Tag,
   clients: UsersRoundIcon,

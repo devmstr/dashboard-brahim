@@ -38,7 +38,7 @@ import {
 import Link from 'next/link'
 import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { OrderTableEntry } from '@/types'
+import { StockTableEntry } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
@@ -55,38 +55,37 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
+import Cookies from 'js-cookie'
+import { usePersistedState } from '@/hooks/ues-persisted-state'
 
 interface Props {
-  data: OrderTableEntry[]
+  data: StockTableEntry[]
+  t: {
+    placeholder: string
+    columns: string
+    id: string
+    title: string
+    quantity: string
+    price: string
+    bulkPrice: string
+    limit: string
+  }
 }
 
-export function PartialsTable({ data }: Props) {
+export function StockTable({ data, t }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+    usePersistedState<VisibilityState>('stock-table-columns-visibility', {})
 
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
 
-  const { refresh } = useRouter()
-
-  const handleDelete = async (orderId: string) => {
-    try {
-      const res = await fetch(`/api/partials/${orderId}`, {
-        method: 'DELETE'
-      })
-      refresh()
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  const columns: ColumnDef<OrderTableEntry>[] = [
+  const columns: ColumnDef<StockTableEntry>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -95,7 +94,7 @@ export function PartialsTable({ data }: Props) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Matricule'}
+            {t['id']}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -113,6 +112,20 @@ export function PartialsTable({ data }: Props) {
       )
     },
     {
+      accessorKey: 'title',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
+    {
       accessorKey: 'quantity',
       header: ({ column }) => {
         return (
@@ -120,119 +133,44 @@ export function PartialsTable({ data }: Props) {
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Quantité'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       }
     },
-
     {
-      accessorKey: 'status',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {'Statut'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => <StatusBudge variant={row.original.status} />
-    },
-    {
-      accessorKey: 'progress',
+      accessorKey: 'price',
       header: ({ column }) => {
         return (
           <div
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Avancement'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        const progress = row.original.progress || 0
-        const quantity = row.original.quantity || 0
-        const percentage = Math.floor((progress / quantity) * 100)
-        return (
-          <div className="relative flex justify-start gap-1 items-center">
-            <Progress value={percentage} className="h-[0.65rem] max-w-10" />
-            <span className="text-foreground">{percentage + '%'}</span>
           </div>
         )
       }
     },
     {
-      accessorKey: 'endDate',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {'Délai'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        const endDate = row.original.endDate
-        return (
-          <div className="flex items-center">
-            {endDate
-              ? format(new Date(endDate), 'dd/MM/yyyy')
-              : 'Non Déterminé'}
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'customer.fullName',
+      accessorKey: 'bulkPrice',
       header: ({ column }) => {
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Client'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      },
-      cell: ({ row }) => {
-        const fullName = row.original?.customer?.name || ''
-        return <div className="flex items-center">{fullName}</div>
-      }
-    },
-    {
-      accessorKey: 'customer.phone',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {'Tél'}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        const phone = row.original?.customer?.phone || ''
-        return <div className="flex items-center">{phone}</div>
       }
     },
     {
       id: 'actions',
       enableHiding: false,
-      cell: ({ row }) => (
-        <Actions id={row.original.id} onDelete={handleDelete} />
-      )
+      cell: ({ row }) => <Actions id={row.original.id} />
     }
   ]
 
@@ -255,7 +193,8 @@ export function PartialsTable({ data }: Props) {
       pagination: {
         pageSize: limit,
         pageIndex: 0
-      }
+      },
+      columnVisibility
     }
   })
 
@@ -264,7 +203,7 @@ export function PartialsTable({ data }: Props) {
       <div className="flex items-center justify-between pb-4">
         <div className="flex gap-3">
           <Input
-            placeholder="Rechercher..."
+            placeholder={t['placeholder']}
             value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
             onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
             className="w-80"
@@ -276,7 +215,8 @@ export function PartialsTable({ data }: Props) {
                   variant="outline"
                   className="ml-auto text-muted-foreground hover:text-foreground"
                 >
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                  {t['columns'] || 'columns'}
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -293,7 +233,7 @@ export function PartialsTable({ data }: Props) {
                           column.toggleVisibility(!!value)
                         }
                       >
-                        {column.id}
+                        {t[column.id as keyof typeof t]}
                       </DropdownMenuCheckboxItem>
                     )
                   })}
@@ -307,7 +247,8 @@ export function PartialsTable({ data }: Props) {
                 text-muted-foreground hover:text-foreground
               "
                 >
-                  Limit ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
+                  {t['limit'] || 'Limite'} ({limit}){' '}
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="">
@@ -430,13 +371,19 @@ export function PartialsTable({ data }: Props) {
   )
 }
 
-function Actions({
-  id,
-  onDelete
-}: {
-  id: string
-  onDelete: (id: string) => void
-}) {
+function Actions({ id }: { id: string }) {
+  const { refresh } = useRouter()
+
+  const onDelete = async (orderId: string) => {
+    try {
+      const res = await fetch(`/api/partials/${orderId}`, {
+        method: 'DELETE'
+      })
+      refresh()
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">

@@ -9,16 +9,18 @@ interface PageProps {}
 
 const Page: React.FC<PageProps> = async () => {
   // get all countries from db
-  const countries = await db.country.findMany({
-    select: {
-      name: true
-    }
-  })
-  const provinces = await db.wilaya.findMany({
-    select: {
-      name: true
-    }
-  })
+  const countries =
+    (await db.country.findMany({
+      select: {
+        name: true
+      }
+    })) || []
+  const provinces =
+    (await db.wilaya.findMany({
+      select: {
+        name: true
+      }
+    })) || []
 
   return (
     <Card className="">

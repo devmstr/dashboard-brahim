@@ -25,8 +25,8 @@ export const SellCompleteProductDialog: React.FC<Props> = ({ id }: Props) => {
           variant={'default'}
           className="flex gap-3 w-fit   text-secondary hover:text-secondary/80"
         >
-          <Icons.sell className="w-6 h-6 " />
-          {'Vendre'}
+          <Icons.packagePlus className="w-6 h-6 " />
+          {'Ajouter'}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:h-fit container max-w-6xl">

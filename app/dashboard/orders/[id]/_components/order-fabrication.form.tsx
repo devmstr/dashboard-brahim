@@ -15,7 +15,7 @@ import { MdEditor } from '@/components/md-editor'
 import {
   AddOrderSchemaType,
   InputNameType
-} from '@/app/dashboard/(timeline)/add-order.dialog'
+} from '@/app/dashboard/timeline/add-order.dialog'
 import Link from 'next/link'
 import { DatePicker } from '@/components/date-picker'
 
@@ -225,9 +225,17 @@ export const OrderFabricationForm: React.FC<Props> = ({
         </div>
       </div>
       <div className="relative border rounded-md px-3 pb-3">
-        <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-          paiement
-        </span>
+        <div className="flex items-center justify-between select-none">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            paiement
+          </span>
+          <Link
+            href={`/dashboard/orders/${'PAX3L6M34'}`}
+            className="absolute -top-[0.65rem] right-5 text-base font-light text-muted-foreground/40 uppercase -mt-[2px] bg-background px-3 rounded-md  hover:font-bold hover:text-secondary"
+          >
+            {'PAX3L6M34'}
+          </Link>
+        </div>
         <div className="space-y-4 items-end md:grid md:grid-cols-2 lg:grid-cols-3 gap-3">
           <div className=" w-full space-y-2">
             <Label htmlFor="price" className="flex items-center gap-1">

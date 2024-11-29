@@ -5,12 +5,12 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 
 import { ScrollArea } from '@/components/ui/scroll-area'
 import React, { useState, useTransition } from 'react'
-import { ClientInfoForm } from '../(timeline)/_components/timeline-client.form'
+import { ClientInfoForm } from '../timeline/_components/timeline-client.form'
 import {
   addOrderSchema,
   AddOrderSchemaType,
   InputNameType
-} from '../(timeline)/add-order.dialog'
+} from '../timeline/add-order.dialog'
 import { toast } from '@/components/ui/use-toast'
 import { z } from 'zod'
 

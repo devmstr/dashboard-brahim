@@ -1,16 +1,22 @@
 import { withAuth } from 'next-auth/middleware'
 import { ROLES } from './config/accounts'
 
+const ADMIN_ROUTES = ['/dashboard/settings']
+
 export default withAuth({
   callbacks: {
     authorized: async ({ req, token }) => {
-      if (req.nextUrl.pathname.startsWith('/dashboard/settings'))
+      const pathname = req.nextUrl.pathname
+
+      if (ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
         return token?.role === ROLES.ADMIN
+      }
+
       return !!token
     }
   }
 })
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/dashboard/admin:path*']
+  matcher: ['/dashboard/:path*']
 }

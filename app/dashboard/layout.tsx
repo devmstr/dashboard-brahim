@@ -28,16 +28,10 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
       icon: 'dashboard'
     },
     {
-      title: 'Finis',
-      href: '/dashboard/completes',
-      icon: 'completeProduct'
+      title: 'Stock',
+      href: '/dashboard/stock',
+      icon: 'stock'
     },
-    {
-      title: 'Semi-Finis',
-      href: '/dashboard/partials',
-      icon: 'partials'
-    },
-
     {
       title: 'Clients',
       href: '/dashboard/clients',

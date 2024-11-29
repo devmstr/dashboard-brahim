@@ -2,7 +2,7 @@ import { Card } from '@/components/card'
 import { OrderTable } from '@/components/orders-table'
 // import data from './data.json'
 import React from 'react'
-import { OrderTableEntry } from '@/types'
+import { OrderTableEntry, StockTableEntry } from '@/types'
 import { getServerSideProps } from 'next/dist/build/templates/pages'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -10,7 +10,7 @@ import { z } from 'zod'
 import db from '@/lib/db'
 import { coid } from '@/lib/utils'
 import { ROLES } from '@/config/accounts'
-import { AddOrderDialog } from '../(timeline)/add-order.dialog'
+import { AddOrderDialog } from '../timeline/add-order.dialog'
 import { CalculatorForm } from '@/components/calculator.form'
 import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
 import { ProductionDaysProvider } from '@/components/production-days.provider'
@@ -34,27 +34,44 @@ const getData = async (): Promise<OrderTableEntry[]> => {
 }
 
 const Page: React.FC<PageProps> = async ({}: PageProps) => {
-  const session = await getServerSession(authOptions)
-  const data = await getData()
-  const newOrderId = await coid(db)
+  // const session = await getServerSession(authOptions)
+  // const data = await getData()
+  // const newOrderId = await coid(db)
   // get all countries from db
-  const countries = await db.country.findMany({
-    select: {
-      name: true
-    }
-  })
-  const provinces = await db.wilaya.findMany({
-    select: {
-      name: true
-    }
-  })
+  const countries =
+    (await db.country.findMany({
+      select: {
+        name: true
+      }
+    })) || []
+  const provinces =
+    (await db.wilaya.findMany({
+      select: {
+        name: true
+      }
+    })) || []
   return (
     <Card className="">
       <div className="w-full flex justify-end items-center gap-3">
         <DaysCalculatorDialog />
         <AddOrderDialog provinces={provinces} countries={countries} />
       </div>
-      <OrderTable data={data} />
+      <OrderTable
+        t={{
+          id: 'Matricule',
+          customer: 'Client',
+          phone: 'Tél',
+          quantity: 'Quantité',
+          title: 'Titre',
+          deadline: 'Délais',
+          status: 'Statue',
+          progress: 'Avancement',
+          placeholder: 'Rechercher...',
+          columns: 'Colonnes',
+          limit: 'Limite'
+        }}
+        data={[]}
+      />
     </Card>
   )
 }

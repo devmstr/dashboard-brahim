@@ -1,7 +1,7 @@
 import {
   AddOrderSchemaType,
   InputNameType
-} from '@/app/dashboard/(timeline)/add-order.dialog'
+} from '@/app/dashboard/timeline/add-order.dialog'
 import { Combobox } from '@/components/combobox'
 import { Switcher } from '@/components/switcher'
 import { Input } from '@/components/ui/input'
@@ -28,6 +28,7 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
   data: input
 }: Props) => {
   const [data, setData] = useState(input)
+
   useEffect(() => {
     setData(input)
   }, [input])
@@ -40,10 +41,10 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
             faisceau
           </span>
           <Link
-            href={`/dashboard/orders/${'SFX3L6M34'}`}
+            href={`/dashboard/orders/${'FAX3L6M34'}`}
             className="absolute -top-[0.65rem] right-5 text-base font-light text-muted-foreground/40 uppercase -mt-[2px] bg-background px-3 rounded-md  hover:font-bold hover:text-secondary"
           >
-            {'SFX3L6M34'}
+            {'FAX3L6M34'}
           </Link>
         </div>
 
@@ -136,6 +137,7 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
         <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
           collecteurs
         </span>
+
         <div className="space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
           <div className="space-y-2 md:col-span-2 lg:col-span-3">
             <Label htmlFor="isCollectorTinned" className="capitalize">

@@ -30,10 +30,11 @@ async function upload() {
       name: country.name.common
     }))
 
-    // // Insert the country data into the database
+    // Insert the country data into the database
     // await prisma.country.createMany({
     //   data: countryData
     // })
+
     console.log(countryData)
     console.log('[======= done! =======]')
   } catch (error) {

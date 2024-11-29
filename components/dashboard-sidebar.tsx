@@ -44,13 +44,20 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             delay={200}
             easing={'easeOut'}
           >
-            <Icons.identity className={cn('flex h-4 w-auto mt-1')} />
+            <h1 className={cn('flex text-2xl font-bold mt-1 text-secondary')}>
+              SONERAS<span className="font-light">Flow</span>
+            </h1>
           </Fade>
         )}
       </div>
-      <div className="h-full flex flex-col justify-start mt-8">
+      <div className="h-full flex flex-col justify-start mt-6 w-full">
         {items?.length && (
-          <nav className={cn('flex flex-col gap-6')}>
+          <nav
+            className={cn(
+              'flex flex-col gap-2 w-full',
+              open ? 'items-start px-0' : 'items-center px-2'
+            )}
+          >
             {items
               ?.filter((item) => item.title !== 'Paramètres')
               .map((item, index) => {
@@ -65,9 +72,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       key={index}
                       href={item.disabled ? '#' : item.href!}
                       className={cn(
-                        'flex items-center text-gray-500 font-medium fill-current',
+                        'flex items-center text-gray-400 font-medium fill-current bg-slate-700/15 w-full p-3   rounded-lg',
                         active
-                          ? 'text-secondary opacity-100'
+                          ? 'text-primary bg-secondary opacity-100'
                           : 'opacity-80 hover:opacity-100 hover:text-secondary',
                         item.disabled && 'cursor-not-allowed opacity-80'
                       )}

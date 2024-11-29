@@ -7,7 +7,7 @@ import {
   AddOrderSchemaType,
   InputNameType,
   addOrderSchema
-} from '../../(timeline)/add-order.dialog'
+} from '../../timeline/add-order.dialog'
 import { OrderFabricationForm } from './_components/order-fabrication.form'
 import { Card } from '@/components/card'
 import { OrderTechnicalDataForm } from './_components/order-technical.form'

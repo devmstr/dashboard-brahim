@@ -38,7 +38,7 @@ import {
 import Link from 'next/link'
 import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { ClientTableEntry, OrderTableEntry } from '@/types'
+import { ClientTableEntry, StockTableEntry } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
@@ -55,19 +55,31 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
+import { usePersistedState } from '@/hooks/ues-persisted-state'
 
 interface Props {
   data: ClientTableEntry[]
+  t: {
+    columns: string
+    limit: string
+    placeholder: string
+    id: string
+    label: string
+    location: string
+    name: string
+    phone: string
+    orderCount: string
+  }
 }
 
-export function ClientTable({ data }: Props) {
+export function ClientTable({ data, t }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+    usePersistedState<VisibilityState>('client-table-columns-visibility', {})
 
   React.useEffect(() => {
     table.setPageSize(limit)
@@ -95,7 +107,7 @@ export function ClientTable({ data }: Props) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Matricule'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -106,7 +118,6 @@ export function ClientTable({ data }: Props) {
             className="hover:text-primary hover:underline"
             href={'orders/' + row.original.id}
           >
-            {' '}
             {row.original.id}
           </Link>
         </div>
@@ -120,7 +131,7 @@ export function ClientTable({ data }: Props) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Nom'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -138,7 +149,7 @@ export function ClientTable({ data }: Props) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Tél'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -156,18 +167,14 @@ export function ClientTable({ data }: Props) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {'Location'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
       cell: ({ row }) => {
         return (
-          <div className="flex items-center gap-1">
-            <span className="">{row.original.country},</span>
-            <span className="">{row.original.province},</span>
-            {row.original.city && <span className="">{row.original.city}</span>}
-          </div>
+          <div className="flex items-center gap-1">{row.original.location}</div>
         )
       }
     },
@@ -179,7 +186,7 @@ export function ClientTable({ data }: Props) {
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'Forme Juridique'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -196,7 +203,7 @@ export function ClientTable({ data }: Props) {
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            {'N°Commandes'}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
@@ -232,7 +239,8 @@ export function ClientTable({ data }: Props) {
       pagination: {
         pageSize: limit,
         pageIndex: 0
-      }
+      },
+      columnVisibility
     }
   })
 
@@ -241,7 +249,7 @@ export function ClientTable({ data }: Props) {
       <div className="flex items-center justify-between pb-4">
         <div className="flex gap-3">
           <Input
-            placeholder="Rechercher..."
+            placeholder={t['placeholder']}
             value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
             onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
             className="w-80"
@@ -253,7 +261,8 @@ export function ClientTable({ data }: Props) {
                   variant="outline"
                   className="ml-auto text-muted-foreground hover:text-foreground"
                 >
-                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                  {t['columns'] || 'Columns'}{' '}
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -270,7 +279,7 @@ export function ClientTable({ data }: Props) {
                           column.toggleVisibility(!!value)
                         }
                       >
-                        {column.id}
+                        {t[column.id as keyof typeof t]}
                       </DropdownMenuCheckboxItem>
                     )
                   })}
@@ -284,7 +293,8 @@ export function ClientTable({ data }: Props) {
                 text-muted-foreground hover:text-foreground
               "
                 >
-                  Limit ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
+                  {t['limit'] || 'Limit'} ({limit}){' '}
+                  <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="">

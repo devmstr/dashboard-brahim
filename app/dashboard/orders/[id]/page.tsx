@@ -1,11 +1,3 @@
-import { Card } from '@/components/card'
-import { authOptions } from '@/lib/auth'
-import { getServerSession } from 'next-auth'
-import {
-  addOrderSchema,
-  AddOrderSchemaType,
-  InputNameType
-} from '../../(timeline)/add-order.dialog'
 import { DetailsOrderForm } from './details-order.form'
 
 interface PageProps {
