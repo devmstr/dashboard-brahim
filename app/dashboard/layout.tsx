@@ -19,7 +19,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
   const sideBarNavItems: SidebarNavItem[] = [
     {
       title: 'Planning',
-      href: '/dashboard',
+      href: '/dashboard/timeline',
       icon: 'timeline'
     },
     {
