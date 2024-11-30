@@ -104,7 +104,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       ) : (
                         <span
                           className={cn(
-                            'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100',
+                            'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg',
                             active &&
                               'bg-secondary text-primary group-hover:text-primary'
                           )}
@@ -171,7 +171,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   ) : (
                     <span
                       className={cn(
-                        'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100',
+                        'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg',
                         active &&
                           'bg-secondary text-primary group-hover:text-primary'
                       )}
