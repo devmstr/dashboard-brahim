@@ -16,10 +16,11 @@ import { Dictionary, SidebarNavItem } from '@/types'
 import { Icons } from './icons'
 import { useRouter, useSelectedLayoutSegment } from 'next/navigation'
 import { promise } from 'zod'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { getUser } from '@/lib/session'
 import { User } from 'next-auth'
 import Link from 'next/link'
+import useScreenSize from '@/hooks/use-screen-size'
 
 interface UserAccountNavProps extends React.HTMLAttributes<HTMLDivElement> {
   items: SidebarNavItem[]
@@ -27,11 +28,19 @@ interface UserAccountNavProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const UserAccountNav: React.FC<UserAccountNavProps> = ({
-  items,
+  items: linkList,
   user: { username, email, employeeId, sub, role, image }
 }: UserAccountNavProps) => {
+  const isMobile = useScreenSize('(max-width: 768px)')
+  const [items, setItems] = useState(linkList)
   const segment = useSelectedLayoutSegment()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (!isMobile)
+      setItems(items.filter(({ href }) => href == '/dashboard/settings'))
+    else setItems(linkList)
+  }, [isMobile])
 
   return (
     <DropdownMenu>

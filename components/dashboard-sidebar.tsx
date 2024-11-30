@@ -4,10 +4,9 @@ import { SidebarNavItem } from '@/types'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { Dispatch } from 'react'
+import React from 'react'
 import Fade from './Fade'
 import { Icons } from './icons'
-import { Button } from './ui/button'
 import { useSidebarState } from './open-sidebar-provider'
 
 interface DashboardSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -17,16 +16,15 @@ interface DashboardSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   items,
   className,
-
   ...props
 }: DashboardSidebarProps) => {
   const { open, setOpen } = useSidebarState()
   const pathname = usePathname()
-
+  console.log(pathname)
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 items-center shadow-md ',
+        'flex-col gap-3 items-center shadow-md ',
         open
           ? 'w-64 px-5 items-start transition-all duration-300 ease-in'
           : 'w-16  transition-all duration-500 ease-out',
@@ -44,7 +42,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             delay={200}
             easing={'easeOut'}
           >
-            <h1 className={cn('flex text-2xl font-bold mt-1 text-secondary')}>
+            <h1 className={cn('flex text-2xl font-black mt-1 text-secondary')}>
               SONERAS<span className="font-light">Flow</span>
             </h1>
           </Fade>
@@ -63,9 +61,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               .map((item, index) => {
                 const Icon = Icons[item.icon || 'arrowRight']
                 const delay = (index = 0 ? 80 : index * 80)
-                const active =
-                  pathname?.split('/').slice(2).join('') ===
-                  item.href?.split('/').slice(2).join('')
+                const active = pathname?.startsWith(item.href as string)
                 return (
                   item.href && (
                     <Link

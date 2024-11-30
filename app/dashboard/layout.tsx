@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
     <SidebarStateProvider>
       <div className="flex w-full h-full ">
         <DashboardSidebar
-          className="flex h-screen inset-0 bg-primary z-40"
+          className="hidden md:flex h-screen inset-0 bg-primary z-40"
           items={sideBarNavItems}
         />
         <div className="flex flex-col  min-h-screen w-full">

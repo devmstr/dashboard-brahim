@@ -7,7 +7,7 @@ interface Props {}
 const Page: React.FC<Props> = ({}: Props) => {
   return (
     <Card className="">
-      <div className="flex justify-end items-center gap-3">
+      <div className="flex justify-end items-center gap-3 mb-5">
         <AddClientDialog id={''} />
       </div>
       <ClientTable

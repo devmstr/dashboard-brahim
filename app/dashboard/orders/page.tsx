@@ -52,7 +52,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
     })) || []
   return (
     <Card className="">
-      <div className="w-full flex justify-end items-center gap-3">
+      <div className="w-full flex justify-end items-center gap-3 mb-5">
         <DaysCalculatorDialog />
         <AddOrderDialog provinces={provinces} countries={countries} />
       </div>

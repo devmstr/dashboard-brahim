@@ -12,14 +12,42 @@ interface DashboardNavProps extends React.HTMLAttributes<HTMLDivElement> {}
 export const DashboardNav = async (props: DashboardNavProps) => {
   const user = await getUser()
   if (!user) return <Loading />
-  let items: SidebarNavItem[] = [
+  const avatarDropdownLinks: SidebarNavItem[] = [
     {
-      title: 'Settings',
+      title: 'Planning',
+      href: '/dashboard/timeline',
+      icon: 'timeline'
+    },
+    {
+      title: 'Commandes',
+      href: '/dashboard/orders',
+      icon: 'dashboard'
+    },
+    {
+      title: 'Stock',
+      href: '/dashboard/stock',
+      icon: 'stock'
+    },
+    {
+      title: 'Clients',
+      href: '/dashboard/clients',
+      icon: 'clients'
+    },
+    {
+      title: 'Paramètres',
       href: '/dashboard/settings',
-      translationKey: 'settings',
       icon: 'settings'
     }
   ]
+
+  // let items: SidebarNavItem[] = [
+  //   {
+  //     title: 'Settings',
+  //     href: '/dashboard/settings',
+  //     translationKey: 'settings',
+  //     icon: 'settings'
+  //   }
+  // ]
   return (
     <div {...props}>
       <div className="flex gap-1 items-center">
@@ -27,7 +55,7 @@ export const DashboardNav = async (props: DashboardNavProps) => {
         <LinkerList />
       </div>
       <nav className="container flex items-center justify-end ">
-        <UserAccountNav items={items} user={user} />
+        <UserAccountNav items={avatarDropdownLinks} user={user} />
       </nav>
     </div>
   )
