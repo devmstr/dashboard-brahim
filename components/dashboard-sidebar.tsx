@@ -72,7 +72,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       key={index}
                       href={item.disabled ? '#' : item.href!}
                       className={cn(
-                        'flex items-center text-gray-400 font-medium fill-current bg-slate-700/15 w-full p-3   rounded-lg',
+                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/15 w-full p-3   rounded-lg',
                         active
                           ? 'text-primary bg-secondary opacity-100'
                           : 'opacity-80 hover:opacity-100 hover:text-secondary',
@@ -85,7 +85,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                           open ? 'mr-2' : 'mr-0'
                         )}
                       />
-                      {open && (
+                      {open ? (
                         <Fade
                           className={cn(
                             'text-md sm:text-sm'
@@ -101,6 +101,16 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                         >
                           <span>{item.title}</span>
                         </Fade>
+                      ) : (
+                        <span
+                          className={cn(
+                            'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100',
+                            active &&
+                              'bg-secondary text-primary group-hover:text-primary'
+                          )}
+                        >
+                          {item.title}
+                        </span>
                       )}
                     </Link>
                   )
@@ -109,7 +119,12 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </nav>
         )}
       </div>
-      <div className="pb-10">
+      <div
+        className={cn(
+          'pb-8 flex flex-col gap-2 w-full',
+          open ? 'items-start px-0' : 'items-center px-2'
+        )}
+      >
         {items
           ?.filter((item) => item.title == 'Paramètres')
           .map((item, index) => {
@@ -124,9 +139,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   key={index}
                   href={item.disabled ? '#' : item.href!}
                   className={cn(
-                    'flex items-center text-gray-500 font-medium fill-current',
+                    'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/15 w-full p-3   rounded-lg',
                     active
-                      ? 'text-secondary opacity-100'
+                      ? 'text-primary bg-secondary opacity-100'
                       : 'opacity-80 hover:opacity-100 hover:text-secondary',
                     item.disabled && 'cursor-not-allowed opacity-80'
                   )}
@@ -137,7 +152,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       open ? 'mr-2' : 'mr-0'
                     )}
                   />
-                  {open && (
+                  {open ? (
                     <Fade
                       className={cn(
                         'text-md sm:text-sm'
@@ -153,6 +168,16 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     >
                       <span>{item.title}</span>
                     </Fade>
+                  ) : (
+                    <span
+                      className={cn(
+                        'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100',
+                        active &&
+                          'bg-secondary text-primary group-hover:text-primary'
+                      )}
+                    >
+                      {item.title}
+                    </span>
                   )}
                 </Link>
               )
