@@ -52,13 +52,12 @@ export const CalculatorForm: React.FC<
 > = ({}: CalculatorFormProps) => {
   const [level, setLevel] = useState<Level>('Niveau 1')
   const [nr, setNr] = useState(1)
-  const { days, setDays } = useProductionDays()
+  const [days, setDays] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [size, setSize] = useState<Size>('Petit')
   const [type, setType] = useState<Type>('Platte')
   const [model, setModel] = useState<string>('faisceau')
 
-  useEffect(() => setDays(0), [])
   useEffect(() => console.log(days), [days])
 
   const calculate = () => {
@@ -81,15 +80,14 @@ export const CalculatorForm: React.FC<
     return parts.join(' ') || '0m'
   }
   return (
-    <div className="space-y-6">
-      <div className="border-b-2 text-muted-foreground opacity-60 " />
+    <div className="space-y-6 pt-5">
       <Tabs defaultValue={model} onValueChange={setModel}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="faisceau">Faisceau</TabsTrigger>
           <TabsTrigger value="radiateur">Radiateur</TabsTrigger>
         </TabsList>
         <TabsContent value="radiateur">
-          <Card className="pt-4">
+          <Card className="pt-3">
             <CardContent className="space-y-2">
               <div className="space-y-1">
                 <Label>Niveau</Label>

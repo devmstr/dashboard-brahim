@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 
 interface MdEditorProps extends HTMLAttributes<HTMLDivElement> {
   editorContentClassName?: string
-  value: Content
+  value?: Content
   setValue: Dispatch<SetStateAction<Content>>
   placeholder?: string
   isReadOnly?: boolean

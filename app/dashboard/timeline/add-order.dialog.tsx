@@ -140,8 +140,8 @@ export function AddOrderDialog({ countries, provinces }: Props) {
     coolingSystem: 'Eau',
     packaging: 'Carton',
     quantity: 1,
-    perforation: 'Perforé',
     isModificationRequired: false,
+    perforation: 'Perforé',
     fins: 'Droite (Normale)',
     tubePitch: 10,
     tube: 'Étiré 7 (ET7)',
@@ -243,7 +243,7 @@ export function AddOrderDialog({ countries, provinces }: Props) {
       <div className="">
         <DialogTrigger asChild>
           <Button className="flex gap-3 items-center justify-center ">
-            <Icons.add className="w-6 h-6" />
+            <Icons.packagePlus className="w-6 h-6" />
             {'Ajouter'}
           </Button>
         </DialogTrigger>
@@ -259,7 +259,7 @@ export function AddOrderDialog({ countries, provinces }: Props) {
             <ClientInfoForm
               countries={countries}
               provinces={provinces}
-              onChange={handleChange}
+              handleChange={handleChange}
               data={orderData}
             />
           </ScrollArea>

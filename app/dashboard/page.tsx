@@ -6,7 +6,7 @@ interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
   const user = await getUser()
-  if (user?.role !== 'ADMIN') redirect('/dashboard/timeline')
+  if (user?.role !== 'ADMIN') redirect('/dashboard/new/client')
   return notFound()
 }
 

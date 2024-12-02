@@ -1,53 +1,21 @@
-import React from 'react'
-import { SidebarButton } from './sidebar-button'
-import { UserAvatar } from './user-avatar'
+import { LAYOUT_LINKS } from '@/config/dashboard'
 import { getUser } from '@/lib/session'
-import { UserAccountNav } from './user-account-nav'
-import { Loading } from './loading'
-import { SidebarNavItem } from '@/types'
+import React from 'react'
 import { LinkerList } from './breadcrumb'
+import { Loading } from './loading'
+import { SidebarButton } from './sidebar-button'
+import { UserAccountNav } from './user-account-nav'
 
 interface DashboardNavProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export const DashboardNav = async (props: DashboardNavProps) => {
   const user = await getUser()
   if (!user) return <Loading />
-  const avatarDropdownLinks: SidebarNavItem[] = [
-    {
-      title: 'Planning',
-      href: '/dashboard/timeline',
-      icon: 'timeline'
-    },
-    {
-      title: 'Commandes',
-      href: '/dashboard/orders',
-      icon: 'dashboard'
-    },
-    {
-      title: 'Stock',
-      href: '/dashboard/stock',
-      icon: 'stock'
-    },
-    {
-      title: 'Clients',
-      href: '/dashboard/clients',
-      icon: 'clients'
-    },
-    {
-      title: 'Paramètres',
-      href: '/dashboard/settings',
-      icon: 'settings'
-    }
-  ]
-
-  // let items: SidebarNavItem[] = [
-  //   {
-  //     title: 'Settings',
-  //     href: '/dashboard/settings',
-  //     translationKey: 'settings',
-  //     icon: 'settings'
-  //   }
-  // ]
+  let linkedList = LAYOUT_LINKS
+  if (user.role !== 'ADMIN')
+    linkedList = linkedList.filter(
+      (i) => i.href?.replaceAll('/', '') != 'dashboard'
+    )
   return (
     <div {...props}>
       <div className="flex gap-1 items-center">
@@ -55,7 +23,7 @@ export const DashboardNav = async (props: DashboardNavProps) => {
         <LinkerList />
       </div>
       <nav className="container flex items-center justify-end ">
-        <UserAccountNav items={avatarDropdownLinks} user={user} />
+        <UserAccountNav items={linkedList} user={user} />
       </nav>
     </div>
   )

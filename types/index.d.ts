@@ -35,6 +35,17 @@ export type OrderTableEntry = {
   progress?: number
   quantity: number
 }
+
+export type OrderComponentsTableEntry = {
+  id: string
+  brand?: string
+  model?: string
+  deadline?: string
+  customer: string
+  phone: string
+  type: string
+  quantity: number
+}
 export type StockTableEntry = {
   id: string
   title: string

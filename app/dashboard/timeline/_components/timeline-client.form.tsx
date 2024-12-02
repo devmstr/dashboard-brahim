@@ -12,11 +12,11 @@ interface Props {
   countries: { name: string }[]
   provinces: { name: string }[]
   data: Partial<AddOrderSchemaType>
-  onChange: (name: InputNameType, value: any) => void
+  handleChange?: (name: InputNameType, value: any) => void
 }
 
 export const ClientInfoForm: React.FC<Props> = ({
-  onChange,
+  handleChange = () => {},
   data: input,
   countries,
   provinces
@@ -40,7 +40,7 @@ export const ClientInfoForm: React.FC<Props> = ({
               id="isCompany"
               checked={data.isCompany as boolean}
               onCheckedChange={(v) => {
-                onChange('isCompany', v)
+                handleChange('isCompany', v)
               }}
             />
           </div>
@@ -54,7 +54,7 @@ export const ClientInfoForm: React.FC<Props> = ({
                 topic=""
                 items={COMPANY_LABELS_TYPE}
                 setValue={(v) => {
-                  onChange('label', v)
+                  handleChange('label', v)
                 }}
                 value={data.label || COMPANY_LABELS_TYPE.at(4)}
               />
@@ -71,7 +71,7 @@ export const ClientInfoForm: React.FC<Props> = ({
                 data.isCompany ? "nom d'entreprise" : 'nom du client'
               }
               value={data.name}
-              onChange={({ target: { value } }) => onChange('name', value)}
+              onChange={({ target: { value } }) => handleChange('name', value)}
             />
           </div>
           <div className="space-y-2 w-full">
@@ -83,7 +83,7 @@ export const ClientInfoForm: React.FC<Props> = ({
               name="phone"
               placeholder={'0665238745'}
               value={data.phone}
-              onChange={({ target: { value } }) => onChange('phone', value)}
+              onChange={({ target: { value } }) => handleChange('phone', value)}
             />
           </div>
           <div className="space-y-2">
@@ -96,7 +96,7 @@ export const ClientInfoForm: React.FC<Props> = ({
               placeholder="example@email.com"
               type="email"
               value={data.email}
-              onChange={({ target: { value } }) => onChange('email', value)}
+              onChange={({ target: { value } }) => handleChange('email', value)}
             />
           </div>
 
@@ -112,7 +112,9 @@ export const ClientInfoForm: React.FC<Props> = ({
                 placeholder="https://"
                 type="website"
                 value={data.website}
-                onChange={({ target: { value } }) => onChange('website', value)}
+                onChange={({ target: { value } }) =>
+                  handleChange('website', value)
+                }
               />
             </div>
           )}
@@ -131,7 +133,9 @@ export const ClientInfoForm: React.FC<Props> = ({
                   placeholder="16/00-1234567A"
                   type="text"
                   value={data.rc}
-                  onChange={({ target: { value } }) => onChange('rc', value)}
+                  onChange={({ target: { value } }) =>
+                    handleChange('rc', value)
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -144,7 +148,9 @@ export const ClientInfoForm: React.FC<Props> = ({
                   placeholder="163079123456789"
                   type="text"
                   value={data.mf}
-                  onChange={({ target: { value } }) => onChange('mf', value)}
+                  onChange={({ target: { value } }) =>
+                    handleChange('mf', value)
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -157,7 +163,9 @@ export const ClientInfoForm: React.FC<Props> = ({
                   placeholder="000016079123456"
                   type="text"
                   value={data.nif}
-                  onChange={({ target: { value } }) => onChange('nif', value)}
+                  onChange={({ target: { value } }) =>
+                    handleChange('nif', value)
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -170,7 +178,9 @@ export const ClientInfoForm: React.FC<Props> = ({
                   placeholder="16-1234567-001"
                   type="text"
                   value={data.nis}
-                  onChange={({ target: { value } }) => onChange('nis', value)}
+                  onChange={({ target: { value } }) =>
+                    handleChange('nis', value)
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -183,7 +193,9 @@ export const ClientInfoForm: React.FC<Props> = ({
                   placeholder="11103 2002 0004"
                   type="text"
                   value={data.ai}
-                  onChange={({ target: { value } }) => onChange('ai', value)}
+                  onChange={({ target: { value } }) =>
+                    handleChange('ai', value)
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -196,7 +208,9 @@ export const ClientInfoForm: React.FC<Props> = ({
                   placeholder="16-AGR-2023-001"
                   type="text"
                   value={data.na}
-                  onChange={({ target: { value } }) => onChange('na', value)}
+                  onChange={({ target: { value } }) =>
+                    handleChange('na', value)
+                  }
                 />
               </div>
             </div>
@@ -217,7 +231,7 @@ export const ClientInfoForm: React.FC<Props> = ({
             <AutoComplete
               items={countries.map(({ name }) => name)}
               setValue={(value) => {
-                onChange('country', value)
+                handleChange('country', value)
               }}
               value={data.country || 'Algeria'}
               className="w-full"
@@ -231,7 +245,7 @@ export const ClientInfoForm: React.FC<Props> = ({
             <AutoComplete
               items={provinces.map(({ name }) => name)}
               setValue={(value) => {
-                onChange('province', value)
+                handleChange('province', value)
               }}
               value={data.province || 'Ghardia'}
               className="w-full"
@@ -247,7 +261,7 @@ export const ClientInfoForm: React.FC<Props> = ({
               placeholder="Commune..."
               type="text"
               value={data.city || 'Ghardia'}
-              onChange={({ target: { value } }) => onChange('city', value)}
+              onChange={({ target: { value } }) => handleChange('city', value)}
             />
           </div>
           <div className="space-y-2">
@@ -260,7 +274,9 @@ export const ClientInfoForm: React.FC<Props> = ({
               placeholder="Rue de... or BP234 Ghardaia"
               type="text"
               value={data.address}
-              onChange={({ target: { value } }) => onChange('address', value)}
+              onChange={({ target: { value } }) =>
+                handleChange('address', value)
+              }
             />
           </div>
           <div className="space-y-2 ">
@@ -273,7 +289,7 @@ export const ClientInfoForm: React.FC<Props> = ({
               placeholder="47001"
               type="text"
               value={data.zip}
-              onChange={({ target: { value } }) => onChange('zip', value)}
+              onChange={({ target: { value } }) => handleChange('zip', value)}
             />
           </div>
         </div>

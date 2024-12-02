@@ -46,7 +46,12 @@ import {
   Tag,
   Boxes,
   PackagePlusIcon,
-  UserRoundPlusIcon
+  UserRoundPlusIcon,
+  LayoutDashboardIcon,
+  RatioIcon,
+  PlusIcon,
+  ChevronDownIcon,
+  ChevronDownSquare
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackageCheck } from 'react-icons/lu'
@@ -57,12 +62,19 @@ import {
   TbLayoutSidebarLeftExpandFilled,
   TbLayoutSidebarRightExpandFilled
 } from 'react-icons/tb'
+import { BiDollarCircle } from 'react-icons/bi'
+
 import { cn } from '@/lib/utils'
 import clsx from 'clsx'
 
 export type Icon = LucideIcon
 
 export const Icons = {
+  squareChevronDown: ChevronDownSquare,
+  plus: PlusIcon,
+  dollar: BiDollarCircle,
+  ratio: RatioIcon,
+  dashboard: LayoutDashboardIcon,
   packagePlus: PackagePlusIcon,
   stock: Boxes,
   addClient: UserRoundPlusIcon,
@@ -74,14 +86,12 @@ export const Icons = {
   logout: RiLogoutCircleLine,
   users: UserRoundPlus,
   calculator: AiOutlineCalculator,
-  add: PackagePlus,
   edit: Pencil,
   package: LuPackageCheck,
   menu: Menu,
   details: ListEnd,
   notification: Bell,
-  orders: List,
-  dashboard: GanttChartSquare,
+  orders: GanttChartSquare,
   user: FaUser,
   mail: Mail,
   dropdown: ChevronDown,

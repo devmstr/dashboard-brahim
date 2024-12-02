@@ -99,7 +99,7 @@ export const AddClientDialog: React.FC<Props> = ({ id }: Props) => {
             countries={[]}
             provinces={[]}
             data={client}
-            onChange={handleChange}
+            handleChange={handleChange}
           />
         </ScrollArea>
         <div className="flex justify-end mt-2">

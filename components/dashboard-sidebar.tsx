@@ -18,15 +18,14 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   className,
   ...props
 }: DashboardSidebarProps) => {
-  const { open, setOpen } = useSidebarState()
+  const { open } = useSidebarState()
   const pathname = usePathname()
-  console.log(pathname)
   return (
     <div
       className={cn(
         'flex-col gap-3 items-center shadow-md ',
         open
-          ? 'w-64 px-5 items-start transition-all duration-300 ease-in'
+          ? 'w-64 px-3 items-start transition-all duration-300 ease-in'
           : 'w-16  transition-all duration-500 ease-out',
         className
       )}
@@ -61,14 +60,21 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               .map((item, index) => {
                 const Icon = Icons[item.icon || 'arrowRight']
                 const delay = (index = 0 ? 80 : index * 80)
-                const active = pathname?.startsWith(item.href as string)
+
+                const active =
+                  item.href === '/dashboard'
+                    ? pathname === '/dashboard'
+                    : pathname?.startsWith(
+                        item.href?.split('/').slice(0, 3).join('/') as string
+                      )
+
                 return (
                   item.href && (
                     <Link
                       key={index}
                       href={item.disabled ? '#' : item.href!}
                       className={cn(
-                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/15 w-full p-3   rounded-lg',
+                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3   rounded-lg',
                         active
                           ? 'text-primary bg-secondary opacity-100'
                           : 'opacity-80 hover:opacity-100 hover:text-secondary',
@@ -100,7 +106,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       ) : (
                         <span
                           className={cn(
-                            'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg',
+                            'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg text-nowrap ',
                             active &&
                               'bg-secondary text-primary group-hover:text-primary'
                           )}
@@ -126,16 +132,19 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           .map((item, index) => {
             const Icon = Icons[item.icon || 'arrowRight']
             const delay = (index = 0 ? 80 : index * 80)
+
             const active =
-              pathname?.split('/').slice(2).join('') ===
-              item.href?.split('/').slice(2).join('')
+              item.href === '/dashboard'
+                ? pathname === '/dashboard'
+                : pathname?.startsWith(item.href as string)
+
             return (
               item.href && (
                 <Link
                   key={index}
                   href={item.disabled ? '#' : item.href!}
                   className={cn(
-                    'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/15 w-full p-3   rounded-lg',
+                    'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3   rounded-lg',
                     active
                       ? 'text-primary bg-secondary opacity-100'
                       : 'opacity-80 hover:opacity-100 hover:text-secondary',
@@ -167,7 +176,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   ) : (
                     <span
                       className={cn(
-                        'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg',
+                        'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg text-nowrap',
                         active &&
                           'bg-secondary text-primary group-hover:text-primary'
                       )}

@@ -29,15 +29,12 @@ export const DaysCalculatorDialog: React.FC<
           className="flex gap-2 w-fit   text-secondary hover:text-secondary"
         >
           <Icons.calculator className="w-6 h-6 " />
-          <span>{'Calculatrice'}</span>
+          <span>{'Estimer le délai'}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:h-fit container max-w-md">
-        <DialogHeader className="px-2">
-          <DialogTitle className="flex">Calculer le Délai</DialogTitle>
-        </DialogHeader>
         {/* start  content */}
-        <ScrollArea className="max-h-[75vh]">
+        <ScrollArea className="max-h-[80vh]">
           <CalculatorForm />
         </ScrollArea>
       </DialogContent>
