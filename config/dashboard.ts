@@ -8,7 +8,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
   },
   {
     title: 'Nouveau',
-    href: '/dashboard/new/client',
+    href: '/dashboard/new',
     icon: 'packagePlus'
   },
   {
