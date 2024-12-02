@@ -1,5 +1,7 @@
 import * as z from 'zod'
-
+import { contentSchema } from './tiptap'
+import { clientSchema } from './client'
+import { paymentSchema } from './payment'
 const Customer = z.object({
   fullName: z.string().optional(),
   phone: z
@@ -89,3 +91,69 @@ export const OrderProductionView = z.object({
   receivingDate: z.string().optional(),
   technical: TechnicalDetails.optional()
 })
+
+const dimensionSchema = z.object({
+  depth: z.number().positive().optional(),
+  width: z.number().positive().optional(),
+  length: z.number().positive().optional()
+})
+const collectorSchema = z.object({
+  type: z.string().optional(),
+  position: z.string().optional(),
+  material: z.string().optional(),
+  perforation: z.string(),
+  isTinned: z.boolean().default(false).optional(),
+  dimensions: z.object({
+    upper: dimensionSchema.optional(),
+    lower: dimensionSchema.optional()
+  })
+})
+
+const coreSchema = z.object({
+  fins: z.string(),
+  tubePitch: z.number().positive().optional(),
+  tube: z.string(),
+  layers: z.number().positive().optional(),
+  width: z.number().positive().optional(),
+  length: z.number().positive().optional(),
+  collector: collectorSchema.optional()
+})
+
+const carSchema = z.object({
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  type: z.string().optional()
+})
+
+export const orderSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().optional(),
+  car: carSchema.optional(),
+  core: coreSchema.optional(),
+  isModificationRequired: z.boolean().default(false).optional(),
+  modification: contentSchema.optional(),
+  type: z.string(),
+  quantity: z.number().positive().optional(),
+  fabrication: z.string(),
+  coolingSystem: z.string(),
+  packaging: z.string(),
+  description: contentSchema.optional()
+})
+export const newSchema = z.object({
+  client: clientSchema.optional(),
+  payment: paymentSchema.optional(),
+  components: z.array(orderSchema).optional(),
+  receivingDate: z
+    .string()
+    .default(() => new Date().toISOString())
+    .optional(),
+  endDate: z
+    .string()
+    .optional()
+    .refine((str) => !str || !isNaN(Date.parse(str)), {
+      message: 'Invalid Date'
+    })
+})
+
+export type NewType = z.infer<typeof newSchema>
+export type OrderType = z.infer<typeof orderSchema>

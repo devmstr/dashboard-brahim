@@ -1,4 +1,5 @@
 import { LinkLineList } from '@/components/link-line-list'
+import { NewOrderProvider } from '@/components/new-order.provider'
 import { LAYOUT_LINKS } from '@/config/dashboard'
 import { SidebarNavItem } from '@/types'
 
@@ -11,7 +12,7 @@ const Layout: React.FC<Props> = ({ children }: Props) => {
     {
       title: 'Client',
       translationKey: 'client',
-      href: '/dashboard/new/client',
+      href: '/dashboard/new',
       icon: 'addClient'
     },
     {
@@ -29,10 +30,10 @@ const Layout: React.FC<Props> = ({ children }: Props) => {
   ] as SidebarNavItem[]
 
   return (
-    <>
+    <NewOrderProvider>
       <LinkLineList items={items} t={{}} />
       {children}
-    </>
+    </NewOrderProvider>
   )
 }
 

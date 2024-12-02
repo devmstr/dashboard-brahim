@@ -16,7 +16,7 @@ import { CardDivider } from './card'
 import { Selector } from './selector'
 import { PAS_TYPES } from '@/config/order.config'
 import { LEVELS, TYPES, SIZES } from '@/config/calculator.config'
-import { useProductionDays } from './production-days.provider'
+import { useOrder } from './new-order.provider'
 
 interface CalculatorFormProps {}
 

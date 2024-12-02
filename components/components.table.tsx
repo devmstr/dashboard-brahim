@@ -61,39 +61,52 @@ import {
 } from '@/components/ui/alert-dialog'
 import Cookies from 'js-cookie'
 import { usePersistedState } from '@/hooks/ues-persisted-state'
+import { useOrder } from './new-order.provider'
 
 interface Props {
-  data: OrderComponentsTableEntry[]
   t: {
     id: string
     brand: string
     model: string
-    deadline: string
-    customer: string
-    phone: string
     type: string
+    title: string
+    fabrication: string
     quantity: string
   }
 }
 
-export function OrderComponentsTable({ data, t }: Props) {
+export function OrderComponentsTable({ t }: Props) {
+  const { order, setOrder } = useOrder()
+  const [data, setData] = React.useState<OrderComponentsTableEntry[]>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+  React.useEffect(() => {
+    let components: OrderComponentsTableEntry[] | undefined =
+      order?.components?.map(
+        ({ id, car, type, fabrication, quantity }, index) => ({
+          fabrication,
+          quantity: quantity!,
+          type,
+          id: id!,
+          title: '/',
+          brand: car ? car.brand : undefined,
+          model: car ? car.model : undefined
+        })
+      )
 
+    if (components) setData(components)
+  }, [order])
   const { refresh } = useRouter()
 
   const handleDelete = async (orderId: string) => {
-    try {
-      const res = await fetch(`/api/orders/${orderId}`, {
-        method: 'DELETE'
-      })
-      refresh()
-    } catch (error) {
-      console.log(error)
-    }
+    setData(data.filter(({ id }) => id != orderId))
+    setOrder((prev) => ({
+      ...prev,
+      components: prev?.components?.filter(({ id }) => id != orderId)
+    }))
   }
 
   const columns: ColumnDef<OrderComponentsTableEntry>[] = [
@@ -109,17 +122,7 @@ export function OrderComponentsTable({ data, t }: Props) {
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      },
-      cell: ({ row }) => (
-        <div className="flex items-center">
-          <Link
-            className="hover:text-primary hover:underline"
-            href={'orders/' + row.original.id}
-          >
-            {row.original.id}
-          </Link>
-        </div>
-      )
+      }
     },
     {
       accessorKey: 'quantity',
@@ -137,6 +140,34 @@ export function OrderComponentsTable({ data, t }: Props) {
     },
     {
       accessorKey: 'title',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: 'type',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: 'fabrication',
       header: ({ column }) => {
         return (
           <div
@@ -178,64 +209,7 @@ export function OrderComponentsTable({ data, t }: Props) {
         )
       }
     },
-    {
-      accessorKey: 'deadline',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        const endDate = row.original.deadline
-        return (
-          <div className="flex items-center">
-            {endDate
-              ? format(new Date(endDate), 'dd/MM/yyyy')
-              : 'Non Déterminé'}
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'customer',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        return <div className="flex items-center">{row.original?.customer}</div>
-      }
-    },
-    {
-      accessorKey: 'phone',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        return <div className="flex items-center">{row.original?.phone}</div>
-      }
-    },
+
     {
       id: 'actions',
       enableHiding: false,
@@ -364,7 +338,7 @@ function Actions({
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={'/dashboard/orders/' + id}
+            href={'#' + id}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>
@@ -383,14 +357,14 @@ function Actions({
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  Are you sure you want to delete this IDP?
+                  Êtes-vous sûr de vouloir supprimer cet article ?
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Be careful this action cannot be undone.
+                  Attention, cette action est irréversible.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
                 <AlertDialogAction asChild>
                   <Button
                     className={cn(
@@ -400,7 +374,7 @@ function Actions({
                     onClick={() => onDelete(id)}
                   >
                     <Icons.trash className="mr-2 h-4 w-4" />
-                    Delete
+                    Supprimer
                   </Button>
                 </AlertDialogAction>
               </AlertDialogFooter>

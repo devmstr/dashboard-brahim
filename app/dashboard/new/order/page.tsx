@@ -13,15 +13,13 @@ const Page: React.FC<Props> = ({}: Props) => {
   return (
     <Card className="pt-6 flex flex-col">
       <OrderComponentsTable
-        data={[]}
         t={{
-          id: 'Matricule',
+          id: 'Indice',
+          title: 'Titre',
           brand: 'Marque',
           model: 'Model',
-          deadline: 'Délais',
-          customer: 'Client',
-          phone: 'Tél',
           type: 'Commande',
+          fabrication: 'Fabrication',
           quantity: 'Quantité'
         }}
       />
@@ -32,7 +30,7 @@ const Page: React.FC<Props> = ({}: Props) => {
         <Separator />
         <div className="w-full flex justify-between">
           <Link
-            href={'/dashboard/new/client'}
+            href={'/dashboard/new'}
             className={cn(buttonVariants({ variant: 'default' }), 'w-24')}
             type="submit"
           >

@@ -13,7 +13,7 @@ import { ROLES } from '@/config/accounts'
 import { AddOrderDialog } from '../timeline/add-order.dialog'
 import { CalculatorForm } from '@/components/calculator.form'
 import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
-import { ProductionDaysProvider } from '@/components/production-days.provider'
+import { NewOrderProvider } from '@/components/new-order.provider'
 
 interface PageProps {}
 

@@ -21,7 +21,7 @@ import {
   FormMessage
 } from './ui/form'
 import { z } from 'zod'
-import { contentSchema } from '@/lib/validations'
+import { contentSchema, paymentSchema, PaymentType } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -29,27 +29,14 @@ import { Separator } from './ui/separator'
 import { Button } from './ui/button'
 import { DatePicker } from './date-picker'
 import { CardDivider, CardGrid } from './card'
+import { useOrder } from './new-order.provider'
 
 interface Props {}
 
-const paymentSchema = z.object({
-  price: z.number().positive().optional(),
-  deposit: z.number().positive().optional(),
-  remaining: z.number().positive().optional(),
-  mode: z.string().optional(),
-  iban: z.string().optional(),
-  endDate: z
-    .string()
-    .optional()
-    .refine((str) => !str || !isNaN(Date.parse(str)), {
-      message: 'Invalid Date'
-    })
-})
-
-type PaymentType = z.infer<typeof paymentSchema>
-
 export const PaymentForm: React.FC<Props> = ({}: Props) => {
+  const { order, setOrder } = useOrder()
   const [date, setDate] = React.useState(new Date())
+
   const router = useRouter()
   const form = useForm<PaymentType>({
     defaultValues: {
@@ -63,8 +50,11 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
   const mode = form.watch('mode')
 
   const onSubmit = (formData: PaymentType) => {
-    console.log(formData)
-    router.replace('order')
+    setOrder((prev) => ({
+      ...prev,
+      payment: formData
+    }))
+    console.log(order)
   }
   return (
     <Form {...form}>
@@ -86,7 +76,14 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                     </span>
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} name="price" type="number" />
+                    <Input
+                      {...field}
+                      name="price"
+                      type="number"
+                      onChange={({ target: { value } }) =>
+                        form.setValue('price', Number(value))
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,7 +96,13 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                 <FormItem className=" ">
                   <FormLabel className="capitalize">{'Versement'}</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" />
+                    <Input
+                      {...field}
+                      type="number"
+                      onChange={({ target: { value } }) =>
+                        form.setValue('deposit', Number(value))
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

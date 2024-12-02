@@ -3,7 +3,6 @@ import { Combobox } from '@/components/combobox'
 import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   CLAMPING_TYPES,
   COLLECTOR_MATERIALS_TYPES,
@@ -17,7 +16,13 @@ import {
   PERFORATION_TYPES,
   TUBE_TYPES
 } from '@/config/global'
-import React, { useEffect } from 'react'
+import { orderSchema, OrderType } from '@/lib/validations/order'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { CardGrid } from './card'
+import { Button } from './ui/button'
 import {
   Form,
   FormControl,
@@ -26,67 +31,15 @@ import {
   FormLabel,
   FormMessage
 } from './ui/form'
-import { z } from 'zod'
-import { contentSchema } from '@/lib/validations'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Separator } from './ui/separator'
-import { Button } from './ui/button'
-import { CardGrid } from './card'
+import { useOrder } from './new-order.provider'
 
 interface Props {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
 }
-const dimensionSchema = z.object({
-  depth: z.number().positive().optional(),
-  width: z.number().positive().optional(),
-  length: z.number().positive().optional()
-})
-const collectorSchema = z.object({
-  type: z.string().optional(),
-  position: z.string().optional(),
-  material: z.string().optional(),
-  perforation: z.string(),
-  isTinned: z.boolean().default(false).optional(),
-  dimensions: z.object({
-    upper: dimensionSchema.optional(),
-    lower: dimensionSchema.optional()
-  })
-})
-
-const coreSchema = z.object({
-  fins: z.string(),
-  tubePitch: z.number().positive().optional(),
-  tube: z.string(),
-  layers: z.number().positive().optional(),
-  width: z.number().positive().optional(),
-  length: z.number().positive().optional(),
-  collector: collectorSchema.optional()
-})
-
-const carSchema = z.object({
-  brand: z.string().optional(),
-  model: z.string().optional(),
-  type: z.string().optional()
-})
-
-const orderSchema = z.object({
-  car: carSchema.optional(),
-  core: coreSchema.optional(),
-  isModificationRequired: z.boolean().default(false).optional(),
-  modification: contentSchema.optional(),
-  type: z.string(),
-  quantity: z.number().positive().optional(), // Make it optional if required
-  fabrication: z.string(),
-  coolingSystem: z.string(),
-  packaging: z.string(),
-  description: contentSchema.optional()
-})
-
-type OrderType = z.infer<typeof orderSchema>
 
 export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
+  const { order, setOrder } = useOrder()
   const [isCollectorsDifferent, setIsCollectorsDifferent] =
     React.useState(false)
   const [isTechnicalExist, setIsTechnicalExist] = React.useState(false)
@@ -129,7 +82,22 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
   const coolingSystem = form.watch('coolingSystem')
 
   const onSubmit = (formData: OrderType) => {
-    console.log(formData)
+    if (!order)
+      setOrder({
+        components: []
+      })
+    const id = order?.components ? String(order?.components.length + 1) : '1'
+    setOrder((prev) => ({
+      ...prev,
+      components: [
+        ...(prev?.components ?? []),
+        {
+          id,
+          ...formData
+        }
+      ]
+    }))
+
     if (setOpen) setOpen(false)
   }
 
@@ -394,8 +362,8 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <FormLabel className="capitalize">{'Longueur'}</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
                         {...field}
+                        type="number"
                         onChange={({ target: { value } }) =>
                           form.setValue('core.length', Number(value))
                         }

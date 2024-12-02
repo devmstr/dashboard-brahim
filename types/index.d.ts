@@ -38,11 +38,10 @@ export type OrderTableEntry = {
 
 export type OrderComponentsTableEntry = {
   id: string
+  title: string
   brand?: string
   model?: string
-  deadline?: string
-  customer: string
-  phone: string
+  fabrication: string
   type: string
   quantity: number
 }

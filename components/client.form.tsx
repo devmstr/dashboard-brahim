@@ -19,6 +19,8 @@ import {
   FormMessage
 } from './ui/form'
 import { Separator } from './ui/separator'
+import { clientSchema, ClientType } from '@/lib/validations'
+import { useOrder } from './new-order.provider'
 
 interface Props {
   countries: { name: string }[]
@@ -26,47 +28,12 @@ interface Props {
   data: Partial<AddOrderSchemaType>
 }
 
-const clientSchema = z.object({
-  isCompany: z.boolean().default(false),
-  name: z.string().optional(),
-  email: z.string().email('Invalid email address').optional(),
-  phone: z
-    .string()
-    .refine(
-      (phone) =>
-        /^(?:\+213|0)(5|6|7)\d{8}$/.test(phone) || // algerian phone format
-        /^\+?[1-9]\d{1,14}$/.test(phone), // International E.164 format
-      {
-        message:
-          'Invalid phone number. Must be a valid Algerian or international number.'
-      }
-    )
-    .optional(),
-  country: z.string().optional(),
-  province: z.string().optional(),
-  city: z.string().optional(),
-  zip: z
-    .string()
-    .regex(/^\d{5}(-\d{4})?$/, 'Invalid ZIP code')
-    .optional(),
-  label: z.string().optional(),
-  website: z.string().optional(),
-  street: z.string().optional(),
-  rc: z.string().optional(),
-  mf: z.string().optional(),
-  ai: z.string().optional(),
-  nif: z.string().optional(),
-  nis: z.string().optional(),
-  na: z.string().optional()
-})
-
-export type ClientType = z.infer<typeof clientSchema>
-
 export const ClientForm: React.FC<Props> = ({
   countries,
   provinces,
   data
 }: Props) => {
+  const { order, setOrder } = useOrder()
   const router = useRouter()
   const form = useForm<ClientType>({
     defaultValues: {
@@ -81,8 +48,11 @@ export const ClientForm: React.FC<Props> = ({
 
   const isCompany = form.watch('isCompany')
   const onSubmit = (formData: ClientType) => {
-    console.log(formData)
-    router.replace('order')
+    setOrder((prev) => ({
+      ...prev,
+      client: formData
+    }))
+    router.replace('new/order')
   }
   return (
     <Form {...form}>
