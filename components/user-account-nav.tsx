@@ -111,7 +111,7 @@ export const UserAccountNav: React.FC<UserAccountNavProps> = ({
         >
           <div className="flex gap-1 text-base font-medium items-center !text-gray-500 group ">
             <Icons.logout className="w-5 h-5 mr-2 group-hover:text-gray-800 " />
-            <span className=" group-hover:text-gray-800">{'logout'}</span>
+            <span className=" group-hover:text-gray-800">{'Déconnecter'}</span>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
