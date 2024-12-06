@@ -62,6 +62,8 @@ import {
 import Cookies from 'js-cookie'
 import { usePersistedState } from '@/hooks/ues-persisted-state'
 import { useOrder } from './new-order.provider'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { newSkuId, PREFIX, SKU_PREFIX } from '@/actions'
 
 interface Props {
   t: {
@@ -83,19 +85,18 @@ export function OrderComponentsTable({ t }: Props) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+
   React.useEffect(() => {
     let components: OrderComponentsTableEntry[] | undefined =
-      order?.components?.map(
-        ({ id, car, type, fabrication, quantity }, index) => ({
-          fabrication,
-          quantity: quantity!,
-          type,
-          id: id!,
-          title: '/',
-          brand: car ? car.brand : undefined,
-          model: car ? car.model : undefined
-        })
-      )
+      order?.components?.map(({ id, car, type, fabrication, quantity }) => ({
+        fabrication,
+        quantity: quantity!,
+        type,
+        id: id!,
+        title: '/',
+        brand: car ? car.brand : undefined,
+        model: car ? car.model : undefined
+      }))
 
     if (components) setData(components)
   }, [order])
@@ -305,7 +306,7 @@ export function OrderComponentsTable({ t }: Props) {
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-36 text-center"
                 >
                   Pas d'articles.
                 </TableCell>

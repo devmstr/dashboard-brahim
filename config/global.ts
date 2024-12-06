@@ -22,7 +22,7 @@ export const TUBE_TYPES = [
   'Étiré 9 (ET9)',
   'Machine Petit (MP)'
 ]
-export const TUBE_SIZES = [10, 12]
+
 export const CLAMPING_TYPES = ['Plié', 'Boulonné']
 export const COLLECTOR_POSITION_TYPES = ['Centrer', 'Dépassée']
 export const PAYMENT_TYPES = ['Espèces', 'Versement (Banque)', 'Carte']

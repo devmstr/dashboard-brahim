@@ -94,8 +94,8 @@ export const OrderProductionView = z.object({
 
 const dimensionSchema = z.object({
   depth: z.number().positive().optional(),
-  width: z.number().positive().optional(),
-  length: z.number().positive().optional()
+  width: z.number().positive().min(100).optional(),
+  length: z.number().positive().min(100).optional()
 })
 const collectorSchema = z.object({
   type: z.string().optional(),
@@ -114,8 +114,8 @@ const coreSchema = z.object({
   tubePitch: z.number().positive().optional(),
   tube: z.string(),
   layers: z.number().positive().optional(),
-  width: z.number().positive().optional(),
-  length: z.number().positive().optional(),
+  width: z.number().positive().min(100).optional(),
+  length: z.number().positive().min(100).optional(),
   collector: collectorSchema.optional()
 })
 

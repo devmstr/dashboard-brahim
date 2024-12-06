@@ -9,7 +9,6 @@ import {
   COLLECTOR_POSITION_TYPES,
   COOLING_SYSTEMS_TYPES,
   FABRICATION_TYPES,
-  FINS_SIZES,
   FINS_TYPES,
   ORDER_TYPES,
   PACKAGING_TYPES,
@@ -22,6 +21,7 @@ import { useRouter } from 'next/navigation'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { CardGrid } from './card'
+import { useOrder } from './new-order.provider'
 import { Button } from './ui/button'
 import {
   Form,
@@ -32,7 +32,8 @@ import {
   FormMessage
 } from './ui/form'
 import { Separator } from './ui/separator'
-import { useOrder } from './new-order.provider'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { newSkuId, PREFIX } from '@/actions'
 
 interface Props {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
@@ -56,8 +57,6 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
         fins: 'Droite (Normale)',
         tubePitch: 10,
         tube: 'Étiré 7 (ET7)',
-        length: 700,
-        width: 500,
         collector: {
           isTinned: false,
           perforation: 'Perforé',
@@ -80,6 +79,9 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
   const tubePitch = form.watch('core.tubePitch')
   const fins = form.watch('core.fins')
   const coolingSystem = form.watch('coolingSystem')
+  const depth = form.watch('core.collector.dimensions.upper.depth')
+  const length = form.watch('core.collector.dimensions.upper.length')
+  const width = form.watch('core.collector.dimensions.upper.width')
 
   const onSubmit = (formData: OrderType) => {
     if (!order)
@@ -102,20 +104,13 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
   }
 
   React.useEffect(() => {
-    const dimensions = form.getValues('core.collector.dimensions.upper')
-    const dimensionsLower = form.getValues('core.collector.dimensions.upper')
-    console.log(dimensions, dimensionsLower)
-    if (isCollectorsDifferent) {
-      form.setValue('core.collector.dimensions.lower.depth', dimensions?.depth)
-      form.setValue('core.collector.dimensions.lower.width', dimensions?.width)
-      form.setValue(
-        'core.collector.dimensions.lower.length',
-        dimensions?.length
-      )
-    }
-    form.setValue('core.collector.dimensions.lower.depth', undefined)
-    form.setValue('core.collector.dimensions.lower.width', undefined)
-    form.setValue('core.collector.dimensions.lower.length', undefined)
+    if (isCollectorsDifferent)
+      form.setValue('core.collector.dimensions.lower', {
+        depth,
+        width,
+        length
+      })
+    else form.setValue('core.collector.dimensions.lower', undefined)
   }, [isCollectorsDifferent])
   return (
     <Form {...form}>
@@ -292,7 +287,8 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                       items={COOLING_SYSTEMS_TYPES}
                       setValue={(v) => {
                         form.setValue('coolingSystem', v)
-                        // if (v != 'Eau') form.setValue('collectorType', 'Plié')
+                        if (v != 'Eau')
+                          form.setValue('core.collector.type', 'Plié')
                       }}
                     />
                   </FormControl>
@@ -354,46 +350,60 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
               faisceau
             </span>
             <CardGrid className="">
-              <FormField
-                control={form.control}
-                name="core.length"
-                render={({ field }) => (
-                  <FormItem className="group ">
-                    <FormLabel className="capitalize">{'Longueur'}</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        onChange={({ target: { value } }) =>
-                          form.setValue('core.length', Number(value))
-                        }
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="core.width"
-                render={({ field }) => (
-                  <FormItem className="group ">
-                    <FormLabel className="capitalize">{'Largeur'}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={({ target: { value } }) =>
-                          form.setValue('core.width', Number(value))
-                        }
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {type == 'Faisceau' && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="core.length"
+                    render={({ field }) => (
+                      <FormItem className="group ">
+                        <FormLabel className="capitalize">
+                          {'Longueur'}
+                          <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                            {'(mm)'}
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            onChange={({ target: { value } }) =>
+                              form.setValue('core.length', Number(value))
+                            }
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="core.width"
+                    render={({ field }) => (
+                      <FormItem className="group ">
+                        <FormLabel className="capitalize">
+                          {'Largeur'}
+                          <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                            {'(mm)'}
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={({ target: { value } }) =>
+                              form.setValue('core.width', Number(value))
+                            }
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
               <FormField
                 control={form.control}
                 name="core.layers"
@@ -477,13 +487,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                       <Combobox
                         {...field}
                         items={
-                          fins == 'Zigzag'
-                            ? FINS_SIZES.filter((i) => i == 12 || i == 10).map(
-                                (i) => i.toString()
-                              )
-                            : FINS_SIZES.filter((i) => i != 12).map((i) =>
-                                i.toString()
-                              )
+                          fins == 'Zigzag' ? ['10', '12'] : ['10', '11', '14']
                         }
                         setValue={(v) => {
                           form.setValue('core.tubePitch', Number(v))
@@ -496,95 +500,119 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                 )}
               />
             </CardGrid>
-            <div className="pt-5">
-              {' '}
-              <div className="relative space-y-3 border rounded-md px-3 py-3">
-                <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-                  collecteurs
-                </span>
+            {type == 'Faisceau' && (
+              <div className="pt-5">
+                <div className="relative space-y-3 border rounded-md px-3 py-3">
+                  <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+                    collecteurs
+                  </span>
 
-                <CardGrid>
-                  <FormField
-                    control={form.control}
-                    name="core.collector.isTinned"
-                    render={({ field }) => (
-                      <FormItem className="w-full md:col-span-2 lg:col-span-3 ">
-                        <FormLabel className="capitalize">{'Étamé'}</FormLabel>
-                        <FormControl>
-                          <Switcher
-                            {...field}
-                            checked={field.value as boolean}
-                            onCheckedChange={(v) =>
-                              form.setValue('core.collector.isTinned', v)
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="core.collector.material"
-                    render={({ field }) => (
-                      <FormItem className="group ">
-                        <FormLabel className="capitalize">
-                          {'Matière'}
-                        </FormLabel>
-                        <FormControl>
-                          <Combobox
-                            items={COLLECTOR_MATERIALS_TYPES}
-                            setValue={(v) =>
-                              form.setValue('core.collector.material', v)
-                            }
-                            value={field.value}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="core.collector.type"
-                    render={({ field }) => (
-                      <FormItem className="group ">
-                        <FormLabel className="capitalize">
-                          {'Serrage'}
-                        </FormLabel>
-                        <FormControl>
-                          <Combobox
-                            items={
-                              ['Air', 'Huile'].includes(coolingSystem)
-                                ? CLAMPING_TYPES.filter((i) => i == 'Plié')
-                                : CLAMPING_TYPES
-                            }
-                            setValue={(v) =>
-                              form.setValue('core.collector.type', v)
-                            }
-                            value={field.value}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {collectorType == 'Boulonné' && (
+                  <CardGrid>
                     <FormField
                       control={form.control}
-                      name="core.collector.perforation"
+                      name="core.collector.isTinned"
+                      render={({ field }) => (
+                        <FormItem className="w-full md:col-span-2 lg:col-span-3 ">
+                          <FormLabel className="capitalize">
+                            {'Étamé'}
+                          </FormLabel>
+                          <FormControl>
+                            <Switcher
+                              {...field}
+                              checked={field.value as boolean}
+                              onCheckedChange={(v) =>
+                                form.setValue('core.collector.isTinned', v)
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="core.collector.material"
                       render={({ field }) => (
                         <FormItem className="group ">
                           <FormLabel className="capitalize">
-                            {'Perforation'}
+                            {'Matière'}
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              id="perforation"
-                              items={PERFORATION_TYPES}
+                              items={COLLECTOR_MATERIALS_TYPES}
+                              setValue={(v) =>
+                                form.setValue('core.collector.material', v)
+                              }
+                              value={field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="core.collector.type"
+                      render={({ field }) => (
+                        <FormItem className="group ">
+                          <FormLabel className="capitalize">
+                            {'Serrage'}
+                          </FormLabel>
+                          <FormControl>
+                            <Combobox
+                              items={
+                                ['Air', 'Huile'].includes(coolingSystem)
+                                  ? ['Plié']
+                                  : CLAMPING_TYPES
+                              }
+                              setValue={(v) =>
+                                form.setValue('core.collector.type', v)
+                              }
+                              value={field.value}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {collectorType == 'Boulonné' && (
+                      <FormField
+                        control={form.control}
+                        name="core.collector.perforation"
+                        render={({ field }) => (
+                          <FormItem className="group ">
+                            <FormLabel className="capitalize">
+                              {'Perforation'}
+                            </FormLabel>
+                            <FormControl>
+                              <Combobox
+                                id="perforation"
+                                items={PERFORATION_TYPES}
+                                value={field.value}
+                                setValue={(v) => {
+                                  form.setValue('core.collector.perforation', v)
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    <FormField
+                      control={form.control}
+                      name="core.collector.position"
+                      render={({ field }) => (
+                        <FormItem className="group ">
+                          <FormLabel className="capitalize">
+                            {'Positionnement'}
+                          </FormLabel>
+                          <FormControl>
+                            <Combobox
+                              items={COLLECTOR_POSITION_TYPES}
                               value={field.value}
                               setValue={(v) => {
-                                form.setValue('core.collector.perforation', v)
+                                form.setValue('core.collector.position', v)
                               }}
                             />
                           </FormControl>
@@ -592,207 +620,205 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                         </FormItem>
                       )}
                     />
+                  </CardGrid>
+                  <div className="pt-2">
+                    <span className="text-xs text-muted-foreground/50 uppercase ">
+                      {!isCollectorsDifferent
+                        ? 'Dimensions (Haut/Bas)'
+                        : 'Dimensions (Haut)'}
+                    </span>
+                  </div>
+                  <CardGrid>
+                    <FormField
+                      control={form.control}
+                      name="core.collector.dimensions.upper.length"
+                      render={({ field }) => (
+                        <FormItem className="group ">
+                          <FormLabel className="capitalize">
+                            {'Longueur'}
+                            <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                              {'(mm)'}
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={({ target: { value } }) =>
+                                form.setValue(
+                                  'core.collector.dimensions.upper.length',
+                                  Number(value)
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="core.collector.dimensions.upper.width"
+                      render={({ field }) => (
+                        <FormItem className="group ">
+                          <FormLabel className="capitalize">
+                            {'Largeur'}
+                            <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                              {'(mm)'}
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={({ target: { value } }) =>
+                                form.setValue(
+                                  'core.collector.dimensions.upper.width',
+                                  Number(value)
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="core.collector.dimensions.upper.depth"
+                      render={({ field }) => (
+                        <FormItem className="group ">
+                          <FormLabel className="capitalize">
+                            {'Épaisseur'}
+                            <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                              {'(mm)'}
+                            </span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={({ target: { value } }) =>
+                                form.setValue(
+                                  'core.collector.dimensions.upper.depth',
+                                  Number(value)
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardGrid>
+                  {isCollectorsDifferent && (
+                    <>
+                      <div className="pt-2">
+                        <span className="text-xs text-muted-foreground/50 uppercase ">
+                          {'Dimensions (Bas)'}
+                        </span>
+                      </div>
+                      <CardGrid>
+                        <FormField
+                          control={form.control}
+                          name="core.collector.dimensions.lower.length"
+                          render={({ field }) => (
+                            <FormItem className="group ">
+                              <FormLabel className="capitalize">
+                                {'Longueur'}
+                                <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                                  {'(mm)'}
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={({ target: { value } }) =>
+                                    form.setValue(
+                                      'core.collector.dimensions.lower.length',
+                                      Number(value)
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="core.collector.dimensions.lower.width"
+                          render={({ field }) => (
+                            <FormItem className="group ">
+                              <FormLabel className="capitalize">
+                                {'Largeur'}
+                                <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                                  {'(mm)'}
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={({ target: { value } }) =>
+                                    form.setValue(
+                                      'core.collector.dimensions.lower.width',
+                                      Number(value)
+                                    )
+                                  }
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="core.collector.dimensions.lower.depth"
+                          render={({ field }) => (
+                            <FormItem className="group ">
+                              <FormLabel className="capitalize">
+                                {'Épaisseur'}
+                                <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                                  {'(mm)'}
+                                </span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={({ target: { value } }) =>
+                                    form.setValue(
+                                      'core.collector.dimensions.lower.depth',
+                                      Number(value)
+                                    )
+                                  }
+                                  disabled={collectorType == 'Boulonné'}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardGrid>
+                    </>
                   )}
-                  <FormField
-                    control={form.control}
-                    name="core.collector.position"
-                    render={({ field }) => (
-                      <FormItem className="group ">
-                        <FormLabel className="capitalize">
-                          {'Positionnement'}
-                        </FormLabel>
-                        <FormControl>
-                          <Combobox
-                            items={COLLECTOR_POSITION_TYPES}
-                            value={field.value}
-                            setValue={(v) => {
-                              form.setValue('core.collector.position', v)
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardGrid>
-                <div className="pt-2">
-                  <span className="text-xs text-muted-foreground/50 uppercase ">
+                  <Button
+                    variant={'ghost'}
+                    className="text-muted-foreground"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setIsCollectorsDifferent(!isCollectorsDifferent)
+                    }}
+                  >
                     {!isCollectorsDifferent
-                      ? 'Dimensions (Haut/Bas)'
-                      : 'Dimensions (Haut)'}
-                  </span>
+                      ? '+ Ajouter dimension (Bas) '
+                      : '- Même dimension'}
+                  </Button>
                 </div>
-                <CardGrid>
-                  <FormField
-                    control={form.control}
-                    name="core.collector.dimensions.upper.length"
-                    render={({ field }) => (
-                      <FormItem className="group ">
-                        <FormLabel className="capitalize">
-                          {'Longueur'}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={({ target: { value } }) =>
-                              form.setValue(
-                                'core.collector.dimensions.upper.length',
-                                Number(value)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="core.collector.dimensions.upper.width"
-                    render={({ field }) => (
-                      <FormItem className="group ">
-                        <FormLabel className="capitalize">
-                          {'Largeur'}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={({ target: { value } }) =>
-                              form.setValue(
-                                'core.collector.dimensions.upper.width',
-                                Number(value)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="core.collector.dimensions.upper.depth"
-                    render={({ field }) => (
-                      <FormItem className="group ">
-                        <FormLabel className="capitalize">
-                          {'Épaisseur'}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={({ target: { value } }) =>
-                              form.setValue(
-                                'core.collector.dimensions.upper.depth',
-                                Number(value)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardGrid>
-                {isCollectorsDifferent && (
-                  <>
-                    <div className="pt-2">
-                      <span className="text-xs text-muted-foreground/50 uppercase ">
-                        {'Dimensions (Bas)'}
-                      </span>
-                    </div>
-                    <CardGrid>
-                      <FormField
-                        control={form.control}
-                        name="core.collector.dimensions.lower.length"
-                        render={({ field }) => (
-                          <FormItem className="group ">
-                            <FormLabel className="capitalize">
-                              {'Longueur'}
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                onChange={({ target: { value } }) =>
-                                  form.setValue(
-                                    'core.collector.dimensions.lower.length',
-                                    Number(value)
-                                  )
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="core.collector.dimensions.lower.width"
-                        render={({ field }) => (
-                          <FormItem className="group ">
-                            <FormLabel className="capitalize">
-                              {'Largeur'}
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                onChange={({ target: { value } }) =>
-                                  form.setValue(
-                                    'core.collector.dimensions.lower.width',
-                                    Number(value)
-                                  )
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="core.collector.dimensions.lower.depth"
-                        render={({ field }) => (
-                          <FormItem className="group ">
-                            <FormLabel className="capitalize">
-                              {'Épaisseur'}
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                onChange={({ target: { value } }) =>
-                                  form.setValue(
-                                    'core.collector.dimensions.lower.depth',
-                                    Number(value)
-                                  )
-                                }
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </CardGrid>
-                  </>
-                )}
-                <Button
-                  variant={'ghost'}
-                  className="text-muted-foreground"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    setIsCollectorsDifferent(!isCollectorsDifferent)
-                  }}
-                >
-                  {!isCollectorsDifferent
-                    ? '+ Ajouter dimension (Bas) '
-                    : '- Même dimension'}
-                </Button>
               </div>
-            </div>
+            )}
           </div>
         )}
         <Button
