@@ -90,8 +90,8 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="fins">{'Ailette'}</Label>
             <Combobox
               id="fins"
-              items={FINS_TYPES}
-              setValue={(v) => {
+              selections={FINS_TYPES}
+              setSelected={(v) => {
                 if (
                   (v === 'Zigzag' && data.tubePitch === 11) ||
                   ((v === 'Droite (Aérer)' || v === 'Droite (Normale)') &&
@@ -100,35 +100,35 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
                   setData({ ...data, tubePitch: 10 })
                 onChange('fins', v)
               }}
-              value={data.fins}
+              selected={data.fins}
             />
           </div>
           <div className=" w-full space-y-2">
             <Label htmlFor="tube">{'Tube'}</Label>
             <Combobox
               id="tube"
-              items={TUBE_TYPES}
-              setValue={(v) => {
+              selections={TUBE_TYPES}
+              setSelected={(v) => {
                 onChange('tube', v)
               }}
-              value={data.tube}
+              selected={data.tube}
             />
           </div>
           <div className=" w-full space-y-2">
             <Label htmlFor="tubePitch">{'Pas Des Tubes'}</Label>
             <Combobox
               id="tubePitch"
-              items={
+              selections={
                 data.fins == 'Zigzag'
                   ? FINS_SIZES.filter((i) => i == 12 || i == 10).map((i) =>
                       i.toString()
                     )
                   : FINS_SIZES.filter((i) => i != 12).map((i) => i.toString())
               }
-              setValue={(v) => {
+              setSelected={(v) => {
                 onChange('tubePitch', v)
               }}
-              value={data.tubePitch?.toString()}
+              selected={data.tubePitch?.toString()}
             />
           </div>
         </div>
@@ -153,22 +153,22 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="collectorMaterial">{'Matière'}</Label>
             <Combobox
               id="collectorMaterial"
-              items={COLLECTOR_MATERIALS_TYPES}
-              setValue={(v) => onChange('collectorMaterial', v)}
-              value={data.collectorMaterial}
+              selections={COLLECTOR_MATERIALS_TYPES}
+              setSelected={(v) => onChange('collectorMaterial', v)}
+              selected={data.collectorMaterial}
             />
           </div>
           <div className=" w-full space-y-2">
             <Label htmlFor="collectorType">{'Serrage'}</Label>
             <Combobox
               id="collectorType"
-              items={
+              selections={
                 data.coolingSystem == 'Air' || data.coolingSystem == 'Huile'
                   ? CLAMPING_TYPES.filter((i) => i != 'Boulonné')
                   : CLAMPING_TYPES
               }
-              setValue={(v) => onChange('collectorType', v)}
-              value={data.collectorType}
+              setSelected={(v) => onChange('collectorType', v)}
+              selected={data.collectorType}
             />
           </div>
           {data.collectorType == 'Boulonné' && (
@@ -176,9 +176,9 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
               <Label htmlFor="perforation">{'Perforation'}</Label>
               <Combobox
                 id="perforation"
-                items={PERFORATION_TYPES}
-                value={data.perforation}
-                setValue={(v) => {
+                selections={PERFORATION_TYPES}
+                selected={data.perforation}
+                setSelected={(v) => {
                   onChange('perforation', v)
                 }}
               />
@@ -188,11 +188,11 @@ export const OrderTechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="collectorPosition">{'Positionnement'}</Label>
             <Combobox
               id="collectorPosition"
-              items={COLLECTOR_POSITION_TYPES}
-              setValue={(v) => {
+              selections={COLLECTOR_POSITION_TYPES}
+              setSelected={(v) => {
                 onChange('collectorPosition', v)
               }}
-              value={data.collectorPosition}
+              selected={data.collectorPosition}
             />
           </div>
         </div>

@@ -1,9 +1,27 @@
 'use server'
-
+import { customAlphabet } from 'nanoid'
 import dayjs from 'dayjs'
-import { TimeLineRecord } from './validations/order'
-import db from '@/lib/db'
 import { revalidatePath } from 'next/cache'
+import { TimeLineRecord } from '@/lib/validations'
+
+export enum SKU_PREFIX {
+  RA = 'RA',
+  FA = 'FA',
+  AU = 'AU',
+  CO = 'CO',
+  CL = 'CL',
+  VE = 'VE',
+  PA = 'PA'
+}
+
+export type PREFIX = keyof typeof SKU_PREFIX
+
+export async function newSkuId(prefix: PREFIX): Promise<string> {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  const generateId = customAlphabet(alphabet, 6)
+  const uniqueId = generateId()
+  return `${prefix}X${uniqueId}`
+}
 
 const daysBetween = (start: string, end: string): number => {
   const startDate = dayjs(start)

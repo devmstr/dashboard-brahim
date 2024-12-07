@@ -52,11 +52,11 @@ export const ClientInfoForm: React.FC<Props> = ({
               <Combobox
                 id="label"
                 topic=""
-                items={COMPANY_LABELS_TYPE}
-                setValue={(v) => {
+                selections={COMPANY_LABELS_TYPE}
+                setSelected={(v) => {
                   handleChange('label', v)
                 }}
-                value={data.label || COMPANY_LABELS_TYPE.at(4)}
+                selected={data.label || COMPANY_LABELS_TYPE.at(4)}
               />
             </div>
           )}

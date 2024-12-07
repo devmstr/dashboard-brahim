@@ -63,9 +63,16 @@ import Cookies from 'js-cookie'
 import { usePersistedState } from '@/hooks/ues-persisted-state'
 import { useOrder } from './new-order.provider'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { newSkuId, PREFIX, SKU_PREFIX } from '@/actions'
+import { newSkuId, PREFIX, SKU_PREFIX } from '@/lib/actions'
+import { NewType } from '@/lib/validations'
+import { Dispatch } from 'react'
 
-interface Props {
+interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
+  data?: OrderComponentsTableEntry[]
+  orderContext?: {
+    order?: NewType
+    setOrder: Dispatch<React.SetStateAction<NewType | undefined>>
+  }
   t: {
     id: string
     brand: string
@@ -77,9 +84,13 @@ interface Props {
   }
 }
 
-export function OrderComponentsTable({ t }: Props) {
-  const { order, setOrder } = useOrder()
-  const [data, setData] = React.useState<OrderComponentsTableEntry[]>([])
+export function OrderComponentsTable({
+  t,
+  data: input = [],
+  orderContext,
+  ...props
+}: Props) {
+  const [data, setData] = React.useState<OrderComponentsTableEntry[]>(input)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -87,32 +98,52 @@ export function OrderComponentsTable({ t }: Props) {
   )
 
   React.useEffect(() => {
+    if (!orderContext) return
     let components: OrderComponentsTableEntry[] | undefined =
-      order?.components?.map(({ id, car, type, fabrication, quantity }) => ({
-        fabrication,
-        quantity: quantity!,
-        type,
-        id: id!,
-        title: '/',
-        brand: car ? car.brand : undefined,
-        model: car ? car.model : undefined
-      }))
+      orderContext?.order?.components?.map(
+        ({ id, car, type, fabrication, quantity }) => ({
+          fabrication,
+          quantity: quantity!,
+          type,
+          id: id!,
+          title: '/',
+          brand: car ? car.brand : undefined,
+          model: car ? car.model : undefined
+        })
+      )
 
     if (components) setData(components)
-  }, [order])
+  }, [orderContext?.order])
+
   const { refresh } = useRouter()
 
   const handleDelete = async (orderId: string) => {
     setData(data.filter(({ id }) => id != orderId))
-    setOrder((prev) => ({
-      ...prev,
-      components: prev?.components?.filter(({ id }) => id != orderId)
-    }))
+    if (orderContext)
+      orderContext.setOrder((prev) => ({
+        ...prev,
+        components: prev?.components?.filter(({ id }) => id != orderId)
+      }))
   }
 
   const columns: ColumnDef<OrderComponentsTableEntry>[] = [
     {
       accessorKey: 'id',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
+
+    {
+      accessorKey: 'title',
       header: ({ column }) => {
         return (
           <div
@@ -132,20 +163,6 @@ export function OrderComponentsTable({ t }: Props) {
           <div
             className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'title',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -242,79 +259,72 @@ export function OrderComponentsTable({ t }: Props) {
   })
 
   return (
-    <div className="w-full">
-      <div className="rounded-md border border-b-0 rounded-b-none">
-        <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto ">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+    <div {...props} className={cn('w-full rounded-md border', props.className)}>
+      <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto ">
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => {
+                return (
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      'px-2 py-1 whitespace-nowrap',
+                      header.id === 'customer' && 'hidden sm:table-cell',
+                      header.id === 'status' && 'hidden md:table-cell',
+                      header.id === 'subParts' && 'hidden md:table-cell',
+                      header.id === 'deadline' && 'hidden md:table-cell'
+                    )}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                )
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+              >
+                {row.getVisibleCells().map((cell) => {
                   return (
-                    <TableHead
-                      key={header.id}
+                    <TableCell
+                      key={cell.id}
                       className={cn(
-                        'px-2 py-1 whitespace-nowrap',
-                        header.id === 'customer' && 'hidden sm:table-cell',
-                        header.id === 'status' && 'hidden md:table-cell',
-                        header.id === 'subParts' && 'hidden md:table-cell',
-                        header.id === 'deadline' && 'hidden md:table-cell'
+                        'py-[0.5rem] pl-3 pr-0',
+                        cell.column.id == 'subParts' && 'hidden md:table-cell',
+                        cell.column.id == 'deadline' && 'hidden md:table-cell',
+                        cell.column.id == 'status' && 'hidden md:table-cell',
+                        cell.column.id == 'customer' && 'hidden sm:table-cell'
                       )}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
                   )
                 })}
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          'py-[0.5rem] pl-3 pr-0',
-                          cell.column.id == 'subParts' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'deadline' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'status' && 'hidden md:table-cell',
-                          cell.column.id == 'customer' && 'hidden sm:table-cell'
-                        )}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    )
-                  })}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-36 text-center"
-                >
-                  Pas d'articles.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-36 text-center">
+                Pas d'articles.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   )
 }

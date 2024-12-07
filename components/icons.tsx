@@ -63,6 +63,7 @@ import {
   TbLayoutSidebarRightExpandFilled
 } from 'react-icons/tb'
 import { BiDollarCircle } from 'react-icons/bi'
+import { FiEdit } from 'react-icons/fi'
 
 import { cn } from '@/lib/utils'
 import clsx from 'clsx'
@@ -86,7 +87,7 @@ export const Icons = {
   logout: RiLogoutCircleLine,
   users: UserRoundPlus,
   calculator: AiOutlineCalculator,
-  edit: Pencil,
+  edit: FiEdit,
   package: LuPackageCheck,
   menu: Menu,
   details: ListEnd,

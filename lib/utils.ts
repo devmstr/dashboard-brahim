@@ -41,21 +41,3 @@ export const dateDiff = (startDate: string, endDate: string) => {
   const end = new Date(endDate).getTime()
   return Math.round((end - start) / (1000 * 60 * 60 * 24))
 }
-
-export async function coid(db: PrismaClient) {
-  // let lastOrder: Partial<Order> | null = null
-  try {
-    // lastOrder = await db.order.findFirst({
-    //   orderBy: {
-    //     id: 'desc'
-    //   }
-    // })
-  } catch (error) {}
-  // if (!lastOrder) lastOrder = { id: '24-0000' }
-  // const currentYear = new Date().getUTCFullYear()
-  // const orderNumber = parseInt(lastOrder?.id!.slice(3)!) + 1
-  // const id = `${currentYear.toString().slice(2)}-${orderNumber
-  //   .toString()
-  //   .padStart(4, '0')}`
-  // return id
-}

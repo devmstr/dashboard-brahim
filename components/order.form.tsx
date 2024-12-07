@@ -33,7 +33,7 @@ import {
 } from './ui/form'
 import { Separator } from './ui/separator'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { newSkuId, PREFIX } from '@/actions'
+import { newSkuId, PREFIX } from '@/lib/actions'
 
 interface Props {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
@@ -224,12 +224,13 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <Combobox
                       {...field}
                       id="type"
-                      items={ORDER_TYPES}
-                      setValue={(v) => {
+                      selections={ORDER_TYPES}
+                      setSelected={(v) => {
                         if (v == 'Faisceau')
                           form.setValue('fabrication', 'Confection')
                         form.setValue('type', v)
                       }}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -246,14 +247,15 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <Combobox
                       {...field}
                       id="fabrication"
-                      items={
+                      selections={
                         type === 'Faisceau'
                           ? FABRICATION_TYPES.filter((i) => i == 'Confection')
                           : FABRICATION_TYPES
                       }
-                      setValue={(v) => {
+                      setSelected={(v) => {
                         form.setValue('fabrication', v)
                       }}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -284,12 +286,13 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                   <FormControl>
                     <Combobox
                       {...field}
-                      items={COOLING_SYSTEMS_TYPES}
-                      setValue={(v) => {
+                      selections={COOLING_SYSTEMS_TYPES}
+                      setSelected={(v) => {
                         form.setValue('coolingSystem', v)
                         if (v != 'Eau')
                           form.setValue('core.collector.type', 'Plié')
                       }}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -306,10 +309,11 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <Combobox
                       {...field}
                       id="packaging"
-                      items={PACKAGING_TYPES}
-                      setValue={(v) => {
+                      selections={PACKAGING_TYPES}
+                      setSelected={(v) => {
                         form.setValue('packaging', v)
                       }}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -437,8 +441,8 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <FormControl>
                       <Combobox
                         {...field}
-                        items={FINS_TYPES}
-                        setValue={(v) => {
+                        selections={FINS_TYPES}
+                        setSelected={(v) => {
                           if (
                             (v === 'Zigzag' && tubePitch === 11) ||
                             ((v === 'Droite (Aérer)' ||
@@ -448,7 +452,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                             form.setValue('core.tubePitch', 10)
                           form.setValue('core.fins', v)
                         }}
-                        value={field.value?.toString()}
+                        selected={field.value}
                       />
                     </FormControl>
                     <FormMessage />
@@ -464,11 +468,11 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <FormControl>
                       <Combobox
                         id="tube"
-                        items={TUBE_TYPES}
-                        setValue={(v) => {
+                        selections={TUBE_TYPES}
+                        setSelected={(v) => {
                           form.setValue('core.tube', v)
                         }}
-                        value={field.value?.toString()}
+                        selected={field.value}
                       />
                     </FormControl>
                     <FormMessage />
@@ -486,13 +490,13 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <FormControl>
                       <Combobox
                         {...field}
-                        items={
+                        selections={
                           fins == 'Zigzag' ? ['10', '12'] : ['10', '11', '14']
                         }
-                        setValue={(v) => {
+                        setSelected={(v) => {
                           form.setValue('core.tubePitch', Number(v))
                         }}
-                        value={field.value?.toString()}
+                        selected={field.value?.toString()}
                       />
                     </FormControl>
                     <FormMessage />
@@ -539,11 +543,11 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              items={COLLECTOR_MATERIALS_TYPES}
-                              setValue={(v) =>
+                              selections={COLLECTOR_MATERIALS_TYPES}
+                              setSelected={(v) =>
                                 form.setValue('core.collector.material', v)
                               }
-                              value={field.value}
+                              selected={field.value}
                             />
                           </FormControl>
                           <FormMessage />
@@ -560,15 +564,15 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              items={
+                              selections={
                                 ['Air', 'Huile'].includes(coolingSystem)
                                   ? ['Plié']
                                   : CLAMPING_TYPES
                               }
-                              setValue={(v) =>
+                              setSelected={(v) =>
                                 form.setValue('core.collector.type', v)
                               }
-                              value={field.value}
+                              selected={field.value}
                             />
                           </FormControl>
                           <FormMessage />
@@ -587,11 +591,11 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                             <FormControl>
                               <Combobox
                                 id="perforation"
-                                items={PERFORATION_TYPES}
-                                value={field.value}
-                                setValue={(v) => {
+                                selections={PERFORATION_TYPES}
+                                setSelected={(v) => {
                                   form.setValue('core.collector.perforation', v)
                                 }}
+                                selected={field.value}
                               />
                             </FormControl>
                             <FormMessage />
@@ -609,11 +613,11 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              items={COLLECTOR_POSITION_TYPES}
-                              value={field.value}
-                              setValue={(v) => {
+                              selections={COLLECTOR_POSITION_TYPES}
+                              setSelected={(v) => {
                                 form.setValue('core.collector.position', v)
                               }}
+                              selected={field.value}
                             />
                           </FormControl>
                           <FormMessage />

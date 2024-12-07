@@ -85,9 +85,9 @@ export const PaymentForm: React.FC<Props> = ({
             <Label htmlFor="mode">{'Mode De Paiement'}</Label>
             <Combobox
               id="mode"
-              items={PAYMENT_TYPES}
-              value={data.paymentMode}
-              setValue={(v) => {
+              selections={PAYMENT_TYPES}
+              selected={data.paymentMode}
+              setSelected={(v) => {
                 onChange('paymentMode', v)
               }}
             />

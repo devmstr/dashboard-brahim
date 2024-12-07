@@ -64,13 +64,11 @@ interface OrderTableProps {
     placeholder: string
     columns: string
     id: string
-    title: string
     deadline: string
     customer: string
     phone: string
     status: string
     progress: string
-    quantity: string
     limit: string
   }
 }
@@ -125,38 +123,6 @@ export function OrderTable({ data, t }: OrderTableProps) {
         </div>
       )
     },
-    {
-      accessorKey: 'quantity',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'title',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => (
-        <div className="flex items-center">{row.original.title}</div>
-      )
-    },
-
     {
       accessorKey: 'status',
       header: ({ column }) => {

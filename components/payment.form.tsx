@@ -30,12 +30,12 @@ import { Button } from './ui/button'
 import { DatePicker } from './date-picker'
 import { CardDivider, CardGrid } from './card'
 import { useOrder } from './new-order.provider'
+import { fr } from 'date-fns/locale'
 
 interface Props {}
 
 export const PaymentForm: React.FC<Props> = ({}: Props) => {
   const { order, setOrder } = useOrder()
-  const [date, setDate] = React.useState(new Date())
 
   const router = useRouter()
   const form = useForm<PaymentType>({
@@ -152,8 +152,8 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                   <FormControl>
                     <Combobox
                       id="mode"
-                      items={PAYMENT_TYPES}
-                      setValue={(v) => {
+                      selections={PAYMENT_TYPES}
+                      setSelected={(v) => {
                         form.setValue('mode', v)
                       }}
                     />
@@ -199,11 +199,11 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                   <FormControl>
                     <DatePicker
                       {...field}
-                      date={date}
-                      onDateChange={(v) => {
-                        setDate(v)
-                        form.setValue('endDate', v.toISOString())
-                      }}
+                      date={field.value}
+                      onDateChange={(v) => form.setValue('endDate', v)}
+                      locale={fr}
+                      placeholder="Choisir une date"
+                      formatStr="dd/MM/yyyy"
                     />
                   </FormControl>
                   <FormMessage />

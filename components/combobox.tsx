@@ -9,16 +9,23 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { cn, toCapitalize } from '@/lib/utils'
 
-interface Props extends React.HTMLAttributes<HTMLDivElement> {
+interface Props extends React.HTMLAttributes<HTMLButtonElement> {
   topic?: string
-  value?: string
-  setValue: (value: string) => void
-  items: string[]
+  selected?: string
+  setSelected: (value: string) => void
+  selections: string[]
+  disabled?: boolean
 }
 
-export function Combobox({ setValue, topic, value, items, className }: Props) {
+export function Combobox({
+  setSelected,
+  topic,
+  selected,
+  selections,
+  disabled = false,
+  ...props
+}: Props) {
   const [open, setOpen] = React.useState(false)
   return (
     <Select
@@ -27,20 +34,20 @@ export function Combobox({ setValue, topic, value, items, className }: Props) {
       }}
       open={open}
       onValueChange={(value) => {
-        setValue(value)
+        setSelected(value)
       }}
-      value={value}
+      value={selected}
     >
-      <SelectTrigger className={cn('w-full', className)}>
+      <SelectTrigger {...props} disabled={disabled}>
         <SelectValue
           placeholder={
-            value || topic ? `Sélectionnez un ${topic}` : 'Sélectionnez'
+            selected || topic ? `Sélectionnez un ${topic}` : 'Sélectionnez'
           }
         />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {items.map((item, index) => (
+          {selections.map((item, index) => (
             <SelectItem className="" key={index} value={item}>
               {item}
             </SelectItem>

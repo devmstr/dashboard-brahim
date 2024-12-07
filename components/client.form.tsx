@@ -96,8 +96,8 @@ export const ClientForm: React.FC<Props> = ({
                         {...field}
                         id="label"
                         topic=""
-                        items={COMPANY_LABELS_TYPE}
-                        setValue={(v) => {
+                        selections={COMPANY_LABELS_TYPE}
+                        setSelected={(v) => {
                           form.setValue('label', v)
                         }}
                       />

@@ -28,7 +28,6 @@ export const AddComponentDialog: React.FC<Props> = ({ className }: Props) => {
           {'Ajouter un article'}
         </Button>
       </DialogTrigger>
-
       <DialogContent className="h-fit container max-w-5xl">
         {/* start  content */}
         <ScrollArea className="max-h-[80vh] pt-2 px-1 pr-2">

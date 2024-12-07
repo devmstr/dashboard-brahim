@@ -24,7 +24,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card = ({ children, className }: CardProps) => (
   <div
     className={cn(
-      'w-full bg-white px-3 sm:px-3 md:px-4 lg:px-5 pt-8 pb-4 rounded-lg drop-shadow-md',
+      'w-full bg-white px-2 md:px-3 lg:px-4  py-2 md:py-3 lg:py-4  rounded-lg drop-shadow-md',
       className
     )}
   >

@@ -25,13 +25,14 @@ export type HomeConfig = {
   nav: MainNavItem[]
 }
 
+export type Status = 'Annuler' | 'Non Commence' | 'Encours' | 'Fini'
+
 export type OrderTableEntry = {
   id: string
-  title: string
   deadline?: string
   customer: string
   phone: string
-  status: 'Annuler' | 'Non Commence' | 'Encours' | 'Fini'
+  status: Status
   progress?: number
   quantity: number
 }

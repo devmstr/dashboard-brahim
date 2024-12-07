@@ -66,27 +66,27 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="type">{'Type'}</Label>
             <Combobox
               id="type"
-              items={ORDER_TYPES}
-              setValue={(v) => {
+              selections={ORDER_TYPES}
+              setSelected={(v) => {
                 if (v == 'Faisceau') onChange('buildType', 'Confection')
                 onChange('orderType', v)
               }}
-              value={data.orderType}
+              selected={data.orderType}
             />
           </div>
           <div className=" w-full space-y-2">
             <Label htmlFor="buildType">{'Fabrication'}</Label>
             <Combobox
               id="buildType"
-              items={
+              selections={
                 data.orderType === 'Faisceau'
                   ? FABRICATION_TYPES.filter((i) => i !== 'Rénovation')
                   : FABRICATION_TYPES
               }
-              setValue={(v) => {
+              setSelected={(v) => {
                 onChange('buildType', v)
               }}
-              value={data.buildType}
+              selected={data.buildType}
             />
           </div>
           <div className=" w-full space-y-2">
@@ -104,23 +104,23 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="coolingSystem">{'Refroidissement'}</Label>
             <Combobox
               id="buildType"
-              items={COOLING_SYSTEMS_TYPES}
-              setValue={(v) => {
+              selections={COOLING_SYSTEMS_TYPES}
+              setSelected={(v) => {
                 onChange('coolingSystem', v)
                 if (v != 'Eau') onChange('collectorType', 'Plié')
               }}
-              value={data.coolingSystem}
+              selected={data.coolingSystem}
             />
           </div>
           <div className="space-y-2 w-full">
             <Label htmlFor="packaging">{'Emballage'}</Label>
             <Combobox
               id="packaging"
-              items={PACKAGING_TYPES}
-              setValue={(v) => {
+              selections={PACKAGING_TYPES}
+              setSelected={(v) => {
                 onChange('packaging', v)
               }}
-              value={data.packaging}
+              selected={data.packaging}
             />
           </div>
           {data.orderType == 'Autre' && (

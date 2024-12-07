@@ -1,105 +1,91 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+'use client'
+
+import * as React from 'react'
+import { format, parseISO } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
-import { format, parse, isValid } from 'date-fns'
+import { Locale } from 'date-fns'
+import { enCA, enUS, fr } from 'date-fns/locale'
+
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
 
-interface DatePickerProps extends React.HTMLAttributes<HTMLDivElement> {
-  date: Date
-  onDateChange: (date: Date) => void
+interface DatePickerProps extends React.HtmlHTMLAttributes<HTMLButtonElement> {
+  date?: string // ISO string
+  onDateChange: (date: string | undefined) => void // Returns ISO string or undefined
+  locale?: Locale
+  placeholder?: string
+  formatStr?: string
+  disabled?: boolean
 }
 
 export function DatePicker({
   date,
   onDateChange,
-  className,
+  locale = enUS,
+  placeholder = 'Pick a date',
+  formatStr = 'dd/MM/yyyy',
+  disabled = false,
   ...props
 }: DatePickerProps) {
-  const [inputValue, setInputValue] = useState(
-    date ? format(date, 'dd/MM/yyyy') : ''
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
+    date ? parseISO(date) : undefined
   )
-  const [open, setOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(date)
-  const [calendarMonth, setCalendarMonth] = useState<Date>(date || new Date())
 
-  useEffect(() => {
-    setInputValue(date ? format(date, 'dd/MM/yyyy') : '')
-    setSelectedDate(date)
-    setCalendarMonth(date || new Date())
+  React.useEffect(() => {
+    if (date) {
+      setSelectedDate(parseISO(date))
+    } else {
+      setSelectedDate(undefined)
+    }
   }, [date])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value
-    setInputValue(newValue)
-    const parsedDate = parse(newValue, 'dd/MM/yyyy', new Date())
-    if (isValid(parsedDate)) {
-      setSelectedDate(parsedDate)
-      setCalendarMonth(parsedDate)
-    }
+  const handleSelect = (date: Date | undefined) => {
+    setSelectedDate(date)
+    onDateChange(date?.toISOString())
   }
 
-  const handleInputBlur = useCallback(() => {
-    if (selectedDate && isValid(selectedDate)) {
-      onDateChange(selectedDate)
-      setInputValue(format(selectedDate, 'dd/MM/yyyy'))
-    } else {
-      setInputValue(date ? format(date, 'dd/MM/yyyy') : '')
-      setSelectedDate(date)
-      setCalendarMonth(date || new Date())
-    }
-  }, [selectedDate, onDateChange, date])
-
-  const handleCalendarSelect = useCallback(
-    (date: Date | undefined) => {
-      if (date) {
-        setSelectedDate(date)
-        onDateChange(date)
-        setInputValue(format(date, 'dd/MM/yyyy'))
-        setCalendarMonth(date)
-        setOpen(false)
-      }
-    },
-    [onDateChange]
-  )
-
   return (
-    <div className={cn('flex space-x-2', className)} {...props}>
-      <Input
-        value={inputValue}
-        onChange={handleInputChange}
-        onBlur={handleInputBlur}
-        placeholder="DD/MM/YYYY"
-      />
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <CalendarIcon className="h-4 w-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-auto p-0"
-          onClick={(e) => e.stopPropagation()}
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          {...props}
+          variant="outline"
+          className={cn(
+            'w-[280px] justify-start text-left font-normal',
+            !selectedDate && 'text-muted-foreground',
+            props.className
+          )}
+          disabled={disabled}
         >
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleCalendarSelect}
-            defaultMonth={calendarMonth}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {selectedDate ? (
+            format(selectedDate, formatStr, { locale })
+          ) : (
+            <span>{placeholder}</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0">
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={handleSelect}
+          locale={locale}
+          initialFocus
+          formatters={{
+            formatCaption: (date) => format(date, 'MMMM yyyy', { locale }),
+            formatWeekdayName: (date) =>
+              format(date, 'EEEEE', { locale }).toUpperCase(),
+            formatDay: (date) => format(date, 'd', { locale })
+          }}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

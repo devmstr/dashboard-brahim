@@ -8,7 +8,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
 import db from '@/lib/db'
-import { coid } from '@/lib/utils'
 import { ROLES } from '@/config/accounts'
 import { AddOrderDialog } from '../timeline/add-order.dialog'
 import { CalculatorForm } from '@/components/calculator.form'
@@ -17,39 +16,7 @@ import { NewOrderProvider } from '@/components/new-order.provider'
 
 interface PageProps {}
 
-const getData = async (): Promise<OrderTableEntry[]> => {
-  try {
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/orders`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    const jsonData = await res.json()
-    return jsonData
-  } catch (error) {
-    console.log(error)
-    return []
-  }
-}
-
 const Page: React.FC<PageProps> = async ({}: PageProps) => {
-  // const session = await getServerSession(authOptions)
-  // const data = await getData()
-  // const newOrderId = await coid(db)
-  // get all countries from db
-  const countries =
-    (await db.country.findMany({
-      select: {
-        name: true
-      }
-    })) || []
-  const provinces =
-    (await db.wilaya.findMany({
-      select: {
-        name: true
-      }
-    })) || []
   return (
     <Card className="">
       <OrderTable
@@ -57,10 +24,8 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
           id: 'Matricule',
           customer: 'Client',
           phone: 'Tél',
-          quantity: 'Quantité',
-          title: 'Titre',
           deadline: 'Délais',
-          status: 'Statue',
+          status: 'État',
           progress: 'Avancement',
           placeholder: 'Rechercher...',
           columns: 'Colonnes',
