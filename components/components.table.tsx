@@ -335,7 +335,7 @@ export function OrderComponentsTable({
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        'py-[0.5rem] pl-3 pr-0',
+                        'py-[0.5rem] pl-2 pr-0',
                         cell.column.id == 'subParts' && 'hidden md:table-cell',
                         cell.column.id == 'deadline' && 'hidden md:table-cell',
                         cell.column.id == 'status' && 'hidden md:table-cell',

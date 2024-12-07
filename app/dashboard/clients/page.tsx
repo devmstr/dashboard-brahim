@@ -22,7 +22,17 @@ const Page: React.FC<Props> = ({}: Props) => {
           phone: 'Tél',
           location: 'Location'
         }}
-        data={[]}
+        data={[
+          {
+            id: 'CLX24DF4T',
+            name: 'Mohamed',
+            phone: '0658769361',
+            label:
+              'START UPEntreprise unipersonnelle à responsabilité limitée (EURL)',
+            location: 'Ghardia',
+            orderCount: 10
+          }
+        ]}
       />
     </Card>
   )

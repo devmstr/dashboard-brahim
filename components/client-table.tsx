@@ -112,13 +112,17 @@ export function ClientTable({ data, t }: Props) {
           </div>
         )
       },
-      cell: ({ row }) => (
+      cell: ({
+        row: {
+          original: { id }
+        }
+      }) => (
         <div className="flex items-center">
           <Link
-            className="hover:text-primary hover:underline"
-            href={'orders/' + row.original.id}
+            className="hover:text-secondary hover:font-semibold hover:underline"
+            href={`clients/${id}`}
           >
-            {row.original.id}
+            {id}
           </Link>
         </div>
       )
@@ -191,8 +195,17 @@ export function ClientTable({ data, t }: Props) {
           </div>
         )
       },
-      cell: ({ row }) => {
-        return <div className="">{row.original.label || '/'}</div>
+      cell: ({
+        row: {
+          original: { label }
+        }
+      }) => {
+        if (label === 'START UP') return <div className="">{label}</div>
+        const regex = /\(([^)]*)\)/g
+        const abbreviation = label?.match(regex)?.at(0)
+        return (
+          <div className="">{abbreviation?.replace(/\(|\)/g, '') || '/'}</div>
+        )
       }
     },
     {
@@ -362,7 +375,7 @@ export function ClientTable({ data, t }: Props) {
                       <TableCell
                         key={cell.id}
                         className={cn(
-                          'py-[0.5rem] pl-3 pr-0',
+                          'py-[0.5rem] pl-2 pr-0',
                           cell.column.id == 'subParts' &&
                             'hidden md:table-cell',
                           cell.column.id == 'deadline' &&
@@ -456,14 +469,14 @@ function Actions({
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  Are you sure you want to delete this IDP?
+                  Êtes-vous sûr de vouloir supprimer ce client ?
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Be careful this action cannot be undone.
+                  Attention, cette action est irréversible.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
                 <AlertDialogAction asChild>
                   <Button
                     className={cn(
@@ -473,7 +486,7 @@ function Actions({
                     onClick={() => onDelete(id)}
                   >
                     <Icons.trash className="mr-2 h-4 w-4" />
-                    Delete
+                    Supprimer
                   </Button>
                 </AlertDialogAction>
               </AlertDialogFooter>

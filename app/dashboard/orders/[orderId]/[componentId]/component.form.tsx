@@ -44,7 +44,6 @@ interface Props {
 export const ComponentForm: React.FC<Props> = ({ data }: Props) => {
   const [isCollectorsDifferent, setIsCollectorsDifferent] =
     React.useState(false)
-  const [isTechnicalExist, setIsTechnicalExist] = React.useState(false)
   const router = useRouter()
   const form = useForm<OrderType>({
     // defaultValues: data,

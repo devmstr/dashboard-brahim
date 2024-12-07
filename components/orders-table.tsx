@@ -115,7 +115,7 @@ export function OrderTable({ data, t }: OrderTableProps) {
       cell: ({ row }) => (
         <div className="flex items-center">
           <Link
-            className="hover:text-primary hover:underline"
+            className="hover:text-secondary hover:font-semibold hover:underline"
             href={'orders/' + row.original.id}
           >
             {row.original.id}
@@ -375,7 +375,7 @@ export function OrderTable({ data, t }: OrderTableProps) {
                       <TableCell
                         key={cell.id}
                         className={cn(
-                          'py-[0.5rem] pl-3 pr-0',
+                          'py-[0.5rem] pl-2 pr-0',
                           cell.column.id == 'subParts' &&
                             'hidden md:table-cell',
                           cell.column.id == 'deadline' &&
@@ -469,14 +469,14 @@ function Actions({
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  Are you sure you want to delete this IDP?
+                  Êtes-vous sûr de vouloir supprimer cette commande ?
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Be careful this action cannot be undone.
+                  Attention, cette action est irréversible.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
                 <AlertDialogAction asChild>
                   <Button
                     className={cn(
@@ -486,7 +486,7 @@ function Actions({
                     onClick={() => onDelete(id)}
                   >
                     <Icons.trash className="mr-2 h-4 w-4" />
-                    Delete
+                    Supprimer
                   </Button>
                 </AlertDialogAction>
               </AlertDialogFooter>

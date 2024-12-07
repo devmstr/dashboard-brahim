@@ -130,9 +130,9 @@ export function GanttChart({
               render: (record) => {
                 return (
                   <div className="group flex items-center space-x-2">
-                    <Icons.package className="min-w-5 min-h-5 text-foreground group-hover:text-primary" />
+                    <Icons.package className="min-w-5 min-h-5 text-foreground group-hover:text-secondary" />
                     <Link
-                      className="text-foreground group-hover:underline group-hover:text-primary"
+                      className="group-hover:text-secondary group-hover:font-semibold group-hover:underline"
                       href={'/dashboard/orders/' + record.id}
                     >
                       {record.id}
