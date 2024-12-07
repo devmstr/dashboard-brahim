@@ -33,7 +33,7 @@ import {
 } from './ui/form'
 import { Separator } from './ui/separator'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { newSkuId, PREFIX } from '@/lib/actions'
+import { genTitle } from '@/lib/order-title-generator'
 
 interface Props {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
@@ -89,12 +89,15 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
         components: []
       })
     const id = order?.components ? String(order?.components.length + 1) : '1'
+    const title = genTitle(formData)
+    console.log(title)
     setOrder((prev) => ({
       ...prev,
       components: [
         ...(prev?.components ?? []),
         {
           id,
+          title,
           ...formData
         }
       ]
@@ -112,6 +115,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
       })
     else form.setValue('core.collector.dimensions.lower', undefined)
   }, [isCollectorsDifferent])
+
   return (
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>

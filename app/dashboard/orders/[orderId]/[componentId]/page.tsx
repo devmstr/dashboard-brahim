@@ -1,13 +1,17 @@
 import { Card } from '@/components/card'
+import { ComponentForm } from './component.form'
 
 interface Props {
-  params: { componentId: string }
+  params: {
+    orderId: string
+    componentId: string
+  }
 }
 
 const Page: React.FC<Props> = ({ params: { componentId } }: Props) => {
   return (
     <Card>
-      <h1>{componentId}</h1>
+      <ComponentForm data={undefined} />
     </Card>
   )
 }

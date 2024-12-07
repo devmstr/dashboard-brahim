@@ -100,6 +100,7 @@ export const ClientForm: React.FC<Props> = ({
                         setSelected={(v) => {
                           form.setValue('label', v)
                         }}
+                        selected={field.value}
                       />
                     </FormControl>
                     <FormMessage />

@@ -28,13 +28,15 @@ export function LinkerList() {
             <div className="flex items-center gap-1" key={`${index}-${link}`}>
               <BreadcrumbItem>
                 <BreadcrumbLink
-                  className="hover:text-secondary cursor-pointer"
+                  className="hover:text-secondary cursor-pointer capitalize"
                   onClick={(e) => {
                     e.preventDefault()
                     router.replace(path)
                   }}
                 >
-                  {capitalize(link)}
+                  {/^(RAX|FAX|AUX|COX|CLX|VEX|PAX)/.test(link)
+                    ? link.toUpperCase()
+                    : link}
                 </BreadcrumbLink>
               </BreadcrumbItem>
               {index !== segments.length - 1 && <BreadcrumbSeparator />}

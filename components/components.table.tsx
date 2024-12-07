@@ -44,7 +44,7 @@ import {
   StockTableEntry
 } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
 import { Progress } from './progress'
 import { StatusBudge } from './status-badge'
@@ -115,7 +115,8 @@ export function OrderComponentsTable({
     if (components) setData(components)
   }, [orderContext?.order])
 
-  const { refresh } = useRouter()
+  const router = useRouter()
+  const pathname = usePathname()
 
   const handleDelete = async (orderId: string) => {
     setData(data.filter(({ id }) => id != orderId))
@@ -139,7 +140,17 @@ export function OrderComponentsTable({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      }
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          <Link
+            className="hover:text-secondary hover:font-semibold hover:underline"
+            href={`${pathname}/${row.original.id}`}
+          >
+            {row.original.id}
+          </Link>
+        </div>
+      )
     },
 
     {
@@ -153,6 +164,30 @@ export function OrderComponentsTable({
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { title }
+        }
+      }) => {
+        const regex = /\d+/g
+        const parts = title.split(regex)
+        const matches = title.match(regex)
+
+        return (
+          <p className="text-muted-foreground text-[0.98rem] truncate max-w-xs overflow-hidden whitespace-nowrap">
+            {parts.map((part, index) => (
+              <React.Fragment key={index}>
+                {part}
+                {matches && matches[index] && (
+                  <span className="font-bold text-primary">
+                    {matches[index]}
+                  </span>
+                )}
+              </React.Fragment>
+            ))}
+          </p>
         )
       }
     },
@@ -336,6 +371,7 @@ function Actions({
   id: string
   onDelete: (id: string) => void
 }) {
+  const pathname = usePathname()
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
@@ -349,7 +385,7 @@ function Actions({
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={'#' + id}
+            href={`${pathname}/${id}`}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>

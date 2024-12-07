@@ -31,7 +31,16 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
           columns: 'Colonnes',
           limit: 'Limite'
         }}
-        data={[]}
+        data={[
+          {
+            id: 'COXL5R6T8',
+            customer: 'Mohamed',
+            phone: '0776459823',
+            deadline: new Date().toISOString(),
+            status: 'Encours',
+            progress: 13
+          }
+        ]}
       />
     </Card>
   )

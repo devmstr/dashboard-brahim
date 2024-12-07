@@ -27,7 +27,7 @@ const Page: React.FC<PageProps> = async () => {
       <GanttChart
         data={[
           {
-            id: 'RX4C8GLA',
+            id: 'COXL5R6T8',
             receivingDate: '',
             startDate: '',
             endDate: '',

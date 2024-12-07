@@ -203,7 +203,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                       onDateChange={(v) => form.setValue('endDate', v)}
                       locale={fr}
                       placeholder="Choisir une date"
-                      formatStr="dd/MM/yyyy"
+                      formatStr="PPP"
                     />
                   </FormControl>
                   <FormMessage />

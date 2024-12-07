@@ -45,27 +45,24 @@ export const LinkLineList: React.FC<Props> = ({ items, t }: Props) => {
                 <div className="flex group gap-1 items-center">
                   <Icon
                     className={cn(
-                      'flex items-center justify-center h-auto w-5 text-muted-foreground group-hover:text-primary group-hover:opacity-100',
+                      'flex items-center justify-center h-auto w-5 text-muted-foreground ',
                       item.icon == 'dollar' && 'scale-110',
-                      active
-                        ? 'text-primary opacity-100'
-                        : 'opacity-70 hover:opacity-100'
+                      active ? 'text-primary opacity-100' : 'opacity-70'
                     )}
                   />
-                  <Link
+                  <div
                     key={index}
-                    href={item.href as string}
                     className={cn(
-                      'text-sm md:text-base lg:text-md group-hover:font-medium text-muted-foreground group-hover:text-primary transition-colors duration-200 flex-nowrap text-nowrap capitalize ',
+                      'text-sm md:text-base lg:text-md  text-muted-foreground  transition-colors duration-200 flex-nowrap text-nowrap capitalize ',
                       active
                         ? 'text-primary opacity-100 font-bold'
-                        : 'opacity-70 hover:opacity-100'
+                        : 'opacity-70 '
                     )}
                   >
                     {item.translationKey && t[item.translationKey]
                       ? t[item.translationKey]
                       : item.title}
-                  </Link>
+                  </div>
                 </div>
 
                 <div

@@ -4,15 +4,17 @@ import { Card } from '@/components/card'
 
 interface PageProps {
   params: {
-    id: string
+    orderId: string
   }
 }
 
-const Page: React.FC<PageProps> = async ({ params: { id } }: PageProps) => {
+const Page: React.FC<PageProps> = async ({
+  params: { orderId }
+}: PageProps) => {
   return (
     <div className="space-y-4">
       <Card className="">
-        <OrderMetaForm data={{ id: 'PAX3L6M34' }} />
+        <OrderMetaForm data={{ id: orderId }} />
       </Card>
       <Card>
         <OrderComponentsTable
@@ -25,6 +27,17 @@ const Page: React.FC<PageProps> = async ({ params: { id } }: PageProps) => {
             fabrication: 'Fabrication',
             quantity: 'Quantité'
           }}
+          data={[
+            {
+              id: 'FAXDE34T3',
+              title: 'FAIS 440X470X2R TR COLL 490X50 PL',
+              brand: 'CAT',
+              model: 'D5',
+              type: 'Faisceau',
+              fabrication: 'Confection',
+              quantity: 2
+            }
+          ]}
         />
       </Card>
     </div>

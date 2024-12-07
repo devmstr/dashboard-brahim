@@ -152,13 +152,15 @@ export function OrderTable({ data, t }: OrderTableProps) {
         )
       },
       cell: ({ row }) => {
-        const progress = row.original.progress || 0
-        const quantity = row.original.quantity || 0
-        const percentage = Math.floor((progress / quantity) * 100)
         return (
           <div className="relative flex justify-start gap-1 items-center">
-            <Progress value={percentage} className="h-[0.65rem] max-w-10" />
-            <span className="text-foreground">{percentage + '%'}</span>
+            <Progress
+              value={row.original.progress}
+              className="h-[0.65rem] max-w-10"
+            />
+            <span className="text-foreground">
+              {row.original.progress + '%'}
+            </span>
           </div>
         )
       }

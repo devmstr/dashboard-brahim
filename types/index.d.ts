@@ -34,7 +34,6 @@ export type OrderTableEntry = {
   phone: string
   status: Status
   progress?: number
-  quantity: number
 }
 
 export type OrderComponentsTableEntry = {
