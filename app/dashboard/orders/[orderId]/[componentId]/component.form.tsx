@@ -4,6 +4,7 @@ import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
 import { Input } from '@/components/ui/input'
 import {
+  CAR_ENERGY_TYPES,
   CLAMPING_TYPES,
   COLLECTOR_MATERIALS_TYPES,
   COLLECTOR_POSITION_TYPES,
@@ -36,6 +37,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { genTitle } from '@/lib/order-title-generator'
 import { delay } from '@/lib/utils'
 import { Icons } from '@/components/icons'
+import Link from 'next/link'
 
 interface Props {
   data?: OrderType
@@ -106,16 +108,37 @@ export const ComponentForm: React.FC<Props> = ({ data }: Props) => {
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <div className="relative border rounded-md px-3 py-3">
-          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-            Véhicule
-          </span>
+          <div className="flex items-center justify-between select-none">
+            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+              Véhicule
+            </span>
+            <Link
+              href={`/dashboard/cars/vex5d7g9h`}
+              className="absolute -top-[0.65rem] right-5 text-base font-light text-muted-foreground/40 uppercase -mt-[2px] bg-background px-3 rounded-md  hover:font-bold hover:text-secondary"
+            >
+              {'vex5d7g9h'.toUpperCase()}
+            </Link>
+          </div>
           <CardGrid>
             <FormField
               control={form.control}
-              name="car.brand"
+              name="car.manufacture"
               render={({ field }) => (
                 <FormItem className="group ">
                   <FormLabel className="capitalize">{'Marque'}</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="w-full" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="car.car"
+              render={({ field }) => (
+                <FormItem className="group ">
+                  <FormLabel className="capitalize">{'Véhicule'}</FormLabel>
                   <FormControl>
                     <Input {...field} className="w-full" />
                   </FormControl>
@@ -138,10 +161,29 @@ export const ComponentForm: React.FC<Props> = ({ data }: Props) => {
             />
             <FormField
               control={form.control}
-              name="car.type"
+              name="car.fuel"
               render={({ field }) => (
                 <FormItem className="group ">
-                  <FormLabel className="capitalize">{'Type'}</FormLabel>
+                  <FormLabel className="capitalize">{'énergie'}</FormLabel>
+                  <FormControl>
+                    <Combobox
+                      {...field}
+                      id="fuel"
+                      selections={CAR_ENERGY_TYPES}
+                      setSelected={(v) => form.setValue('car.fuel', v)}
+                      selected={field.value}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="car.year"
+              render={({ field }) => (
+                <FormItem className="group ">
+                  <FormLabel className="capitalize">{'année'}</FormLabel>
                   <FormControl>
                     <Input {...field} className="w-full" />
                   </FormControl>

@@ -107,7 +107,7 @@ export function OrderComponentsTable({
           type,
           id: id!,
           title: '/',
-          brand: car ? car.brand : undefined,
+          brand: car ? car.manufacture : undefined,
           model: car ? car.model : undefined
         })
       )

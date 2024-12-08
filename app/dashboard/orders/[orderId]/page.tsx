@@ -16,7 +16,12 @@ const Page: React.FC<PageProps> = async ({
       <Card className="">
         <OrderMetaForm data={{ id: orderId }} />
       </Card>
-      <Card>
+      <Card className="">
+        <div className="flex items-center justify-between select-none">
+          <span className="absolute top-0 left-6 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            articles
+          </span>
+        </div>
         <OrderComponentsTable
           t={{
             id: 'Matricule',

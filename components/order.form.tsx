@@ -4,6 +4,7 @@ import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
 import { Input } from '@/components/ui/input'
 import {
+  CAR_ENERGY_TYPES,
   CLAMPING_TYPES,
   COLLECTOR_MATERIALS_TYPES,
   COLLECTOR_POSITION_TYPES,
@@ -53,6 +54,10 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
       packaging: 'Carton',
       quantity: 1,
       isModificationRequired: false,
+      car: {
+        fuel: 'Diesel',
+        year: new Date().getFullYear()
+      },
       core: {
         fins: 'Droite (Normale)',
         tubePitch: 10,
@@ -126,10 +131,23 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
           <CardGrid>
             <FormField
               control={form.control}
-              name="car.brand"
+              name="car.manufacture"
               render={({ field }) => (
                 <FormItem className="group ">
                   <FormLabel className="capitalize">{'Marque'}</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="w-full" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="car.car"
+              render={({ field }) => (
+                <FormItem className="group ">
+                  <FormLabel className="capitalize">{'Véhicule'}</FormLabel>
                   <FormControl>
                     <Input {...field} className="w-full" />
                   </FormControl>
@@ -152,10 +170,29 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
             />
             <FormField
               control={form.control}
-              name="car.type"
+              name="car.fuel"
               render={({ field }) => (
                 <FormItem className="group ">
-                  <FormLabel className="capitalize">{'Type'}</FormLabel>
+                  <FormLabel className="capitalize">{'énergie'}</FormLabel>
+                  <FormControl>
+                    <Combobox
+                      {...field}
+                      id="fuel"
+                      selections={CAR_ENERGY_TYPES}
+                      setSelected={(v) => form.setValue('car.fuel', v)}
+                      selected={field.value}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="car.year"
+              render={({ field }) => (
+                <FormItem className="group ">
+                  <FormLabel className="capitalize">{'année'}</FormLabel>
                   <FormControl>
                     <Input {...field} className="w-full" />
                   </FormControl>

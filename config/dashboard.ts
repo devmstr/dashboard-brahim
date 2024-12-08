@@ -21,6 +21,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     href: '/dashboard/orders',
     icon: 'orders'
   },
+
   // {
   //   title: 'Stock',
   //   href: '/dashboard/stock',
@@ -30,6 +31,11 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     title: 'Clients',
     href: '/dashboard/clients',
     icon: 'clients'
+  },
+  {
+    title: 'Véhicule',
+    href: '/dashboard/cars',
+    icon: 'car'
   },
   {
     title: 'Paramètres',

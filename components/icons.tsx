@@ -64,6 +64,8 @@ import {
 } from 'react-icons/tb'
 import { BiDollarCircle } from 'react-icons/bi'
 import { FiEdit } from 'react-icons/fi'
+import { TbTruckDelivery } from 'react-icons/tb'
+import { BiCar } from 'react-icons/bi'
 
 import { cn } from '@/lib/utils'
 import clsx from 'clsx'
@@ -71,6 +73,8 @@ import clsx from 'clsx'
 export type Icon = LucideIcon
 
 export const Icons = {
+  car: BiCar,
+  truck: TbTruckDelivery,
   squareChevronDown: ChevronDownSquare,
   plus: PlusIcon,
   dollar: BiDollarCircle,

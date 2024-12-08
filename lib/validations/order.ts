@@ -119,11 +119,16 @@ const coreSchema = z.object({
   collector: collectorSchema.optional()
 })
 
-const carSchema = z.object({
-  brand: z.string().optional(),
+export const carSchema = z.object({
+  id: z.string().optional(),
+  manufacture: z.string(),
+  car: z.string(),
   model: z.string().optional(),
-  type: z.string().optional()
+  fuel: z.string().optional(),
+  year: z.number().optional()
 })
+
+export type CarType = z.infer<typeof carSchema>
 
 export const orderSchema = z.object({
   id: z.string().optional(),

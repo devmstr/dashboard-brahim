@@ -2,7 +2,7 @@ import { OrderType } from './validations'
 
 const FINS_DICTIONARY = {
   'Droite (Normale)': 'NL',
-  'Droite (Aérer)': 'AERER',
+  'Droite (Aérer)': 'AERE',
   Zigzag: 'TR'
 }
 const CLAMPING_DICTIONARY = {
@@ -40,7 +40,7 @@ export function genTitle({
   } else if (type == 'Radiateur') {
     const fabricationInTitle = fabrication.slice(0, 3).toUpperCase()
     const carInTitle = car
-      ? `${car?.brand?.toUpperCase()} ${car?.model?.toUpperCase()} ${car?.type?.toUpperCase()}`
+      ? `${car?.manufacture?.toUpperCase()} ${car?.model?.toUpperCase()} ${car?.car?.toUpperCase()}`
       : 'SELON MODEL'
     return `RAD ${fabricationInTitle} ${carInTitle} ${core?.layers}R ${finsInTitle} PAS ${core?.tubePitch}`
   } else {

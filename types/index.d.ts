@@ -35,6 +35,14 @@ export type OrderTableEntry = {
   status: Status
   progress?: number
 }
+export type CarsTableEntry = {
+  id: string
+  manufacture: string
+  car: string
+  model?: string
+  fuel?: string
+  year?: number
+}
 
 export type OrderComponentsTableEntry = {
   id: string
