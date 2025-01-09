@@ -43,7 +43,7 @@ interface Props {
   data?: OrderType
 }
 
-export const ComponentForm: React.FC<Props> = ({ data }: Props) => {
+export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
   const [isCollectorsDifferent, setIsCollectorsDifferent] =
     React.useState(false)
   const router = useRouter()

@@ -2,7 +2,7 @@
 import { customAlphabet } from 'nanoid'
 import dayjs from 'dayjs'
 import { revalidatePath } from 'next/cache'
-import { TimeLineRecord } from '@/lib/validations'
+import { TimelineOrderRecord } from '@/lib/validations'
 
 export enum SKU_PREFIX {
   RA = 'RA',
@@ -41,7 +41,7 @@ export const moveChartRecord = async ({
   endDate: newEndDate
 }: {
   row: Pick<
-    TimeLineRecord,
+    TimelineOrderRecord,
     'id' | 'receivingDate' | 'startDate' | 'endDate' | 'actualEndDate'
   >
   startDate: string

@@ -190,15 +190,15 @@ export const OrderMetaForm: React.FC<Props> = ({
           </CardGrid>
         </div>
         <div className="relative border rounded-md px-3 py-3">
-          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase ">
             délais
           </span>
-          <CardGrid>
+          <CardGrid className="pt-2">
             <FormField
               control={form.control}
               name="endDate"
               render={({ field }) => (
-                <FormItem className="group ">
+                <FormItem className="group flex flex-col gap-1 ">
                   <FormLabel className="capitalize ">
                     {'Délais estimé'}
                     <span className="ml-1 text-xs text-muted-foreground/50">

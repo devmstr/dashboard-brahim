@@ -1,0 +1,173 @@
+.gantt_container {
+  border-radius: 5px;
+}
+
+.gantt_task_line {
+  border-radius: 20px;
+  height: 20px;
+}
+
+.gantt_task_content {
+  background: white;
+  color: transparent;
+}
+
+.custom-task-wrapper,
+.custom-task {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.task-section {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.cold-start {
+  background-color: #cfd7e3;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.task-duration {
+  background-color: #ffd831;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.task-delay {
+  background-color: #f3483b;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.task-gain {
+  background-color: #4caf50; /* Green color for gained time */
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.gantt-article-link {
+  color: #333;
+  cursor: pointer;
+}
+.gantt-article-link:hover {
+  color: #ffd831;
+  font-weight: 900;
+}
+
+.gantt_task_progress {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.gantt_non_working_hour,
+.gantt_task_cell {
+  display: none;
+}
+
+.gantt_scale_cell,
+.gantt_grid_scale {
+  color: #333;
+  font-weight: bold;
+  user-select: none;
+}
+
+.gantt_grid_head_text,
+.gantt_grid_head_duration,
+.gantt_grid_head_delay {
+  padding: 0 8px;
+}
+
+.gantt_scale_cell:nth-child(odd) {
+  background-color: #f4f4f4;
+}
+
+.gantt_scale_cell:nth-child(even) {
+  background-color: #fff;
+}
+
+.gantt_task_bg,
+.gantt_task_row:last-child {
+  height: 100% !important;
+}
+
+.gantt_task_row,
+.gantt_row {
+  border: none !important;
+  background: none !important;
+}
+
+.gantt_hor_scroll {
+  height: 60px;
+  scrollbar-color: rgba(107, 114, 128, 0.8) transparent;
+  scrollbar-width: thin;
+}
+
+/* Target the custom horizontal scrollbar */
+.gantt_hor_scroll .hor-scroll-bar::-webkit-scrollbar {
+  height: 8px; /* Set the height of the scrollbar */
+}
+
+/* Style the scrollbar track */
+.gantt_hor_scroll .hor-scroll-bar::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light background color for the track */
+  border-radius: 3px; /* Rounded edges */
+}
+
+/* Style the scrollbar thumb */
+.gantt_hor_scroll .hor-scroll-bar::-webkit-scrollbar-thumb {
+  background: #888; /* Color of the scrollbar thumb */
+
+  border-radius: 3px; /* Rounded edges */
+}
+
+/* Change the color of the scrollbar thumb on hover */
+.gantt_hor_scroll .hor-scroll-bar::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Darker color when hovered */
+}
+
+/* For Firefox, use the scrollbar-width property */
+.gantt_hor_scroll .hor-scroll-bar {
+  scrollbar-width: thin; /* Thin scrollbar */
+  scrollbar-color: #888 #f1f1f1; /* Color of the thumb and track */
+}
+
+.task-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #000;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.rounded-left {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.rounded-right {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.slide-right {
+  right: -15px;
+}
+
+.gantt_scale_line:nth-child(3) .gantt_scale_cell {
+  border-top: none;
+  text-align: center;
+  font-size: 10px;
+}
+
+.gantt_scale_line:nth-child(2) .gantt_scale_cell {
+  border-bottom: none;
+}

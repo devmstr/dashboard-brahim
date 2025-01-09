@@ -1,4 +1,4 @@
-import { getUser } from '@/lib/session'
+import { useServerUser } from '@/hooks/useServerUser'
 import { Avatar, AvatarImage } from '@ui/avatar'
 import { Icons } from './icons'
 import { User } from 'next-auth'

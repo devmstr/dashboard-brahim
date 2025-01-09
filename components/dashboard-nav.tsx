@@ -1,5 +1,5 @@
 import { LAYOUT_LINKS } from '@/config/dashboard'
-import { getUser } from '@/lib/session'
+import { useServerUser } from '@/hooks/useServerUser'
 import React from 'react'
 import { LinkerList } from './breadcrumb'
 import { Loading } from './loading'
@@ -9,7 +9,7 @@ import { UserAccountNav } from './user-account-nav'
 interface DashboardNavProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export const DashboardNav = async (props: DashboardNavProps) => {
-  const user = await getUser()
+  const user = await useServerUser()
   if (!user) return <Loading />
   let linkedList = LAYOUT_LINKS
   if (user.role !== 'ADMIN')

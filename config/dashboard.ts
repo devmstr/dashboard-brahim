@@ -14,7 +14,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
   {
     title: 'Planning',
     href: '/dashboard/timeline',
-    icon: 'timeline'
+    icon: 'gantt'
   },
   {
     title: 'Commandes',

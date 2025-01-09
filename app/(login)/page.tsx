@@ -1,6 +1,6 @@
 import { Icons } from '@/components/icons'
 import { UserLoginForm } from '@/components/user-login-form'
-import { getUser } from '@/lib/session'
+import { useServerUser } from '@/hooks/useServerUser'
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function LoginPage() {
-  const user = await getUser()
+  const user = await useServerUser()
   if (user) redirect('/dashboard')
   return (
     <div className="relative flex flex-col items-center justify-center h-screen w-full">

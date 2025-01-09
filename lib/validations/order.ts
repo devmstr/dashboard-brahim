@@ -23,33 +23,19 @@ const TechnicalDetails = z.object({
 })
 
 export const OrderSchema = z.object({
-  id: z.string().min(1, {
-    message: "L'ID de commande doit comporter plus d'un caractère."
+  id: z.string().length(8, {
+    message: "L'ID de commande doit comporter 8 caractères."
   }),
-  serialNumber: z.string().optional(),
-  status: z.string().optional(),
-  receivingDate: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  productionDays: z
-    .number()
-    .min(1, {
-      message: 'Le nombre de jours de production doit être supérieur à un jour.'
-    })
-    .optional(),
-  actualEndDate: z.string().optional(),
-  quantity: z.string().optional(),
-  price: z.string().optional(),
-  deposit: z.string().optional(),
-  remaining: z.string().optional(),
-  manufacturing: z.string().optional(),
-  type: z.string().optional(),
+  title: z.string().optional(),
+  receivingDate: z.date(),
+  startDate: z.date(),
+  endDate: z.date(),
+  actualEndDate: z.date(),
   customer: Customer.optional(),
-  progress: z.string().optional(),
-  technical: TechnicalDetails.optional()
+  progress: z.number().max(1).min(0).optional()
 })
 
-export type TimeLineRecord = z.infer<typeof OrderSchema>
+export type TimelineOrderRecord = z.infer<typeof OrderSchema>
 
 export const OrderCommercialView = z.object({
   id: z.string().min(1, {

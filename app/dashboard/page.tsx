@@ -1,11 +1,11 @@
 import { Card } from '@/components/card'
-import { getUser } from '@/lib/session'
+import { useServerUser } from '@/hooks/useServerUser'
 import { notFound, redirect } from 'next/navigation'
 
 interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
-  const user = await getUser()
+  const user = await useServerUser()
   if (user?.role !== 'ADMIN') redirect('/dashboard/new')
   return notFound()
 }

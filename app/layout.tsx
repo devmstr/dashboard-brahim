@@ -4,7 +4,6 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 
 import { AuthProvider } from '@/components/auth-provider'
-import { DashboardNav } from '@/components/dashboard-nav'
 import { Toaster } from '@/components/ui/toaster'
 import '@/styles/globals.css'
 import { ReactQueryProvider } from '@/components/react-query.provider'

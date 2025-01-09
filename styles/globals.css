@@ -56,6 +56,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  .after\:clip-chevron::after {
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+  .before\:clip-chevron-reverse::before {
+    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  }
 
   .menu-btn {
     @apply relative -left-[0.8rem];

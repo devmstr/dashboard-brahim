@@ -5,7 +5,7 @@ import { SidebarStateProvider } from '@/components/open-sidebar-provider'
 import { NewOrderProvider } from '@/components/new-order.provider'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LAYOUT_LINKS } from '@/config/dashboard'
-import { getUser } from '@/lib/session'
+import { useServerUser } from '@/hooks/useServerUser'
 import { SidebarNavItem } from '@/types'
 import { ReactNode } from 'react'
 
@@ -14,7 +14,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
-  const user = await getUser()
+  const user = await useServerUser()
   if (!user) return <Loading />
 
   let linkedList = LAYOUT_LINKS

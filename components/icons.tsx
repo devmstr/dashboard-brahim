@@ -51,10 +51,11 @@ import {
   RatioIcon,
   PlusIcon,
   ChevronDownIcon,
-  ChevronDownSquare
+  ChevronDownSquare,
+  TableProperties
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
-import { LuPackageCheck } from 'react-icons/lu'
+import { LuPackage, LuPackageCheck } from 'react-icons/lu'
 import { AiOutlineCalculator } from 'react-icons/ai'
 import { FiSidebar } from 'react-icons/fi'
 import { RiLogoutCircleLine } from 'react-icons/ri'
@@ -66,6 +67,7 @@ import { BiDollarCircle } from 'react-icons/bi'
 import { FiEdit } from 'react-icons/fi'
 import { TbTruckDelivery } from 'react-icons/tb'
 import { BiCar } from 'react-icons/bi'
+import { FaChartGantt } from 'react-icons/fa6'
 
 import { cn } from '@/lib/utils'
 import clsx from 'clsx'
@@ -73,6 +75,8 @@ import clsx from 'clsx'
 export type Icon = LucideIcon
 
 export const Icons = {
+  gantt: FaChartGantt,
+  table: TableProperties,
   car: BiCar,
   truck: TbTruckDelivery,
   squareChevronDown: ChevronDownSquare,
@@ -92,7 +96,7 @@ export const Icons = {
   users: UserRoundPlus,
   calculator: AiOutlineCalculator,
   edit: FiEdit,
-  package: LuPackageCheck,
+  package: LuPackage,
   menu: Menu,
   details: ListEnd,
   notification: Bell,
