@@ -13,10 +13,13 @@ import { AddOrderDialog } from '../timeline/add-order.dialog'
 import { CalculatorForm } from '@/components/calculator.form'
 import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
 import { NewOrderProvider } from '@/components/new-order.provider'
+import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
 
 interface PageProps {}
 
 const Page: React.FC<PageProps> = async ({}: PageProps) => {
+  const isUserRoleSales = await useServerCheckRoles('SALES')
+  const isUserRoleAdmin = await useServerCheckRoles('ADMIN')
   return (
     <Card className="">
       <OrderTable
@@ -24,6 +27,8 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
           id: 'Matricule',
           customer: 'Client',
           phone: 'Tél',
+          car: 'Véhicule',
+          model: 'Modèle',
           deadline: 'Délais',
           status: 'État',
           progress: 'Avancement',
@@ -38,9 +43,12 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
             phone: '0776459823',
             deadline: new Date().toISOString(),
             status: 'Encours',
-            progress: 13
+            progress: 13,
+            car: 'Caterpillar',
+            model: 'D5'
           }
         ]}
+        isClientDataAllowed={isUserRoleAdmin || isUserRoleSales}
       />
     </Card>
   )

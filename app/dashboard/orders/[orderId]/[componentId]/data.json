@@ -1,0 +1,29 @@
+[
+  {
+    "id": "FAX34ER7S",
+    "title": "FAIS 440X470X2R TR COLL 490X50 PL",
+    "brand": "CAT",
+    "model": "D5",
+    "type": "Faisceau",
+    "fabrication": "Confection",
+    "quantity": 2
+  },
+  {
+    "id": "BAR12XYZ",
+    "title": "FAIS 500X530X2P TR COLL 450X55 PL",
+    "brand": "CAT",
+    "model": "D5",
+    "type": "Faisceau",
+    "fabrication": "Confection",
+    "quantity": 2
+  },
+  {
+    "id": "QUX78ABC",
+    "title": "FAIS 380X420X3S TR COLL 510X60 PL",
+    "brand": "CAT",
+    "model": "D5",
+    "type": "Faisceau",
+    "fabrication": "Confection",
+    "quantity": 2
+  }
+]

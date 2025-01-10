@@ -107,8 +107,8 @@ const coreSchema = z.object({
 
 export const carSchema = z.object({
   id: z.string().optional(),
-  manufacture: z.string(),
-  car: z.string(),
+  manufacture: z.string().optional(),
+  car: z.string().optional(),
   model: z.string().optional(),
   fuel: z.string().optional(),
   year: z.number().optional()

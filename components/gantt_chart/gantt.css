@@ -60,6 +60,7 @@
 .gantt-article-link:hover {
   color: #ffd831;
   font-weight: 900;
+  text-decoration: underline;
 }
 
 .gantt_task_progress {

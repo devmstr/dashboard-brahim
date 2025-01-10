@@ -8,9 +8,6 @@ interface Props {}
 const Page: React.FC<Props> = ({}: Props) => {
   return (
     <Card>
-      <div className="w-full flex justify-end mb-2 ">
-        <DaysCalculatorDialog />
-      </div>
       <PaymentForm />
     </Card>
   )

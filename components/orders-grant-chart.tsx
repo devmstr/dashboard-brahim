@@ -156,19 +156,16 @@ function Pagination({
   )
 }
 
-type FullRecord = TimelineOrderRecord & {
+export type FullRecord = TimelineOrderRecord & {
   collapsed?: boolean
 }
 
-// Main OrdersGanttChart component
-export function OrdersGanttChart({
-  data: orders = [].map((record: FullRecord) => ({
-    ...record,
-    collapsed: record.collapsed ?? false
-  }))
-}: {
+interface OrderGanttChartProps {
   data?: FullRecord[]
-}) {
+}
+
+// Main OrdersGanttChart component
+function OrdersGanttChart({ data = [] }: OrderGanttChartProps) {
   const [limit, setLimit] = useState<Limit>('10')
   const ganttRef = useRef<GanttRef>(null!)
   const [currentPage, setCurrentPage] = useState(0)
@@ -201,19 +198,39 @@ export function OrdersGanttChart({
   //   }
   // })
 
-  const [page, setPage] = useState(orders.slice(0, +limit))
+  const [page, setPage] = useState(data.slice(0, +limit))
 
   useEffect(() => {
     const start = currentPage * +limit
     const end = start + +limit
-    setPage(orders.slice(start, end))
-  }, [currentPage, limit, orders])
+    setPage(data.slice(start, end))
+  }, [currentPage, limit, data])
 
   const handleLimitChange = (value: string) => {
     setLimit(value as Limit)
     setCurrentPage(0)
-    setPage(orders.slice(0, +value))
+    setPage(data.slice(0, +value))
   }
+
+  // const containerRef = useRef<HTMLDivElement>(null)
+
+  // useEffect(() => {
+  //   const container = containerRef.current
+  //   if (!container) return
+
+  //   const handleWheel = (e: WheelEvent) => {
+  //     if (e.shiftKey) {
+  //       e.preventDefault() // Prevent default scrolling behavior
+  //       container.scrollLeft += e.deltaY // Scroll horizontally instead of vertically
+  //     }
+  //   }
+
+  //   container.addEventListener('wheel', handleWheel, { passive: false })
+
+  //   return () => {
+  //     container.removeEventListener('wheel', handleWheel)
+  //   }
+  // }, [])
 
   return (
     <div className="flex flex-col gap-3">
@@ -223,13 +240,19 @@ export function OrdersGanttChart({
           <Selector value={limit} setValue={handleLimitChange} items={limits} />
         </div>
       </div>
-      <div className="w-full h-[500px]">
+      <div
+        // ref={containerRef}
+        className="w-full h-[500px]"
+      >
         <RcGantt
           data={page}
           locale={enUS}
           startDateKey="receivingDate"
           endDateKey="actualEndDate"
           innerRef={ganttRef}
+          showBackToday={true}
+          onExpand={async () => false}
+          onRow={{ onClick: (record) => false }}
           columns={GanttColumns()}
           scrollTop={true}
           onBarClick={() => false}
@@ -250,8 +273,10 @@ export function OrdersGanttChart({
       <Pagination
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
-        totalPages={Math.ceil(orders.length / +limit)}
+        totalPages={Math.ceil(data.length / +limit)}
       />
     </div>
   )
 }
+
+export default OrdersGanttChart

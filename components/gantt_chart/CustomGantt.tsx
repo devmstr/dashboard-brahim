@@ -55,7 +55,7 @@ const CustomGantt: React.FC<CustomGanttProps> = ({ tasks }) => {
         tree: true,
         width: 200,
         template: (task: Task) => {
-          return `<h3" class="gantt-article-link">${task.text}</h3>`
+          return `<span" class="gantt-article-link">${task.text}</span>`
         }
       },
       {
@@ -98,6 +98,25 @@ const CustomGantt: React.FC<CustomGanttProps> = ({ tasks }) => {
       gantt.detachAllEvents()
     }
   }, [tasks, router])
+
+  useEffect(() => {
+    const container = ganttContainer.current
+    if (!container) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.shiftKey) {
+        e.preventDefault()
+        const scrollAmount = e.deltaY
+        gantt.scrollTo(gantt.getScrollState().x + scrollAmount, null)
+      }
+    }
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel)
+    }
+  }, [])
 
   return <div ref={ganttContainer} style={{ width: '100%', height: '500px' }} />
 }

@@ -4,22 +4,26 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
   {
     title: 'Tableau De Board',
     href: '/dashboard',
-    icon: 'dashboard'
+    icon: 'dashboard',
+    key: 'dashboard'
   },
   {
     title: 'Nouveau',
     href: '/dashboard/new',
-    icon: 'packagePlus'
+    icon: 'packagePlus',
+    key: 'new'
   },
   {
     title: 'Planning',
     href: '/dashboard/timeline',
-    icon: 'gantt'
+    icon: 'gantt',
+    key: 'timeline'
   },
   {
     title: 'Commandes',
     href: '/dashboard/orders',
-    icon: 'orders'
+    icon: 'orders',
+    key: 'orders'
   },
 
   // {
@@ -30,16 +34,19 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
   {
     title: 'Clients',
     href: '/dashboard/clients',
-    icon: 'clients'
+    icon: 'clients',
+    key: 'clients'
   },
   {
     title: 'Véhicule',
     href: '/dashboard/cars',
-    icon: 'car'
+    icon: 'car',
+    key: 'cars'
   },
   {
     title: 'Paramètres',
     href: '/dashboard/settings',
-    icon: 'settings'
+    icon: 'settings',
+    key: 'settings'
   }
 ]

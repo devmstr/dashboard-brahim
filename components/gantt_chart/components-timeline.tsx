@@ -11,8 +11,8 @@ interface Props {
   tasks: Task[]
 }
 
-const Timeline: React.FC<Props> = ({ tasks }) => {
+const ComponentsTimeline: React.FC<Props> = ({ tasks }) => {
   return <DynamicCustomGantt tasks={tasks} />
 }
 
-export default Timeline
+export default ComponentsTimeline

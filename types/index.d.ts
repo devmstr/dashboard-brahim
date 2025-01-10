@@ -34,6 +34,8 @@ export type OrderTableEntry = {
   phone: string
   status: Status
   progress?: number
+  car?: string
+  model?: string
 }
 export type CarsTableEntry = {
   id: string
@@ -80,7 +82,7 @@ export type SidebarNavItem = {
   title: string
   disabled?: boolean
   external?: boolean
-  translationKey?: string
+  key?: string
   icon?: keyof typeof Icons
 } & (
   | {

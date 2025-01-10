@@ -38,7 +38,7 @@ import {
 import Link from 'next/link'
 import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { OrderTableEntry, StockTableEntry } from '@/types'
+import { OrderTableEntry, StockTableEntry, UserRole } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from './ui/use-toast'
@@ -60,6 +60,7 @@ import { usePersistedState } from '@/hooks/ues-persisted-state'
 
 interface OrderTableProps {
   data: OrderTableEntry[]
+  isClientDataAllowed?: boolean
   t: {
     placeholder: string
     columns: string
@@ -67,13 +68,19 @@ interface OrderTableProps {
     deadline: string
     customer: string
     phone: string
+    car: string
+    model: string
     status: string
     progress: string
     limit: string
   }
 }
 
-export function OrderTable({ data, t }: OrderTableProps) {
+export function OrderTable({
+  data,
+  t,
+  isClientDataAllowed = false
+}: OrderTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -98,61 +105,55 @@ export function OrderTable({ data, t }: OrderTableProps) {
     }
   }
 
-  const columns: ColumnDef<OrderTableEntry>[] = [
-    {
-      accessorKey: 'id',
-      header: ({ column }) => {
-        return (
+  const columnsFactory = (isAllowed: boolean): ColumnDef<OrderTableEntry>[] => {
+    let columns: ColumnDef<OrderTableEntry>[] = [
+      {
+        accessorKey: 'id',
+        header: ({ column }) => (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
+            className="flex gap-2 hover:text-primary cursor-pointer"
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center">
+            <Link
+              className="hover:text-secondary hover:font-semibold hover:underline"
+              href={'orders/' + row.original.id}
+            >
+              {row.original.id}
+            </Link>
+          </div>
         )
       },
-      cell: ({ row }) => (
-        <div className="flex items-center">
-          <Link
-            className="hover:text-secondary hover:font-semibold hover:underline"
-            href={'orders/' + row.original.id}
-          >
-            {row.original.id}
-          </Link>
-        </div>
-      )
-    },
-    {
-      accessorKey: 'status',
-      header: ({ column }) => {
-        return (
+      {
+        accessorKey: 'status',
+        header: ({ column }) => (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
+            className="flex gap-2 hover:text-primary cursor-pointer"
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
-        )
+        ),
+        cell: ({ row }) => <StatusBudge variant={row.original.status} />
       },
-      cell: ({ row }) => <StatusBudge variant={row.original.status} />
-    },
-    {
-      accessorKey: 'progress',
-      header: ({ column }) => {
-        return (
+      {
+        accessorKey: 'progress',
+        header: ({ column }) => (
           <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
+            className="flex gap-2 hover:text-primary cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
-        )
-      },
-      cell: ({ row }) => {
-        return (
+        ),
+        cell: ({ row }) => (
           <div className="relative flex justify-start gap-1 items-center">
             <Progress
               value={row.original.progress}
@@ -163,76 +164,152 @@ export function OrderTable({ data, t }: OrderTableProps) {
             </span>
           </div>
         )
+      },
+      {
+        accessorKey: 'deadline',
+        header: ({ column }) => (
+          <div
+            className="flex gap-2 hover:text-primary cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        ),
+        cell: ({ row }) => {
+          const endDate = row.original.deadline
+          return (
+            <div className="flex items-center">
+              {endDate
+                ? format(new Date(endDate), 'dd/MM/yyyy')
+                : 'Non Déterminé'}
+            </div>
+          )
+        }
+      },
+      {
+        accessorKey: 'car',
+        header: ({ column }) => (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="flex gap-2 hover:text-primary cursor-pointer"
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center">{row.original?.car}</div>
+        )
+      },
+      {
+        accessorKey: 'model',
+        header: ({ column }) => (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className="flex gap-2 hover:text-primary cursor-pointer"
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        ),
+        cell: ({ row }) => (
+          <div className="flex items-center">{row.original?.model}</div>
+        )
       }
-    },
+    ]
 
-    {
-      accessorKey: 'deadline',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        const endDate = row.original.deadline
-        return (
-          <div className="flex items-center">
-            {endDate
-              ? format(new Date(endDate), 'dd/MM/yyyy')
-              : 'Non Déterminé'}
-          </div>
-        )
-      }
-    },
-    {
-      accessorKey: 'customer',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        return <div className="flex items-center">{row.original?.customer}</div>
-      }
-    },
-    {
-      accessorKey: 'phone',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        return <div className="flex items-center">{row.original?.phone}</div>
-      }
-    },
-    {
+    // Conditionally add customer and phone columns if isAllowed is true
+    if (isAllowed) {
+      columns.push(
+        {
+          accessorKey: 'customer',
+          header: ({ column }) => (
+            <div
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === 'asc')
+              }
+              className="flex gap-2 hover:text-primary cursor-pointer"
+            >
+              {t[column.id as keyof typeof t]}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </div>
+          ),
+          cell: ({ row }) => (
+            <div className="flex items-center">{row.original?.customer}</div>
+          )
+        },
+        {
+          accessorKey: 'phone',
+          header: ({ column }) => (
+            <div
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === 'asc')
+              }
+              className="flex gap-2 hover:text-primary cursor-pointer"
+            >
+              {t[column.id as keyof typeof t]}
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </div>
+          ),
+          cell: ({ row }) => (
+            <div className="flex items-center">{row.original?.phone}</div>
+          )
+        }
+      )
+    }
+    // } else {
+    //   columns.push(
+    //     {
+    //       accessorKey: 'car',
+    //       header: ({ column }) => (
+    //         <div
+    //           onClick={() =>
+    //             column.toggleSorting(column.getIsSorted() === 'asc')
+    //           }
+    //           className="flex gap-2 hover:text-primary cursor-pointer"
+    //         >
+    //           {t[column.id as keyof typeof t]}
+    //           <ArrowUpDown className="ml-2 h-4 w-4" />
+    //         </div>
+    //       ),
+    //       cell: ({ row }) => (
+    //         <div className="flex items-center">{row.original?.car}</div>
+    //       )
+    //     },
+    //     {
+    //       accessorKey: 'model',
+    //       header: ({ column }) => (
+    //         <div
+    //           onClick={() =>
+    //             column.toggleSorting(column.getIsSorted() === 'asc')
+    //           }
+    //           className="flex gap-2 hover:text-primary cursor-pointer"
+    //         >
+    //           {t[column.id as keyof typeof t]}
+    //           <ArrowUpDown className="ml-2 h-4 w-4" />
+    //         </div>
+    //       ),
+    //       cell: ({ row }) => (
+    //         <div className="flex items-center">{row.original?.model}</div>
+    //       )
+    //     }
+    //   )
+    // }
+
+    // Always add the actions column at the end
+    columns.push({
       id: 'actions',
       enableHiding: false,
       cell: ({ row }) => (
         <Actions id={row.original.id} onDelete={handleDelete} />
       )
-    }
-  ]
+    })
 
+    return columns
+  }
+
+  const columns = columnsFactory(isClientDataAllowed)
   const table = useReactTable({
     data,
     columns,

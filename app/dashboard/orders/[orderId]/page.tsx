@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { OrderMetaForm } from './_components/order-meta.form'
 import CustomGantt from '@/components/gantt_chart/CustomGantt'
 import { Task } from '@/types/gantt'
-import Timeline from '@/components/gantt_chart/timeline'
+import ComponentsTimeline from '@/components/gantt_chart/components-timeline'
 import { signIn, useSession } from 'next-auth/react'
 import { useServerUser } from '@/hooks/useServerUser'
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
@@ -93,39 +93,53 @@ const Page: React.FC<PageProps> = async ({
 }: PageProps) => {
   const user = await useServerUser()
   if (!user) return signIn()
-  const isSalesUser = await useServerCheckRoles('SALES')
+  const isUserRoleSales = await useServerCheckRoles('SALES')
+  const isUserRoleEngineer = await useServerCheckRoles('ENGINEER')
+  const isUserRoleProduction = await useServerCheckRoles('PRODUCTION')
   return (
     <div className="space-y-4">
-      {isSalesUser && (
+      {isUserRoleSales && (
         <Card className="">
           <OrderMetaForm data={{ id: orderId }} />
         </Card>
       )}
-      <Card className="">
-        <Tabs defaultValue="table" className="space-y-4">
-          <div className="py-1 ">
-            <TabsList className="grid w-fit grid-cols-2 ">
-              <TabsTrigger className="flex gap-1" value="table">
-                <Icons.table className="h-4 w-auto rotate-180" /> Table
-              </TabsTrigger>
-              <TabsTrigger className="flex gap-1" value="timeline">
-                <Icons.gantt className="h-4 w-auto" /> Planning
-              </TabsTrigger>
-            </TabsList>
+      {isUserRoleEngineer && (
+        <Card className="">
+          <div className="flex items-center justify-between select-none">
+            <span className="absolute -top-0 left-6 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+              articles
+            </span>
           </div>
-          <TabsContent value="table" className="relative">
-            <div className="flex items-center justify-between select-none">
-              <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-                articles
-              </span>
+          <OrderComponentsTable t={t} data={testData} />
+        </Card>
+      )}
+      {(isUserRoleSales || isUserRoleProduction) && (
+        <Card className="">
+          <Tabs defaultValue="table" className="space-y-4">
+            <div className="py-1 ">
+              <TabsList className="grid w-fit grid-cols-2 ">
+                <TabsTrigger className="flex gap-1" value="table">
+                  <Icons.table className="h-4 w-auto rotate-180" /> Table
+                </TabsTrigger>
+                <TabsTrigger className="flex gap-1" value="timeline">
+                  <Icons.gantt className="h-4 w-auto" /> Planning
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <OrderComponentsTable t={t} data={testData} />
-          </TabsContent>
-          <TabsContent className="space-y-4" value="timeline">
-            <Timeline tasks={tasks} />
-          </TabsContent>
-        </Tabs>
-      </Card>
+            <TabsContent value="table" className="relative">
+              <div className="flex items-center justify-between select-none">
+                <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+                  articles
+                </span>
+              </div>
+              <OrderComponentsTable t={t} data={testData} />
+            </TabsContent>
+            <TabsContent className="space-y-4" value="timeline">
+              <ComponentsTimeline tasks={tasks} />
+            </TabsContent>
+          </Tabs>
+        </Card>
+      )}
     </div>
   )
 }

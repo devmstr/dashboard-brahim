@@ -5,17 +5,34 @@ import { LinkerList } from './breadcrumb'
 import { Loading } from './loading'
 import { SidebarButton } from './sidebar-button'
 import { UserAccountNav } from './user-account-nav'
+import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
 
 interface DashboardNavProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export const DashboardNav = async (props: DashboardNavProps) => {
   const user = await useServerUser()
-  if (!user) return <Loading />
+  const isUserRoleAdmin = await useServerCheckRoles('ADMIN')
+  const isUserRoleSales = await useServerCheckRoles('SALES')
+  const isUserRoleProduction = await useServerCheckRoles('PRODUCTION')
+  const isUserRoleEngineer = await useServerCheckRoles('ENGINEER')
+
   let linkedList = LAYOUT_LINKS
-  if (user.role !== 'ADMIN')
+
+  if (!isUserRoleAdmin)
     linkedList = linkedList.filter(
       (i) => i.href?.replaceAll('/', '') != 'dashboard'
     )
+  if (isUserRoleProduction || isUserRoleEngineer)
+    linkedList = linkedList.filter(({ key }) =>
+      ['orders', 'settings'].includes(key as string)
+    )
+  if (isUserRoleSales)
+    linkedList = linkedList.filter(({ key }) =>
+      ['new', 'timeline', 'orders', 'clients', 'settings'].includes(
+        key as string
+      )
+    )
+  if (!user) return <Loading />
   return (
     <div {...props}>
       <div className="flex gap-1 items-center">

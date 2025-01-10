@@ -86,8 +86,10 @@ export function CoreProgressTracker({ data }: Props) {
   return (
     <div className=" p-6 space-y-8">
       <div className="space-y-1">
-        <h1 className="text-2xl text-primary font-medium">{data?.id}</h1>
-        <h2 className="text-lg text-primary/60 font-medium mb-6">
+        <h1 className="text-2xl text-primary font-medium select-none">
+          {data?.id}
+        </h1>
+        <h2 className="text-lg text-primary/60 font-medium mb-6 select-none">
           {parts?.map((part, index) => (
             <React.Fragment key={index}>
               {part}
@@ -101,12 +103,12 @@ export function CoreProgressTracker({ data }: Props) {
       <div className="flex  flex-col lg:flex-row items-center gap-6">
         <div className="min-w-1/5 w-1/2 lg:w-1/3">
           <CircularProgressBar progress={progress} strokeWidthRatio={0.1}>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-2 min-w-24">
               <span className="text-3xl sm:text-5xl  font-bold">
                 {progress}%{' '}
               </span>
               <Badge
-                className="w-full flex justify-center"
+                className="w-full flex justify-center text-md"
                 variant={isReady ? 'default' : 'secondary'}
               >
                 {isReady ? 'Terminé' : 'En Cours'}
