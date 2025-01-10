@@ -1,14 +1,51 @@
 import { Card } from '@/components/card'
 import { ClientTable } from '@/components/client-table'
 import { AddClientDialog } from './add-client.dialog'
+import { AddNewClientDialogButton } from '@/components/add-new-client.button'
+import { SearchComboBox } from '@/components/search-combo-box'
 
 interface Props {}
+
+const locationData = {
+  countries: [
+    {
+      name: 'Algeria',
+      provinces: [
+        {
+          name: 'Adrar',
+          cities: ['Adrar', 'Reggane', 'Timimoun']
+        },
+        {
+          name: 'Chlef',
+          cities: ['Chlef', 'Ténès', 'Boukadir']
+        },
+        {
+          name: 'Ghardaia',
+          cities: [
+            'Ghardaia',
+            'Metlili',
+            'El Meniaa',
+            'Zelfana',
+            'Mansoura',
+            'Bonoura',
+            'Oued Nacho',
+            'Berriane',
+            'Hassi Guegnoun',
+            'El Atteuf',
+            "M'Ghira",
+            'El Mahmel'
+          ]
+        }
+      ]
+    }
+  ]
+}
 
 const Page: React.FC<Props> = ({}: Props) => {
   return (
     <Card className="">
       <div className="flex justify-end items-center gap-3 mb-5">
-        <AddClientDialog id={''} />
+        <AddNewClientDialogButton locationData={locationData} />
       </div>
       <ClientTable
         t={{

@@ -56,7 +56,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import Cookies from 'js-cookie'
-import { usePersistedState } from '@/hooks/ues-persisted-state'
+import { usePersistedState } from '@/hooks/use-persisted-state'
 
 interface Props {
   data: CarsTableEntry[]

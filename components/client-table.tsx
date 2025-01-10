@@ -1,20 +1,4 @@
 'use client'
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable
-} from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
-import Image from 'next/image'
-import * as React from 'react'
-import { format, setYear } from 'date-fns'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -35,15 +19,25 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import Link from 'next/link'
-import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { ClientTableEntry, StockTableEntry } from '@/types'
+import { ClientTableEntry } from '@/types'
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from '@tanstack/react-table'
+import { ArrowUpDown, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import * as React from 'react'
+import { Icons } from './icons'
 // import useClientApi from '@/hooks/use-axios-auth'
-import { useRouter } from 'next/navigation'
-import { toast } from './ui/use-toast'
-import { Progress } from './progress'
-import { StatusBudge } from './status-badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,7 +49,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import { usePersistedState } from '@/hooks/ues-persisted-state'
+import { usePersistedState } from '@/hooks/use-persisted-state'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   data: ClientTableEntry[]

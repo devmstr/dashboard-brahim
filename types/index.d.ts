@@ -101,4 +101,12 @@ export type SocialMediaConfig = {
 
 export type Dictionary = Record<string, string>
 
-declare type UserRole = Uppercase<'admin' | 'sales' | 'production' | 'engineer'>
+declare type UserRole = Uppercase<
+  | 'admin'
+  | 'sales'
+  | 'production'
+  | 'production_manager'
+  | 'engineer'
+  | 'validator'
+  | 'sales_manager'
+>

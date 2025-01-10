@@ -32,7 +32,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
     )
   if (isUserRoleSales)
     linkedList = linkedList.filter(({ key }) =>
-      ['new', 'timeline', 'orders', 'clients', 'settings'].includes(
+      ['new', 'timeline', 'orders', 'clients', 'cars', 'settings'].includes(
         key as string
       )
     )
