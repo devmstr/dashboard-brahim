@@ -25,6 +25,7 @@ interface SearchComboBoxProps {
   onSelect: (value: string) => void
   className?: string
   selected: string
+  isInSideADialog?: boolean
 }
 
 export function SearchComboBox({
@@ -32,7 +33,8 @@ export function SearchComboBox({
   placeholder = 'Sélectionner un élément...',
   onSelect,
   className,
-  selected
+  selected,
+  isInSideADialog = false
 }: SearchComboBoxProps) {
   const [open, setOpen] = React.useState(false)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
@@ -69,6 +71,7 @@ export function SearchComboBox({
         align="start"
         sideOffset={5}
         style={{ width: buttonWidth ? `${buttonWidth}px` : 'auto' }}
+        usePortal={!isInSideADialog}
       >
         <Command>
           <CommandInput

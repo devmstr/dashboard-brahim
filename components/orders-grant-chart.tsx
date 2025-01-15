@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation'
 import { cn, dateDiff } from '@/lib/utils'
 import dayjs from 'dayjs'
 import { useMutation } from '@tanstack/react-query'
-import { moveChartRecord } from '@/lib/actions'
+// import { moveChartRecord } from '@/lib/actions'
 import type { DefaultRecordType, Gantt } from 'rc-gantt/dist/types/types'
 import Link from 'next/link'
 

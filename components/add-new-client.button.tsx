@@ -47,12 +47,6 @@ export function AddNewClientDialogButton({
         onSubmit={handleSubmit}
         isLoading={isLoading}
         locationData={locationData}
-        defaultValues={{
-          isCompany: false,
-          country: 'Algeria',
-          province: 'Ghardaia',
-          city: 'Ghardaia'
-        }}
       />
     </DialogWrapper>
   )

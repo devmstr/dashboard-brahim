@@ -24,14 +24,23 @@ type ProductionStep = {
 
 const productionSteps: ProductionStep[] = [
   {
-    title: 'Conception et Prototypage',
-    weight: 30,
-    owners: ['ENGINEER']
+    title: 'Diagnostique',
+    weight: 10,
+    owners: ['ENGINEER', 'PRODUCTION']
   },
-  { title: 'Préparation des Matériaux', weight: 10, owners: ['PRODUCTION'] },
-  { title: 'Tubes & Ailettes', weight: 10, owners: ['PRODUCTION'] },
-  { title: 'Fabrication', weight: 10, owners: ['PRODUCTION'] },
+  {
+    title: 'Conceptions',
+    weight: 20,
+    owners: ['ENGINEER', 'PRODUCTION']
+  },
+  { title: 'Les Boites', weight: 10, owners: ['PRODUCTION'] },
+  {
+    title: 'Préparation (tubes,ailette,machine)',
+    weight: 10,
+    owners: ['PRODUCTION']
+  },
   { title: 'Assemblage', weight: 20, owners: ['PRODUCTION'] },
+  { title: 'Montage', weight: 10, owners: ['PRODUCTION'] },
   { title: 'Essai', weight: 8, owners: ['PRODUCTION'] },
   { title: 'Peinture', weight: 8, owners: ['PRODUCTION'] },
   { title: 'Emballage', weight: 4, owners: ['PRODUCTION'] }

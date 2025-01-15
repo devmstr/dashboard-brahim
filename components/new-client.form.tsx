@@ -21,7 +21,6 @@ import {
 import { Separator } from './ui/separator'
 import { Button } from './ui/button'
 import { Icons } from './icons'
-import { useServerUser } from '@/hooks/useServerUser'
 import { useEffect, useMemo, useState } from 'react'
 import { SearchComboBox } from './search-combo-box'
 
@@ -32,15 +31,13 @@ export type LocationData = {
 interface Props {
   locationData: LocationData
   onSubmit: (data: ClientSchemaType) => Promise<void>
-  defaultValues?: Partial<ClientSchemaType>
   isLoading?: boolean
 }
 
 export const NewClientForm: React.FC<Props> = ({
   locationData,
   onSubmit,
-  isLoading,
-  defaultValues
+  isLoading
 }: Props) => {
   const form = useForm<ClientSchemaType>({
     resolver: zodResolver(clientSchema),
@@ -48,8 +45,7 @@ export const NewClientForm: React.FC<Props> = ({
       isCompany: false,
       country: 'Algeria',
       province: 'Ghardaia',
-      city: 'Ghardaia',
-      ...defaultValues
+      city: 'Ghardaia'
     }
   })
   const { field: countryField } = useController({
@@ -366,6 +362,7 @@ export const NewClientForm: React.FC<Props> = ({
                         form.setValue('country', value)
                       }}
                       className="w-full"
+                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -387,6 +384,7 @@ export const NewClientForm: React.FC<Props> = ({
                         form.setValue('province', value)
                       }}
                       className="w-full"
+                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -408,6 +406,7 @@ export const NewClientForm: React.FC<Props> = ({
                         form.setValue('city', value)
                       }}
                       className="w-full"
+                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />

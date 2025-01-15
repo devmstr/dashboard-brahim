@@ -59,9 +59,7 @@ export const LinkLineList: React.FC<Props> = ({ items, t }: Props) => {
                         : 'opacity-70 '
                     )}
                   >
-                    {item.translationKey && t[item.translationKey]
-                      ? t[item.translationKey]
-                      : item.title}
+                    {item.key && t[item.key] ? t[item.key] : item.title}
                   </div>
                 </div>
 

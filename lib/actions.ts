@@ -35,32 +35,32 @@ const addDays = (date: string, days: number): string => {
   return resultDate.toISOString()
 }
 
-export const moveChartRecord = async ({
-  row,
-  startDate: newStartDate,
-  endDate: newEndDate
-}: {
-  row: Pick<
-    TimelineOrderRecord,
-    'id' | 'receivingDate' | 'startDate' | 'endDate' | 'actualEndDate'
-  >
-  startDate: string
-  endDate: string
-}) => {
-  console.log('[Log]: move chart record function ....')
-  const daysDiff = daysBetween(row.receivingDate!, newStartDate)
-  const receivingDate = addDays(row.receivingDate!, daysDiff)
-  const startDate = addDays(row.startDate!, daysDiff)
-  const endDate = addDays(row.endDate!, daysDiff)
-  const actualEndDate = addDays(row.actualEndDate!, daysDiff)
-  // await db.order.update({
-  //   where: { id: row.id },
-  //   data: {
-  //     receivingDate,
-  //     startDate,
-  //     endDate,
-  //     actualEnd: actualEndDate
-  //   }
-  // })
-  revalidatePath('dashboard/timeline')
-}
+// export const moveChartRecord = async ({
+//   row,
+//   startDate: newStartDate,
+//   endDate: newEndDate
+// }: {
+//   row: Pick<
+//     TimelineOrderRecord,
+//     'id' | 'receivingDate' | 'startDate' | 'endDate' | 'actualEndDate'
+//   >
+//   startDate: string
+//   endDate: string
+// }) => {
+//   console.log('[Log]: move chart record function ....')
+//   const daysDiff = daysBetween(row.receivingDate!, newStartDate)
+//   const receivingDate = addDays(row.receivingDate!, daysDiff)
+//   const startDate = addDays(row.startDate!, daysDiff)
+//   const endDate = addDays(row.endDate!, daysDiff)
+//   const actualEndDate = addDays(row.actualEndDate!, daysDiff)
+//   // await db.order.update({
+//   //   where: { id: row.id },
+//   //   data: {
+//   //     receivingDate,
+//   //     startDate,
+//   //     endDate,
+//   //     actualEnd: actualEndDate
+//   //   }
+//   // })
+//   revalidatePath('dashboard/timeline')
+// }

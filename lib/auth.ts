@@ -156,7 +156,7 @@ export const authOptions: AuthOptions = {
       session.user.username = userToken.username as string
       session.user.email = userToken.email as string
       session.user.employeeId = userToken.employeeId as number
-      session.user.role = userToken.role
+      session.user.role = userToken.role as UserRole
       session.user.image = userToken.picture || null
 
       return session
