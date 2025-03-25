@@ -13,6 +13,7 @@ interface Props {
 
 import data from './data.json'
 import { ComponentProductionForm } from './component.production.form'
+import { WorkstationTracker } from '@/components/workstation-tracker'
 const getFakeOrderMetaData = (compId: string) => {
   const comp = data.find((component) => component.id == compId)
   if (comp) return { id: comp.id, title: comp.title }

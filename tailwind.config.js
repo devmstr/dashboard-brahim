@@ -12,9 +12,9 @@ module.exports = {
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: '1.5rem',
       screens: {
-        '2xl': '1400px'
+        '2xl': '1600px'
       }
     },
     extend: {
@@ -72,10 +72,11 @@ module.exports = {
         }
       },
       fontFamily: {
-        fredoka: ['var(--font-fredoka)', ...fontFamily.sans],
-        quicksand: ['var(--font-quicksand)', ...fontFamily.sans],
-        tropical: ['var(--font-tropical-sunday)', ...fontFamily.serif],
-        inter: ['var(--font-inter)', ...fontFamily.sans]
+        inter: ['var(--font-inter)', ...fontFamily.sans],
+        'geist-sans': ['var(--font-geist-sans)'],
+        'geist-mono': ['var(-font-geist-mono)'],
+        poppins: 'var(--font-poppins)',
+        'naskh-arabic': 'var(--font-noto-naskh)'
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',

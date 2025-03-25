@@ -14,6 +14,12 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     key: 'new'
   },
   {
+    title: 'Vente',
+    href: '/dashboard/pos',
+    icon: 'dollar',
+    key: 'pos'
+  },
+  {
     title: 'Planning',
     href: '/dashboard/timeline',
     icon: 'gantt',
@@ -25,12 +31,24 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     icon: 'orders',
     key: 'orders'
   },
-
-  // {
-  //   title: 'Stock',
-  //   href: '/dashboard/stock',
-  //   icon: 'stock'
-  // },
+  {
+    title: 'Inventaire',
+    href: '/dashboard/inventory',
+    icon: 'inventory',
+    key: 'inventory'
+  },
+  {
+    title: 'Base De Données',
+    href: '/dashboard/db',
+    icon: 'database',
+    key: 'db'
+  },
+  {
+    title: 'Registre des Factures',
+    href: '/dashboard/ledger',
+    icon: 'ledger',
+    key: 'ledger'
+  },
   {
     title: 'Clients',
     href: '/dashboard/clients',

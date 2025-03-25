@@ -47,10 +47,10 @@ const testData = [
 ]
 const t = {
   id: 'Matricule',
-  title: 'Titre',
+  title: 'Désignation',
   brand: 'Marque',
   model: 'Model',
-  type: 'Commande',
+  type: 'Type',
   fabrication: 'Fabrication',
   quantity: 'Quantité'
 }
@@ -117,14 +117,16 @@ const Page: React.FC<PageProps> = async ({
         <Card className="">
           <Tabs defaultValue="table" className="space-y-4">
             <div className="py-1 ">
-              <TabsList className="grid w-fit grid-cols-2 ">
-                <TabsTrigger className="flex gap-1" value="table">
-                  <Icons.table className="h-4 w-auto rotate-180" /> Table
-                </TabsTrigger>
-                <TabsTrigger className="flex gap-1" value="timeline">
-                  <Icons.gantt className="h-4 w-auto" /> Planning
-                </TabsTrigger>
-              </TabsList>
+              {isUserRoleProduction && (
+                <TabsList className="grid w-fit grid-cols-2 ">
+                  <TabsTrigger className="flex gap-1" value="table">
+                    <Icons.table className="h-4 w-auto rotate-180" /> Table
+                  </TabsTrigger>
+                  <TabsTrigger className="flex gap-1" value="timeline">
+                    <Icons.gantt className="h-4 w-auto" /> Planning
+                  </TabsTrigger>
+                </TabsList>
+              )}
             </div>
             <TabsContent value="table" className="relative">
               <div className="flex items-center justify-between select-none">

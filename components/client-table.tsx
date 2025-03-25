@@ -20,12 +20,12 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { ClientTableEntry } from '@/types'
+import type { ClientTableEntry } from '@/types'
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -37,7 +37,6 @@ import { ArrowUpDown, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 import { Icons } from './icons'
-// import useClientApi from '@/hooks/use-axios-auth'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,7 +53,7 @@ import { useRouter } from 'next/navigation'
 
 interface Props {
   data: ClientTableEntry[]
-  t: {
+  t?: {
     columns: string
     limit: string
     placeholder: string
@@ -65,9 +64,38 @@ interface Props {
     phone: string
     orderCount: string
   }
+  // New props for configurable UI elements
+  showSearch?: boolean
+  showColumnSelector?: boolean
+  showLimitSelector?: boolean
+  showPaginationButtons?: boolean
+  // Replace customActions with renderActions
+  renderActions?: (rowData: ClientTableEntry) => React.ReactNode
+  onDelete?: (id: string) => Promise<void>
+  className?: string
 }
 
-export function ClientTable({ data, t }: Props) {
+export function ClientTable({
+  data,
+  t = {
+    orderCount: 'Commandes',
+    columns: 'Colonnes',
+    limit: 'Limite',
+    placeholder: 'Rechercher ...',
+    id: 'Matricule',
+    label: 'F.Juridique',
+    name: 'Client',
+    phone: 'Tél',
+    location: 'Location'
+  },
+  showSearch = true,
+  showColumnSelector = true,
+  showLimitSelector = true,
+  showPaginationButtons = true,
+  renderActions,
+  onDelete,
+  className
+}: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -83,6 +111,11 @@ export function ClientTable({ data, t }: Props) {
   const { refresh } = useRouter()
 
   const handleDelete = async (orderId: string) => {
+    if (onDelete) {
+      await onDelete(orderId)
+      return
+    }
+
     try {
       const res = await fetch(`/api/clients/${orderId}`, {
         method: 'DELETE'
@@ -153,9 +186,50 @@ export function ClientTable({ data, t }: Props) {
           </div>
         )
       },
-      cell: ({ row }) => {
-        const phone = row.original.phone || ''
-        return <div className="flex items-center">{phone}</div>
+      cell: ({
+        row: {
+          original: { phone }
+        }
+      }) => (
+        <div className="flex items-center">
+          {phone.replace(/(\d{4})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4 ')}
+        </div>
+      )
+    },
+
+    {
+      accessorKey: 'label',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { label }
+        }
+      }) => {
+        return <div className="">{label}</div>
+      }
+    },
+    {
+      accessorKey: 'orderCount',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
       }
     },
     {
@@ -178,53 +252,20 @@ export function ClientTable({ data, t }: Props) {
       }
     },
     {
-      accessorKey: 'label',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({
-        row: {
-          original: { label }
-        }
-      }) => {
-        if (label === 'START UP') return <div className="">{label}</div>
-        const regex = /\(([^)]*)\)/g
-        const abbreviation = label?.match(regex)?.at(0)
-        return (
-          <div className="">{abbreviation?.replace(/\(|\)/g, '') || '/'}</div>
-        )
-      }
-    },
-    {
-      accessorKey: 'orderCount',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      }
-    },
-    {
       id: 'actions',
       enableHiding: false,
-      cell: ({
-        row: {
-          original: { id }
+      header: () => (
+        <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
+      ),
+      cell: ({ row }) => {
+        // If renderActions is provided, call it with the row data
+        if (renderActions) {
+          return renderActions(row.original)
         }
-      }) => <Actions id={id} onDelete={handleDelete} />
+
+        // Otherwise, use the default Actions component
+        return <Actions id={row.original.id} onDelete={handleDelete} />
+      }
     }
   ]
 
@@ -253,82 +294,92 @@ export function ClientTable({ data, t }: Props) {
   })
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between pb-4">
-        <div className="flex gap-3">
-          <Input
-            placeholder={t['placeholder']}
-            value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
-            onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
-            className="w-80"
-          />
-          <div className="hidden md:flex gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="ml-auto text-muted-foreground hover:text-foreground"
-                >
-                  {t['columns'] || 'Columns'}{' '}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize text-muted-foreground hover:text-foreground "
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
-                      >
-                        {t[column.id as keyof typeof t]}
-                      </DropdownMenuCheckboxItem>
-                    )
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="
-                text-muted-foreground hover:text-foreground
-              "
-                >
-                  {t['limit'] || 'Limit'} ({limit}){' '}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="">
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={limit.toString()}
-                  onValueChange={(value) => setLimit(parseInt(value))}
-                >
-                  {['10', '25', '50', '100'].map((value) => (
-                    <DropdownMenuRadioItem
-                      className={cn(
-                        'text-muted-foreground font-medium hover:text-primary',
-                        limit === parseInt(value) && 'text-primary'
-                      )}
-                      key={value}
-                      value={value}
+    <div className={cn('w-full', className)}>
+      {(showSearch || showColumnSelector || showLimitSelector) && (
+        <div className="flex items-center justify-between pb-4">
+          <div className="flex gap-3">
+            {showSearch && (
+              <Input
+                placeholder={t['placeholder']}
+                value={table.getState().globalFilter ?? ''}
+                onChange={(event) => table.setGlobalFilter(event.target.value)}
+                className="w-80"
+              />
+            )}
+            <div className="hidden md:flex gap-3">
+              {showColumnSelector && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="ml-auto text-muted-foreground hover:text-foreground"
                     >
-                      {value}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                      {t['columns'] || 'Columns'}{' '}
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={column.id}
+                            className="capitalize text-muted-foreground hover:text-foreground "
+                            checked={column.getIsVisible()}
+                            onCheckedChange={(value) =>
+                              column.toggleVisibility(!!value)
+                            }
+                          >
+                            {t[column.id as keyof typeof t]}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {showLimitSelector && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="
+                    text-muted-foreground hover:text-foreground
+                  "
+                    >
+                      {t['limit'] || 'Limit'} ({limit}){' '}
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="">
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup
+                      value={limit.toString()}
+                      onValueChange={(value) =>
+                        setLimit(Number.parseInt(value))
+                      }
+                    >
+                      {['10', '25', '50', '100'].map((value) => (
+                        <DropdownMenuRadioItem
+                          className={cn(
+                            'text-muted-foreground font-medium hover:text-primary',
+                            limit === Number.parseInt(value) && 'text-primary'
+                          )}
+                          key={value}
+                          value={value}
+                        >
+                          {value}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
           <TableHeader>
@@ -401,26 +452,28 @@ export function ClientTable({ data, t }: Props) {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+      {showPaginationButtons && (
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
@@ -445,7 +498,7 @@ function Actions({
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={'/dashboard/orders/' + id}
+            href={'/dashboard/clients/' + id}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>

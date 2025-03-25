@@ -1,7 +1,10 @@
-import Invoice from './bill-printable'
-import './print.css'
+import Invoice from './invoice'
 
-export default function Page() {
+export default async function Page({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
   // Sample data
   const items = [
     {
@@ -53,34 +56,33 @@ export default function Page() {
       quantity: 2,
       priceHT: 9000,
       amount: 2 * 9000 // 180000
+    },
+    {
+      id: 8,
+      designation: 'Réparation circuit hydraulique camion 320D',
+      quantity: 2,
+      priceHT: 9000,
+      amount: 2 * 9000 // 180000
     }
   ]
-
+  const { id } = await params
   return (
-    <div className="flex justify-center items-start  min-h-screen py-5  print:py-0 bg-gray-100">
-      <div className=" print:bg-white shadow-2xl rounded-xl print:shadow-none print:rounded-none">
-        <Invoice
-          items={items}
-          invoiceId={'24-2025'}
-          bc="002171"
-          bl={[
-            '20/2025',
-            '21/2025',
-            '22/2025',
-            '23/2025',
-            '25/2025',
-            '26/2025'
-          ]}
-          qrAddress="FACX3DS343"
-          client={{
-            name: 'etp etus souk ahras',
-            address: 'park des travaux publiques w.souk hras',
-            rc: '97/B/0862043',
-            nif: '99747086204393',
-            ai: '471006003'
-          }}
-        />
-      </div>
+    <div className="flex w-fit  justify-center items-start  min-h-screen  justify mx-auto">
+      <Invoice
+        items={items}
+        invoiceId={id}
+        paymentMode="Versement (Banque)"
+        bc="002171"
+        bl={['20/2025', '21/2025', '22/2025', '23/2025', '25/2025', '26/2025']}
+        qrAddress="FACX3DS343"
+        client={{
+          name: 'etp etus souk ahras',
+          address: 'park des travaux publiques w.souk hras',
+          rc: '97/B/0862043',
+          nif: '99747086204393',
+          ai: '471006003'
+        }}
+      />
     </div>
   )
 }

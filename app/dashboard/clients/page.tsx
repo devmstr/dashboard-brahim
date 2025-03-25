@@ -6,68 +6,45 @@ import { SearchComboBox } from '@/components/search-combo-box'
 
 interface Props {}
 
-const locationData = {
-  countries: [
-    {
-      name: 'Algeria',
-      provinces: [
-        {
-          name: 'Adrar',
-          cities: ['Adrar', 'Reggane', 'Timimoun']
-        },
-        {
-          name: 'Chlef',
-          cities: ['Chlef', 'Ténès', 'Boukadir']
-        },
-        {
-          name: 'Ghardaia',
-          cities: [
-            'Ghardaia',
-            'Metlili',
-            'El Meniaa',
-            'Zelfana',
-            'Mansoura',
-            'Bonoura',
-            'Oued Nacho',
-            'Berriane',
-            'Hassi Guegnoun',
-            'El Atteuf',
-            "M'Ghira",
-            'El Mahmel'
-          ]
-        }
-      ]
-    }
-  ]
-}
-
 const Page: React.FC<Props> = ({}: Props) => {
   return (
     <Card className="">
       <div className="flex justify-end items-center gap-3 mb-5">
-        <AddNewClientDialogButton locationData={locationData} />
+        <AddNewClientDialogButton />
       </div>
       <ClientTable
-        t={{
-          orderCount: 'N°Commandes',
-          columns: 'Colonnes',
-          limit: 'Limite',
-          placeholder: 'Rechercher ...',
-          id: 'Matricule',
-          label: 'Forme Juridique',
-          name: 'Client',
-          phone: 'Tél',
-          location: 'Location'
-        }}
         data={[
           {
             id: 'CLX24DF4T',
             name: 'Mohamed',
             phone: '0658769361',
-            label:
-              'START UPEntreprise unipersonnelle à responsabilité limitée (EURL)',
-            location: 'Ghardia',
+            label: '(SARL) GoldenRad ',
+            location: 'Ghardaïa',
             orderCount: 10
+          },
+          {
+            id: 'CLX89GJ7K',
+            name: 'Amine',
+            phone: '0667321984',
+            label: '(EURL) Tech Innov',
+            location: 'Alger',
+            orderCount: 15
+          },
+          {
+            id: 'CLX56TY9P',
+            name: 'Nassim',
+            phone: '0558743621',
+            label: '(SARL) BuildProSociété',
+            location: 'Oran',
+            orderCount: 8
+          },
+          {
+            id: 'CLX77MN3Q',
+            name: 'Yacine',
+            phone: '0678125496',
+            label: '(SAS) GreenAgro',
+            location: 'Constantine',
+            orderCount: 20
           }
         ]}
       />

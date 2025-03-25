@@ -1,8 +1,9 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { Mouse, Printer } from 'lucide-react'
+import { Pencil, Printer } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import Image from 'next/image'
+import { useReactToPrint } from 'react-to-print'
 import {
   Table,
   TableBody,
@@ -15,16 +16,30 @@ import { format } from 'date-fns'
 import { Separator } from '@/components/ui/separator'
 import { amountToWords, calculateBillingSummary, cn } from '@/lib/utils'
 import { useRef, useState, useEffect, useMemo } from 'react'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { useScrollProgress } from '@/hooks/use-scroll'
 import { Input } from '@/components/ui/input'
-import { InvoiceItem } from '@/types'
+import type { InvoiceItem } from '@/types'
+import './print.css'
+import { Icons } from '@/components/icons'
+import { useRouter } from 'next/navigation'
+import { PAYMENT_TYPES } from '@/config/global'
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from '@/components/ui/select'
+import { Content } from '@tiptap/react'
+import { MdEditor } from '@/components/md-editor'
+import { Textarea } from '@/components/ui/textarea'
 
 interface InvoiceProps {
   invoiceId: string
   qrAddress: string
   bc: string
   bl: string[]
+  paymentMode: string
   client: {
     name: string
     address: string
@@ -41,6 +56,7 @@ const ITEMS_PER_PRINT_PAGE = 13
 export default function Invoice({
   invoiceId,
   qrAddress,
+  paymentMode,
   bc,
   bl,
   client,
@@ -50,22 +66,44 @@ export default function Invoice({
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollYProgress = useScrollProgress(scrollRef)
   const [showScrollIndicator, setShowScrollIndicator] = useState(true)
-  const [guaranteeRefund, setGuaranteeRefund] = useState<number>()
-  const [discountPercentage, setDiscountPercentage] = useState<number>()
-  const [stampTax, setStampTax] = useState<number>()
+  const [note, setNote] = useState<string>()
+  const [data, setData] = useState<InvoiceItem[]>(items)
+  const [refundRate, setRefundRate] = useState<number>()
+  const [discountRate, setDiscountRate] = useState<number>()
+  const [stampTaxRate, setStampTaxRate] = useState<number>(
+    paymentMode == 'Versement (Banque)' ? 0 : 0.01
+  )
+  const [editingItemId, setEditingItemId] = useState<number | null>(null)
+  const [paymentType, setPaymentType] = useState(PAYMENT_TYPES[1])
 
+  const [editedDescriptions, setEditedDescriptions] = useState<
+    Record<string, string>
+  >({})
+  const componentRef = useRef<HTMLDivElement>(null)
   const billingSummary = useMemo(
     () =>
       calculateBillingSummary(items, {
-        discountRate: discountPercentage,
-        guaranteeRefundAmount: guaranteeRefund,
-        stampTaxRate: stampTax,
+        discountRate: discountRate,
+        refundRate: refundRate,
+        stampTaxRate: stampTaxRate,
         vatRate: 0.19
       }),
-    [items, discountPercentage, guaranteeRefund, stampTax]
+    [items, discountRate, refundRate, stampTaxRate]
   )
 
-  const { remise, rg, timbre, totalHTA_DED, totalHT, totalTTC, tva } =
+  // Handle payment type change
+  const handlePaymentTypeChange = (value: string) => {
+    setPaymentType(value)
+
+    // If payment type is Espèces or Espèces + Versement, set stampTaxRate to 0.01 (1%)
+    if (value === 'Espèces' || value === 'Espèces + Versement') {
+      setStampTaxRate(0.01)
+    } else {
+      setStampTaxRate(0)
+    }
+  }
+
+  const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
     billingSummary
 
   useEffect(() => {
@@ -75,9 +113,29 @@ export default function Invoice({
     return () => unsubscribe()
   }, [scrollYProgress])
 
-  const handlePrint = () => {
-    window.print()
-  }
+  // Create a modified items array that includes any edited descriptions
+  useMemo(() => {
+    return items.map((item) => ({
+      ...item,
+      designation: editedDescriptions[item.id] || item.designation
+    }))
+  }, [items, editedDescriptions])
+
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: `Facture-${invoiceId}`,
+    pageStyle: `
+      @page { 
+        size: A4;
+        margin: 0;
+      }
+      @media print {
+        body { 
+          -webkit-print-color-adjust: exact; 
+        }
+      }
+    `
+  })
 
   const renderBillHeader = () => (
     <div className="print-header">
@@ -86,7 +144,7 @@ export default function Invoice({
           <div className="w-[5.4rem] h-[5.4rem] translate-y-1">
             <Image
               id="logo-img"
-              className="w-full "
+              className="w-full"
               src={'/images/logo.svg'}
               alt={'company-logo'}
               width={250}
@@ -95,10 +153,10 @@ export default function Invoice({
             />
           </div>
           <div className="text-center font-poppins">
-            <h1 className="text-[2rem] font-extrabold font-poppins translate-y-[6px]">
+            <h1 className="text-[2rem] font-bold font-poppins translate-y-[6px]">
               SARL SO.NE.RA.S
             </h1>
-            <p className="text-[1.56rem] font-bold font-naskh-arabic ">
+            <p className="text-[1.57rem] font-bold font-naskh-arabic ">
               ش . ذ . م . م . صونيـراس
             </p>
             <p className="text-xl font-poppins ">Capital: 104 002 000.00</p>
@@ -158,7 +216,7 @@ export default function Invoice({
           </p>
         </div>
         <div className="text-center ">
-          <h2 className="text-3xl -translate-y-1 font-semibold font-poppins">
+          <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
             FACTURE: {invoiceId}
           </h2>
         </div>
@@ -199,7 +257,7 @@ export default function Invoice({
 
   const renderBillFooter = (props?: { page?: number; pages?: number }) => (
     <div className="print-footer  flex flex-col mt-auto font-poppins text-xs">
-      <div className="hidden print:block text-right">
+      <div className="text-right">
         <p>
           Page: {props?.page}|
           <span className="text-muted-foreground">{props?.pages}</span>
@@ -258,12 +316,12 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between',
-                !discountPercentage && !rg && 'print:hidden'
+                !discountRate && !refund && 'print:hidden'
               )}
             >
-              <span>TOTAL H.T A/DED</span>
+              <span>TOTAL BRUTE H.T</span>
               <span className="w-[6.5rem] pl-2">
-                {Number(totalHTA_DED.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(Total.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -272,22 +330,21 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between border-t-[1.6px] pt-[1px]',
-                !discountPercentage && 'print:hidden'
+                !discountRate && 'print:hidden'
               )}
             >
               <div className="flex gap-1 items-center">
                 <span>REMISE </span>
                 <Input
                   value={
-                    discountPercentage
-                      ? (discountPercentage * 100).toFixed()
-                      : undefined
+                    discountRate ? (discountRate * 100).toFixed() : undefined
                   }
                   type="number"
                   name="discount-percentage"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (Number(v) < 25) setDiscountPercentage(Number(v) / 100)
+                    if (Number(v) < 25 && Number(v) >= 0)
+                      setDiscountRate(Number(v) / 100)
                   }}
                   className={cn(
                     'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
@@ -296,7 +353,7 @@ export default function Invoice({
                 %
               </div>
               <span className="w-[6.5rem] pl-2 font-geist-sans">
-                {Number(remise.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(discount.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -305,26 +362,35 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
-                !rg && 'print:hidden'
+                !refund && 'print:hidden'
               )}
             >
-              <span>R.G</span>
-              <Input
-                value={guaranteeRefund || undefined}
-                type="number"
-                name="guarantee-refund"
-                placeholder="0"
-                onChange={({ target: { value: v } }) => {
-                  if (Number(v) < totalHTA_DED - remise)
-                    setGuaranteeRefund(Number(v))
-                }}
-                className={cn(
-                  'p-0 m-0 w-24 text-start text-muted-foreground print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                )}
-              />
+              <div className="flex gap-1 items-center">
+                <span>R.G</span>
+                <Input
+                  value={refundRate ? (refundRate * 100).toFixed() : undefined}
+                  type="number"
+                  name="guarantee-refund"
+                  placeholder="0"
+                  onChange={({ target: { value: v } }) => {
+                    if (Number(v) < 100 && Number(v) >= 0)
+                      setRefundRate(Number(v) / 100)
+                  }}
+                  className={cn(
+                    'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                  )}
+                />
+                %
+              </div>
+              <span className="w-[6.5rem] pl-2 font-geist-sans">
+                {Number(refund.toFixed(2)).toLocaleString('fr-FR', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}
+              </span>
             </div>
             <div className="flex justify-between border-t-[1.6px] pt-[1px]">
-              <span>TOTAL H.T</span>
+              <span>TOTAL NET H.T</span>
               <span className="w-[6.5rem] pl-2">
                 {Number(totalHT.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
@@ -335,7 +401,7 @@ export default function Invoice({
             <div className="flex justify-between border-t-[1.6px] pt-[1px]">
               <span>TVA 19%</span>
               <span className="w-[6.5rem] pl-2">
-                {Number(tva.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(vat.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -344,19 +410,19 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between border-t-[1.6px] pt-[1px]',
-                !stampTax && 'print:hidden'
+                !stampTaxRate && 'print:hidden'
               )}
             >
               <div className="flex gap-1 items-center">
                 <span>TIMBRE</span>
                 <Input
-                  value={stampTax ? (stampTax * 100).toFixed() : undefined}
+                  value={stampTaxRate ? (stampTaxRate * 100).toFixed() : 0}
                   type="number"
                   name="stamp-tax"
                   placeholder="0"
                   onChange={({ target: { value } }) => {
                     if (Number(value) >= 0 && Number(value) < 2) {
-                      setStampTax(Number(value) / 100)
+                      setStampTaxRate(Number(value) / 100)
                     }
                   }}
                   className={cn(
@@ -367,7 +433,7 @@ export default function Invoice({
               </div>
 
               <span className="w-24 ">
-                {Number(timbre.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(stampTax.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -397,11 +463,34 @@ export default function Invoice({
         <div className="space-y-2 text-sm mt-2">
           <div className="space-y-1">
             <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
-            <p>Espèce Plus Virement</p>
+            <Select value={paymentType} onValueChange={handlePaymentTypeChange}>
+              <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0">
+                <SelectValue placeholder="Sélectionner le mode de paiement" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="space-y-1">
+          <div className={cn('space-y-1', note == '' && 'print:hidden')}>
             <h3 className="font-semibold">REMARQUE</h3>
-            <p>Le client paie 60 % en espèces et 40 % par virement bancaire.</p>
+            <div className="print:hidden">
+              <Textarea
+                className="w-full min-h-20 group"
+                placeholder="Remarque..."
+                value={note}
+                onChange={(e) => {
+                  setNote(e.target.value)
+                }}
+              />
+            </div>
+            <div className="hidden print:block">
+              {note ? <p className="">{note}</p> : null}
+            </div>
           </div>
         </div>
       </div>
@@ -411,7 +500,7 @@ export default function Invoice({
   const renderTable = (pageItems: InvoiceItem[]) => {
     return (
       <Table className="text-sm w-full font-light hide-scrollbar-print ">
-        <TableHeader className="print:table-header-group bg-gray-100 print:bg-gray-300/80 border-y">
+        <TableHeader className="print:table-header-group bg-gray-100  border-y">
           <TableRow className="">
             <TableHead className="px-2 py-2 h-8 w-8 text-left text-black font-medium border-r-[3px] border-white ">
               N°
@@ -434,8 +523,47 @@ export default function Invoice({
           {pageItems.map((item) => (
             <TableRow key={item.id}>
               <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
-              <TableCell className="py-[3px] px-2 h-8">
-                {item.designation}
+              <TableCell className="py-[3px] px-2 h-8 relative">
+                {editingItemId === item.id ? (
+                  <Input
+                    value={editedDescriptions[item.id] || item.designation}
+                    onChange={(e) => {
+                      setEditedDescriptions({
+                        ...editedDescriptions,
+                        [item.id]: e.target.value
+                      })
+                    }}
+                    onBlur={() => setEditingItemId(null)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setEditingItemId(null)
+                      }
+                    }}
+                    autoFocus
+                    className="h-6 py-1 focus-visible:ring-0 ring-0 border-none rounded-none "
+                  />
+                ) : (
+                  <div className="flex items-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
+                      onClick={() => {
+                        setEditingItemId(item.id)
+                        if (!editedDescriptions[item.id]) {
+                          setEditedDescriptions({
+                            ...editedDescriptions,
+                            [item.id]: item.designation
+                          })
+                        }
+                      }}
+                    >
+                      <Pencil className="h-3 w-3" />
+                      <span className="sr-only">Edit description</span>
+                    </Button>
+                    {editedDescriptions[item.id] || item.designation}
+                  </div>
+                )}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
                 {item.quantity}
@@ -455,49 +583,27 @@ export default function Invoice({
       </Table>
     )
   }
-
+  const router = useRouter()
   return (
     <>
       <div
         className={cn(
-          'relative print:bg-transparent flex flex-col min-h-[297mm]  w-[210mm] pt-12 px-9 pb-8  print:hidden font-poppins ',
+          'flex flex-col w-[210mm] gap-8  font-poppins ',
           className
         )}
       >
-        <div className="absolute z-20  top-3 w-full justify-center items-center -translate-x-9 px-9 ">
+        {/* printing button */}
+        <div className="z-20 w-full justify-center items-center  ">
           <Button
-            onClick={handlePrint}
-            className=" w-full  flex gap-2  print:hidden"
+            onClick={() => router.back()}
+            className="w-full flex gap-2 rounded-xl h-12 print:hidden shadow-lg group hover:text-secondary"
             variant="outline"
           >
-            <Printer className="w-4 h-4" />
-            Print
+            <Icons.arrowRight className="mr-2 w-4 rotate-180" />
+            Back
           </Button>
         </div>
-
-        {renderBillHeader()}
-
-        <div className="relative">
-          <ScrollArea
-            ref={scrollRef}
-            className="max-h-[220px] print:h-fit  mt-2 "
-          >
-            {renderTable(items)}
-          </ScrollArea>
-          {showScrollIndicator ||
-            (items.length > 5 && (
-              <div className="absolute z-50 w-full -bottom-4 flex justify-center print:hidden">
-                <Mouse className="w-5 h-5 text-muted-foreground" />
-              </div>
-            ))}
-        </div>
-
-        {renderTotals()}
-        {renderBillFooter()}
-      </div>
-
-      {/* Print-only content */}
-      <div className="hidden print:block print:w-[210mm] print:h-[297mm]">
+        {/* Print-only content */}
         {(() => {
           const pages: InvoiceItem[][] = []
           const totalItems = items.length
@@ -555,18 +661,39 @@ export default function Invoice({
             pages.push(lastPage)
           }
 
-          return pages.map((pageItems, pageIndex) => (
-            <div key={pageIndex} className="print-page font-poppins">
-              {renderBillHeader()}
-              {renderTable(pageItems)}
-              {pageIndex === pages.length - 1 && renderTotals()}
-              {renderBillFooter({
-                page: pageIndex + 1,
-                pages: pages.length
-              })}
+          return (
+            <div
+              ref={componentRef}
+              className="flex flex-col gap-6 print:gap-0 "
+            >
+              {pages.map((pageItems, pageIndex) => (
+                <div
+                  key={pageIndex}
+                  className="h-[297mm] w-[210] font-poppins shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8  bg-white flex flex-col"
+                >
+                  {renderBillHeader()}
+                  {renderTable(pageItems)}
+                  {pageIndex === pages.length - 1 && renderTotals()}
+                  {renderBillFooter({
+                    page: pageIndex + 1,
+                    pages: pages.length
+                  })}
+                </div>
+              ))}
             </div>
-          ))
+          )
         })()}
+        {/* printing button */}
+        <div className="z-20 w-full justify-center items-center  ">
+          <Button
+            onClick={() => handlePrint()}
+            className="w-full flex gap-2 rounded-xl h-12 print:hidden shadow-lg group hover:text-secondary"
+            variant="outline"
+          >
+            <Printer className="w-4 h-4" />
+            Print
+          </Button>
+        </div>
       </div>
     </>
   )

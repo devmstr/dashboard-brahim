@@ -1,20 +1,4 @@
 'use client'
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable
-} from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
-import Image from 'next/image'
-import * as React from 'react'
-import { format, setYear } from 'date-fns'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -35,15 +19,25 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import Link from 'next/link'
-import { Icons } from './icons'
 import { cn } from '@/lib/utils'
-import { StockTableEntry } from '@/types'
+import { ClientTableEntry, ProductPosTableEntry } from '@/types'
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from '@tanstack/react-table'
+import { ArrowUpDown, ChevronDown } from 'lucide-react'
+import Link from 'next/link'
+import * as React from 'react'
+import { Icons } from '@/components/icons'
 // import useClientApi from '@/hooks/use-axios-auth'
-import { useRouter } from 'next/navigation'
-import { toast } from './ui/use-toast'
-import { Progress } from './progress'
-import { StatusBudge } from './status-badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,37 +49,40 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import Cookies from 'js-cookie'
 import { usePersistedState } from '@/hooks/use-persisted-state'
+import { useRouter } from 'next/navigation'
 
 interface Props {
-  data: StockTableEntry[]
+  data: ProductPosTableEntry[]
+  addToCart: (product: any) => void
   t: {
-    placeholder: string
     columns: string
+    limit: string
+    placeholder: string
     id: string
-    title: string
-    quantity: string
+    description: string
+    stock: string
     price: string
     bulkPrice: string
-    limit: string
   }
 }
 
-export function StockTable({ data, t }: Props) {
+export function ProductPosTable({ data, t, addToCart }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [limit, setLimit] = React.useState(10)
+  const [limit, setLimit] = React.useState(8)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
   const [columnVisibility, setColumnVisibility] =
-    usePersistedState<VisibilityState>('stock-table-columns-visibility', {})
+    usePersistedState<VisibilityState>('pos-table-columns-visibility', {})
 
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
 
-  const columns: ColumnDef<StockTableEntry>[] = [
+  const { refresh } = useRouter()
+
+  const columns: ColumnDef<ProductPosTableEntry>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -94,64 +91,82 @@ export function StockTable({ data, t }: Props) {
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
-            {t['id']}
+            {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
       },
-      cell: ({ row }) => (
+      cell: ({
+        row: {
+          original: { id }
+        }
+      }) => (
         <div className="flex items-center">
           <Link
-            className="hover:text-primary hover:underline"
-            href={'partials/' + row.original.id}
+            className="hover:text-secondary hover:font-semibold hover:underline"
+            href={`clients/${id}`}
           >
-            {' '}
-            {row.original.id}
+            {id}
           </Link>
         </div>
       )
     },
     {
-      accessorKey: 'title',
+      accessorKey: 'description',
       header: ({ column }) => {
         return (
           <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { description }
+        }
+      }) => {
+        const regex = /(?<=x)\d+|\d+(?=x)/gi
+        const parts = description.split(regex)
+        const matches = description.match(regex)
+
+        return (
+          <p className="text-muted-foreground  truncate  overflow-hidden whitespace-nowrap">
+            {parts.map((part, index) => (
+              <React.Fragment key={index}>
+                {part}
+                {matches && matches[index] && (
+                  <span className="font-bold text-primary">
+                    {matches[index]}
+                  </span>
+                )}
+              </React.Fragment>
+            ))}
+          </p>
         )
       }
     },
     {
-      accessorKey: 'quantity',
+      accessorKey: 'stock',
       header: ({ column }) => {
         return (
           <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      }
-    },
-    {
-      accessorKey: 'price',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      }
+      },
+      cell: ({
+        row: {
+          original: { stock }
+        }
+      }) => <div className="flex items-center">{stock}</div>
     },
     {
       accessorKey: 'bulkPrice',
@@ -165,12 +180,41 @@ export function StockTable({ data, t }: Props) {
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      }
+      },
+      cell: ({
+        row: {
+          original: { bulkPrice }
+        }
+      }) => <div className="flex items-center">{bulkPrice}</div>
+    },
+    {
+      accessorKey: 'price',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { price }
+        }
+      }) => <div className="flex items-center">{price}</div>
     },
     {
       id: 'actions',
       enableHiding: false,
-      cell: ({ row }) => <Actions id={row.original.id} />
+      cell: ({ row: { original } }) => (
+        <Button onClick={() => addToCart(original)} size="sm" variant="outline">
+          <Icons.packagePlus className="w-4 mr-2" />
+          Ajouter
+        </Button>
+      )
     }
   ]
 
@@ -201,12 +245,12 @@ export function StockTable({ data, t }: Props) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between pb-4">
-        <div className="flex gap-3">
+        <div className="flex gap-3 w-full">
           <Input
             placeholder={t['placeholder']}
             value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
             onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
-            className="w-80"
+            className="min-w-56 w-full"
           />
           <div className="hidden md:flex gap-3">
             <DropdownMenu>
@@ -215,7 +259,7 @@ export function StockTable({ data, t }: Props) {
                   variant="outline"
                   className="ml-auto text-muted-foreground hover:text-foreground"
                 >
-                  {t['columns'] || 'columns'}
+                  {t['columns'] || 'Columns'}{' '}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -247,7 +291,7 @@ export function StockTable({ data, t }: Props) {
                 text-muted-foreground hover:text-foreground
               "
                 >
-                  {t['limit'] || 'Limite'} ({limit}){' '}
+                  {t['limit'] || 'Limit'} ({limit}){' '}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -257,7 +301,7 @@ export function StockTable({ data, t }: Props) {
                   value={limit.toString()}
                   onValueChange={(value) => setLimit(parseInt(value))}
                 >
-                  {['10', '25', '50', '100'].map((value) => (
+                  {['8', '10', '25', '50'].map((value) => (
                     <DropdownMenuRadioItem
                       className={cn(
                         'text-muted-foreground font-medium hover:text-primary',
@@ -285,11 +329,10 @@ export function StockTable({ data, t }: Props) {
                     <TableHead
                       key={header.id}
                       className={cn(
-                        'px-2 py-1 whitespace-nowrap',
-                        header.id === 'customer' && 'hidden sm:table-cell',
-                        header.id === 'status' && 'hidden md:table-cell',
-                        header.id === 'subParts' && 'hidden md:table-cell',
-                        header.id === 'deadline' && 'hidden md:table-cell'
+                        'px-2 py-1',
+                        header.column.id === 'description'
+                          ? 'w-full'
+                          : 'w-fit whitespace-nowrap'
                       )}
                     >
                       {header.isPlaceholder
@@ -316,13 +359,10 @@ export function StockTable({ data, t }: Props) {
                       <TableCell
                         key={cell.id}
                         className={cn(
-                          'py-[0.5rem] pl-3 pr-0',
-                          cell.column.id == 'subParts' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'deadline' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'status' && 'hidden md:table-cell',
-                          cell.column.id == 'customer' && 'hidden sm:table-cell'
+                          'py-[0.5rem] pl-2 pr-3',
+                          cell.column.id === 'description'
+                            ? 'w-full'
+                            : 'w-fit whitespace-nowrap'
                         )}
                       >
                         {flexRender(
@@ -368,79 +408,5 @@ export function StockTable({ data, t }: Props) {
         </div>
       </div>
     </div>
-  )
-}
-
-function Actions({ id }: { id: string }) {
-  const { refresh } = useRouter()
-
-  const onDelete = async (orderId: string) => {
-    try {
-      const res = await fetch(`/api/partials/${orderId}`, {
-        method: 'DELETE'
-      })
-      refresh()
-    } catch (error) {
-      console.log(error)
-    }
-  }
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
-        <Icons.ellipsis className="h-4 w-4" />
-        <span className="sr-only">Open</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
-            )}
-            href={'/dashboard/orders/' + id}
-          >
-            <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant={'ghost'}
-                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
-              >
-                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Are you sure you want to delete this IDP?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Be careful this action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                  <Button
-                    className={cn(
-                      buttonVariants({ variant: 'outline' }),
-                      ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                    )}
-                    onClick={() => onDelete(id)}
-                  >
-                    <Icons.trash className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }

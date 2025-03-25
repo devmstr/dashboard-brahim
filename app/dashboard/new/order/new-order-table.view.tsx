@@ -2,6 +2,7 @@
 
 import { AddComponentDialog } from '@/components/add-component.dialog'
 import { OrderComponentsTable } from '@/components/components.table'
+import { Icons } from '@/components/icons'
 import { useOrder } from '@/components/new-order.provider'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -35,13 +36,15 @@ export const NewOrderTableForm: React.FC<Props> = ({}: Props) => {
         <div className="w-full flex justify-between">
           <Button
             onClick={() => router.push('/dashboard/new')}
-            className={'w-24'}
+            className={'min-w-28'}
             type="submit"
           >
-            {'Précédent'}
+            <Icons.arrowRight className="mr-2 w-4 text-secondary rotate-180" />
+            {'Acheteur'}
           </Button>
-          <Button onClick={() => router.push('payment')} className={'w-24'}>
-            {'Suivant'}
+          <Button onClick={() => router.push('payment')} className={'min-w-28'}>
+            {'Paiement'}
+            <Icons.arrowRight className="ml-2 w-4 text-secondary " />
           </Button>
         </div>
       </div>

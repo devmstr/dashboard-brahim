@@ -52,7 +52,12 @@ import {
   PlusIcon,
   ChevronDownIcon,
   ChevronDownSquare,
-  TableProperties
+  TableProperties,
+  Printer,
+  UserRound,
+  UserPlus,
+  UploadCloud,
+  Database
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackage, LuPackageCheck } from 'react-icons/lu'
@@ -68,13 +73,18 @@ import { FiEdit } from 'react-icons/fi'
 import { TbTruckDelivery } from 'react-icons/tb'
 import { BiCar } from 'react-icons/bi'
 import { FaChartGantt } from 'react-icons/fa6'
+import { LiaFileInvoiceDollarSolid } from 'react-icons/lia'
+import { TbDeviceIpadDollar } from 'react-icons/tb'
 
 import { cn } from '@/lib/utils'
-import clsx from 'clsx'
 
 export type Icon = LucideIcon
 
 export const Icons = {
+  database: Database,
+  ledger: TbDeviceIpadDollar,
+  upload: UploadCloud,
+  printer: Printer,
   gantt: FaChartGantt,
   table: TableProperties,
   car: BiCar,
@@ -85,7 +95,7 @@ export const Icons = {
   ratio: RatioIcon,
   dashboard: LayoutDashboardIcon,
   packagePlus: PackagePlusIcon,
-  stock: Boxes,
+  inventory: Boxes,
   addClient: UserRoundPlusIcon,
   sell: Tag,
   clients: UsersRoundIcon,
@@ -93,7 +103,8 @@ export const Icons = {
     <Puzzle className={cn('scale-95', className)} {...props} />
   ),
   logout: RiLogoutCircleLine,
-  users: UserRoundPlus,
+  userPlus: UserRoundPlus,
+  user: UserRound,
   calculator: AiOutlineCalculator,
   edit: FiEdit,
   package: LuPackage,
@@ -101,7 +112,6 @@ export const Icons = {
   details: ListEnd,
   notification: Bell,
   orders: GanttChartSquare,
-  user: FaUser,
   mail: Mail,
   dropdown: ChevronDown,
   languages: Languages,

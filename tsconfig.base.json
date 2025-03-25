@@ -32,7 +32,8 @@
     ".next/types/**/*.ts",
     "i18n.ts",
     "env.mjs",
-    "./scripts/**/*.ts"
+    "./scripts/**/*.ts",
+    "./types/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }

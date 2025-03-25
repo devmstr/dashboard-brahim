@@ -33,12 +33,12 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
     React.useState<boolean>(false)
   const { push } = useRouter()
 
-  async function onSubmit(data: UserLoginSchemaType) {
+  async function onSubmit({ input, password }: UserLoginSchemaType) {
     startTransaction(async () => {
       try {
         const res = await signIn('singIn', {
-          username: data.input.toLowerCase(),
-          password: data.password,
+          username: input,
+          password: password,
           redirect: false,
           callbackUrl: '/dashboard'
         })

@@ -1,32 +1,12 @@
 'use client'
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable
-} from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
-import Image from 'next/image'
-import * as React from 'react'
-import { format, setYear } from 'date-fns'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -35,19 +15,24 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import Link from 'next/link'
-import { Icons } from './icons'
 import { cn } from '@/lib/utils'
+import { OrderComponentsTableEntry } from '@/types'
 import {
-  OrderComponentsTableEntry,
-  OrderTableEntry,
-  StockTableEntry
-} from '@/types'
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from '@tanstack/react-table'
+import { ArrowUpDown } from 'lucide-react'
+import Link from 'next/link'
+import * as React from 'react'
+import { Icons } from './icons'
 // import useClientApi from '@/hooks/use-axios-auth'
-import { usePathname, useRouter } from 'next/navigation'
-import { toast } from './ui/use-toast'
-import { Progress } from './progress'
-import { StatusBudge } from './status-badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,12 +44,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import Cookies from 'js-cookie'
-import { usePersistedState } from '@/hooks/use-persisted-state'
-import { useOrder } from './new-order.provider'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { newSkuId, PREFIX, SKU_PREFIX } from '@/lib/actions'
 import { NewType } from '@/lib/validations'
+import { usePathname, useRouter } from 'next/navigation'
 import { Dispatch } from 'react'
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
@@ -171,12 +152,12 @@ export function OrderComponentsTable({
           original: { title }
         }
       }) => {
-        const regex = /\d+/g
+        const regex = /(?<=x)\d+|\d+(?=x)/gi
         const parts = title.split(regex)
         const matches = title.match(regex)
 
         return (
-          <p className="text-muted-foreground text-[0.98rem] truncate max-w-xs overflow-hidden whitespace-nowrap">
+          <p className="text-muted-foreground  truncate  overflow-hidden whitespace-nowrap">
             {parts.map((part, index) => (
               <React.Fragment key={index}>
                 {part}

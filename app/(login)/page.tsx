@@ -14,7 +14,7 @@ export default async function LoginPage() {
   if (user) redirect('/dashboard')
   return (
     <div className="relative flex flex-col items-center justify-center h-screen w-full">
-      <div className="container flex justify-center h-[80vh] max-w-5xl p-10">
+      <div className="container flex justify-center min-h-[650px] h-[80vh] max-w-5xl p-10">
         <div className="w-full min-w-fit md:w-1/2 flex justify-center gap-5 bg-background rounded-md md:rounded-l-md h-full p-8  flex-col  space-y-2 drop-shadow-md">
           <div className="flex flex-col space-y-2 text-start">
             <h1 className="text-2xl font-light">{'Bienvenue à'}</h1>

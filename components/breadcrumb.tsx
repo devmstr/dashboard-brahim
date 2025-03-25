@@ -28,7 +28,7 @@ export function LinkerList() {
             <div className="flex items-center gap-1" key={`${index}-${link}`}>
               <BreadcrumbItem>
                 <BreadcrumbLink
-                  className="hover:text-secondary cursor-pointer capitalize"
+                  className="hover:text-secondary cursor-pointer capitalize text-nowrap"
                   onClick={(e) => {
                     e.preventDefault()
                     router.replace(path)

@@ -157,7 +157,7 @@ export const configureGanttScale = () => {
 
     if (currentHour < 8) {
       startDate.setHours(8, 0, 0, 0)
-    } else if (currentHour >= 16) {
+    } else if (currentHour >= 15) {
       startDate.setDate(startDate.getDate() + 1)
       startDate.setHours(8, 0, 0, 0)
     } else {
@@ -179,7 +179,7 @@ export const configureGanttScale = () => {
       currentMinute -= 60
     }
 
-    if (currentHour >= 16) {
+    if (currentHour >= 15) {
       newDate.setDate(newDate.getDate() + 1)
       newDate.setHours(8, 0, 0, 0)
     } else if (currentHour < 8) {
@@ -197,7 +197,7 @@ export const configureGanttScale = () => {
 
     if (currentHour < 8) {
       startDate.setHours(8, 0, 0, 0)
-    } else if (currentHour >= 16) {
+    } else if (currentHour >= 15) {
       startDate.setDate(startDate.getDate() + 1)
       startDate.setHours(8, 0, 0, 0)
     } else {
@@ -212,9 +212,9 @@ export const configureGanttScale = () => {
     let currentHour = nextDate.getHours()
 
     currentHour += inc
-    if (currentHour >= 16) {
+    if (currentHour >= 15) {
       nextDate.setDate(nextDate.getDate() + 1)
-      nextDate.setHours(8 + (currentHour - 16), 0, 0, 0)
+      nextDate.setHours(8 + (currentHour - 15), 0, 0, 0)
     } else if (currentHour < 8) {
       nextDate.setHours(8, 0, 0, 0)
     } else {
@@ -257,7 +257,7 @@ export const configureGanttScale = () => {
 
   // Set working time
   gantt.config.work_time = true
-  gantt.setWorkTime({ hours: ['8:00-16:00'] })
+  gantt.setWorkTime({ hours: ['8:00-15:00'] })
 
   // Adjust task positioning
   gantt.config.correct_work_time = true

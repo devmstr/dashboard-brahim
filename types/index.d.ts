@@ -1,4 +1,6 @@
 import { Icons } from '@/components/icons'
+import { userRoles } from '@/config/global'
+import { Brand, Car, Core } from '@prisma/client'
 
 type NavItem = {
   title: string
@@ -34,8 +36,9 @@ export type OrderTableEntry = {
   phone: string
   status: Status
   progress?: number
-  car?: string
-  model?: string
+  state?: string
+  total?: number
+  items?: number
 }
 export type CarsTableEntry = {
   id: string
@@ -55,12 +58,17 @@ export type OrderComponentsTableEntry = {
   type: string
   quantity: number
 }
-export type StockTableEntry = {
+export type InventoryTableEntry = {
   id: string
-  title: string
+  designation: string
+  barcode?: string
+  brand?: string
+  model?: string
   quantity: number
   price?: number
   bulkPrice?: number
+  bulkPrice?: number
+  bulkPriceThreshold?: number
 }
 
 export type ClientTableEntry = {
@@ -70,6 +78,13 @@ export type ClientTableEntry = {
   name: string
   phone: string
   orderCount?: number
+}
+export type ProductPosTableEntry = {
+  id: string
+  description: string
+  stock: number
+  price: number
+  bulkPrice: number
 }
 
 export type FooterConfig = {
@@ -101,12 +116,42 @@ export type SocialMediaConfig = {
 
 export type Dictionary = Record<string, string>
 
-declare type UserRole = Uppercase<
-  | 'admin'
-  | 'sales'
-  | 'production'
-  | 'production_manager'
-  | 'engineer'
-  | 'validator'
-  | 'sales_manager'
->
+declare type UserRole = Uppercase<(typeof userRoles)[number]>
+
+declare type InvoiceItem = {
+  id: number
+  designation: string
+  quantity: number
+  priceHT: number
+  amount: number
+}
+
+declare type BillingConfig = {
+  discountRate?: number // e.g., 0.03 for 3%
+  refundRate?: number // RG is provided directly as a number
+  vatRate?: number // fixed at 0.19 (19%)
+  stampTaxRate?: number // fixed at 0.01 (1%)
+}
+
+export interface Product {
+  id: string
+  description: string
+  stock: number
+  price: number
+  bulkPrice: number
+  image?: string
+}
+
+export interface CartItem {
+  id: string
+  name: string
+  price: number
+  quantity: number
+}
+
+export interface Customer {
+  id: string
+  name: string
+  company: string
+  phone: string
+}

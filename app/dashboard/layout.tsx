@@ -16,9 +16,18 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
   const isUserRoleAdmin = await useServerCheckRoles('ADMIN')
-  const isUserRoleSales = await useServerCheckRoles('SALES')
-  const isUserRoleProduction = await useServerCheckRoles('PRODUCTION')
-  const isUserRoleEngineer = await useServerCheckRoles('ENGINEER')
+  const isUserRoleSales = await useServerCheckRoles([
+    'SALES_MANAGER',
+    'SALES_AGENT'
+  ])
+  const isUserRoleProduction = await useServerCheckRoles([
+    'PRODUCTION_WORKER',
+    'PRODUCTION_MANAGER'
+  ])
+  const isUserRoleEngineer = await useServerCheckRoles([
+    'ENGINEER',
+    'ENGINEERING_MANAGER'
+  ])
 
   let linkedList = LAYOUT_LINKS
 
@@ -31,10 +40,22 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
       ['orders', 'settings'].includes(key as string)
     )
   if (isUserRoleSales)
+    // linkedList = linkedList.filter(({ key }) =>
+    //   ['new', 'timeline', 'orders', 'clients', 'cars', 'settings'].includes(
+    //     key as string
+    //   )
+    // )
     linkedList = linkedList.filter(({ key }) =>
-      ['new', 'timeline', 'orders', 'clients', 'cars', 'settings'].includes(
-        key as string
-      )
+      [
+        'new',
+        'pos',
+        'orders',
+        'clients',
+        'ledger',
+        'inventory',
+        'db',
+        'settings'
+      ].includes(key as string)
     )
 
   return (

@@ -10,21 +10,7 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
-
-// Define TypeScript types for valid Tailwind CSS classes
-type MaxWidthClass =
-  | '10vw'
-  | '15vw'
-  | '20vw'
-  | '30vw'
-  | '40vw'
-  | '50vw'
-  | '60vw'
-  | '70vw'
-  | '75vw'
-  | '80vw'
-  | '95vw'
-  | '100vw'
+import { cn } from '@/lib/utils'
 
 type MaxHeightClass =
   | '10vh'
@@ -45,8 +31,8 @@ interface DialogProps {
   subtitle?: string
   trigger: React.ReactNode
   children: React.ReactNode
-  maxWidth?: MaxWidthClass
   maxHeight?: MaxHeightClass
+  className?: string
 }
 
 export function DialogWrapper({
@@ -54,13 +40,13 @@ export function DialogWrapper({
   subtitle,
   trigger,
   children,
-  maxWidth = '75vw',
-  maxHeight = '75vh'
+  maxHeight = '75vh',
+  className
 }: DialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className={`sm:h-fit container  max-w-[${maxWidth}]`}>
+      <DialogContent className={cn(`sm:h-fit container`, className)}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {subtitle && <DialogDescription>{subtitle}</DialogDescription>}

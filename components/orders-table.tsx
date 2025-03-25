@@ -1,9 +1,9 @@
 'use client'
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
+  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -12,9 +12,8 @@ import {
   useReactTable
 } from '@tanstack/react-table'
 import { ArrowUpDown, ChevronDown } from 'lucide-react'
-import Image from 'next/image'
 import * as React from 'react'
-import { format, setYear } from 'date-fns'
+import { format } from 'date-fns'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -37,11 +36,9 @@ import {
 } from '@/components/ui/table'
 import Link from 'next/link'
 import { Icons } from './icons'
-import { cn } from '@/lib/utils'
-import { OrderTableEntry, StockTableEntry, UserRole } from '@/types'
-// import useClientApi from '@/hooks/use-axios-auth'
+import { cn, hasUserRole } from '@/lib/utils'
+import type { OrderTableEntry, UserRole } from '@/types'
 import { useRouter } from 'next/navigation'
-import { toast } from './ui/use-toast'
 import { Progress } from './progress'
 import { StatusBudge } from './status-badge'
 import {
@@ -55,31 +52,55 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import Cookies from 'js-cookie'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 
 interface OrderTableProps {
   data: OrderTableEntry[]
-  isClientDataAllowed?: boolean
-  t: {
+  userRole?: UserRole
+  t?: {
     placeholder: string
     columns: string
     id: string
     deadline: string
     customer: string
     phone: string
-    car: string
-    model: string
+    total: string
+    items: string
+    state: string
     status: string
     progress: string
     limit: string
   }
 }
 
+// Define column access by role
+type ColumnAccess = {
+  id: string
+  roles: UserRole[] // Roles that can access this column
+  order: number // For consistent ordering
+  responsiveClass?: string // For responsive display classes
+}
+
+// Define column override options
+type ColumnOverride = Partial<ColumnDef<OrderTableEntry>>
+
 export function OrderTable({
   data,
-  t,
-  isClientDataAllowed = false
+  userRole = 'GUEST',
+  t = {
+    id: 'Matricule',
+    customer: 'Client',
+    phone: 'Tél',
+    total: 'Montant',
+    items: 'Articles',
+    state: 'Location',
+    deadline: 'Délais',
+    status: 'État',
+    progress: 'Avancement',
+    placeholder: 'Rechercher...',
+    columns: 'Colonnes',
+    limit: 'Limite'
+  }
 }: OrderTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
@@ -88,6 +109,7 @@ export function OrderTable({
   )
   const [columnVisibility, setColumnVisibility] =
     usePersistedState<VisibilityState>('order-table-columns-visibility', {})
+
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
@@ -105,211 +127,241 @@ export function OrderTable({
     }
   }
 
-  const columnsFactory = (isAllowed: boolean): ColumnDef<OrderTableEntry>[] => {
-    let columns: ColumnDef<OrderTableEntry>[] = [
-      {
-        accessorKey: 'id',
-        header: ({ column }) => (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="flex gap-2 hover:text-primary cursor-pointer"
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center">
-            <Link
-              className="hover:text-secondary hover:font-semibold hover:underline"
-              href={'orders/' + row.original.id}
-            >
-              {row.original.id}
-            </Link>
-          </div>
-        )
-      },
-      {
-        accessorKey: 'status',
-        header: ({ column }) => (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="flex gap-2 hover:text-primary cursor-pointer"
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        ),
-        cell: ({ row }) => <StatusBudge variant={row.original.status} />
-      },
-      {
-        accessorKey: 'progress',
-        header: ({ column }) => (
-          <div
-            className="flex gap-2 hover:text-primary cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="relative flex justify-start gap-1 items-center">
-            <Progress
-              value={row.original.progress}
-              className="h-[0.65rem] max-w-10"
-            />
-            <span className="text-foreground">
-              {row.original.progress + '%'}
-            </span>
-          </div>
-        )
-      },
-      {
-        accessorKey: 'deadline',
-        header: ({ column }) => (
-          <div
-            className="flex gap-2 hover:text-primary cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        ),
-        cell: ({ row }) => {
-          const endDate = row.original.deadline
-          return (
-            <div className="flex items-center">
-              {endDate
-                ? format(new Date(endDate), 'dd/MM/yyyy')
-                : 'Non Déterminé'}
-            </div>
-          )
-        }
-      },
-      {
-        accessorKey: 'car',
-        header: ({ column }) => (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="flex gap-2 hover:text-primary cursor-pointer"
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center">{row.original?.car}</div>
-        )
-      },
-      {
-        accessorKey: 'model',
-        header: ({ column }) => (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className="flex gap-2 hover:text-primary cursor-pointer"
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center">{row.original?.model}</div>
-        )
-      }
-    ]
-
-    // Conditionally add customer and phone columns if isAllowed is true
-    if (isAllowed) {
-      columns.push(
-        {
-          accessorKey: 'customer',
-          header: ({ column }) => (
-            <div
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === 'asc')
-              }
-              className="flex gap-2 hover:text-primary cursor-pointer"
-            >
-              {t[column.id as keyof typeof t]}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </div>
-          ),
-          cell: ({ row }) => (
-            <div className="flex items-center">{row.original?.customer}</div>
-          )
-        },
-        {
-          accessorKey: 'phone',
-          header: ({ column }) => (
-            <div
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === 'asc')
-              }
-              className="flex gap-2 hover:text-primary cursor-pointer"
-            >
-              {t[column.id as keyof typeof t]}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </div>
-          ),
-          cell: ({ row }) => (
-            <div className="flex items-center">{row.original?.phone}</div>
-          )
-        }
-      )
-    }
-    // } else {
-    //   columns.push(
-    //     {
-    //       accessorKey: 'car',
-    //       header: ({ column }) => (
-    //         <div
-    //           onClick={() =>
-    //             column.toggleSorting(column.getIsSorted() === 'asc')
-    //           }
-    //           className="flex gap-2 hover:text-primary cursor-pointer"
-    //         >
-    //           {t[column.id as keyof typeof t]}
-    //           <ArrowUpDown className="ml-2 h-4 w-4" />
-    //         </div>
-    //       ),
-    //       cell: ({ row }) => (
-    //         <div className="flex items-center">{row.original?.car}</div>
-    //       )
-    //     },
-    //     {
-    //       accessorKey: 'model',
-    //       header: ({ column }) => (
-    //         <div
-    //           onClick={() =>
-    //             column.toggleSorting(column.getIsSorted() === 'asc')
-    //           }
-    //           className="flex gap-2 hover:text-primary cursor-pointer"
-    //         >
-    //           {t[column.id as keyof typeof t]}
-    //           <ArrowUpDown className="ml-2 h-4 w-4" />
-    //         </div>
-    //       ),
-    //       cell: ({ row }) => (
-    //         <div className="flex items-center">{row.original?.model}</div>
-    //       )
-    //     }
-    //   )
-    // }
-
-    // Always add the actions column at the end
-    columns.push({
-      id: 'actions',
-      enableHiding: false,
-      cell: ({ row }) => (
-        <Actions id={row.original.id} onDelete={handleDelete} />
-      )
-    })
-
-    return columns
+  // Define a reusable function for creating sortable headers
+  const createSortableHeader = (column: any, label: string) => {
+    return (
+      <div
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="flex gap-2 hover:text-primary cursor-pointer"
+      >
+        {label}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </div>
+    )
   }
 
-  const columns = columnsFactory(isClientDataAllowed)
+  // Create default column definition
+  const createDefaultColumnDef = (
+    columnId: string
+  ): ColumnDef<OrderTableEntry> => {
+    return {
+      accessorKey: columnId,
+      header: ({ column }) =>
+        createSortableHeader(column, t[columnId as keyof typeof t] || columnId),
+      // Default cell rendering - can be overridden
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {String(row.getValue(columnId) || '')}
+        </div>
+      )
+    }
+  }
+
+  // Define column overrides for specific columns
+  const columnOverrides: Record<string, ColumnOverride> = {
+    id: {
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          <Link
+            className="hover:text-secondary hover:font-semibold hover:underline"
+            href={'orders/' + row.original.id}
+          >
+            {row.original.id}
+          </Link>
+        </div>
+      )
+    },
+    status: {
+      cell: ({ row }) => <StatusBudge variant={row.original.status} />
+    },
+    progress: {
+      cell: ({ row }) => (
+        <div className="relative flex justify-start gap-1 items-center">
+          <Progress
+            value={row.original.progress}
+            className="h-[0.65rem] max-w-10"
+          />
+          <span className="text-foreground">{row.original.progress + '%'}</span>
+        </div>
+      )
+    },
+    deadline: {
+      cell: ({ row }) => {
+        const endDate = row.original.deadline
+        return (
+          <div className="flex items-center">
+            {endDate
+              ? format(new Date(endDate), 'dd/MM/yyyy')
+              : 'Non Déterminé'}
+          </div>
+        )
+      }
+    },
+    phone: {
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {row.original?.phone.replace(
+            /(\d{4})(\d{2})(\d{2})(\d{2})$/,
+            '$1 $2 $3 $4 '
+          )}
+        </div>
+      )
+    },
+    total: {
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {Number(row.original?.total?.toFixed(2)).toLocaleString('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })}
+        </div>
+      )
+    },
+    actions: {
+      id: 'actions',
+      accessorFn: (row) => row.id,
+      header: () => (
+        <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
+      ),
+      enableHiding: false,
+      cell: ({ row }) => <Actions id={'24-2025'} onDelete={handleDelete} />
+    }
+  }
+
+  // Define all possible columns with their access rules
+  const columnAccessRules: ColumnAccess[] = [
+    {
+      id: 'id',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 1
+    },
+    {
+      id: 'status',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 2,
+      responsiveClass: 'hidden md:table-cell'
+    },
+    {
+      id: 'progress',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 3
+    },
+    {
+      id: 'deadline',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 4,
+      responsiveClass: 'hidden md:table-cell'
+    },
+    {
+      id: 'customer',
+      roles: ['SALES_AGENT', 'SALES_MANAGER'], // Only sales roles can see customer data
+      order: 5,
+      responsiveClass: 'hidden sm:table-cell'
+    },
+    {
+      id: 'phone',
+      roles: ['SALES_AGENT', 'SALES_MANAGER'], // Only sales roles can see customer data
+      order: 6
+    },
+    {
+      id: 'total',
+      roles: ['SALES_AGENT', 'SALES_MANAGER'], // Only sales roles can see customer data
+      order: 7
+    },
+    {
+      id: 'items',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 8
+    },
+    {
+      id: 'state',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 9
+    },
+    {
+      id: 'actions',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 10
+    }
+  ]
+
+  // Generate columns based on user role and maintain order
+  const generateColumns = (
+    userRole: UserRole
+  ): ColumnDef<OrderTableEntry>[] => {
+    return columnAccessRules
+      .filter((rule) =>
+        rule.roles.some((role) => hasUserRole(userRole, [role]))
+      )
+      .sort((a, b) => a.order - b.order)
+      .map((rule) => {
+        // Start with default column definition
+        const defaultDef = createDefaultColumnDef(rule.id)
+
+        // Apply overrides if they exist
+        if (columnOverrides[rule.id]) {
+          // Use type assertion to ensure TypeScript understands this is a valid ColumnDef
+          return {
+            ...defaultDef,
+            ...columnOverrides[rule.id]
+          } as ColumnDef<OrderTableEntry>
+        }
+
+        return defaultDef
+      })
+  }
+
+  const columns = generateColumns(userRole)
+
   const table = useReactTable({
     data,
     columns,
@@ -334,14 +386,20 @@ export function OrderTable({
     }
   })
 
+  // Helper function to get responsive class for a column
+  const getResponsiveClass = (columnId: string): string => {
+    const rule = columnAccessRules.find((rule) => rule.id === columnId)
+    return rule?.responsiveClass || ''
+  }
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between pb-4">
         <div className="flex gap-3">
           <Input
             placeholder={t['placeholder']}
-            value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
-            onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
+            value={table.getState().globalFilter ?? ''}
+            onChange={(event) => table.setGlobalFilter(event.target.value)}
             className="w-80"
           />
           <div className="hidden md:flex gap-3">
@@ -369,7 +427,7 @@ export function OrderTable({
                           column.toggleVisibility(!!value)
                         }
                       >
-                        {t[column.id as keyof typeof t]}
+                        {t[column.id as keyof typeof t] || column.id}
                       </DropdownMenuCheckboxItem>
                     )
                   })}
@@ -391,13 +449,13 @@ export function OrderTable({
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup
                   value={limit.toString()}
-                  onValueChange={(value) => setLimit(parseInt(value))}
+                  onValueChange={(value) => setLimit(Number.parseInt(value))}
                 >
                   {['10', '25', '50', '100'].map((value) => (
                     <DropdownMenuRadioItem
                       className={cn(
                         'text-muted-foreground font-medium hover:text-primary',
-                        limit === parseInt(value) && 'text-primary'
+                        limit === Number.parseInt(value) && 'text-primary'
                       )}
                       key={value}
                       value={value}
@@ -422,10 +480,7 @@ export function OrderTable({
                       key={header.id}
                       className={cn(
                         'px-2 py-1 whitespace-nowrap',
-                        header.id === 'customer' && 'hidden sm:table-cell',
-                        header.id === 'status' && 'hidden md:table-cell',
-                        header.id === 'subParts' && 'hidden md:table-cell',
-                        header.id === 'deadline' && 'hidden md:table-cell'
+                        getResponsiveClass(header.id)
                       )}
                     >
                       {header.isPlaceholder
@@ -453,12 +508,7 @@ export function OrderTable({
                         key={cell.id}
                         className={cn(
                           'py-[0.5rem] pl-2 pr-0',
-                          cell.column.id == 'subParts' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'deadline' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'status' && 'hidden md:table-cell',
-                          cell.column.id == 'customer' && 'hidden sm:table-cell'
+                          getResponsiveClass(cell.column.id)
                         )}
                       >
                         {flexRender(
@@ -530,6 +580,18 @@ function Actions({
             href={'/dashboard/orders/' + id}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            className={cn(
+              buttonVariants({ variant: 'ghost' }),
+              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
+            )}
+            href={'/dashboard/printing/' + id}
+          >
+            <Icons.printer className="w-4 h-4 group-hover:text-primary" />
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

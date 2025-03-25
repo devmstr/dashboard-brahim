@@ -23,21 +23,22 @@ import { Button } from './ui/button'
 import { Icons } from './icons'
 import { useEffect, useMemo, useState } from 'react'
 import { SearchComboBox } from './search-combo-box'
+import { cn } from '@/lib/utils'
 
 export type LocationData = {
   countries: { name: string; provinces: { name: string; cities: string[] }[] }[]
 }
 
 interface Props {
-  locationData: LocationData
   onSubmit: (data: ClientSchemaType) => Promise<void>
   isLoading?: boolean
+  className?: string
 }
 
 export const NewClientForm: React.FC<Props> = ({
-  locationData,
   onSubmit,
-  isLoading
+  isLoading,
+  className
 }: Props) => {
   const form = useForm<ClientSchemaType>({
     resolver: zodResolver(clientSchema),
@@ -63,57 +64,6 @@ export const NewClientForm: React.FC<Props> = ({
     control: form.control
   })
 
-  const countries = useMemo(
-    () => locationData.countries.map((c) => c.name),
-    [locationData]
-  )
-
-  const provinces = useMemo(() => {
-    const selectedCountry = locationData.countries.find(
-      (c) => c.name === countryField.value
-    )
-    return selectedCountry ? selectedCountry.provinces.map((p) => p.name) : []
-  }, [locationData, countryField.value])
-
-  const cities = useMemo(() => {
-    const selectedCountry = locationData.countries.find(
-      (c) => c.name === countryField.value
-    )
-    const selectedProvince = selectedCountry?.provinces.find(
-      (p) => p.name === provinceField.value
-    )
-    return selectedProvince ? selectedProvince.cities : []
-  }, [locationData, countryField.value, provinceField.value])
-
-  useEffect(() => {
-    // Set initial values for province and city
-    if (countryField.value && !provinceField.value) {
-      form.setValue('province', 'Ghardaia')
-    }
-  }, [countryField.value, provinces, form, provinceField.value])
-
-  useEffect(() => {
-    // Set initial value for city
-    if (provinceField.value && !cityField.value) {
-      form.setValue('city', 'Ghardaia')
-    }
-  }, [provinceField.value, cities, form, cityField.value])
-
-  useEffect(() => {
-    // Reset province and city when country changes
-    if (countryField.value) {
-      form.setValue('province', 'Ghardaia')
-      form.setValue('city', 'Ghardaia')
-    }
-  }, [countryField.value, provinces, form])
-
-  useEffect(() => {
-    // Reset city when province changes
-    if (provinceField.value) {
-      form.setValue('city', 'Ghardaia')
-    }
-  }, [provinceField.value, cities, form])
-
   return (
     <Form {...form}>
       <form
@@ -121,7 +71,7 @@ export const NewClientForm: React.FC<Props> = ({
           e.stopPropagation()
         }}
         onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-4 pt-2"
+        className={cn('space-y-4 pt-2', className)}
       >
         <div className="relative border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
@@ -356,7 +306,7 @@ export const NewClientForm: React.FC<Props> = ({
                   <FormLabel className="capitalize">{'pays'}</FormLabel>
                   <FormControl>
                     <SearchComboBox
-                      options={countries}
+                      options={[]}
                       selected={field.value as string}
                       onSelect={(value) => {
                         form.setValue('country', value)
@@ -378,7 +328,7 @@ export const NewClientForm: React.FC<Props> = ({
                   <FormLabel className="capitalize">{'Wilaya'}</FormLabel>
                   <FormControl>
                     <SearchComboBox
-                      options={provinces}
+                      options={[]}
                       selected={field.value as string}
                       onSelect={(value) => {
                         form.setValue('province', value)
@@ -400,7 +350,7 @@ export const NewClientForm: React.FC<Props> = ({
                   <FormLabel className="capitalize">{'Commune'}</FormLabel>
                   <FormControl>
                     <SearchComboBox
-                      options={cities}
+                      options={[]}
                       selected={field.value as string}
                       onSelect={(value) => {
                         form.setValue('city', value)
@@ -452,7 +402,10 @@ export const NewClientForm: React.FC<Props> = ({
             {isLoading ? (
               <Icons.spinner className="w-4 h-4 animate-spin" />
             ) : (
-              'Ajouter'
+              <>
+                <Icons.addClient className="w-4  mr-2" />
+                Ajouter
+              </>
             )}
           </Button>
         </div>

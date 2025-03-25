@@ -3,52 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
-
-// model Client {
-//   id       String  @id @default(cuid())
-//   phone    String  @unique
-//   fullName String?
-//   Order    Order[]
-// }
-
-// model Technical {
-//   id    String  @id @default(cuid())
-//   brand String?
-//   model String?
-//   type  String?
-//   pas   String?
-//   nr    Int?
-//   ec    Int?
-//   lar1  Int?
-//   lon   Int?
-//   lar2  Int?
-//   Order Order[]
-// }
-
-// model Order {
-//   id             String     @id
-//   serialNumber   String?
-//   status         String?
-//   quantity       Int?
-//   productionDays Int?
-//   type           String?
-//   manufacturing  String?
-//   receivingDate  DateTime?
-//   startDate      DateTime?
-//   endDate        DateTime?
-//   actualEnd      DateTime?
-//   price          Int?
-//   deposit        Int?
-//   remaining      Int?
-//   progress       Int?
-//   Client         Client?    @relation(fields: [clientId], references: [id])
-//   clientId       String?
-//   Technical      Technical? @relation(fields: [technicalId], references: [id])
-//   technicalId    String?
-// }
 
 model Account {
   id                 String    @id @default(cuid())
@@ -124,4 +81,82 @@ model Daira {
   name     String
   wilayaId Int
   Wilaya   Wilaya @relation(fields: [wilayaId], references: [id])
+}
+
+model Radiator {
+  id          Int        @id @default(autoincrement())
+  barcode     String?
+  description String
+  label       String?
+  hash        String     @unique
+  brand       String?
+  model       String?
+  isValidated Boolean?   @default(false)
+  createdAt   DateTime?  @default(now())
+  updatedAt   DateTime?  @updatedAt
+  // relations 
+  core        Core?      @relation(fields: [coreId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  coreId      Int?       @unique
+  collector   Collector? @relation(fields: [collectorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  collectorId Int?       @unique
+
+  @@index([barcode])
+  @@index([hash])
+  @@map("RadiatorStock")
+}
+
+model Core {
+  id        Int        @id @default(autoincrement())
+  height    Int
+  width     Int
+  tube      String?
+  fins      String
+  finsPitch Int?
+  rows      Int
+  Radiator  Radiator[]
+}
+
+model Collector {
+  id          Int        @id @default(autoincrement())
+  height      Int
+  width       Int
+  lowerHeight Int?
+  lowerWidth  Int?
+  position    String?
+  tightening  String?
+  Radiator    Radiator[]
+}
+
+model Exhaust {
+  id          Int       @id @default(autoincrement())
+  barcode     String?
+  label       String?
+  description String
+  type        String
+  painting    String
+  isValidated Boolean?  @default(false)
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+  hash        String    @unique
+  car         Car[]
+}
+
+model Brand {
+  id           Int    @id @default(autoincrement())
+  name         String @unique
+  abbreviation String
+  Cars         Car[]
+}
+
+model Car {
+  id        Int      @id @default(autoincrement())
+  model     String?
+  type      String?
+  subType   String?
+  fuel      String?
+  engine    String?
+  Exhaust   Exhaust? @relation(fields: [exhaustId], references: [id])
+  exhaustId Int?
+  Brand     Brand?   @relation(fields: [brandId], references: [id])
+  brandId   Int?
 }

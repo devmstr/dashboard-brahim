@@ -25,6 +25,29 @@ export const TUBE_TYPES = [
 
 export const CLAMPING_TYPES = ['Plié', 'Boulonné']
 export const COLLECTOR_POSITION_TYPES = ['Centrer', 'Dépassée']
-export const PAYMENT_TYPES = ['Espèces', 'Versement (Banque)', 'Carte']
+export const PAYMENT_TYPES = [
+  'Espèces',
+  'Versement',
+  'Espèces + Versement',
+  'Virement',
+  'Cheque',
+  'À terme'
+]
 export const PERFORATION_TYPES = ['Perforé', 'Non Perforé']
 export const CAR_ENERGY_TYPES = ['Diesel', 'Essence']
+
+export const userRoles = [
+  'guest',
+  'inventory_agent',
+  'admin',
+  'ceo',
+  'finance_manager',
+  'sales_agent',
+  'sales_manager',
+  'production_worker',
+  'production_manager',
+  'engineer',
+  'engineering_manager',
+  'consultant',
+  'accountant'
+] as const

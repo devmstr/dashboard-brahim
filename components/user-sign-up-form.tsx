@@ -1,7 +1,7 @@
 'use client'
 
 import { Icons } from '@/components/icons'
-import { ROLES, ROLES_MAP } from '@/config/accounts'
+import { getLabelFromRole, getRoleFromLabel, ROLES } from '@/config/accounts'
 import { cn } from '@/lib/utils'
 import { userSignUpSchema, UserSignUpSchemaType } from '@/lib/validations/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -30,11 +30,10 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
 }: UserSingUpFormProps) => {
   const form = useForm<UserSignUpSchemaType>({
     defaultValues: {
-      role: 'SALES'
+      role: 'SALES_AGENT'
     },
     resolver: zodResolver(userSignUpSchema)
   })
-  const role = form.watch('role')
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [isPasswordVisible, setIsPasswordVisible] =
     React.useState<boolean>(false)
@@ -43,7 +42,6 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
     setIsLoading(true)
     try {
       await signIn('register', formData)
-
       toast({
         title: 'Success!',
         description: 'A new Account has been created successfully.'
@@ -149,22 +147,28 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
             <FormField
               control={form.control}
               name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <FormControl>
-                    <Selector
-                      {...field}
-                      items={Array.from(ROLES_MAP.keys())}
-                      setValue={(value) =>
-                        form.setValue('role', ROLES_MAP.get(value) as string)
-                      }
-                      value={ROLES_MAP.get(role) || 'Commerciale'}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const currentLabel = getLabelFromRole(field.value)
+
+                return (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <FormControl>
+                      <Selector
+                        items={ROLES.map((r) => r.label)}
+                        value={currentLabel}
+                        setValue={(label) => {
+                          const role = getRoleFromLabel(label)
+                          if (role) {
+                            form.setValue('role', role)
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )
+              }}
             />
           </div>
           <Button className="w-full" type="submit">

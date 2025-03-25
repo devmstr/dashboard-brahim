@@ -6,7 +6,7 @@ import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
 interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
-  const isUserRoleValidator = await useServerCheckRoles('VALIDATOR')
+  const isUserRoleValidator = await useServerCheckRoles('CONSULTANT')
   return (
     <Card>
       {isUserRoleValidator && (

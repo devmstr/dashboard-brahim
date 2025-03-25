@@ -9,13 +9,9 @@ import { useState, useTransition } from 'react'
 import { delay } from '@/lib/utils'
 import { SearchComboBox } from './search-combo-box'
 
-interface AddNewClientDialogButtonProps {
-  locationData: LocationData
-}
+interface AddNewClientDialogButtonProps {}
 
-export function AddNewClientDialogButton({
-  locationData
-}: AddNewClientDialogButtonProps) {
+export function AddNewClientDialogButton({}: AddNewClientDialogButtonProps) {
   const [isLoading, beginTransition] = useTransition()
 
   const handleSubmit = async (data: ClientSchemaType) => {
@@ -32,6 +28,7 @@ export function AddNewClientDialogButton({
     <DialogWrapper
       title="Ajouter un client"
       subtitle="Remplissez les informations du client"
+      className="max-w-6xl"
       trigger={
         <Button
           variant="default"
@@ -43,11 +40,7 @@ export function AddNewClientDialogButton({
         </Button>
       }
     >
-      <NewClientForm
-        onSubmit={handleSubmit}
-        isLoading={isLoading}
-        locationData={locationData}
-      />
+      <NewClientForm onSubmit={handleSubmit} isLoading={isLoading} />
     </DialogWrapper>
   )
 }

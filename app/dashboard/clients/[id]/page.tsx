@@ -8,7 +8,7 @@ const Page: React.FC<Props> = ({}: Props) => {
     <Card>
       <OneClientForm
         data={{
-          isCompany: false
+          isCompany: true
         }}
       />
     </Card>
