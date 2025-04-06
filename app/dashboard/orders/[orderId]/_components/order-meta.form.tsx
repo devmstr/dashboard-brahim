@@ -1,17 +1,9 @@
 'use client'
+import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
-import { MdEditor } from '@/components/md-editor'
-import { Switcher } from '@/components/switcher'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  COOLING_SYSTEMS_TYPES,
-  FABRICATION_TYPES,
-  ORDER_TYPES,
-  PACKAGING_TYPES,
-  PAYMENT_TYPES
-} from '@/config/global'
-import React, { useEffect } from 'react'
+import { DatePicker } from '@/components/date-picker'
+import { Icons } from '@/components/icons'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -20,20 +12,17 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { z } from 'zod'
-import { contentSchema, paymentSchema, PaymentType } from '@/lib/validations'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
-import { DatePicker } from '@/components/date-picker'
-import { CardDivider, CardGrid } from '@/components/card'
-import { useOrder } from '@/components/new-order.provider'
-import Link from 'next/link'
-import { Icons } from '@/components/icons'
-import { cn, delay } from '@/lib/utils'
+import { PAYMENT_TYPES } from '@/config/global'
+import { delay } from '@/lib/utils'
+import { paymentSchema, PaymentType } from '@/lib/validations'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import React from 'react'
+import { useForm } from 'react-hook-form'
 
 interface Props {
   data: PaymentType & { id: string }
@@ -163,8 +152,17 @@ export const OrderMetaForm: React.FC<Props> = ({
                     <Combobox
                       id="mode"
                       selections={PAYMENT_TYPES}
-                      setSelected={(v) => {
-                        form.setValue('mode', v)
+                      setSelected={(v: string) => {
+                        form.setValue(
+                          'mode',
+                          v as
+                            | 'Espèces'
+                            | 'Versement'
+                            | 'Espèces + Versement'
+                            | 'Virement'
+                            | 'Cheque'
+                            | 'À terme'
+                        )
                       }}
                     />
                   </FormControl>
@@ -172,7 +170,7 @@ export const OrderMetaForm: React.FC<Props> = ({
                 </FormItem>
               )}
             />
-            {mode === 'Versement (Banque)' && (
+            {mode == 'Virement' && (
               <FormField
                 control={form.control}
                 name="iban"

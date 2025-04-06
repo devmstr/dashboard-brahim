@@ -50,6 +50,23 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { usePersistedState } from '@/hooks/use-persisted-state'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from './ui/dialog'
+import { PrintProductLabel } from './print-product-label'
+
+export const SONERAS_COMPANY_DETAILS = {
+  company: 'SARL SO.NE.RA.S',
+  address: 'Z.I. Garat taam B. P.N 46 Bounoura - 47014',
+  phone1: '029 27 23 49',
+  phone2: '029 27 22 06',
+  email: 'info@okindustrie.com',
+  logoSrc: '/images/logo.svg'
+}
 
 interface Props {
   data: InventoryTableEntry[]
@@ -183,9 +200,8 @@ export function InventoryTable({
       header: () => (
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
-      // Add this line to fix the type error
-      accessorFn: (row) => row.id, // Use a relevant property or just return a constant
-      cell: ({ row }) => <Actions id={row.original.id} />
+      accessorFn: (row) => row.id,
+      cell: ({ row }) => <Actions row={row.original} />
     }
   }
 
@@ -457,9 +473,9 @@ export function InventoryTable({
   )
 }
 
-function Actions({ id }: { id: string }) {
+function Actions({ row }: { row: InventoryTableEntry }) {
   const { refresh } = useRouter()
-
+  const router = useRouter()
   const onDelete = async (orderId: string) => {
     try {
       const res = await fetch(`/api/partials/${orderId}`, {
@@ -478,15 +494,36 @@ function Actions({ id }: { id: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
-            )}
-            href={`/dashboard/inventory/${id}/edit`}
+          <Button
+            variant={'ghost'}
+            onClick={() => router.push('/dashboard/inventory/${row.id}/edit')}
+            className={cn('flex gap-3 items-center justify-center w-12')}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-          </Link>
+          </Button>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant={'ghost'}>
+                <Icons.printer className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-full flex flex-col gap-3 max-w-2xl">
+              <DialogHeader className="">
+                <DialogTitle>Imprimer l&apos;étiquette du produit</DialogTitle>
+              </DialogHeader>
+              <div className="flex justify-center items-center">
+                <PrintProductLabel
+                  companyData={SONERAS_COMPANY_DETAILS}
+                  designation={row.designation}
+                  qrCode={row.id}
+                  barcode={row.barcode}
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
@@ -516,7 +553,7 @@ function Actions({ id }: { id: string }) {
                       buttonVariants({ variant: 'outline' }),
                       ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
                     )}
-                    onClick={() => onDelete(id)}
+                    onClick={() => onDelete(row.id)}
                   >
                     <Icons.trash className="mr-2 h-4 w-4" />
                     Delete

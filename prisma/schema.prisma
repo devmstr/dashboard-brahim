@@ -60,14 +60,14 @@ model VerificationRequest {
 }
 
 model Country {
-  id      Int    @id @default(autoincrement())
+  id      String @id @default(cuid())
   code    String @unique
   name    String
   name_ar String
 }
 
 model Wilaya {
-  id      Int     @id @default(autoincrement())
+  id      String  @id @default(cuid())
   code    String  @unique
   name_ar String
   name    String
@@ -75,19 +75,19 @@ model Wilaya {
 }
 
 model Daira {
-  id       Int    @id @default(autoincrement())
+  id       String @id @default(cuid())
   code     String
   name_ar  String
   name     String
-  wilayaId Int
   Wilaya   Wilaya @relation(fields: [wilayaId], references: [id])
+  wilayaId String @unique
 }
 
 model Radiator {
-  id          Int        @id @default(autoincrement())
+  id          String     @id @default(cuid())
+  dirId       String
   barcode     String?
   description String
-  label       String?
   hash        String     @unique
   brand       String?
   model       String?
@@ -96,9 +96,11 @@ model Radiator {
   updatedAt   DateTime?  @updatedAt
   // relations 
   core        Core?      @relation(fields: [coreId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  coreId      Int?       @unique
+  coreId      String?    @unique
   collector   Collector? @relation(fields: [collectorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  collectorId Int?       @unique
+  collectorId String?    @unique
+  Order       Order?     @relation(fields: [orderId], references: [id])
+  orderId     String?
 
   @@index([barcode])
   @@index([hash])
@@ -106,7 +108,7 @@ model Radiator {
 }
 
 model Core {
-  id        Int        @id @default(autoincrement())
+  id        String     @id @default(cuid())
   height    Int
   width     Int
   tube      String?
@@ -114,10 +116,12 @@ model Core {
   finsPitch Int?
   rows      Int
   Radiator  Radiator[]
+  Order     Order?     @relation(fields: [orderId], references: [id])
+  orderId   String?
 }
 
 model Collector {
-  id          Int        @id @default(autoincrement())
+  id          String     @id @default(cuid())
   height      Int
   width       Int
   lowerHeight Int?
@@ -128,9 +132,8 @@ model Collector {
 }
 
 model Exhaust {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(cuid())
   barcode     String?
-  label       String?
   description String
   type        String
   painting    String
@@ -142,21 +145,70 @@ model Exhaust {
 }
 
 model Brand {
-  id           Int    @id @default(autoincrement())
-  name         String @unique
+  id           String    @id @default(cuid())
+  name         String    @unique
   abbreviation String
   Cars         Car[]
+  createdAt    DateTime? @default(now())
+  updatedAt    DateTime? @updatedAt
 }
 
 model Car {
-  id        Int      @id @default(autoincrement())
+  id        String    @id @default(cuid())
   model     String?
   type      String?
   subType   String?
   fuel      String?
   engine    String?
-  Exhaust   Exhaust? @relation(fields: [exhaustId], references: [id])
-  exhaustId Int?
-  Brand     Brand?   @relation(fields: [brandId], references: [id])
-  brandId   Int?
+  Exhaust   Exhaust?  @relation(fields: [exhaustId], references: [id])
+  exhaustId String?
+  Brand     Brand?    @relation(fields: [brandId], references: [id])
+  brandId   String?
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  isCompany Boolean   @default(false)
+  website   String?
+  rc        String?
+  mf        String?
+  ai        String?
+  nif       String?
+  nis       String?
+  na        String?
+  address   String?
+  country   String?
+  province  String?
+  city      String?
+  zip       String?
+  Orders    Order[]
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Order {
+  id         String     @id @default(cuid())
+  deadline   DateTime   @default(now())
+  totalPrice Int?
+  items      Int?
+  state      String?
+  progress   Int        @default(0)
+  // new relations
+  Radiators  Radiator[]
+  Cores      Core[]
+  Clients    Client[]
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+}
+
+model Payment {
+  id        String    @id @default(cuid())
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
 }

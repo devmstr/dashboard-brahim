@@ -62,9 +62,9 @@ const radiatorFormSchema = z.object({
 
 export type RadiatorFormValues = z.infer<typeof radiatorFormSchema>
 
-type AddRadiatorDialogProps = {}
+type AddNewCarProps = {}
 
-export function AddRadiatorDialog({}: AddRadiatorDialogProps) {
+export function AddNewCar({}: AddNewCarProps) {
   const [open, setOpen] = useState(false)
   const [isCoreExists, setIsCoreExists] = useState(false)
   const [isCollectorExists, setIsCollectorExists] = useState(false)

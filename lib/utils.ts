@@ -198,7 +198,7 @@ export function coreToString({
   tube,
   finsPitch
 }: {
-  core: Omit<Core, 'id'>
+  core: Partial<Core>
   fabrication: string
   fins: FinsType
   tube: TubeType
@@ -206,10 +206,10 @@ export function coreToString({
 }): string {
   return [
     `SONERAS, ${fabrication}:`,
-    `${core.height.toString().padStart(4, '0')} x ${core.width
-      .toString()
+    `${core.height?.toString().padStart(4, '0')} x ${core.width
+      ?.toString()
       .padStart(4, '0')}`,
-    core.rows > 1 ? `${core.rows}R` : '',
+    core.rows && core.rows > 1 ? `${core.rows}R` : '',
     FINS_IN_DESCRIPTION[fins],
     tube,
     `PAS ${finsPitch}`
@@ -258,7 +258,7 @@ export function descriptionAndLabelGenerator({
   brand,
   model
 }: {
-  core: Omit<Core, 'id'>
+  core: Partial<Core>
   fabrication: string
   fins: FinsType
   tube: TubeType
@@ -266,7 +266,7 @@ export function descriptionAndLabelGenerator({
   collector?: Omit<Collector, 'id'>
   brand?: string
   model?: string
-}): { description: string; label: string } {
+}): string {
   const coreSrt = coreToString({
     core,
     fabrication,
@@ -275,13 +275,8 @@ export function descriptionAndLabelGenerator({
     finsPitch
   })
   let description = coreSrt
-  let label = coreSrt
 
-  if (collector) {
-    const collectorSrt = collectorToString(collector)
-    description += collectorSrt
-    if (!brand?.trim() || !model?.trim()) label += collectorSrt // Simplified check for empty or undefined brand
-  }
+  if (collector) description += collectorToString(collector)
 
   if (brand?.trim() || model?.trim()) {
     // Construct the brand and model string in one go
@@ -293,8 +288,7 @@ export function descriptionAndLabelGenerator({
       .join('') // Join the non-empty parts into a single string
 
     description += brandAndModelStr
-    label += brandAndModelStr
   }
 
-  return { description, label }
+  return description
 }

@@ -21,22 +21,31 @@ const getFakeOrderMetaData = (compId: string) => {
 
 const Page: React.FC<Props> = async ({ params: { componentId } }: Props) => {
   const meta = getFakeOrderMetaData(componentId)
-  const isProductionUser = await useServerCheckRoles('PRODUCTION')
-  const isSalesUser = await useServerCheckRoles('SALES')
-  const isEngineerUser = await useServerCheckRoles('ENGINEER')
+  const isProductionUser = await useServerCheckRoles([
+    'PRODUCTION_MANAGER',
+    'PRODUCTION_WORKER'
+  ])
+  const isSalesUser = await useServerCheckRoles([
+    'SALES_AGENT',
+    'SALES_MANAGER'
+  ])
+  const isEngineerUser = await useServerCheckRoles([
+    'ENGINEER',
+    'ENGINEERING_MANAGER'
+  ])
 
   return (
     <div className="space-y-4">
-      {(isProductionUser || isEngineerUser) && (
+      {/* {(isProductionUser || isEngineerUser) && (
         <Card>
           <CoreProgressTracker data={meta} />
         </Card>
-      )}
+      )} */}
 
       <Card>
-        {isEngineerUser && <ComponentTechnicalForm data={undefined} />}
-        {isProductionUser && <ComponentProductionForm data={undefined} />}
-        {isSalesUser && <ComponentSalesForm data={undefined} />}
+        {true && <ComponentTechnicalForm data={undefined} />}
+        {/* {isProductionUser && <ComponentProductionForm data={undefined} />}
+        {isSalesUser && <ComponentSalesForm data={undefined} />} */}
       </Card>
     </div>
   )

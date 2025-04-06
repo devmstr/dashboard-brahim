@@ -9,7 +9,9 @@ export default withAuth({
       const pathname = req.nextUrl.pathname
 
       if (ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
-        return token?.role === ROLES.ADMIN
+        return (
+          token?.role === ROLES.find(({ value }) => value === 'ADMIN')?.value
+        )
       }
 
       return !!token

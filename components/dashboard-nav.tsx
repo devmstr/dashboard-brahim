@@ -12,9 +12,18 @@ interface DashboardNavProps extends React.HTMLAttributes<HTMLDivElement> {}
 export const DashboardNav = async (props: DashboardNavProps) => {
   const user = await useServerUser()
   const isUserRoleAdmin = await useServerCheckRoles('ADMIN')
-  const isUserRoleSales = await useServerCheckRoles('SALES')
-  const isUserRoleProduction = await useServerCheckRoles('PRODUCTION')
-  const isUserRoleEngineer = await useServerCheckRoles('ENGINEER')
+  const isUserRoleSales = await useServerCheckRoles([
+    'SALES_AGENT',
+    'SALES_MANAGER'
+  ])
+  const isUserRoleProduction = await useServerCheckRoles([
+    'PRODUCTION_MANAGER',
+    'PRODUCTION_WORKER'
+  ])
+  const isUserRoleEngineer = await useServerCheckRoles([
+    'ENGINEER',
+    'ENGINEERING_MANAGER'
+  ])
 
   let linkedList = LAYOUT_LINKS
 

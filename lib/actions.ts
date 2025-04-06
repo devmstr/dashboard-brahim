@@ -5,7 +5,7 @@ import { hash256, type HashDataType } from './hash-256'
 import * as XLSX from 'xlsx'
 import { type DataItem, generateXlsx } from './xls-generator'
 import prisma from '@/lib/db'
-import { Prisma } from '@prisma/client'
+import { Prisma, Radiator } from '@prisma/client'
 import {
   TubeType,
   FinsType,
@@ -19,7 +19,6 @@ export type BarcodeItem = {
   id: number
   barcode: string | null
   description: string
-  label: string | null
   createdAt: Date | null
 }
 
@@ -46,7 +45,7 @@ export async function getBarcodeItemList(
   offset: number,
   isValidated: boolean
 ): Promise<{
-  list: BarcodeItem[]
+  list: Pick<Radiator, 'id' | 'description' | 'barcode' | 'createdAt'>[]
   offset: number
   total: number
 }> {
@@ -158,7 +157,7 @@ export async function createRadiatorWithComponents({
 
   if (existingRadiator) return
 
-  const { description, label } = descriptionAndLabelGenerator({
+  const description = descriptionAndLabelGenerator({
     fabrication,
     fins,
     tube,
@@ -186,7 +185,7 @@ export async function createRadiatorWithComponents({
   return await prisma.radiator.create({
     data: {
       description,
-      label,
+      dirId: 'need to implement dirId function',
       brand,
       model,
       hash,
@@ -302,7 +301,7 @@ export async function isCoreDimensionsExist(
   return !!isCoreExist
 }
 
-export async function validateRadiator(radiatorId: number, ean13: string) {
+export async function validateRadiator(radiatorId: string, ean13: string) {
   try {
     await prisma.radiator.update({
       where: { id: radiatorId },
@@ -314,7 +313,7 @@ export async function validateRadiator(radiatorId: number, ean13: string) {
   }
 }
 
-export async function deleteRadiator(radiatorId: number) {
+export async function deleteRadiator(radiatorId: string) {
   try {
     await prisma.radiator.delete({
       where: { id: radiatorId }
@@ -457,7 +456,7 @@ export async function importGs1ValidationFromXLSX(
         const dbRecord = await prisma.radiator.findMany({
           where: {
             isValidated: false,
-            OR: [{ description }, { label: description }]
+            description
           }
         })
 

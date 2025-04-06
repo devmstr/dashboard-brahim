@@ -6,14 +6,15 @@ import { delay } from '@/lib/utils'
 import { ClientSchemaType } from '../timeline/add-order.dialog'
 import { useTransition } from 'react'
 import { z } from 'zod'
-import { NewCarForm, TypeOfCarSchema } from './new-car.form'
+import { CarType } from '@/lib/validations'
+import { AddNewCar } from './new-car.form'
 
 interface Props {}
 
 export const AddCarButton: React.FC<Props> = ({}: Props) => {
   const [isLoading, beginTransition] = useTransition()
 
-  const handleSubmit = async (data: TypeOfCarSchema) => {
+  const handleSubmit = async (data: CarType) => {
     beginTransition(async () => {
       // handle adding new client here
       await delay(1500)
@@ -38,7 +39,7 @@ export const AddCarButton: React.FC<Props> = ({}: Props) => {
         </Button>
       }
     >
-      <NewCarForm onSubmit={handleSubmit} isLoading={isLoading} />
+      <AddNewCar />
     </DialogWrapper>
   )
 }

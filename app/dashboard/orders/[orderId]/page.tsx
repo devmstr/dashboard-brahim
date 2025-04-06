@@ -93,17 +93,26 @@ const Page: React.FC<PageProps> = async ({
 }: PageProps) => {
   const user = await useServerUser()
   if (!user) return signIn()
-  const isUserRoleSales = await useServerCheckRoles('SALES')
-  const isUserRoleEngineer = await useServerCheckRoles('ENGINEER')
-  const isUserRoleProduction = await useServerCheckRoles('PRODUCTION')
+  const isUserRoleSales = await useServerCheckRoles([
+    'SALES_AGENT',
+    'SALES_MANAGER'
+  ])
+  const isUserRoleEngineer = await useServerCheckRoles([
+    'ENGINEER',
+    'ENGINEERING_MANAGER'
+  ])
+  const isUserRoleProduction = await useServerCheckRoles([
+    'PRODUCTION_MANAGER',
+    'PRODUCTION_MANAGER'
+  ])
   return (
     <div className="space-y-4">
-      {isUserRoleSales && (
+      {/* {isUserRoleSales && (
         <Card className="">
           <OrderMetaForm data={{ id: orderId }} />
         </Card>
-      )}
-      {isUserRoleEngineer && (
+      )} */}
+      {true && (
         <Card className="">
           <div className="flex items-center justify-between select-none">
             <span className="absolute -top-0 left-6 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
@@ -113,7 +122,7 @@ const Page: React.FC<PageProps> = async ({
           <OrderComponentsTable t={t} data={testData} />
         </Card>
       )}
-      {(isUserRoleSales || isUserRoleProduction) && (
+      {/* {(isUserRoleSales || isUserRoleProduction) && (
         <Card className="">
           <Tabs defaultValue="table" className="space-y-4">
             <div className="py-1 ">
@@ -141,7 +150,7 @@ const Page: React.FC<PageProps> = async ({
             </TabsContent>
           </Tabs>
         </Card>
-      )}
+      )} */}
     </div>
   )
 }

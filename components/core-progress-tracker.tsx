@@ -26,24 +26,48 @@ const productionSteps: ProductionStep[] = [
   {
     title: 'Diagnostique',
     weight: 10,
-    owners: ['ENGINEER', 'PRODUCTION']
+    owners: ['ENGINEER', 'PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
   },
   {
     title: 'Conceptions',
     weight: 20,
-    owners: ['ENGINEER', 'PRODUCTION']
+    owners: ['ENGINEER', 'PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
   },
-  { title: 'Les Boites', weight: 10, owners: ['PRODUCTION'] },
+  {
+    title: 'Les Boites',
+    weight: 10,
+    owners: ['PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
+  },
   {
     title: 'Préparation (tubes,ailette,machine)',
     weight: 10,
-    owners: ['PRODUCTION']
+    owners: ['PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
   },
-  { title: 'Assemblage', weight: 20, owners: ['PRODUCTION'] },
-  { title: 'Montage', weight: 10, owners: ['PRODUCTION'] },
-  { title: 'Essai', weight: 8, owners: ['PRODUCTION'] },
-  { title: 'Peinture', weight: 8, owners: ['PRODUCTION'] },
-  { title: 'Emballage', weight: 4, owners: ['PRODUCTION'] }
+  {
+    title: 'Assemblage',
+    weight: 20,
+    owners: ['PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
+  },
+  {
+    title: 'Montage',
+    weight: 10,
+    owners: ['PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
+  },
+  {
+    title: 'Essai',
+    weight: 8,
+    owners: ['PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
+  },
+  {
+    title: 'Peinture',
+    weight: 8,
+    owners: ['PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
+  },
+  {
+    title: 'Emballage',
+    weight: 4,
+    owners: ['PRODUCTION_MANAGER', 'PRODUCTION_WORKER']
+  }
 ]
 
 interface Props {

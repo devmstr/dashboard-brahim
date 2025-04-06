@@ -33,6 +33,7 @@ export const PAYMENT_TYPES = [
   'Cheque',
   'À terme'
 ]
+
 export const PERFORATION_TYPES = ['Perforé', 'Non Perforé']
 export const CAR_ENERGY_TYPES = ['Diesel', 'Essence']
 
