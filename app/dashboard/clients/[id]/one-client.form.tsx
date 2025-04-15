@@ -22,21 +22,29 @@ import { clientSchema, ClientType } from '@/lib/validations'
 import React from 'react'
 import { delay } from '@/lib/utils'
 import { Icons } from '@/components/icons'
+import { Client } from '@prisma/client'
+
+type ClientWithOrderCount =
+  | Client & {
+      _count: {
+        Orders: number
+      }
+    }
 
 interface Props {
-  data?: ClientType
+  data: ClientWithOrderCount
 }
 
 export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
   const router = useRouter()
   const [isLoading, updateOrderMetadata] = React.useTransition()
-  const form = useForm<ClientType>({
+  const form = useForm<ClientWithOrderCount>({
     defaultValues: data,
     resolver: zodResolver(clientSchema)
   })
 
   const isCompany = form.watch('isCompany')
-  const onSubmit = (formData: ClientType) => {
+  const onSubmit = (formData: ClientWithOrderCount) => {
     // update data using react query
     updateOrderMetadata(async () => {
       await delay(1500)
@@ -64,11 +72,11 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                         {...field}
                         id="label"
                         topic=""
-                        selections={COMPANY_LABELS_TYPE}
-                        setSelected={(v) => {
+                        options={COMPANY_LABELS_TYPE}
+                        onSelect={(v) => {
                           form.setValue('label', v)
                         }}
-                        selected={field.value}
+                        selected={field.value as string}
                       />
                     </FormControl>
                     <FormMessage />
@@ -125,6 +133,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value as string}
                       id="email"
                       name="email"
                       placeholder="example@email.com"
@@ -146,6 +155,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value as string}
                         className=""
                         id="website"
                         name="website"
@@ -172,6 +182,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value as string}
                         id="rc"
                         name="rc"
                         placeholder="16/00-1234567A"
@@ -193,6 +204,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value as string}
                         id="mf"
                         name="mf"
                         placeholder="163079123456789"
@@ -214,6 +226,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value as string}
                         id="nif"
                         name="nif"
                         placeholder="000016079123456"
@@ -235,6 +248,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value as string}
                         id="nis"
                         name="nis"
                         placeholder="16-1234567-001"
@@ -256,6 +270,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value as string}
                         placeholder="11103 2002 0004"
                         type="text"
                       />
@@ -275,6 +290,7 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value as string}
                         placeholder="16-AGR-2023-001"
                         type="text"
                       />
@@ -342,10 +358,11 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                   <FormLabel className="capitalize"> {'commune'} </FormLabel>
                   <FormControl>
                     <Input
+                      {...field}
                       id="city"
                       placeholder="Commune..."
                       type="text"
-                      {...field}
+                      value={field.value as string}
                     />
                   </FormControl>
                   <FormMessage />
@@ -360,10 +377,11 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                   <FormLabel className="capitalize"> {'adresse'} </FormLabel>
                   <FormControl>
                     <Input
+                      {...field}
                       id="street"
                       placeholder="Rue de... or BP234 Ghardaia"
                       type="text"
-                      {...field}
+                      value={field.value as string}
                     />
                   </FormControl>
                   <FormMessage />
@@ -378,10 +396,11 @@ export const OneClientForm: React.FC<Props> = ({ data }: Props) => {
                   <FormLabel className="capitalize"> {'Code Postal'}</FormLabel>
                   <FormControl>
                     <Input
+                      {...field}
                       id="zip"
                       placeholder="47001"
                       type="text"
-                      {...field}
+                      value={field.value as string}
                     />
                   </FormControl>
                   <FormMessage />

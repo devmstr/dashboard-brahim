@@ -2,8 +2,86 @@ import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import n2words from 'n2words'
 import { BillingConfig, InvoiceItem, UserRole } from '@/types'
-import { Weight } from 'lucide-react'
 import { Collector, Core } from '@prisma/client'
+import { customAlphabet } from 'nanoid'
+
+export enum SKU_PREFIX {
+  RA = 'RA',
+  FA = 'FA',
+  AU = 'AU',
+  CO = 'CO',
+  CL = 'CL',
+  VE = 'VE',
+  PA = 'PA'
+}
+
+export type PREFIX = keyof typeof SKU_PREFIX
+
+export function skuId(prefix: PREFIX): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  const generateId = customAlphabet(alphabet, 6)
+  const uniqueId = generateId()
+  return `${prefix}X${uniqueId}`
+}
+
+interface Dimensions {
+  width: number
+  height: number
+  lowerWidth?: number
+  lowerHeight?: number
+}
+
+interface ProductConfig {
+  type?: 'Faisceaux' | 'Radiateur'
+  fabrication?: 'Renovation' | 'Confection'
+  core: Dimensions
+  rows?: number
+  fins?: 'Z' | 'A' | 'D'
+  tube?: '7' | '9' | 'M'
+  finsPitch?: 10 | 11 | 12 | 14
+  collector: Dimensions
+  tightening?: 'P' | 'B'
+  position?: 'C' | 'D'
+}
+
+function pad(n: number): string {
+  return n.toString().padStart(4, '0')
+}
+
+function formatDimension(main: number, lower?: number): string {
+  return lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
+}
+
+function formatProductPrefix(type: string, fabrication: string): string {
+  if (type === 'Faisceaux') return 'FX'
+  return fabrication === 'Confection' ? 'RA' : 'RE'
+}
+
+export function generateProductTitle({
+  type = 'Radiateur',
+  fabrication = 'Confection',
+  core,
+  collector,
+  rows = 1,
+  fins = 'D',
+  tube = '7',
+  finsPitch = 10,
+  tightening = 'P',
+  position = 'C'
+}: ProductConfig): string {
+  const coreCode = `${pad(core.height)}X${pad(core.width)}`
+  const rowsPart = (rows > 1 && rows.toString()) || ''
+  const rowFinsTubeCode = `${rowsPart}${fins}${tube}`
+  const collectorCode = `${formatDimension(
+    collector.height,
+    collector.lowerHeight
+  )}X${formatDimension(collector.width, collector.lowerWidth)}`
+
+  return `${formatProductPrefix(
+    type,
+    fabrication
+  )} ${coreCode} ${rowFinsTubeCode} ${finsPitch} ${collectorCode} ${tightening}${position}`
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

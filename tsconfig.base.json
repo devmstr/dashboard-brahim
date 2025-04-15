@@ -33,6 +33,7 @@
     "i18n.ts",
     "env.mjs",
     "./scripts/**/*.ts",
+    "./lib/**/*.ts",
     "./types/*.d.ts"
   ],
   "exclude": ["node_modules"]

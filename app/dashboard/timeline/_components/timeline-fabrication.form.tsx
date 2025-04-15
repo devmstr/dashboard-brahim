@@ -66,8 +66,8 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="type">{'Type'}</Label>
             <Combobox
               id="type"
-              selections={ORDER_TYPES}
-              setSelected={(v) => {
+              options={ORDER_TYPES}
+              onSelect={(v) => {
                 if (v == 'Faisceau') onChange('buildType', 'Confection')
                 onChange('orderType', v)
               }}
@@ -78,12 +78,12 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="buildType">{'Fabrication'}</Label>
             <Combobox
               id="buildType"
-              selections={
+              options={
                 data.orderType === 'Faisceau'
                   ? FABRICATION_TYPES.filter((i) => i !== 'Rénovation')
                   : FABRICATION_TYPES
               }
-              setSelected={(v) => {
+              onSelect={(v) => {
                 onChange('buildType', v)
               }}
               selected={data.buildType}
@@ -104,8 +104,8 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="coolingSystem">{'Refroidissement'}</Label>
             <Combobox
               id="buildType"
-              selections={COOLING_SYSTEMS_TYPES}
-              setSelected={(v) => {
+              options={COOLING_SYSTEMS_TYPES}
+              onSelect={(v) => {
                 onChange('coolingSystem', v)
                 if (v != 'Eau') onChange('collectorType', 'Plié')
               }}
@@ -116,8 +116,8 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="packaging">{'Emballage'}</Label>
             <Combobox
               id="packaging"
-              selections={PACKAGING_TYPES}
-              setSelected={(v) => {
+              options={PACKAGING_TYPES}
+              onSelect={(v) => {
                 onChange('packaging', v)
               }}
               selected={data.packaging}

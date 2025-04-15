@@ -1,5 +1,7 @@
 'use client'
 
+import type React from 'react'
+
 import { useState, useRef, useEffect } from 'react'
 import {
   Card,
@@ -22,63 +24,92 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { Search, User, Building, Phone, X } from 'lucide-react'
+import { Search, User, Building, Phone, X, Mail, MapPin } from 'lucide-react'
 import { Icons } from '@/components/icons'
-import { Customer } from '@/types'
 import { AddNewClientDialogButton } from '@/components/add-new-client.button'
+import { Client } from '@prisma/client'
+
+export type ClientWithOrdersCount = Partial<Client> & {
+  Address: {
+    City: {
+      name: string | null
+    }
+  }
+  _count: {
+    Orders: number
+  }
+}
 
 interface CustomerSectionProps {
-  customers: Customer[]
-  selectedCustomer: Customer | null
-  setSelectedCustomer: (customer: Customer | null) => void
+  selected: Pick<
+    ClientWithOrdersCount,
+    'id' | 'isCompany' | 'email' | 'phone' | 'name' | 'Address' | '_count'
+  > | null
+  onSelectChange: (client: ClientWithOrdersCount | null) => void
   children?: React.ReactNode
 }
 
 export default function CustomerSearchInput({
-  customers,
-  selectedCustomer,
-  setSelectedCustomer,
+  selected: selectedClient,
+  onSelectChange,
   children
 }: CustomerSectionProps) {
-  const [customerSearchTerm, setCustomerSearchTerm] = useState('')
-  const [isCustomerPopoverOpen, setIsCustomerPopoverOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [clients, setClients] = useState<ClientWithOrdersCount[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  const triggerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [triggerWidth, setTriggerWidth] = useState(0)
 
+  const triggerRef = useRef<HTMLDivElement>(null)
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   useEffect(() => {
-    if (isCustomerPopoverOpen && triggerRef.current) {
+    if (isPopoverOpen && triggerRef.current) {
       setTriggerWidth(triggerRef.current.getBoundingClientRect().width)
       // Delay refocusing to the next tick
       setTimeout(() => {
         inputRef.current?.focus()
       }, 0)
     }
-  }, [isCustomerPopoverOpen])
+  }, [isPopoverOpen])
 
-  // Filter customers based on search term
-  const filteredCustomers = customers.filter(
-    (customer) =>
-      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-      customer.company
-        .toLowerCase()
-        .includes(customerSearchTerm.toLowerCase()) ||
-      customer.phone.includes(customerSearchTerm)
-  )
+  // Fetch clients when search term changes
+  useEffect(() => {
+    const fetchClients = async () => {
+      // Remove the minimum character check to search on every character
+      setIsLoading(true)
+      try {
+        const response = await fetch(
+          `/api/clients?search=${encodeURIComponent(searchTerm)}`
+        )
+        if (!response.ok) {
+          throw new Error('Failed to fetch clients')
+        }
+        const data = await response.json()
+        setClients(data)
+      } catch (error) {
+        console.error('Error fetching clients:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-  // Select a customer
-  const selectCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer)
-    setCustomerSearchTerm('')
-    setIsCustomerPopoverOpen(false)
+    // Remove the debounce and call fetchClients immediately
+    fetchClients()
+  }, [searchTerm])
+
+  // Select a client
+  const selectClient = (client: ClientWithOrdersCount) => {
+    onSelectChange(client)
+    setSearchTerm('')
+    setIsPopoverOpen(false)
     // Optionally re-focus input after selection if needed:
     inputRef.current?.focus()
   }
 
-  // Clear selected customer
-  const clearSelectedCustomer = () => {
-    setSelectedCustomer(null)
+  // Clear selected client
+  const clearSelectedClient = () => {
+    onSelectChange(null)
   }
 
   return (
@@ -93,28 +124,21 @@ export default function CustomerSearchInput({
         </div>
       </CardHeader>
       <CardContent>
-        <Popover
-          open={isCustomerPopoverOpen}
-          onOpenChange={setIsCustomerPopoverOpen}
-        >
+        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
             <div className="relative w-full" ref={triggerRef}>
               <Search className="absolute left-2.5 top-4 h-4 w-4 text-muted-foreground" />
               <Input
                 ref={inputRef}
-                placeholder="Rechercher par nom, entreprise ou téléphone"
-                value={customerSearchTerm}
+                placeholder="Rechercher par nom, email ou téléphone"
+                value={searchTerm}
                 onChange={(e) => {
-                  setCustomerSearchTerm(e.target.value)
-                  if (e.target.value.length > 0) {
-                    setIsCustomerPopoverOpen(true)
-                  }
+                  setSearchTerm(e.target.value)
+                  setIsPopoverOpen(true) // Always open popover on any input
                 }}
                 className="pl-8 h-12 focus-visible:ring-0 focus-visible:ring-offset-0"
                 onClick={() => {
-                  if (customerSearchTerm.length > 0) {
-                    setIsCustomerPopoverOpen(true)
-                  }
+                  setIsPopoverOpen(true) // Always open popover on click
                 }}
               />
             </div>
@@ -127,58 +151,91 @@ export default function CustomerSearchInput({
           >
             <Command>
               <CommandList>
-                <CommandEmpty>Aucun client trouvé.</CommandEmpty>
-                <CommandGroup heading="Acheteurs">
-                  {filteredCustomers.map((customer) => (
-                    <CommandItem
-                      key={customer.id}
-                      onSelect={() => selectCustomer(customer)}
-                      className="cursor-pointer"
-                    >
-                      <Icons.user className="mr-2 w-4" />
-                      <div className="flex flex-col">
-                        <span className="text-md">{customer.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {customer.company}
-                        </span>
-                      </div>
-                      <span className="ml-auto text-sm text-muted-foreground">
-                        {customer.phone.replace(
-                          /(\d{4})(\d{2})(\d{2})(\d{2})$/,
-                          '$1 $2 $3 $4 '
-                        )}
-                      </span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {isLoading ? (
+                  <div className="py-6 text-center">
+                    <Icons.spinner className="h-6 w-6 mx-auto animate-spin" />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Recherche en cours...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <CommandEmpty>Aucun client trouvé.</CommandEmpty>
+                    <CommandGroup heading="Acheteurs">
+                      {clients.map((client) => (
+                        <CommandItem
+                          key={client.id}
+                          onSelect={() => selectClient(client)}
+                          className="cursor-pointer"
+                        >
+                          {client.isCompany ? (
+                            <Building className="mr-2 w-4" />
+                          ) : (
+                            <User className="mr-2 w-4" />
+                          )}
+                          <div className="flex justify-between w-full">
+                            <div className="flex flex-col items-start">
+                              <div className="text-md">{client.name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {client.phone?.replace(
+                                  /(\d{4})(\d{2})(\d{2})(\d{2})$/,
+                                  '$1 $2 $3 $4 '
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              {client.email && (
+                                <span className="text-sm text-muted-foreground">
+                                  {client.email}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
 
-        {selectedCustomer && (
+        {selectedClient && (
           <div className="mt-4 p-3 border rounded-md relative">
             <Button
               variant="ghost"
               size="icon"
               className="absolute right-1 top-1 h-6 w-6"
-              onClick={clearSelectedCustomer}
+              onClick={clearSelectedClient}
             >
               <X className="h-4 w-4" />
             </Button>
             <div className="grid gap-1">
               <div className="flex items-center text-sm">
-                <User className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{selectedCustomer.name}</span>
+                {selectedClient.isCompany ? (
+                  <Building className="mr-2 h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <User className="mr-2 h-4 w-4 text-muted-foreground" />
+                )}
+                <span className="font-medium">{selectedClient.name}</span>
               </div>
-              <div className="flex items-center text-sm">
-                <Building className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>{selectedCustomer.company}</span>
-              </div>
+              {selectedClient.email && (
+                <div className="flex items-center text-sm">
+                  <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span>{selectedClient.email}</span>
+                </div>
+              )}
               <div className="flex items-center text-sm">
                 <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>{selectedCustomer.phone}</span>
+                <span>{selectedClient.phone}</span>
               </div>
+              {selectedClient.Address.City.name && (
+                <div className="flex items-center text-sm">
+                  <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span>{selectedClient.Address.City.name}</span>
+                </div>
+              )}
             </div>
           </div>
         )}

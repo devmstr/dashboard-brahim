@@ -173,6 +173,7 @@ export function ClientTable({
         return <div className="flex items-center">{fullName}</div>
       }
     },
+
     {
       accessorKey: 'phone',
       header: ({ column }) => {
@@ -196,14 +197,13 @@ export function ClientTable({
         </div>
       )
     },
-
     {
       accessorKey: 'label',
       header: ({ column }) => {
         return (
           <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -215,7 +215,7 @@ export function ClientTable({
           original: { label }
         }
       }) => {
-        return <div className="">{label}</div>
+        return <div className="flex items-center">{label || '/'}</div>
       }
     },
     {
@@ -247,7 +247,7 @@ export function ClientTable({
       },
       cell: ({ row }) => {
         return (
-          <div className="flex items-center gap-1">{row.original.location}</div>
+          <div className="flex items-center gap-1">{row.original.city}</div>
         )
       }
     },
@@ -498,7 +498,7 @@ function Actions({
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={'/dashboard/clients/' + id}
+            href={`/dashboard/clients/${id}`}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>

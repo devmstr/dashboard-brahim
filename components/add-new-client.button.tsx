@@ -1,29 +1,15 @@
 'use client'
-
-import { Button } from '@/components/ui/button'
 import { ClientSchemaType } from '@/app/dashboard/timeline/add-order.dialog'
 import { Icons } from '@/components/icons'
+import { Button } from '@/components/ui/button'
+import { useTransition } from 'react'
 import { DialogWrapper } from './dialog-wrapper'
-import { LocationData, NewClientForm } from './new-client.form'
-import { useState, useTransition } from 'react'
-import { delay } from '@/lib/utils'
-import { SearchComboBox } from './search-combo-box'
+import { ClientInfoForm } from './new-client.form'
+import { toast } from '@/hooks/use-toast'
 
 interface AddNewClientDialogButtonProps {}
 
 export function AddNewClientDialogButton({}: AddNewClientDialogButtonProps) {
-  const [isLoading, beginTransition] = useTransition()
-
-  const handleSubmit = async (data: ClientSchemaType) => {
-    beginTransition(async () => {
-      // handle adding new client here
-      await delay(1500)
-      console.log('data: ', data)
-      console.log('============ done! ============')
-      return
-    })
-  }
-
   return (
     <DialogWrapper
       title="Ajouter un client"
@@ -40,7 +26,7 @@ export function AddNewClientDialogButton({}: AddNewClientDialogButtonProps) {
         </Button>
       }
     >
-      <NewClientForm onSubmit={handleSubmit} isLoading={isLoading} />
+      <ClientInfoForm />
     </DialogWrapper>
   )
 }

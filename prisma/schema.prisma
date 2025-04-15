@@ -3,8 +3,13 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum ComponentType {
+  CORE
+  COLLECTOR
 }
 
 model Account {
@@ -60,155 +65,194 @@ model VerificationRequest {
 }
 
 model Country {
-  id      String @id @default(cuid())
-  code    String @unique
-  name    String
-  name_ar String
-}
-
-model Wilaya {
-  id      String  @id @default(cuid())
-  code    String  @unique
-  name_ar String
-  name    String
-  Dairas  Daira[]
-}
-
-model Daira {
-  id       String @id @default(cuid())
-  code     String
-  name_ar  String
-  name     String
-  Wilaya   Wilaya @relation(fields: [wilayaId], references: [id])
-  wilayaId String @unique
-}
-
-model Radiator {
-  id          String     @id @default(cuid())
-  dirId       String
-  barcode     String?
-  description String
-  hash        String     @unique
-  brand       String?
-  model       String?
-  isValidated Boolean?   @default(false)
-  createdAt   DateTime?  @default(now())
-  updatedAt   DateTime?  @updatedAt
-  // relations 
-  core        Core?      @relation(fields: [coreId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  coreId      String?    @unique
-  collector   Collector? @relation(fields: [collectorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  collectorId String?    @unique
-  Order       Order?     @relation(fields: [orderId], references: [id])
-  orderId     String?
-
-  @@index([barcode])
-  @@index([hash])
-  @@map("RadiatorStock")
-}
-
-model Core {
   id        String     @id @default(cuid())
-  height    Int
-  width     Int
-  tube      String?
-  fins      String
-  finsPitch Int?
-  rows      Int
-  Radiator  Radiator[]
-  Order     Order?     @relation(fields: [orderId], references: [id])
-  orderId   String?
+  code      String     @unique
+  name      String
+  Provinces Province[]
+  Address   Address[]
+}
+
+model Province {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  name_ar   String
+  name      String
+  City      City[]
+  Country   Country?  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  countryId String?
+  Address   Address[]
+}
+
+model City {
+  id         String   @id @default(cuid())
+  zip_code   String   @unique
+  name_ar    String
+  name       String
+  Province   Province @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  provinceId String
+
+  Address Address[]
+}
+
+model Inventory {
+  id          String    @id @default(cuid())
+  quantity    Int       @default(0)
+  minQuantity Int       @default(0)
+  Product     Product[]
+}
+
+model Price {
+  id      String    @id @default(cuid())
+  unit    Float     @default(0)
+  bulk    Float     @default(0)
+  Product Product[]
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  reference   String?     @unique
+  name        String?
+  category    String?
+  dir         String?
+  barcode     String?     @unique
+  label       String?     @unique
+  isActive    Boolean?    @default(false)
+  Inventory   Inventory?  @relation(fields: [inventoryId], references: [id])
+  Price       Price?      @relation(fields: [priceId], references: [id])
+  // relations
+  Order       Order?      @relation(fields: [orderId], references: [id])
+  Models      CarModel[]
+  Components  Component[]
+  inventoryId String?
+  priceId     String?
+  orderId     String?
+}
+
+model Component {
+  id        String        @id @default(cuid())
+  name      String
+  type      ComponentType
+  productId String
+  product   Product       @relation(fields: [productId], references: [id])
+
+  coreId      String?
+  collectorId String?
+
+  core      Core?      @relation(fields: [coreId], references: [id])
+  collector Collector? @relation(fields: [collectorId], references: [id])
 }
 
 model Collector {
-  id          String     @id @default(cuid())
-  height      Int
+  id          String @id @default(cuid())
   width       Int
+  height      Int
   lowerHeight Int?
   lowerWidth  Int?
-  position    String?
-  tightening  String?
-  Radiator    Radiator[]
+  position    String
+  tightening  String
+
+  components Component[] // One collector used in many components
 }
 
-model Exhaust {
-  id          String    @id @default(cuid())
-  barcode     String?
-  description String
-  type        String
-  painting    String
-  isValidated Boolean?  @default(false)
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @updatedAt
-  hash        String    @unique
-  car         Car[]
+model Core {
+  id        String @id @default(cuid())
+  width     Int
+  height    Int
+  rows      Int
+  fins      String
+  finsPitch Int
+  tube      String
+
+  components Component[] // One core used in many components
 }
 
 model Brand {
-  id           String    @id @default(cuid())
-  name         String    @unique
-  abbreviation String
-  Cars         Car[]
-  createdAt    DateTime? @default(now())
-  updatedAt    DateTime? @updatedAt
+  id       String      @id @default(cuid())
+  name     String
+  Families CarFamily[]
+
+  @@map("car_brand")
 }
 
-model Car {
-  id        String    @id @default(cuid())
-  model     String?
-  type      String?
-  subType   String?
-  fuel      String?
-  engine    String?
-  Exhaust   Exhaust?  @relation(fields: [exhaustId], references: [id])
-  exhaustId String?
-  Brand     Brand?    @relation(fields: [brandId], references: [id])
-  brandId   String?
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+model CarFamily {
+  id      String     @id @default(cuid())
+  name    String
+  brand   Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  brandId String
+  Models  CarModel[]
+
+  @@map("car_family")
+}
+
+model CarModel {
+  id         String    @id @default(cuid())
+  name       String // E.g., "E84"
+  production String // E.g., "10/2009 - 06/2015"
+  family     CarFamily @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  familyId   String
+  Types      CarType[]
+  Product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  productId  String?
+
+  @@map("car_model")
+}
+
+model CarType {
+  id      String   @id @default(cuid())
+  name    String // E.g., "16d sDrive 2.0 d 16V DPF 116cv"
+  model   CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  modelId String
+
+  @@map("car_type")
 }
 
 model Client {
-  id        String    @id @default(cuid())
-  name      String
-  phone     String
-  email     String?
-  isCompany Boolean   @default(false)
-  website   String?
-  rc        String?
-  mf        String?
-  ai        String?
-  nif       String?
-  nis       String?
-  na        String?
-  address   String?
-  country   String?
-  province  String?
-  city      String?
-  zip       String?
-  Orders    Order[]
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+  id                  String    @id @default(cuid())
+  name                String
+  phone               String    @unique
+  label               String?
+  email               String?   @unique
+  isCompany           Boolean   @default(false)
+  website             String?
+  tradeRegisterNumber String? // RC
+  fiscalNumber        String? // MF
+  registrationArticle String? // AI
+  taxIdNumber         String? // NIF
+  statisticalIdNumber String? // NIS
+  approvalNumber      String? // NA
+  Address             Address?  @relation(fields: [addressId], references: [id])
+  addressId           String?   @unique
+  Orders              Order[]
+  createdAt           DateTime? @default(now())
+  updatedAt           DateTime? @updatedAt
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  street     String?
+  City       City     @relation(fields: [cityId], references: [id])
+  cityId     String
+  Province   Province @relation(fields: [provinceId], references: [id])
+  provinceId String
+  Country    Country  @relation(fields: [countryId], references: [id])
+  countryId  String
+  Client     Client?
 }
 
 model Order {
-  id         String     @id @default(cuid())
-  deadline   DateTime   @default(now())
-  totalPrice Int?
-  items      Int?
-  state      String?
-  progress   Int        @default(0)
-  // new relations
-  Radiators  Radiator[]
-  Cores      Core[]
-  Clients    Client[]
-
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
-}
-
-model Payment {
-  id        String    @id @default(cuid())
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+  id            String    @id @default(cuid())
+  deadline      DateTime  @default(now())
+  note          Json?
+  description   Json?
+  modifications Json?
+  state         String?
+  progress      Int       @default(0)
+  validatedAt   DateTime?
+  canceledAt    DateTime?
+  createdAt     DateTime? @default(now())
+  updatedAt     DateTime? @updatedAt
+  // relations
+  Client        Client    @relation(fields: [clientId], references: [id])
+  clientId      String
+  Products      Product[]
 }

@@ -123,8 +123,8 @@ export const TechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="fins">{'Ailette'}</Label>
             <Combobox
               id="fins"
-              selections={FINS_TYPES}
-              setSelected={(v) => {
+              options={FINS_TYPES}
+              onSelect={(v) => {
                 if (
                   (v === 'Zigzag' && data.tubePitch === 11) ||
                   ((v === 'Droite (Aérer)' || v === 'Droite (Normale)') &&
@@ -140,8 +140,8 @@ export const TechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="tube">{'Tube'}</Label>
             <Combobox
               id="tube"
-              selections={TUBE_TYPES}
-              setSelected={(v) => {
+              options={TUBE_TYPES}
+              onSelect={(v) => {
                 onChange('tube', v)
               }}
               selected={data.tube}
@@ -151,14 +151,14 @@ export const TechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="tubePitch">{'Pas Des Tubes'}</Label>
             <Combobox
               id="tubePitch"
-              selections={
+              options={
                 data.fins == 'Zigzag'
                   ? FINS_SIZES.filter((i) => i == 12 || i == 10).map((i) =>
                       i.toString()
                     )
                   : FINS_SIZES.filter((i) => i != 12).map((i) => i.toString())
               }
-              setSelected={(v) => {
+              onSelect={(v) => {
                 onChange('tubePitch', v)
               }}
               selected={data.tubePitch?.toString()}
@@ -186,8 +186,8 @@ export const TechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="collectorMaterial">{'Matière'}</Label>
             <Combobox
               id="collectorMaterial"
-              selections={COLLECTOR_MATERIALS_TYPES}
-              setSelected={(v) => onChange('collectorMaterial', v)}
+              options={COLLECTOR_MATERIALS_TYPES}
+              onSelect={(v) => onChange('collectorMaterial', v)}
               selected={data.collectorMaterial}
             />
           </div>
@@ -195,12 +195,12 @@ export const TechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="collectorType">{'Serrage'}</Label>
             <Combobox
               id="collectorType"
-              selections={
+              options={
                 data.coolingSystem == 'Air' || data.coolingSystem == 'Huile'
                   ? CLAMPING_TYPES.filter((i) => i != 'Boulonné')
                   : CLAMPING_TYPES
               }
-              setSelected={(v) => onChange('collectorType', v)}
+              onSelect={(v) => onChange('collectorType', v)}
               selected={data.collectorType}
             />
           </div>
@@ -209,9 +209,9 @@ export const TechnicalDataForm: React.FC<Props> = ({
               <Label htmlFor="perforation">{'Perforation'}</Label>
               <Combobox
                 id="perforation"
-                selections={PERFORATION_TYPES}
+                options={PERFORATION_TYPES}
                 selected={data.perforation}
-                setSelected={(v) => {
+                onSelect={(v) => {
                   onChange('perforation', v)
                 }}
               />
@@ -222,8 +222,8 @@ export const TechnicalDataForm: React.FC<Props> = ({
             <Label htmlFor="collectorPosition">{'Positionnement'}</Label>
             <Combobox
               id="collectorPosition"
-              selections={COLLECTOR_POSITION_TYPES}
-              setSelected={(v) => {
+              options={COLLECTOR_POSITION_TYPES}
+              onSelect={(v) => {
                 onChange('collectorPosition', v)
               }}
               selected={data.collectorPosition}

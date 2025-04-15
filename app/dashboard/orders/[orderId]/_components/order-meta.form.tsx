@@ -151,8 +151,8 @@ export const OrderMetaForm: React.FC<Props> = ({
                   <FormControl>
                     <Combobox
                       id="mode"
-                      selections={PAYMENT_TYPES}
-                      setSelected={(v: string) => {
+                      options={PAYMENT_TYPES}
+                      onSelect={(v: string) => {
                         form.setValue(
                           'mode',
                           v as

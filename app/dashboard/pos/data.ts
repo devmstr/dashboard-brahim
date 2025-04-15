@@ -145,90 +145,105 @@ export const sampleCustomers: Customer[] = [
     id: '1',
     name: 'Ahmed Benali',
     company: 'Réparation Auto Benali',
-    phone: '0550123456'
+    phone: '0550123456',
+    city: 'Oran'
   },
   {
     id: '2',
     name: 'Karim Bouzid',
     company: 'Garage Bouzid',
-    phone: '0661234567'
+    phone: '0661234567',
+    city: 'Batna'
   },
   {
     id: '3',
     name: 'Nour El Houda Mansouri',
     company: 'Atelier Auto Mansouri',
-    phone: '0772345678'
+    phone: '0772345678',
+    city: ''
   },
   {
     id: '4',
     name: 'Omar Cherif',
     company: 'Mécaniciens Cherif',
-    phone: '0543456789'
+    phone: '0543456789',
+    city: ''
   },
   {
     id: '5',
     name: 'Fatima Zohra Meddah',
     company: 'Spécialistes Radiateurs Meddah',
-    phone: '0678567890'
+    phone: '0678567890',
+    city: ''
   },
   {
     id: '6',
     name: 'Hassan Bouchareb',
     company: 'Auto Services Bouchareb',
-    phone: '0551678901'
+    phone: '0551678901',
+    city: ''
   },
   {
     id: '7',
     name: 'Rania Sahnoune',
     company: 'Garage Sahnoune',
-    phone: '0662789012'
+    phone: '0662789012',
+    city: ''
   },
   {
     id: '8',
     name: 'Mehdi Bensalem',
     company: 'Réparation Express Bensalem',
-    phone: '0773890123'
+    phone: '0773890123',
+    city: ''
   },
   {
     id: '9',
     name: 'Zineb Boudjemaa',
     company: 'Mécanique Générale Boudjemaa',
-    phone: '0544901234'
+    phone: '0544901234',
+    city: ''
   },
   {
     id: '10',
     name: 'Yacine Ait Kaci',
     company: 'Atelier Ait Kaci',
-    phone: '0679012345'
+    phone: '0679012345',
+    city: ''
   },
   {
     id: '11',
     name: 'Sofiane Merah',
     company: 'Garage Merah',
-    phone: '0552123456'
+    phone: '0552123456',
+    city: ''
   },
   {
     id: '12',
     name: 'Amel Dali',
     company: 'Spécialistes Peinture Dali',
-    phone: '0663234567'
+    phone: '0663234567',
+    city: ''
   },
   {
     id: '13',
     name: 'Redouane Belkacem',
     company: 'Atelier Auto Belkacem',
-    phone: '0774345678'
+    phone: '0774345678',
+    city: ''
   },
   {
     id: '14',
     name: 'Meriem Guendouzi',
     company: 'Réparation Carrosserie Guendouzi',
-    phone: '0545456789'
+    phone: '0545456789',
+    city: ''
   },
   {
     id: '15',
     name: 'Nassim Boudiaf',
     company: 'Mécanique Auto Boudiaf',
-    phone: '0677567890'
+    phone: '0677567890',
+    city: ''
   }
 ]

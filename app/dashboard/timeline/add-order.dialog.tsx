@@ -1,29 +1,18 @@
 'use client'
-import { z } from 'zod'
+import { Icons } from '@/components/icons'
+import { ScrollArea } from '@/components/scroll-area'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog'
-import React, { useState, useTransition } from 'react'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { toast } from '@/components/ui/use-toast'
+import { contentSchema } from '@/lib/validations'
+import { useRouter } from 'next/navigation'
+import { useState, useTransition } from 'react'
+import { z } from 'zod'
+import { StepIndicator } from './_components/step-indicator'
 import { ClientInfoForm } from './_components/timeline-client.form'
 import { FabricationForm } from './_components/timeline-fabrication.form'
-import { TechnicalDataForm } from './_components/timeline-technical.form'
-import { StepIndicator } from './_components/step-indicator'
-import { Icons } from '@/components/icons'
-import { toast } from '@/components/ui/use-toast'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { Dictionary } from '@/types'
-import { Country, Daira, Wilaya } from '@prisma/client'
-import { ScrollArea } from '@/components/scroll-area'
 import { PaymentForm } from './_components/timeline-payment'
-import { previousDay } from 'date-fns'
-import { contentSchema } from '@/lib/validations'
+import { TechnicalDataForm } from './_components/timeline-technical.form'
 
 const positiveNumberFromString = (name: string) =>
   z
@@ -43,20 +32,17 @@ const positiveNumberFromString = (name: string) =>
 
 export const clientSchema = z.object({
   isCompany: z.boolean().default(false),
-  name: z.string().optional(),
+  name: z.string(),
   email: z.string().email('Invalid email address').optional(),
-  phone: z
-    .string()
-    .refine(
-      (phone) =>
-        /^(?:\+213|0)(5|6|7)\d{8}$/.test(phone) || // algerian phone format
-        /^\+?[1-9]\d{1,14}$/.test(phone), // International E.164 format
-      {
-        message:
-          'Invalid phone number. Must be a valid Algerian or international number.'
-      }
-    )
-    .optional(),
+  phone: z.string().refine(
+    (phone) =>
+      /^(?:\+213|0)(5|6|7)\d{8}$/.test(phone) || // algerian phone format
+      /^\+?[1-9]\d{1,14}$/.test(phone), // International E.164 format
+    {
+      message:
+        'Invalid phone number. Must be a valid Algerian or international number.'
+    }
+  ),
   country: z.string().optional(),
   province: z.string().optional(),
   city: z.string().optional(),
@@ -66,13 +52,13 @@ export const clientSchema = z.object({
     .optional(),
   label: z.string().optional(),
   website: z.string().optional(),
-  address: z.string().optional(),
-  rc: z.string().optional(),
-  mf: z.string().optional(),
-  ai: z.string().optional(),
-  nif: z.string().optional(),
-  nis: z.string().optional(),
-  na: z.string().optional()
+  street: z.string().optional(),
+  tradeRegisterNumber: z.string().optional(), // RC
+  fiscalNumber: z.string().optional(), // MF
+  registrationArticle: z.string().optional(), // AI
+  taxIdNumber: z.string().optional(), // NIF
+  statisticalIdNumber: z.string().optional(), // NIS
+  approvalNumber: z.string().optional() // NA
 })
 
 export type ClientSchemaType = z.infer<typeof clientSchema>

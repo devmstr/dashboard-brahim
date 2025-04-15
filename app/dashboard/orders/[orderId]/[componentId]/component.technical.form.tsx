@@ -52,23 +52,23 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
     defaultValues: {
       type: 'Radiateur',
       fabrication: 'Confection',
-      coolingSystem: 'Eau',
+      cooling: 'Eau',
       packaging: 'Carton',
       quantity: 1,
-      isModificationRequired: false,
+      isModificationIncluded: false,
       core: {
         fins: 'Droite (Normale)',
-        tubePitch: 10,
+        finsPitch: 10,
         tube: 'Étiré 7 (ET7)',
         collector: {
           isTinned: false,
-          perforation: 'Perforé',
-          type: 'Plié',
+          tightening: 'Perforé',
+          cooling: 'Plié',
           position: 'Centrer',
           material: 'Laiton',
           dimensions: {
             upper: {
-              depth: 1.5
+              thickness: 1.5
             }
           }
         }
@@ -97,9 +97,9 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
   React.useEffect(() => {
     if (isCollectorsDifferent)
       form.setValue('core.collector.dimensions.lower', {
-        depth,
+        thickness: depth,
         width,
-        length
+        height: length
       })
     else form.setValue('core.collector.dimensions.lower', undefined)
   }, [isCollectorsDifferent])
@@ -169,8 +169,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                     <Combobox
                       {...field}
                       id="fuel"
-                      selections={CAR_ENERGY_TYPES}
-                      setSelected={(v) => form.setValue('car.fuel', v)}
+                      options={CAR_ENERGY_TYPES}
+                      onSelect={(v) => form.setValue('car.fuel', v)}
                       selected={field.value}
                     />
                   </FormControl>
@@ -256,8 +256,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                     <Combobox
                       {...field}
                       id="type"
-                      selections={ORDER_TYPES}
-                      setSelected={(v) => {
+                      options={ORDER_TYPES}
+                      onSelect={(v) => {
                         if (v == 'Faisceau')
                           form.setValue('fabrication', 'Confection')
                         form.setValue('type', v)
@@ -279,12 +279,12 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                     <Combobox
                       {...field}
                       id="fabrication"
-                      selections={
+                      options={
                         type === 'Faisceau'
                           ? FABRICATION_TYPES.filter((i) => i == 'Confection')
                           : FABRICATION_TYPES
                       }
-                      setSelected={(v) => {
+                      onSelect={(v) => {
                         form.setValue('fabrication', v)
                       }}
                       selected={field.value}
@@ -318,8 +318,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                   <FormControl>
                     <Combobox
                       {...field}
-                      selections={COOLING_SYSTEMS_TYPES}
-                      setSelected={(v) => {
+                      options={COOLING_SYSTEMS_TYPES}
+                      onSelect={(v) => {
                         form.setValue('coolingSystem', v)
                         if (v != 'Eau')
                           form.setValue('core.collector.type', 'Plié')
@@ -341,8 +341,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                     <Combobox
                       {...field}
                       id="packaging"
-                      selections={PACKAGING_TYPES}
-                      setSelected={(v) => {
+                      options={PACKAGING_TYPES}
+                      onSelect={(v) => {
                         form.setValue('packaging', v)
                       }}
                       selected={field.value}
@@ -470,8 +470,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                   <FormControl>
                     <Combobox
                       {...field}
-                      selections={FINS_TYPES}
-                      setSelected={(v) => {
+                      options={FINS_TYPES}
+                      onSelect={(v) => {
                         if (
                           (v === 'Zigzag' && tubePitch === 11) ||
                           ((v === 'Droite (Aérer)' ||
@@ -497,8 +497,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                   <FormControl>
                     <Combobox
                       id="tube"
-                      selections={TUBE_TYPES}
-                      setSelected={(v) => {
+                      options={TUBE_TYPES}
+                      onSelect={(v) => {
                         form.setValue('core.tube', v)
                       }}
                       selected={field.value}
@@ -519,10 +519,10 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                   <FormControl>
                     <Combobox
                       {...field}
-                      selections={
+                      options={
                         fins == 'Zigzag' ? ['10', '12'] : ['10', '11', '14']
                       }
-                      setSelected={(v) => {
+                      onSelect={(v) => {
                         form.setValue('core.tubePitch', Number(v))
                       }}
                       selected={field.value?.toString()}
@@ -567,8 +567,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                       <FormLabel className="capitalize">{'Matière'}</FormLabel>
                       <FormControl>
                         <Combobox
-                          selections={COLLECTOR_MATERIALS_TYPES}
-                          setSelected={(v) =>
+                          options={COLLECTOR_MATERIALS_TYPES}
+                          onSelect={(v) =>
                             form.setValue('core.collector.material', v)
                           }
                           selected={field.value}
@@ -586,12 +586,12 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                       <FormLabel className="capitalize">{'Serrage'}</FormLabel>
                       <FormControl>
                         <Combobox
-                          selections={
+                          options={
                             ['Air', 'Huile'].includes(coolingSystem)
                               ? ['Plié']
                               : CLAMPING_TYPES
                           }
-                          setSelected={(v) =>
+                          onSelect={(v) =>
                             form.setValue('core.collector.type', v)
                           }
                           selected={field.value}
@@ -613,8 +613,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                         <FormControl>
                           <Combobox
                             id="perforation"
-                            selections={PERFORATION_TYPES}
-                            setSelected={(v) => {
+                            options={PERFORATION_TYPES}
+                            onSelect={(v) => {
                               form.setValue('core.collector.perforation', v)
                             }}
                             selected={field.value}
@@ -635,8 +635,8 @@ export const ComponentTechnicalForm: React.FC<Props> = ({ data }: Props) => {
                       </FormLabel>
                       <FormControl>
                         <Combobox
-                          selections={COLLECTOR_POSITION_TYPES}
-                          setSelected={(v) => {
+                          options={COLLECTOR_POSITION_TYPES}
+                          onSelect={(v) => {
                             form.setValue('core.collector.position', v)
                           }}
                           selected={field.value}

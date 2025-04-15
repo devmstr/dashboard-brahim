@@ -44,17 +44,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import { NewType } from '@/lib/validations'
 import { usePathname, useRouter } from 'next/navigation'
-import { Dispatch } from 'react'
+import { useOrder } from './new-order.provider'
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   data?: OrderComponentsTableEntry[]
-  orderContext?: {
-    order?: NewType
-    setOrder: Dispatch<React.SetStateAction<NewType | undefined>>
-  }
-  t: {
+  t?: {
     id: string
     brand: string
     model: string
@@ -66,9 +61,16 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 export function OrderComponentsTable({
-  t,
   data: input = [],
-  orderContext,
+  t = {
+    id: 'Matricule',
+    title: 'Titre',
+    brand: 'Marque',
+    model: 'Model',
+    type: 'Commande',
+    fabrication: 'Fabrication',
+    quantity: 'Quantité'
+  },
   ...props
 }: Props) {
   const [data, setData] = React.useState<OrderComponentsTableEntry[]>(input)
@@ -78,34 +80,12 @@ export function OrderComponentsTable({
     []
   )
 
-  React.useEffect(() => {
-    if (!orderContext) return
-    let components: OrderComponentsTableEntry[] | undefined =
-      orderContext?.order?.components?.map(
-        ({ id, car, type, fabrication, quantity }) => ({
-          fabrication,
-          quantity: quantity!,
-          type,
-          id: id!,
-          title: '/',
-          brand: car ? car.manufacture : undefined,
-          model: car ? car.model : undefined
-        })
-      )
-
-    if (components) setData(components)
-  }, [orderContext?.order])
-
   const router = useRouter()
   const pathname = usePathname()
 
   const handleDelete = async (orderId: string) => {
     setData(data.filter(({ id }) => id != orderId))
-    if (orderContext)
-      orderContext.setOrder((prev) => ({
-        ...prev,
-        components: prev?.components?.filter(({ id }) => id != orderId)
-      }))
+    // TODO: delete the item from database
   }
 
   const columns: ColumnDef<OrderComponentsTableEntry>[] = [
@@ -115,7 +95,7 @@ export function OrderComponentsTable({
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
+            className=" flex gap-2 hover:text-primary  cursor-pointer"
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -157,14 +137,18 @@ export function OrderComponentsTable({
         const matches = title.match(regex)
 
         return (
-          <p className="text-muted-foreground  truncate  overflow-hidden whitespace-nowrap">
+          <p
+            className="text-foreground/85  truncate  overflow-hidden whitespace-nowrap"
+            style={{
+              fontSize: ' 1.05rem',
+              lineHeight: '1.65rem'
+            }}
+          >
             {parts.map((part, index) => (
               <React.Fragment key={index}>
                 {part}
                 {matches && matches[index] && (
-                  <span className="font-bold text-primary">
-                    {matches[index]}
-                  </span>
+                  <span className="font-semibold">{matches[index]}</span>
                 )}
               </React.Fragment>
             ))}

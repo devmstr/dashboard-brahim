@@ -1,67 +1,47 @@
 'use client'
 import { AddOrderSchemaType } from '@/app/dashboard/timeline/add-order.dialog'
-import { AutoComplete } from '@/components/auto-complete-input'
-import { Combobox } from '@/components/combobox'
-import { Switcher } from '@/components/switcher'
-import { Input } from '@/components/ui/input'
 import { COMPANY_LABELS_TYPE } from '@/config/global'
+import { clientSchema, ClientType } from '@/lib/validations'
+import { ClientTableEntry, Customer } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { Button } from './ui/button'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from './ui/form'
-import { Separator } from './ui/separator'
-import { clientSchema, ClientType } from '@/lib/validations'
-import { useOrder } from './new-order.provider'
-import { Icons } from './icons'
-import CustomerSearchInput from './customer-search.input'
-import { ClientTableEntry, Customer } from '@/types'
-import { AddNewClientDialogButton } from './add-new-client.button'
 import { ClientTable } from './client-table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from './ui/select'
-import { Action } from '@radix-ui/react-toast'
-import { MouseEventHandler, useState } from 'react'
+import CustomerSearchInput, {
+  ClientWithOrdersCount
+} from './customer-search.input'
+import { Icons } from './icons'
+import { useOrder } from './new-order.provider'
+import { Button } from './ui/button'
 import { Label } from './ui/label'
+import { Separator } from './ui/separator'
+
+export type FrequentClient = {
+  id: string
+  name: string
+  label: string | null
+  phone: string
+  city: string | null
+  orderCount: number
+}
 
 interface Props {
-  data: Partial<AddOrderSchemaType>
+  data: FrequentClient[]
 }
 
 export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   const { order, setOrder } = useOrder()
-  const [customer, setCustomer] = useState<Customer | null>(null)
+  const [customer, setCustomer] = useState<ClientWithOrdersCount | null>(null)
   const router = useRouter()
-  const form = useForm<ClientType>({
-    defaultValues: {
-      isCompany: false,
-      country: 'Algeria',
-      label: COMPANY_LABELS_TYPE.at(4),
-      province: 'Ghardia',
-      city: 'Ghardia'
-    },
-    resolver: zodResolver(clientSchema)
-  })
 
-  const isCompany = form.watch('isCompany')
   const onSubmit = (formData: ClientType) => {
+    if (!customer) return
     setOrder((prev) => ({
       ...prev,
       client: formData
     }))
+
     router.replace('new/order')
   }
 
@@ -72,7 +52,15 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
         variant={'outline'}
         onClick={() => {
           console.log('Full row data:', rowData)
-          setCustomer({ ...rowData, company: rowData.label || '' })
+          setCustomer({
+            id: rowData.id,
+            Address: {
+              City: { name: rowData.city }
+            },
+            name: rowData.name as string,
+            phone: rowData.phone,
+            _count: { Orders: rowData.orderCount || 0 }
+          })
         }}
       >
         Choisir
@@ -82,9 +70,10 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
 
   return (
     <CustomerSearchInput
-      customers={[]}
-      selectedCustomer={customer}
-      setSelectedCustomer={(customer: Customer | null) => {}}
+      selected={customer}
+      onSelectChange={(client: ClientWithOrdersCount | null) =>
+        setCustomer(client)
+      }
     >
       <div className=" flex flex-col gap-4 w-full">
         <Label className="text-foreground">Derniers Acheteurs</Label>
@@ -95,40 +84,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
           showLimitSelector={false}
           showSearch={false}
           showPaginationButtons={false}
-          data={[
-            {
-              id: 'CLX24DF4T',
-              name: 'Mohamed',
-              phone: '0658769361',
-              label: '(SARL) GoldenRad ',
-              location: 'Ghardaïa',
-              orderCount: 10
-            },
-            {
-              id: 'CLX89GJ7K',
-              name: 'Amine',
-              phone: '0667321984',
-              label: '(EURL) Tech Innov',
-              location: 'Alger',
-              orderCount: 15
-            },
-            {
-              id: 'CLX56TY9P',
-              name: 'Nassim',
-              phone: '0558743621',
-              label: '(SARL) BuildProSociété',
-              location: 'Oran',
-              orderCount: 8
-            },
-            {
-              id: 'CLX77MN3Q',
-              name: 'Yacine',
-              phone: '0678125496',
-              label: '(SAS) GreenAgro',
-              location: 'Constantine',
-              orderCount: 20
-            }
-          ]}
+          data={data}
         />
         <Separator />
         <div className="flex w-full justify-end">

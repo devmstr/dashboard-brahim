@@ -26,23 +26,23 @@ export function genTitle({
   if (type == 'Faisceau') {
     const clampingInTitle =
       CLAMPING_DICTIONARY[
-        core?.collector?.type as keyof typeof CLAMPING_DICTIONARY
+        core?.collector?.cooling as keyof typeof CLAMPING_DICTIONARY
       ]
     const collectorLength = getTitleDimensions(
-      core?.collector?.dimensions?.upper?.length,
-      core?.collector?.dimensions?.lower?.length
+      core?.collector?.dimensions?.upper?.height,
+      core?.collector?.dimensions?.lower?.height
     )
     const collectorWidth = getTitleDimensions(
       core?.collector?.dimensions?.upper?.width,
       core?.collector?.dimensions?.lower?.width
     )
-    return `FAIS ${core?.length}X${core?.width}X${core?.layers}R ${finsInTitle} PAS ${core?.tubePitch} COLL ${collectorLength}X${collectorWidth} ${clampingInTitle}`
+    return `FAIS ${core?.height}X${core?.width}X${core?.rows}R ${finsInTitle} PAS ${core?.finsPitch} COLL ${collectorLength}X${collectorWidth} ${clampingInTitle}`
   } else if (type == 'Radiateur') {
     const fabricationInTitle = fabrication.slice(0, 3).toUpperCase()
     const carInTitle = car
       ? `${car?.manufacture?.toUpperCase()} ${car?.model?.toUpperCase()} ${car?.car?.toUpperCase()}`
       : 'SELON MODEL'
-    return `RAD ${fabricationInTitle} ${carInTitle} ${core?.layers}R ${finsInTitle} PAS ${core?.tubePitch}`
+    return `RAD ${fabricationInTitle} ${carInTitle} ${core?.rows}R ${finsInTitle} PAS ${core?.finsPitch}`
   } else {
     return `AUTRE ${description}`
   }

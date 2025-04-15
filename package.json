@@ -10,7 +10,10 @@
     "lint": "next lint",
     "dev:local": "next dev -H 0.0.0.0",
     "studio": "npx prisma studio",
-    "script": "ts-node -P tsconfig.scripts.json"
+    "script": "ts-node -P tsconfig.seed.json",
+    "seed:clients": "npm run script scripts/clients.ts",
+    "seed:cars": "npm run script scripts/cars.ts",
+    "seed:locations": "npm run script scripts/locations.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",
@@ -98,7 +101,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/lodash": "^4.14.202",
     "@types/negotiator": "^0.6.3",
-    "@types/node": "^20",
+    "@types/node": "^20.17.30",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",

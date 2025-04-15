@@ -111,8 +111,8 @@ export const CarForm: React.FC<Props> = ({ data }: Props) => {
                     <Combobox
                       {...field}
                       id="fuel"
-                      selections={CAR_ENERGY_TYPES}
-                      setSelected={(v) => form.setValue('fuel', v)}
+                      options={CAR_ENERGY_TYPES}
+                      onSelect={(v) => form.setValue('fuel', v)}
                       selected={field.value}
                     />
                   </FormControl>

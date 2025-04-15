@@ -20,7 +20,7 @@ import { orderSchema, OrderType } from '@/lib/validations/order'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import React from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, UseFormReturn } from 'react-hook-form'
 import { CardGrid } from './card'
 import { useOrder } from './new-order.provider'
 import { Button } from './ui/button'
@@ -35,6 +35,10 @@ import {
 import { Separator } from './ui/separator'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { genTitle } from '@/lib/order-title-generator'
+import { CarSelectionForm, Selection } from './car-selection.from'
+import { toast } from '@/hooks/use-toast'
+import { Label } from './ui/label'
+import { generateProductTitle } from '@/lib/utils'
 
 interface Props {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
@@ -45,56 +49,88 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
   const [isCollectorsDifferent, setIsCollectorsDifferent] =
     React.useState(false)
   const [isTechnicalExist, setIsTechnicalExist] = React.useState(false)
+  const [carSelection, setCarSelection] = React.useState<Selection | undefined>(
+    undefined
+  )
+  const [isModelAvailable, setIsModelAvailable] = React.useState(true)
+  const [isModificationIncluded, setIdsModificationIncluded] =
+    React.useState(false)
   const router = useRouter()
   const form = useForm<OrderType>({
     defaultValues: {
       type: 'Radiateur',
       fabrication: 'Confection',
-      coolingSystem: 'Eau',
+      cooling: 'Eau',
       packaging: 'Carton',
       quantity: 1,
-      isModificationRequired: false,
-      car: {
-        fuel: 'Diesel',
-        year: new Date().getFullYear()
-      },
       core: {
-        fins: 'Droite (Normale)',
-        tubePitch: 10,
-        tube: 'Étiré 7 (ET7)',
-        collector: {
-          isTinned: false,
-          perforation: 'Perforé',
-          type: 'Plié',
-          position: 'Centrer',
-          material: 'Laiton',
-          dimensions: {
-            upper: {
-              depth: 1.5
-            }
-          }
+        fins: 'D',
+        finsPitch: 10,
+        tube: '7',
+        rows: 1,
+        dimensions: {
+          width: 0,
+          height: 0
+        }
+      },
+      collector: {
+        isTinned: false,
+        perforation: 'Perforé',
+        tightening: 'P',
+        position: 'C',
+        material: 'Laiton',
+        upperDimensions: {
+          width: 0,
+          height: 0,
+          thickness: 1.5
         }
       }
     },
     resolver: zodResolver(orderSchema)
   })
-  const isModificationRequired = form.watch('isModificationRequired')
   const type = form.watch('type')
-  const collectorType = form.watch('core.collector.type')
-  const tubePitch = form.watch('core.tubePitch')
+  const tightening = form.watch('collector.tightening')
+  const finsPitch = form.watch('core.finsPitch')
   const fins = form.watch('core.fins')
-  const coolingSystem = form.watch('coolingSystem')
-  const depth = form.watch('core.collector.dimensions.upper.depth')
-  const length = form.watch('core.collector.dimensions.upper.length')
-  const width = form.watch('core.collector.dimensions.upper.width')
+  const cooling = form.watch('cooling')
+  const thickness = form.watch('collector.upperDimensions.thickness')
+  const height = form.watch('collector.upperDimensions.height')
+  const width = form.watch('collector.upperDimensions.width')
 
   const onSubmit = (formData: OrderType) => {
     if (!order)
       setOrder({
         components: []
       })
+    if (!carSelection) {
+      toast({
+        title: 'Attention !',
+        description:
+          'Les informations sur le véhicule sont manquantes dans la commande.',
+        variant: 'warning'
+      })
+    }
     const id = order?.components ? String(order?.components.length + 1) : '1'
-    const title = genTitle(formData)
+    const title = generateProductTitle({
+      core: {
+        width: Number(formData.core?.dimensions?.width),
+        height: Number(formData.core?.dimensions?.height)
+      },
+      collector: {
+        width: Number(formData.collector?.upperDimensions?.width),
+        height: Number(formData.collector?.upperDimensions?.height),
+        lowerHeight: Number(formData.collector?.lowerDimensions?.height),
+        lowerWidth: Number(formData.collector?.lowerDimensions?.width)
+      },
+      rows: formData.core?.rows,
+      type: formData.type as 'Faisceaux' | 'Radiateur',
+      fabrication: formData.fabrication as 'Renovation' | 'Confection',
+      fins: formData.core?.fins as 'Z' | 'A' | 'D',
+      finsPitch: formData.core?.finsPitch as 10 | 11 | 12 | 14,
+      position: formData.collector?.position as 'C' | 'D',
+      tightening: formData.collector?.tightening as 'P' | 'B',
+      tube: formData.core?.tube as '7' | '9' | 'M'
+    })
     console.log(title)
     setOrder((prev) => ({
       ...prev,
@@ -103,6 +139,13 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
         {
           id,
           title,
+          car: isModelAvailable
+            ? {
+                id: carSelection?.model?.id,
+                model: carSelection?.model?.name,
+                manufacture: carSelection?.brand?.name
+              }
+            : undefined,
           ...formData
         }
       ]
@@ -113,115 +156,79 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
 
   React.useEffect(() => {
     if (isCollectorsDifferent)
-      form.setValue('core.collector.dimensions.lower', {
-        depth,
+      form.setValue('collector.lowerDimensions', {
+        thickness: thickness,
         width,
-        length
+        height: height
       })
-    else form.setValue('core.collector.dimensions.lower', undefined)
+    else form.setValue('collector.lowerDimensions', undefined)
   }, [isCollectorsDifferent])
 
   return (
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="relative border rounded-md px-3 py-3">
-          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-            Véhicule
-          </span>
-          <CardGrid>
-            <FormField
-              control={form.control}
-              name="car.manufacture"
-              render={({ field }) => (
-                <FormItem className="group ">
-                  <FormLabel className="capitalize">{'Marque'}</FormLabel>
-                  <FormControl>
-                    <Input {...field} className="w-full" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="car.car"
-              render={({ field }) => (
-                <FormItem className="group ">
-                  <FormLabel className="capitalize">{'Véhicule'}</FormLabel>
-                  <FormControl>
-                    <Input {...field} className="w-full" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="car.model"
-              render={({ field }) => (
-                <FormItem className="group ">
-                  <FormLabel className="capitalize">{'Modèle'}</FormLabel>
-                  <FormControl>
-                    <Input {...field} className="w-full" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="car.fuel"
-              render={({ field }) => (
-                <FormItem className="group ">
-                  <FormLabel className="capitalize">{'énergie'}</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      {...field}
-                      id="fuel"
-                      selections={CAR_ENERGY_TYPES}
-                      setSelected={(v) => form.setValue('car.fuel', v)}
-                      selected={field.value}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="car.year"
-              render={({ field }) => (
-                <FormItem className="group ">
-                  <FormLabel className="capitalize">{'année'}</FormLabel>
-                  <FormControl>
-                    <Input {...field} className="w-full" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardGrid>
+        <div className="">
+          <Label id="isModelAvailable">Véhicule</Label>
+          <Switcher
+            id="isModelAvailable"
+            checked={isModelAvailable}
+            onCheckedChange={(v) => {
+              setIsModelAvailable(!isModelAvailable)
+            }}
+          />
         </div>
-        <div className="relative border rounded-md px-3 py-3">
-          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase ">
-            commande
-          </span>
-          <CardGrid>
+
+        {isModelAvailable ? (
+          <CarSelectionForm onSelectChange={setCarSelection} />
+        ) : (
+          <FormField
+            control={form.control}
+            name="note"
+            render={({ field }) => (
+              <FormItem className="group md:col-span-2 lg:col-span-3">
+                <FormLabel className="capitalize">{'Remarque'}</FormLabel>
+                <FormControl>
+                  <MdEditor
+                    editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+                    className="w-full min-h-36 group"
+                    placeholder="Ajouter Le Model Caterpillar D430 ..."
+                    setValue={(markdown) => {
+                      form.setValue('note', markdown)
+                    }}
+                    value={field.value}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        <div className="space-y-2">
+          <Label id="isModificationIncluded">Modifications</Label>
+          <Switcher
+            id="isModificationIncluded"
+            checked={isModificationIncluded as boolean}
+            onCheckedChange={(v) => {
+              setIdsModificationIncluded(v)
+            }}
+          />
+          {isModificationIncluded && (
             <FormField
               control={form.control}
-              name="isModificationRequired"
+              name="modification"
               render={({ field }) => (
                 <FormItem className="group md:col-span-2 lg:col-span-3 ">
                   <FormLabel className="capitalize">
-                    {' '}
-                    {'Nécessite une modification'}
+                    {'Les Modifications'}
                   </FormLabel>
                   <FormControl>
-                    <Switcher
-                      id="isModificationRequired"
-                      checked={isModificationRequired as boolean}
-                      onCheckedChange={(v) => {
-                        form.setValue('isModificationRequired', v)
+                    <MdEditor
+                      editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+                      className="w-full min-h-36 group"
+                      placeholder="Listez les changements à effectuer..."
+                      value={field.value}
+                      setValue={(markdown) => {
+                        form.setValue('modification', markdown)
                       }}
                     />
                   </FormControl>
@@ -229,32 +236,13 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                 </FormItem>
               )}
             />
-            {isModificationRequired && (
-              <FormField
-                control={form.control}
-                name="modification"
-                render={({ field }) => (
-                  <FormItem className="group md:col-span-2 lg:col-span-3 ">
-                    <FormLabel className="capitalize">
-                      {'Les Modifications'}
-                    </FormLabel>
-                    <FormControl>
-                      <MdEditor
-                        editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
-                        className="w-full min-h-36 group"
-                        placeholder="Listez les changements à effectuer..."
-                        value={field.value}
-                        setValue={(markdown) => {
-                          form.setValue('modification', markdown)
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
+          )}
+        </div>
+        <div className="relative border rounded-md px-3 py-3">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase ">
+            commande
+          </span>
+          <CardGrid>
             <FormField
               control={form.control}
               name="type"
@@ -265,13 +253,14 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <Combobox
                       {...field}
                       id="type"
-                      selections={ORDER_TYPES}
-                      setSelected={(v) => {
+                      options={ORDER_TYPES}
+                      onSelect={(v) => {
                         if (v == 'Faisceau')
                           form.setValue('fabrication', 'Confection')
                         form.setValue('type', v)
                       }}
                       selected={field.value}
+                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -288,15 +277,16 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <Combobox
                       {...field}
                       id="fabrication"
-                      selections={
+                      options={
                         type === 'Faisceau'
                           ? FABRICATION_TYPES.filter((i) => i == 'Confection')
                           : FABRICATION_TYPES
                       }
-                      setSelected={(v) => {
+                      onSelect={(v) => {
                         form.setValue('fabrication', v)
                       }}
                       selected={field.value}
+                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -310,7 +300,15 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                 <FormItem className="group ">
                   <FormLabel className="capitalize">{'Quantité'}</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" className="w-full" />
+                    <Input
+                      {...field}
+                      onChange={(e) => {
+                        const value = Number(e.target.value)
+                        if (value > 0) form.setValue('quantity', value)
+                      }}
+                      type="number"
+                      className=""
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -318,7 +316,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
             />
             <FormField
               control={form.control}
-              name="coolingSystem"
+              name="cooling"
               render={({ field }) => (
                 <FormItem className="group ">
                   <FormLabel className="capitalize">
@@ -327,13 +325,14 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                   <FormControl>
                     <Combobox
                       {...field}
-                      selections={COOLING_SYSTEMS_TYPES}
-                      setSelected={(v) => {
-                        form.setValue('coolingSystem', v)
+                      options={COOLING_SYSTEMS_TYPES}
+                      onSelect={(v) => {
+                        form.setValue('cooling', v)
                         if (v != 'Eau')
-                          form.setValue('core.collector.type', 'Plié')
+                          form.setValue('collector.tightening', 'Plié')
                       }}
                       selected={field.value}
+                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -350,11 +349,12 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <Combobox
                       {...field}
                       id="packaging"
-                      selections={PACKAGING_TYPES}
-                      setSelected={(v) => {
+                      options={PACKAGING_TYPES}
+                      onSelect={(v) => {
                         form.setValue('packaging', v)
                       }}
                       selected={field.value}
+                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -375,7 +375,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                       <MdEditor
                         editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
                         className="w-full min-h-36 group"
-                        placeholder="Décrivez ce que vous souhaitez..."
+                        placeholder="Description de la commande..."
                         setValue={(markdown) => {
                           form.setValue('description', markdown)
                         }}
@@ -399,7 +399,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                 <>
                   <FormField
                     control={form.control}
-                    name="core.length"
+                    name="core.dimensions.height"
                     render={({ field }) => (
                       <FormItem className="group ">
                         <FormLabel className="capitalize">
@@ -413,7 +413,10 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                             {...field}
                             type="number"
                             onChange={({ target: { value } }) =>
-                              form.setValue('core.length', Number(value))
+                              form.setValue(
+                                'core.dimensions.height',
+                                Number(value)
+                              )
                             }
                             className="w-full"
                           />
@@ -424,7 +427,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                   />
                   <FormField
                     control={form.control}
-                    name="core.width"
+                    name="core.dimensions.width"
                     render={({ field }) => (
                       <FormItem className="group ">
                         <FormLabel className="capitalize">
@@ -438,7 +441,10 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                             type="number"
                             {...field}
                             onChange={({ target: { value } }) =>
-                              form.setValue('core.width', Number(value))
+                              form.setValue(
+                                'core.dimensions.width',
+                                Number(value)
+                              )
                             }
                             className="w-full"
                           />
@@ -451,7 +457,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
               )}
               <FormField
                 control={form.control}
-                name="core.layers"
+                name="core.rows"
                 render={({ field }) => (
                   <FormItem className="group ">
                     <FormLabel className="capitalize">
@@ -462,7 +468,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                         type="number"
                         {...field}
                         onChange={({ target: { value } }) =>
-                          form.setValue('core.layers', Number(value))
+                          form.setValue('core.rows', Number(value))
                         }
                         className="w-full"
                       />
@@ -482,18 +488,19 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <FormControl>
                       <Combobox
                         {...field}
-                        selections={FINS_TYPES}
-                        setSelected={(v) => {
+                        options={FINS_TYPES}
+                        onSelect={(v) => {
                           if (
-                            (v === 'Zigzag' && tubePitch === 11) ||
+                            (v === 'Zigzag' && finsPitch === 11) ||
                             ((v === 'Droite (Aérer)' ||
                               v === 'Droite (Normale)') &&
-                              tubePitch === 12)
+                              finsPitch === 12)
                           )
-                            form.setValue('core.tubePitch', 10)
+                            form.setValue('core.finsPitch', 10)
                           form.setValue('core.fins', v)
                         }}
                         selected={field.value}
+                        isInSideADialog
                       />
                     </FormControl>
                     <FormMessage />
@@ -509,11 +516,12 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <FormControl>
                       <Combobox
                         id="tube"
-                        selections={TUBE_TYPES}
-                        setSelected={(v) => {
+                        options={TUBE_TYPES}
+                        onSelect={(v) => {
                           form.setValue('core.tube', v)
                         }}
                         selected={field.value}
+                        isInSideADialog
                       />
                     </FormControl>
                     <FormMessage />
@@ -522,7 +530,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
               />
               <FormField
                 control={form.control}
-                name="core.tubePitch"
+                name="core.finsPitch"
                 render={({ field }) => (
                   <FormItem className="group ">
                     <FormLabel className="capitalize">
@@ -531,13 +539,14 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     <FormControl>
                       <Combobox
                         {...field}
-                        selections={
+                        options={
                           fins == 'Zigzag' ? ['10', '12'] : ['10', '11', '14']
                         }
-                        setSelected={(v) => {
-                          form.setValue('core.tubePitch', Number(v))
+                        onSelect={(v) => {
+                          form.setValue('core.finsPitch', Number(v))
                         }}
                         selected={field.value?.toString()}
+                        isInSideADialog
                       />
                     </FormControl>
                     <FormMessage />
@@ -555,7 +564,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                   <CardGrid>
                     <FormField
                       control={form.control}
-                      name="core.collector.isTinned"
+                      name="collector.isTinned"
                       render={({ field }) => (
                         <FormItem className="w-full md:col-span-2 lg:col-span-3 ">
                           <FormLabel className="capitalize">
@@ -566,7 +575,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                               {...field}
                               checked={field.value as boolean}
                               onCheckedChange={(v) =>
-                                form.setValue('core.collector.isTinned', v)
+                                form.setValue('collector.isTinned', v)
                               }
                             />
                           </FormControl>
@@ -576,7 +585,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     />
                     <FormField
                       control={form.control}
-                      name="core.collector.material"
+                      name="collector.material"
                       render={({ field }) => (
                         <FormItem className="group ">
                           <FormLabel className="capitalize">
@@ -584,11 +593,12 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              selections={COLLECTOR_MATERIALS_TYPES}
-                              setSelected={(v) =>
-                                form.setValue('core.collector.material', v)
+                              options={COLLECTOR_MATERIALS_TYPES}
+                              onSelect={(v) =>
+                                form.setValue('collector.material', v)
                               }
                               selected={field.value}
+                              isInSideADialog
                             />
                           </FormControl>
                           <FormMessage />
@@ -597,7 +607,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     />
                     <FormField
                       control={form.control}
-                      name="core.collector.type"
+                      name="collector.tightening"
                       render={({ field }) => (
                         <FormItem className="group ">
                           <FormLabel className="capitalize">
@@ -605,25 +615,26 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              selections={
-                                ['Air', 'Huile'].includes(coolingSystem)
+                              options={
+                                ['Air', 'Huile'].includes(cooling)
                                   ? ['Plié']
                                   : CLAMPING_TYPES
                               }
-                              setSelected={(v) =>
-                                form.setValue('core.collector.type', v)
+                              onSelect={(v) =>
+                                form.setValue('collector.tightening', v)
                               }
                               selected={field.value}
+                              isInSideADialog
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    {collectorType == 'Boulonné' && (
+                    {tightening == 'Boulonné' && (
                       <FormField
                         control={form.control}
-                        name="core.collector.perforation"
+                        name="collector.perforation"
                         render={({ field }) => (
                           <FormItem className="group ">
                             <FormLabel className="capitalize">
@@ -632,11 +643,12 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                             <FormControl>
                               <Combobox
                                 id="perforation"
-                                selections={PERFORATION_TYPES}
-                                setSelected={(v) => {
-                                  form.setValue('core.collector.perforation', v)
+                                options={PERFORATION_TYPES}
+                                onSelect={(v) => {
+                                  form.setValue('collector.perforation', v)
                                 }}
                                 selected={field.value}
+                                isInSideADialog
                               />
                             </FormControl>
                             <FormMessage />
@@ -646,7 +658,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     )}
                     <FormField
                       control={form.control}
-                      name="core.collector.position"
+                      name="collector.position"
                       render={({ field }) => (
                         <FormItem className="group ">
                           <FormLabel className="capitalize">
@@ -654,11 +666,12 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              selections={COLLECTOR_POSITION_TYPES}
-                              setSelected={(v) => {
-                                form.setValue('core.collector.position', v)
+                              options={COLLECTOR_POSITION_TYPES}
+                              onSelect={(v) => {
+                                form.setValue('collector.position', v)
                               }}
                               selected={field.value}
+                              isInSideADialog
                             />
                           </FormControl>
                           <FormMessage />
@@ -676,7 +689,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                   <CardGrid>
                     <FormField
                       control={form.control}
-                      name="core.collector.dimensions.upper.length"
+                      name="collector.upperDimensions.height"
                       render={({ field }) => (
                         <FormItem className="group ">
                           <FormLabel className="capitalize">
@@ -691,7 +704,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                               {...field}
                               onChange={({ target: { value } }) =>
                                 form.setValue(
-                                  'core.collector.dimensions.upper.length',
+                                  'collector.upperDimensions.height',
                                   Number(value)
                                 )
                               }
@@ -703,7 +716,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     />
                     <FormField
                       control={form.control}
-                      name="core.collector.dimensions.upper.width"
+                      name="collector.upperDimensions.width"
                       render={({ field }) => (
                         <FormItem className="group ">
                           <FormLabel className="capitalize">
@@ -718,7 +731,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                               {...field}
                               onChange={({ target: { value } }) =>
                                 form.setValue(
-                                  'core.collector.dimensions.upper.width',
+                                  'collector.upperDimensions.width',
                                   Number(value)
                                 )
                               }
@@ -730,7 +743,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                     />
                     <FormField
                       control={form.control}
-                      name="core.collector.dimensions.upper.depth"
+                      name="collector.upperDimensions.thickness"
                       render={({ field }) => (
                         <FormItem className="group ">
                           <FormLabel className="capitalize">
@@ -745,7 +758,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                               {...field}
                               onChange={({ target: { value } }) =>
                                 form.setValue(
-                                  'core.collector.dimensions.upper.depth',
+                                  'collector.upperDimensions.thickness',
                                   Number(value)
                                 )
                               }
@@ -766,7 +779,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                       <CardGrid>
                         <FormField
                           control={form.control}
-                          name="core.collector.dimensions.lower.length"
+                          name="collector.lowerDimensions.height"
                           render={({ field }) => (
                             <FormItem className="group ">
                               <FormLabel className="capitalize">
@@ -781,7 +794,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'core.collector.dimensions.lower.length',
+                                      'collector.lowerDimensions.height',
                                       Number(value)
                                     )
                                   }
@@ -793,7 +806,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                         />
                         <FormField
                           control={form.control}
-                          name="core.collector.dimensions.lower.width"
+                          name="collector.lowerDimensions.width"
                           render={({ field }) => (
                             <FormItem className="group ">
                               <FormLabel className="capitalize">
@@ -808,7 +821,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'core.collector.dimensions.lower.width',
+                                      'collector.lowerDimensions.width',
                                       Number(value)
                                     )
                                   }
@@ -820,7 +833,7 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                         />
                         <FormField
                           control={form.control}
-                          name="core.collector.dimensions.lower.depth"
+                          name="collector.lowerDimensions.thickness"
                           render={({ field }) => (
                             <FormItem className="group ">
                               <FormLabel className="capitalize">
@@ -835,11 +848,11 @@ export const OrderForm: React.FC<Props> = ({ setOpen }: Props) => {
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'core.collector.dimensions.lower.depth',
+                                      'collector.lowerDimensions.thickness',
                                       Number(value)
                                     )
                                   }
-                                  disabled={collectorType == 'Boulonné'}
+                                  disabled={tightening == 'Boulonné'}
                                 />
                               </FormControl>
                               <FormMessage />

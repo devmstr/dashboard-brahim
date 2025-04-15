@@ -5,6 +5,9 @@
     "outDir": "./dist",
     "noEmit": false
   },
+  "paths": {
+    "@/*": ["./*"]
+  },
   "include": ["./scripts/**/*.ts"],
   "exclude": ["node_modules"]
 }

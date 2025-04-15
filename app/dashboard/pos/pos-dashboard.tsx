@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { sampleProducts, sampleCustomers } from './data'
 import { CartItem, Customer, Product } from '@/types'
-import CustomerSearchInput from '../../../components/customer-search.input'
+import CustomerSearchInput, {
+  ClientWithOrdersCount
+} from '../../../components/customer-search.input'
 import ProductsSection from './product-section'
 import CartSection from './cart-selection'
 import { useRouter } from 'next/navigation'
@@ -14,9 +16,8 @@ export default function PosDashboard() {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   )
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null
-  )
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<ClientWithOrdersCount | null>(null)
 
   // Toggle item expansion in cart
   const toggleItemExpansion = (itemId: string) => {
@@ -84,9 +85,8 @@ export default function PosDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 h-full">
         <div className="lg:col-span-2 flex flex-col gap-6">
           <CustomerSearchInput
-            customers={sampleCustomers}
-            selectedCustomer={selectedCustomer}
-            setSelectedCustomer={setSelectedCustomer}
+            selected={selectedCustomer}
+            onSelectChange={setSelectedCustomer}
           />
           <ProductsSection products={sampleProducts} addToCart={addToCart} />
         </div>

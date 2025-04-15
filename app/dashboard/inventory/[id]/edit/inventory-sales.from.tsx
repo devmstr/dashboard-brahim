@@ -142,14 +142,15 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
             </CardGrid>
 
             {/* Prix */}
+
             <CardGrid className="">
               <h3 className="text-lg font-semibold col-span-3">Tarification</h3>
               <FormField
                 control={form.control}
-                name="price"
+                name="bulkPrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prix unitaire</FormLabel>
+                    <FormLabel>Prix en gros</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -165,14 +166,15 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
 
               <FormField
                 control={form.control}
-                name="bulkPrice"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prix en gros</FormLabel>
+                    <FormLabel>Prix unitaire</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
+                        placeholder="+7% par défaut"
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />

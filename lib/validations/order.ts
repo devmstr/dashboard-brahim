@@ -79,39 +79,33 @@ export const OrderProductionView = z.object({
 })
 
 const dimensionSchema = z.object({
-  depth: z.number().positive().optional(),
-  width: z.number().positive().min(100).optional(),
-  length: z.number().positive().min(100).optional()
+  thickness: z.number().positive().optional(),
+  width: z.number().min(0),
+  height: z.number().min(0)
 })
+
 const collectorSchema = z.object({
-  type: z.string().optional(),
-  position: z.string().optional(),
-  material: z.string().optional(),
-  perforation: z.string(),
-  isTinned: z.boolean().default(false).optional(),
-  dimensions: z.object({
-    upper: dimensionSchema.optional(),
-    lower: dimensionSchema.optional()
-  })
+  position: z.string().optional().default('C'),
+  material: z.string().optional().default('Laiton'),
+  tightening: z.string().optional().default('P'),
+  perforation: z.string().optional().default('Perforé'),
+  isTinned: z.boolean().optional().default(false),
+  upperDimensions: dimensionSchema,
+  lowerDimensions: dimensionSchema.optional()
 })
 
 const coreSchema = z.object({
-  fins: z.string(),
-  tubePitch: z.number().positive().optional(),
-  tube: z.string(),
-  layers: z.number().positive().optional(),
-  width: z.number().positive().min(100).optional(),
-  length: z.number().positive().min(100).optional(),
-  collector: collectorSchema.optional()
+  fins: z.string().optional().default('D'),
+  finsPitch: z.number().positive().optional().default(10),
+  tube: z.string().optional().default('7'),
+  rows: z.number().positive().optional().default(1),
+  dimensions: dimensionSchema
 })
 
 export const carSchema = z.object({
   id: z.string().optional(),
   manufacture: z.string().optional(),
-  car: z.string().optional(),
-  model: z.string().optional(),
-  fuel: z.string().optional(),
-  year: z.number().optional()
+  model: z.string().optional()
 })
 
 export type CarType = z.infer<typeof carSchema>
@@ -119,16 +113,19 @@ export type CarType = z.infer<typeof carSchema>
 export const orderSchema = z.object({
   id: z.string().optional(),
   title: z.string().optional(),
+  isCarIncluded: z.boolean().optional().default(true),
   car: carSchema.optional(),
   core: coreSchema.optional(),
-  isModificationRequired: z.boolean().default(false).optional(),
+  collector: collectorSchema.optional(),
+  isModificationIncluded: z.boolean().default(false).optional(),
   modification: contentSchema.optional(),
+  note: contentSchema.optional(),
+  description: contentSchema.optional(),
   type: z.string(),
-  quantity: z.number().positive().optional(),
-  fabrication: z.string(),
-  coolingSystem: z.string(),
-  packaging: z.string(),
-  description: contentSchema.optional()
+  quantity: z.number().positive().optional().default(1),
+  fabrication: z.string().optional().default('Confection'),
+  cooling: z.string().optional().default('Eau'),
+  packaging: z.string().optional().default('Carton')
 })
 export const newSchema = z.object({
   client: clientSchema.optional(),

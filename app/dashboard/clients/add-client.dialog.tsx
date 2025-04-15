@@ -95,12 +95,7 @@ export const AddClientDialog: React.FC<Props> = ({ id }: Props) => {
       </DialogTrigger>
       <DialogContent className="sm:h-fit container max-w-6xl">
         <ScrollArea className="max-h-[75vh]">
-          <ClientInfoForm
-            countries={[]}
-            provinces={[]}
-            data={client}
-            handleChange={handleChange}
-          />
+          <ClientInfoForm data={client} handleChange={handleChange} />
         </ScrollArea>
         <div className="flex justify-end mt-2">
           <Button onClick={handleSubmit}>Soumettre</Button>

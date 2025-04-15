@@ -1,17 +1,19 @@
 'use client'
 import { Combobox } from '@/components/combobox'
-import { MdEditor } from '@/components/md-editor'
-import { Switcher } from '@/components/switcher'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  COOLING_SYSTEMS_TYPES,
-  FABRICATION_TYPES,
-  ORDER_TYPES,
-  PACKAGING_TYPES,
-  PAYMENT_TYPES
-} from '@/config/global'
-import React, { useEffect, useRef, useState } from 'react'
+import { PAYMENT_TYPES } from '@/config/global'
+import { paymentSchema, PaymentType } from '@/lib/validations'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { fr } from 'date-fns/locale'
+import { useRouter } from 'next/navigation'
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { CardGrid } from './card'
+import { DatePicker } from './date-picker'
+import { FileUploadArea } from './file-upload-area'
+import { Icons } from './icons'
+import { useOrder } from './new-order.provider'
+import { Button } from './ui/button'
 import {
   Form,
   FormControl,
@@ -20,19 +22,7 @@ import {
   FormLabel,
   FormMessage
 } from './ui/form'
-import { z } from 'zod'
-import { contentSchema, paymentSchema, PaymentType } from '@/lib/validations'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Separator } from './ui/separator'
-import { Button } from './ui/button'
-import { DatePicker } from './date-picker'
-import { CardDivider, CardGrid } from './card'
-import { useOrder } from './new-order.provider'
-import { fr } from 'date-fns/locale'
-import { Icons } from './icons'
-import { FileUploadArea } from './file-upload-area'
 
 interface Props {}
 
@@ -77,7 +67,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                   <FormLabel className="capitalize">
                     {'Prix estimé'}
                     <span className="text-xs text-muted-foreground/50">
-                      {'(susceptible de changer)'}
+                      {' (susceptible de changer)'}
                     </span>
                   </FormLabel>
                   <FormControl>
@@ -157,9 +147,9 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                   <FormControl>
                     <Combobox
                       id="mode"
-                      selections={PAYMENT_TYPES}
+                      options={PAYMENT_TYPES}
                       selected={form.getValues('mode') || PAYMENT_TYPES[0]}
-                      setSelected={(v) => {
+                      onSelect={(v) => {
                         form.setValue('mode', v as PaymentType['mode'])
                       }}
                     />
@@ -188,7 +178,9 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                 name="iban"
                 render={({ field }) => (
                   <FormItem className="group ">
-                    <FormLabel className="capitalize">{'IBAN'}</FormLabel>
+                    <FormLabel className="capitalize">
+                      {'R.I.B DU CLIENT'}
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -197,78 +189,6 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                 )}
               />
             ) : null}
-          </CardGrid>
-          <CardGrid>
-            <FormField
-              control={form.control}
-              name="discountRate"
-              render={({ field }) => (
-                <FormItem className="group ">
-                  <FormLabel className="capitalize">{'Remise'}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="0%"
-                      value={field.value ? `${field.value * 100}%` : ''}
-                      onChange={({ target: { value } }) => {
-                        const numericValue = parseFloat(value.replace('%', '')) // Convert to number
-                        if (!isNaN(numericValue)) {
-                          field.onChange(numericValue) // Store only the number
-                          form.setValue('discountRate', numericValue / 100)
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="refundRate"
-              render={({ field }) => (
-                <FormItem className="group ">
-                  <FormLabel className="capitalize">
-                    {' retenue de garantie'}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="0%"
-                      value={field.value ? `${field.value * 100}%` : ''}
-                      onChange={({ target: { value } }) => {
-                        const numericValue = parseFloat(value.replace('%', '')) // Convert to number
-                        if (!isNaN(numericValue)) {
-                          field.onChange(numericValue) // Store only the number
-                          form.setValue('refundRate', numericValue / 100)
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {mode == 'Espèces' && (
-              <FormField
-                control={form.control}
-                name="stampTaxRate"
-                render={({ field }) => (
-                  <FormItem className="group ">
-                    <FormLabel className="capitalize">{'Timbre'}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="1%"
-                        {...field}
-                        value={field.value * 100 + '%'}
-                        disabled
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
           </CardGrid>
         </div>
         {mode == 'Cheque' && (
@@ -288,7 +208,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
             />
           </div>
         )}
-        <div className="relative border rounded-md px-3 py-3">
+        <div className="relative border rounded-md px-3 pt-4 py-3">
           <CardGrid className="">
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               délais
@@ -297,7 +217,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
               control={form.control}
               name="endDate"
               render={({ field }) => (
-                <FormItem className="group ">
+                <FormItem className="group flex flex-col gap-1 ">
                   <FormLabel className="capitalize">
                     {' Délais estimé'}
                     <span className="text-xs text-muted-foreground/50">

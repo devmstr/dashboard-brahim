@@ -1,9 +1,9 @@
 'use client'
 
 import { AddComponentDialog } from '@/components/add-component.dialog'
+import { OrderArticlesTable } from '@/components/article.table'
 import { OrderComponentsTable } from '@/components/components.table'
 import { Icons } from '@/components/icons'
-import { useOrder } from '@/components/new-order.provider'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useRouter } from 'next/navigation'
@@ -12,22 +12,9 @@ interface Props {}
 
 export const NewOrderTableForm: React.FC<Props> = ({}: Props) => {
   const router = useRouter()
-  const orderContext = useOrder()
   return (
     <div>
-      <OrderComponentsTable
-        className="rounded-b-none border-b-0"
-        orderContext={orderContext}
-        t={{
-          id: 'Matricule',
-          title: 'Titre',
-          brand: 'Marque',
-          model: 'Model',
-          type: 'Commande',
-          fabrication: 'Fabrication',
-          quantity: 'Quantité'
-        }}
-      />
+      <OrderArticlesTable className="rounded-b-none border-b-0" />
       <div className="flex flex-grow justify-center items-center h-full">
         <AddComponentDialog className="flex w-full justify-start gap-1  text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30  bg-gray-100 text-md border-dashed broder-dash py-6" />
       </div>

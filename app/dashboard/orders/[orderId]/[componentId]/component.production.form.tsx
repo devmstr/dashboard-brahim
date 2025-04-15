@@ -52,23 +52,23 @@ export const ComponentProductionForm: React.FC<Props> = ({ data }: Props) => {
     defaultValues: {
       type: 'Radiateur',
       fabrication: 'Confection',
-      coolingSystem: 'Eau',
+      cooling: 'Eau',
       packaging: 'Carton',
       quantity: 1,
-      isModificationRequired: false,
+      isModificationIncluded: false,
       core: {
         fins: 'Droite (Normale)',
-        tubePitch: 10,
+        finsPitch: 10,
         tube: 'Étiré 7 (ET7)',
         collector: {
           isTinned: false,
-          perforation: 'Perforé',
-          type: 'Plié',
+          tightening: 'Perforé',
+          cooling: 'Plié',
           position: 'Centrer',
           material: 'Laiton',
           dimensions: {
             upper: {
-              depth: 1.5
+              thickness: 1.5
             }
           }
         }
@@ -97,9 +97,9 @@ export const ComponentProductionForm: React.FC<Props> = ({ data }: Props) => {
   React.useEffect(() => {
     if (isCollectorsDifferent)
       form.setValue('core.collector.dimensions.lower', {
-        depth,
+        thickness: depth,
         width,
-        length
+        height: length
       })
     else form.setValue('core.collector.dimensions.lower', undefined)
   }, [isCollectorsDifferent])

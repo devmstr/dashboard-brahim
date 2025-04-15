@@ -1,52 +1,45 @@
+import { AddNewClientDialogButton } from '@/components/add-new-client.button'
 import { Card } from '@/components/card'
 import { ClientTable } from '@/components/client-table'
-import { AddClientDialog } from './add-client.dialog'
-import { AddNewClientDialogButton } from '@/components/add-new-client.button'
-import { SearchComboBox } from '@/components/search-combo-box'
+import db from '@/lib/db'
 
 interface Props {}
 
-const Page: React.FC<Props> = ({}: Props) => {
+const Page: React.FC<Props> = async ({}: Props) => {
+  const clients = await db.client.findMany({
+    where: { isCompany: true },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      Address: { include: { City: true } },
+      _count: {
+        select: { Orders: true }
+      }
+    }
+  })
+
   return (
     <Card className="">
       <div className="flex justify-end items-center gap-3 mb-5">
         <AddNewClientDialogButton />
       </div>
       <ClientTable
-        data={[
-          {
-            id: 'CLX24DF4T',
-            name: 'Mohamed',
-            phone: '0658769361',
-            label: '(SARL) GoldenRad ',
-            location: 'Ghardaïa',
-            orderCount: 10
-          },
-          {
-            id: 'CLX89GJ7K',
-            name: 'Amine',
-            phone: '0667321984',
-            label: '(EURL) Tech Innov',
-            location: 'Alger',
-            orderCount: 15
-          },
-          {
-            id: 'CLX56TY9P',
-            name: 'Nassim',
-            phone: '0558743621',
-            label: '(SARL) BuildProSociété',
-            location: 'Oran',
-            orderCount: 8
-          },
-          {
-            id: 'CLX77MN3Q',
-            name: 'Yacine',
-            phone: '0678125496',
-            label: '(SAS) GreenAgro',
-            location: 'Constantine',
-            orderCount: 20
-          }
-        ]}
+        data={clients.map(
+          ({
+            _count: { Orders: orderCount },
+            label,
+            phone,
+            name,
+            Address,
+            id
+          }) => ({
+            id,
+            name,
+            phone,
+            label,
+            city: Address?.City.name as string,
+            orderCount
+          })
+        )}
       />
     </Card>
   )

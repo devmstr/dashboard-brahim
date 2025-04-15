@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
-
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,28 +18,44 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 
+type Option = string | { label: string; value: string }
+
 interface SearchComboBoxProps {
-  options: string[]
+  id?: string
+  options: Option[]
   placeholder?: string
   onSelect: (value: string) => void
   className?: string
-  selected: string
+  selected?: string
   isInSideADialog?: boolean
+  isLoading?: boolean
+  emptyMessage?: string
+  listClassName?: string
 }
 
 export function SearchComboBox({
+  id,
   options = [],
-  placeholder = 'Sélectionner un élément...',
   onSelect,
   className,
   selected,
-  isInSideADialog = false
+  listClassName,
+  placeholder = 'Sélectionner un élément...',
+  isInSideADialog = false,
+  isLoading = false,
+  emptyMessage = 'Aucun élément trouvé.'
 }: SearchComboBoxProps) {
   const [open, setOpen] = React.useState(false)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
-  const [buttonWidth, setButtonWidth] = React.useState<number | undefined>(
-    undefined
+  const [buttonWidth, setButtonWidth] = React.useState<number | undefined>()
+
+  // Normalize options to {label, value} format
+  const normalizedOptions = options.map((option) =>
+    typeof option === 'string' ? { label: option, value: option } : option
   )
+
+  // Find selected option
+  const selectedOption = normalizedOptions.find((opt) => opt.value === selected)
 
   React.useEffect(() => {
     if (buttonRef.current) {
@@ -56,20 +71,26 @@ export function SearchComboBox({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           ref={buttonRef}
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full justify-between whitespace-nowrap', className)}
+          className="w-full justify-between"
         >
-          {selected || placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {selectedOption ? selectedOption.label : placeholder}
+          {isLoading ? (
+            <div className="border-2 border-t-transparent border-gray-300 rounded-full w-4 h-4 animate-spin ml-2" />
+          ) : (
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
         className={cn('p-0', className)}
+        side="bottom" // Force bottom placement
+        sideOffset={5} // 4px spacing from trigger
         align="start"
-        sideOffset={5}
         style={{ width: buttonWidth ? `${buttonWidth}px` : 'auto' }}
         usePortal={!isInSideADialog}
       >
@@ -79,26 +100,25 @@ export function SearchComboBox({
             className="h-9"
           />
           <CommandList
-            onClick={(e) => {
-              e.stopPropagation()
-            }}
+            className={listClassName}
+            onClick={(e) => e.stopPropagation()}
           >
-            <CommandEmpty>Aucun élément trouvé.</CommandEmpty>
+            <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
-              {options.map((item) => (
+              {normalizedOptions.map((option) => (
                 <CommandItem
-                  key={item}
-                  value={item}
-                  onSelect={(e) => {
-                    onSelect(item)
+                  key={option.value}
+                  value={option.label} // Search by label
+                  onSelect={() => {
+                    onSelect(option.value)
                     setOpen(false)
                   }}
                 >
-                  {item}
+                  {option.label}
                   <Check
                     className={cn(
                       'ml-auto h-4 w-4',
-                      selected === item ? 'opacity-100' : 'opacity-0'
+                      selected === option.value ? 'opacity-100' : 'opacity-0'
                     )}
                   />
                 </CommandItem>
