@@ -9,7 +9,7 @@ interface Props {}
 const Page: React.FC<Props> = ({}: Props) => {
   return (
     <Card className="max-w-6xl mx-auto">
-      <PaymentForm></PaymentForm>
+      <PaymentForm />
     </Card>
   )
 }

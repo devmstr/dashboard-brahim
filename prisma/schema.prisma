@@ -40,17 +40,18 @@ model Session {
 }
 
 model User {
-  id           String    @id @default(cuid())
+  id           String       @id @default(cuid())
   role         String?
-  username     String    @unique
-  email        String?   @unique
+  username     String       @unique
+  email        String?      @unique
   passwordHash String
-  employeeId   Int       @unique
+  employeeId   Int          @unique
   image        String?
   accounts     Account[]
   sessions     Session[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  Permission   Permission[]
 }
 
 model VerificationRequest {
@@ -114,9 +115,11 @@ model Product {
   name        String?
   category    String?
   dir         String?
+  cooling     String?
   barcode     String?     @unique
   label       String?     @unique
   isActive    Boolean?    @default(false)
+  Directories Directory[]
   Inventory   Inventory?  @relation(fields: [inventoryId], references: [id])
   Price       Price?      @relation(fields: [priceId], references: [id])
   // relations
@@ -143,13 +146,17 @@ model Component {
 }
 
 model Collector {
-  id          String @id @default(cuid())
+  id          String   @id @default(cuid())
   width       Int
   height      Int
+  thickness   Int?
   lowerHeight Int?
   lowerWidth  Int?
   position    String
   tightening  String
+  material    String?
+  perforation String?
+  isTinned    Boolean?
 
   components Component[] // One collector used in many components
 }
@@ -240,19 +247,108 @@ model Address {
 }
 
 model Order {
-  id            String    @id @default(cuid())
-  deadline      DateTime  @default(now())
-  note          Json?
-  description   Json?
-  modifications Json?
-  state         String?
-  progress      Int       @default(0)
-  validatedAt   DateTime?
-  canceledAt    DateTime?
-  createdAt     DateTime? @default(now())
-  updatedAt     DateTime? @updatedAt
+  id                     String    @id @default(cuid())
+  deadline               DateTime  @default(now())
+  title                  String?
+  note                   Json?
+  description            Json?
+  modifications          Json?
+  state                  String?
+  progress               Int       @default(0)
+  packaging              String?
+  fabrication            String?
+  isModificationIncluded String?
+  validatedAt            DateTime?
+  canceledAt             DateTime?
+  createdAt              DateTime? @default(now())
+  updatedAt              DateTime? @updatedAt
   // relations
-  Client        Client    @relation(fields: [clientId], references: [id])
-  clientId      String
-  Products      Product[]
+  Client                 Client    @relation(fields: [clientId], references: [id])
+  clientId               String
+  Products               Product[]
+}
+
+model Payment {
+  id        String @id @default(cuid())
+  amount    Float
+  deposit   Float
+  remaining Float
+}
+
+// file managements schemas 
+
+enum AccessLevel {
+  VIEW
+  EDIT
+  MANAGE
+}
+
+model Directory {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  productId String?
+  Product   Product? @relation(fields: [productId], references: [id])
+
+  parentId String?
+  Parent   Directory?  @relation("FolderParent", fields: [parentId], references: [id])
+  Children Directory[] @relation("FolderParent")
+
+  Files      File[]
+  Permission Permission[]
+}
+
+model File {
+  id          String  @id @default(cuid())
+  name        String
+  mimeType    String
+  url         String
+  size        Int
+  description String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  directoryId String
+  Directory   Directory @relation(fields: [directoryId], references: [id])
+
+  Tags        Tag[]
+  FileVersion FileVersion[]
+  Permission  Permission[]
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @unique
+  Files File[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FileVersion {
+  id        String   @id @default(cuid())
+  version   Int
+  url       String
+  createdAt DateTime @default(now())
+
+  fileId String
+  File   File   @relation(fields: [fileId], references: [id])
+}
+
+model Permission {
+  id     String      @id @default(cuid())
+  access AccessLevel
+
+  userId String
+  User   User   @relation(fields: [userId], references: [id])
+
+  fileId String?
+  File   File?   @relation(fields: [fileId], references: [id])
+
+  dirId     String?
+  Directory Directory? @relation(fields: [dirId], references: [id])
 }

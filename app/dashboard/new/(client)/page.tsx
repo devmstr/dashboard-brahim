@@ -1,11 +1,12 @@
 import { ClientForm } from '@/components/client.form'
 import db from '@/lib/db'
+import { ClientType } from '@/lib/validations'
 import React from 'react'
 
 interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
-  const frequentClients = await db?.client.findMany({
+  const data = (await db?.client.findMany({
     where: { isCompany: true },
     orderBy: { updatedAt: 'desc' },
     include: {
@@ -19,24 +20,11 @@ const Page: React.FC<Props> = async ({}: Props) => {
       }
     },
     take: 4
-  })
+  })) as ClientType[]
 
   return (
     <div className="max-w-6xl mx-auto">
-      <ClientForm
-        data={[
-          ...frequentClients.map(
-            ({ _count: { Orders }, id, name, phone, label, Address }) => ({
-              id,
-              name,
-              label,
-              phone,
-              city: Address?.City.name as string,
-              orderCount: Orders
-            })
-          )
-        ]}
-      />
+      <ClientForm data={data} />
     </div>
   )
 }

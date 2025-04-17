@@ -73,11 +73,13 @@ export type InventoryTableEntry = {
 
 export type ClientTableEntry = {
   id: string
-  name: string | null
+  name: string
   city: string | null
   label: string | null
+  email: string | null
   phone: string
   orderCount: number
+  isCompany: boolean
 }
 export type ProductPosTableEntry = {
   id: string

@@ -25,7 +25,7 @@ export const AddComponentDialog: React.FC<Props> = ({ className }: Props) => {
       <DialogTrigger asChild>
         <Button variant={'outline'} className={cn(className)}>
           <Icons.plus className="w-6 h-6 " />
-          {'Ajouter un article'}
+          {'Ajouter Un Article'}
         </Button>
       </DialogTrigger>
       <DialogContent className="h-fit container max-w-5xl">

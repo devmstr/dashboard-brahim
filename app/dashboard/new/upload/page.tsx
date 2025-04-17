@@ -1,12 +1,12 @@
 import { Card } from '@/components/card'
-import { UploadFile } from './upload-file'
+import { UploadForm } from './upload.form'
 
 interface Props {}
 
 const Page: React.FC<Props> = ({}: Props) => {
   return (
     <Card className="max-w-6xl mx-auto">
-      <UploadFile />
+      <UploadForm />
     </Card>
   )
 }

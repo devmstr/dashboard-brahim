@@ -458,7 +458,7 @@ export function CarSelectionForm({
                 name="familyId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Famille</FormLabel>
+                    <FormLabel>Véhicule</FormLabel>
                     <Popover
                       open={isFamilyPopoverOpen}
                       onOpenChange={setIsFamilyPopoverOpen}

@@ -50,9 +50,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import { useRouter } from 'next/navigation'
+import { ClientType } from '@/lib/validations/client'
 
 interface Props {
-  data: ClientTableEntry[]
+  data: ClientType[]
   t?: {
     columns: string
     limit: string
@@ -70,7 +71,7 @@ interface Props {
   showLimitSelector?: boolean
   showPaginationButtons?: boolean
   // Replace customActions with renderActions
-  renderActions?: (rowData: ClientTableEntry) => React.ReactNode
+  renderActions?: (rowData: ClientType) => React.ReactNode
   onDelete?: (id: string) => Promise<void>
   className?: string
 }
@@ -126,7 +127,7 @@ export function ClientTable({
     }
   }
 
-  const columns: ColumnDef<ClientTableEntry>[] = [
+  const columns: ColumnDef<ClientType>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -247,7 +248,9 @@ export function ClientTable({
       },
       cell: ({ row }) => {
         return (
-          <div className="flex items-center gap-1">{row.original.city}</div>
+          <div className="flex items-center gap-1">
+            {row.original.Address?.City.name}
+          </div>
         )
       }
     },

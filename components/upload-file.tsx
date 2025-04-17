@@ -47,38 +47,12 @@ export const UploadFile: React.FC<Props> = ({}: Props) => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="py-4  border px-3 rounded-md space-y-3">
-        <Label className="capitalize">{'Importer des annexes'}</Label>
-        <FileUploadArea
-          className=""
-          acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.tiff"
-          maxFileSizeMB={20}
-          multiple={true}
-          onUpload={handleUpload}
-        />
-      </div>
-
-      <div className="flex flex-col items-end gap-4">
-        <Separator />
-        <div className="w-full flex justify-between">
-          <Button
-            onClick={(e) => {
-              e.preventDefault()
-              router.push('payment')
-            }}
-            className={'min-w-28'}
-            type="submit"
-          >
-            <Icons.arrowRight className="mr-2 w-4 text-secondary rotate-180" />
-            {'Paiement'}
-          </Button>
-          <Button className="min-w-28" type="submit">
-            {'Confirmer'}
-            <Icons.check className="ml-2 w-4 text-secondary " />
-          </Button>
-        </div>
-      </div>
-    </div>
+    <FileUploadArea
+      className=""
+      acceptedFileTypes=".pdf,.jpg,.jpeg,.png,.tiff"
+      maxFileSizeMB={20}
+      multiple={true}
+      onUpload={handleUpload}
+    />
   )
 }

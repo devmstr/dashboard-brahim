@@ -28,32 +28,34 @@ import { Search, User, Building, Phone, X, Mail, MapPin } from 'lucide-react'
 import { Icons } from '@/components/icons'
 import { AddNewClientDialogButton } from '@/components/add-new-client.button'
 import { Client } from '@prisma/client'
+import { useOrder } from './new-order.provider'
 
-export type ClientWithOrdersCount = Partial<Client> & {
-  Address: {
+export type ClientWithOrdersCount = Pick<
+  Client,
+  'id' | 'isCompany' | 'email' | 'phone' | 'name' | 'label'
+> & {
+  Address?: {
     City: {
-      name: string | null
+      name: string
     }
   }
-  _count: {
+  _count?: {
     Orders: number
   }
 }
 
 interface CustomerSectionProps {
-  selected: Pick<
-    ClientWithOrdersCount,
-    'id' | 'isCompany' | 'email' | 'phone' | 'name' | 'Address' | '_count'
-  > | null
-  onSelectChange: (client: ClientWithOrdersCount | null) => void
+  selected: ClientWithOrdersCount | undefined
+  onSelectChange: (client: ClientWithOrdersCount | undefined) => void
   children?: React.ReactNode
 }
 
 export default function CustomerSearchInput({
-  selected: selectedClient,
+  selected,
   onSelectChange,
   children
 }: CustomerSectionProps) {
+  const { setOrder } = useOrder()
   const [searchTerm, setSearchTerm] = useState('')
   const [clients, setClients] = useState<ClientWithOrdersCount[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -101,15 +103,18 @@ export default function CustomerSearchInput({
   // Select a client
   const selectClient = (client: ClientWithOrdersCount) => {
     onSelectChange(client)
+    setOrder((prev) => ({
+      ...prev,
+      client: client // Use the newly selected client
+    }))
     setSearchTerm('')
     setIsPopoverOpen(false)
-    // Optionally re-focus input after selection if needed:
     inputRef.current?.focus()
   }
 
   // Clear selected client
   const clearSelectedClient = () => {
-    onSelectChange(null)
+    onSelectChange(undefined)
   }
 
   return (
@@ -201,7 +206,7 @@ export default function CustomerSearchInput({
           </PopoverContent>
         </Popover>
 
-        {selectedClient && (
+        {selected && (
           <div className="mt-4 p-3 border rounded-md relative">
             <Button
               variant="ghost"
@@ -213,27 +218,27 @@ export default function CustomerSearchInput({
             </Button>
             <div className="grid gap-1">
               <div className="flex items-center text-sm">
-                {selectedClient.isCompany ? (
+                {selected.isCompany ? (
                   <Building className="mr-2 h-4 w-4 text-muted-foreground" />
                 ) : (
                   <User className="mr-2 h-4 w-4 text-muted-foreground" />
                 )}
-                <span className="font-medium">{selectedClient.name}</span>
+                <span className="font-medium">{selected.name}</span>
               </div>
-              {selectedClient.email && (
+              {selected.email && (
                 <div className="flex items-center text-sm">
                   <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>{selectedClient.email}</span>
+                  <span>{selected.email}</span>
                 </div>
               )}
               <div className="flex items-center text-sm">
                 <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>{selectedClient.phone}</span>
+                <span>{selected.phone}</span>
               </div>
-              {selectedClient.Address.City.name && (
+              {selected.Address?.City.name && (
                 <div className="flex items-center text-sm">
                   <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span>{selectedClient.Address.City.name}</span>
+                  <span>{selected.Address?.City.name}</span>
                 </div>
               )}
             </div>

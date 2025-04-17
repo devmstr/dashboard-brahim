@@ -23,12 +23,13 @@ import {
   FormMessage
 } from './ui/form'
 import { Separator } from './ui/separator'
+import { UploadFile } from '@/components/upload-file'
 
 interface Props {}
 
 export const PaymentForm: React.FC<Props> = ({}: Props) => {
   const { order, setOrder } = useOrder()
-
+  console.log(order)
   const router = useRouter()
   const form = useForm<PaymentType>({
     defaultValues: {
@@ -49,7 +50,6 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
       ...prev,
       payment: formData
     }))
-    console.log(order)
   }
   return (
     <Form {...form}>
@@ -191,23 +191,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
             ) : null}
           </CardGrid>
         </div>
-        {mode == 'Cheque' && (
-          <div className="border rounded-md px-3 space-y-3 py-3">
-            <FormLabel className="capitalize">
-              {'Importer un chèque bancaire'}
-            </FormLabel>
-            <FileUploadArea
-              onUpload={function (file: File): Promise<{
-                success: boolean
-                message: string
-                fileName?: string
-                url?: string
-              }> {
-                throw new Error('Function not implemented.')
-              }}
-            />
-          </div>
-        )}
+        {mode == 'Cheque' && <UploadFile title="Importer Un Cheque" />}
         <div className="relative border rounded-md px-3 pt-4 py-3">
           <CardGrid className="">
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">

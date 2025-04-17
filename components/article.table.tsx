@@ -309,40 +309,36 @@ export function OrderArticlesTable({
           ))}
         </TableHeader>
         <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && 'selected'}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  return (
-                    <TableCell
-                      key={cell.id}
-                      className={cn(
-                        'py-[0.5rem] pl-2 pr-0',
-                        cell.column.id == 'subParts' && 'hidden md:table-cell',
-                        cell.column.id == 'deadline' && 'hidden md:table-cell',
-                        cell.column.id == 'status' && 'hidden md:table-cell',
-                        cell.column.id == 'customer' && 'hidden sm:table-cell'
-                      )}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  )
-                })}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-36 text-center">
-                Pas d'articles.
-              </TableCell>
-            </TableRow>
-          )}
+          {table.getRowModel().rows?.length
+            ? table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          'py-[0.5rem] pl-2 pr-0',
+                          cell.column.id == 'subParts' &&
+                            'hidden md:table-cell',
+                          cell.column.id == 'deadline' &&
+                            'hidden md:table-cell',
+                          cell.column.id == 'status' && 'hidden md:table-cell',
+                          cell.column.id == 'customer' && 'hidden sm:table-cell'
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    )
+                  })}
+                </TableRow>
+              ))
+            : null}
         </TableBody>
       </Table>
     </div>

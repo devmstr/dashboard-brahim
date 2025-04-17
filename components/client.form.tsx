@@ -5,7 +5,7 @@ import { clientSchema, ClientType } from '@/lib/validations'
 import { ClientTableEntry, Customer } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { ClientTable } from './client-table'
 import CustomerSearchInput, {
@@ -17,50 +17,36 @@ import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { Separator } from './ui/separator'
 
-export type FrequentClient = {
-  id: string
-  name: string
-  label: string | null
-  phone: string
-  city: string | null
-  orderCount: number
-}
-
 interface Props {
-  data: FrequentClient[]
+  data: ClientType[]
 }
 
 export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   const { order, setOrder } = useOrder()
-  const [customer, setCustomer] = useState<ClientWithOrdersCount | null>(null)
+  const [customer, setCustomer] = useState<ClientType | undefined>(
+    order?.client
+  )
   const router = useRouter()
 
-  const onSubmit = (formData: ClientType) => {
-    if (!customer) return
-    setOrder((prev) => ({
-      ...prev,
-      client: formData
-    }))
-
-    router.replace('new/order')
-  }
+  // Add an effect to keep local state in sync with order context
+  useEffect(() => {
+    if (order?.client && order.client !== customer) {
+      setCustomer(order.client)
+    }
+  }, [order?.client, customer])
 
   // Simple button action component
-  const renderRowActions = (rowData: ClientTableEntry) => {
+  const renderRowActions = (client: ClientType) => {
     return (
       <Button
         variant={'outline'}
         onClick={() => {
-          console.log('Full row data:', rowData)
-          setCustomer({
-            id: rowData.id,
-            Address: {
-              City: { name: rowData.city }
-            },
-            name: rowData.name as string,
-            phone: rowData.phone,
-            _count: { Orders: rowData.orderCount || 0 }
-          })
+          console.log('Full row data:', client)
+          setCustomer(client)
+          setOrder((prev) => ({
+            ...prev,
+            client
+          }))
         }}
       >
         Choisir
@@ -71,7 +57,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   return (
     <CustomerSearchInput
       selected={customer}
-      onSelectChange={(client: ClientWithOrdersCount | null) =>
+      onSelectChange={(client: ClientWithOrdersCount | undefined) =>
         setCustomer(client)
       }
     >
