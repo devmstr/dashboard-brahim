@@ -1,8 +1,3 @@
-import * as z from 'zod'
-import { contentSchema } from './tiptap'
-import { clientSchema } from './client'
-import { paymentSchema } from './payment'
-
 // const Customer = z.object({
 //   fullName: z.string().optional(),
 //   phone: z
@@ -79,6 +74,33 @@ import { paymentSchema } from './payment'
 //   technical: TechnicalDetails.optional()
 // })
 
+import * as z from 'zod'
+import { contentSchema } from './tiptap'
+import { paymentSchema } from './payment'
+
+export const clientValidationSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  phone: z.string(),
+  email: z.string().nullable(),
+  label: z.string().nullable(),
+  isCompany: z.boolean(),
+  _count: z
+    .object({
+      Orders: z.number()
+    })
+    .optional(),
+  Address: z
+    .object({
+      City: z.object({
+        name: z.string()
+      })
+    })
+    .optional()
+})
+
+export type ClientValidationType = z.infer<typeof clientValidationSchema>
+
 const dimensionSchema = z.object({
   thickness: z.number().positive().optional(),
   width: z.number().min(0),
@@ -104,21 +126,21 @@ const coreSchema = z.object({
   dimensions: dimensionSchema
 })
 
-export const carSchema = z.object({
+export const carValidationSchema = z.object({
   id: z.string().optional(),
   manufacture: z.string().optional(),
   model: z.string().optional()
 })
 
-export type CarType = z.infer<typeof carSchema>
+export type CarValidationType = z.infer<typeof carValidationSchema>
 
 // Modified order schema to make note required when car is not included
-export const orderSchema = z
+export const componentValidationSchema = z
   .object({
     id: z.string().optional(),
     title: z.string().optional(),
     isCarIncluded: z.boolean().optional().default(true),
-    car: carSchema.optional(),
+    car: carValidationSchema.optional(),
     core: coreSchema.optional(),
     collector: collectorSchema.optional(),
     isModificationIncluded: z.boolean().default(false).optional(),
@@ -137,9 +159,15 @@ export const orderSchema = z
       if (data.type === 'Radiateur') {
         return true
       }
-      // For Faisceau type, ensure dimensions are provided
+      // For Faisceau type, ensure both core and collector dimensions are provided
       if (data.type === 'Faisceau') {
-        return data.core?.dimensions?.width && data.core?.dimensions?.height
+        const hasCoreValidDimensions =
+          data.core?.dimensions?.width && data.core?.dimensions?.height
+        const hasCollectorValidDimensions =
+          data.collector?.upperDimensions?.width &&
+          data.collector?.upperDimensions?.height
+
+        return hasCoreValidDimensions && hasCollectorValidDimensions
       }
       return true
     },
@@ -148,11 +176,28 @@ export const orderSchema = z
       path: ['core.dimensions']
     }
   )
+  .refine(
+    (data) => {
+      // Only validate collector dimensions for Faisceau type
+      if (data.type === 'Faisceau') {
+        return (
+          data.collector?.upperDimensions?.width &&
+          data.collector?.upperDimensions?.height
+        )
+      }
+      return true
+    },
+    {
+      message:
+        'Les dimensions du collecteur sont obligatoires pour le type Faisceau',
+      path: ['collector.upperDimensions']
+    }
+  )
 
-export const newSchema = z.object({
-  client: clientSchema.optional(),
+export const orderValidationSchema = z.object({
+  client: clientValidationSchema.optional(),
   payment: paymentSchema.optional(),
-  components: z.array(orderSchema).optional(),
+  components: z.array(componentValidationSchema).optional(),
   receivingDate: z
     .string()
     .default(() => new Date().toISOString())
@@ -165,5 +210,7 @@ export const newSchema = z.object({
     })
 })
 
-export type NewType = z.infer<typeof newSchema>
-export type OrderType = z.infer<typeof orderSchema>
+export type OrderValidationType = z.infer<typeof orderValidationSchema>
+export type ComponentValidationSchema = z.infer<
+  typeof componentValidationSchema
+>

@@ -18,7 +18,7 @@ import {
   FormItem,
   FormLabel
 } from '@/components/ui/form'
-import { clientSchema } from '@/lib/validations'
+import { clientValidationSchema } from '@/lib/validations'
 import { toast } from '@/hooks/use-toast'
 
 interface Props {
@@ -44,7 +44,7 @@ export const ClientInfoForm: React.FC<Props> = ({
 
   // Initialize form with React Hook Form
   const form = useForm<ClientSchemaType>({
-    resolver: zodResolver(clientSchema),
+    resolver: zodResolver(clientValidationSchema),
     defaultValues: {
       ...initialData,
       label: initialData?.label || 'Société A Responsabilité limitée (SARL)',

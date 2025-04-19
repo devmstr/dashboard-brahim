@@ -29,13 +29,17 @@ const Page: React.FC<Props> = async ({}: Props) => {
             label,
             phone,
             name,
+            email,
+            isCompany,
             Address,
             id
           }) => ({
             id,
             name,
             phone,
+            email,
             label,
+            isCompany,
             city: Address?.City.name as string,
             orderCount
           })

@@ -191,7 +191,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
             ) : null}
           </CardGrid>
         </div>
-        {mode == 'Cheque' && <UploadFile title="Importer Un Cheque" />}
+        {mode == 'Cheque' && <UploadFile />}
         <div className="relative border rounded-md px-3 pt-4 py-3">
           <CardGrid className="">
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">

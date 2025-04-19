@@ -60,8 +60,7 @@ export async function POST(
         name: json.name,
         production: json.production,
         familyId: params.familyId,
-        exhaustId: json.exhaustId,
-        radiatorId: json.radiatorId
+        productId: json.productId,
       }
     })
     return NextResponse.json(model, { status: 201 })

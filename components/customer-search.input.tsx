@@ -45,7 +45,7 @@ export type ClientWithOrdersCount = Pick<
 }
 
 interface CustomerSectionProps {
-  selected: ClientWithOrdersCount | undefined
+  selected?: ClientWithOrdersCount
   onSelectChange: (client: ClientWithOrdersCount | undefined) => void
   children?: React.ReactNode
 }
@@ -55,7 +55,7 @@ export default function CustomerSearchInput({
   onSelectChange,
   children
 }: CustomerSectionProps) {
-  const { setOrder } = useOrder()
+  // const { setOrder } = useOrder()
   const [searchTerm, setSearchTerm] = useState('')
   const [clients, setClients] = useState<ClientWithOrdersCount[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -103,10 +103,7 @@ export default function CustomerSearchInput({
   // Select a client
   const selectClient = (client: ClientWithOrdersCount) => {
     onSelectChange(client)
-    setOrder((prev) => ({
-      ...prev,
-      client: client // Use the newly selected client
-    }))
+
     setSearchTerm('')
     setIsPopoverOpen(false)
     inputRef.current?.focus()

@@ -1,4 +1,4 @@
-import { OrderType } from './validations'
+import { ComponentValidationSchema } from './validations'
 
 const FINS_DICTIONARY = {
   'Droite (Normale)': 'NL',
@@ -14,9 +14,10 @@ export function genTitle({
   type,
   fabrication,
   core,
+  collector,
   car,
   description
-}: OrderType) {
+}: ComponentValidationSchema) {
   const getTitleDimensions = (dim1?: number, dim2?: number) =>
     dim1 === dim2 ? `${dim1}` : `${dim1}/${dim2}`
 
@@ -26,21 +27,21 @@ export function genTitle({
   if (type == 'Faisceau') {
     const clampingInTitle =
       CLAMPING_DICTIONARY[
-        core?.collector?.cooling as keyof typeof CLAMPING_DICTIONARY
+        collector?.tightening as keyof typeof CLAMPING_DICTIONARY
       ]
     const collectorLength = getTitleDimensions(
-      core?.collector?.dimensions?.upper?.height,
-      core?.collector?.dimensions?.lower?.height
+      collector?.upperDimensions.height,
+      collector?.lowerDimensions?.height
     )
     const collectorWidth = getTitleDimensions(
-      core?.collector?.dimensions?.upper?.width,
-      core?.collector?.dimensions?.lower?.width
+      collector?.upperDimensions.width,
+      collector?.lowerDimensions?.width
     )
-    return `FAIS ${core?.height}X${core?.width}X${core?.rows}R ${finsInTitle} PAS ${core?.finsPitch} COLL ${collectorLength}X${collectorWidth} ${clampingInTitle}`
+    return `FAIS ${core?.dimensions.height}X${core?.dimensions.width}X${core?.rows}R ${finsInTitle} PAS ${core?.finsPitch} COLL ${collectorLength}X${collectorWidth} ${clampingInTitle}`
   } else if (type == 'Radiateur') {
     const fabricationInTitle = fabrication.slice(0, 3).toUpperCase()
     const carInTitle = car
-      ? `${car?.manufacture?.toUpperCase()} ${car?.model?.toUpperCase()} ${car?.car?.toUpperCase()}`
+      ? `${car?.manufacture?.toUpperCase()} ${car?.model?.toUpperCase()} ${car?.manufacture?.toUpperCase()}`
       : 'SELON MODEL'
     return `RAD ${fabricationInTitle} ${carInTitle} ${core?.rows}R ${finsInTitle} PAS ${core?.finsPitch}`
   } else {

@@ -1,5 +1,5 @@
 import { Card } from '@/components/card'
-import { OneClientForm } from './one-client.form'
+// import { OneClientForm } from './one-client.form'
 import db from '@/lib/db'
 import { notFound } from 'next/navigation'
 
@@ -19,11 +19,7 @@ const Page: React.FC<Props> = async ({ params }: Props) => {
     }
   })
   if (!client) return notFound()
-  return (
-    <Card>
-      <OneClientForm data={client} />
-    </Card>
-  )
+  return <Card>{/* <OneClientForm data={client} /> */}</Card>
 }
 
 export default Page

@@ -63,8 +63,7 @@ export async function PUT(
       data: {
         name: json.name,
         production: json.production,
-        exhaustId: json.exhaustId,
-        radiatorId: json.radiatorId
+        productId: json.productId
       }
     })
     return NextResponse.json(updatedModel)

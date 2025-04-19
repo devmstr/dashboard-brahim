@@ -12,7 +12,7 @@ import { StepIndicator } from './_components/step-indicator'
 import { ClientInfoForm } from './_components/timeline-client.form'
 import { FabricationForm } from './_components/timeline-fabrication.form'
 import { PaymentForm } from './_components/timeline-payment'
-import { TechnicalDataForm } from './_components/timeline-technical.form'
+// import { TechnicalDataForm } from './_components/timeline-technical.form'
 
 const positiveNumberFromString = (name: string) =>
   z
@@ -291,11 +291,11 @@ export function AddOrderDialog({ countries, provinces }: Props) {
             <FabricationForm data={orderData} onChange={handleChange} />
           </ScrollArea>
         )}
-        {currentStep === 3 && (
+        {/* {currentStep === 3 && (
           <ScrollArea className="max-h-[70vh]">
             <TechnicalDataForm data={orderData} onChange={handleChange} />
           </ScrollArea>
-        )}
+        )} */}
         {currentStep === 4 && (
           <ScrollArea className="max-h-[70vh]">
             <PaymentForm data={orderData} onChange={handleChange} />

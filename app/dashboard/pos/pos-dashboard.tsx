@@ -16,8 +16,9 @@ export default function PosDashboard() {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   )
-  const [selectedCustomer, setSelectedCustomer] =
-    useState<ClientWithOrdersCount | null>(null)
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    ClientWithOrdersCount | undefined
+  >(undefined)
 
   // Toggle item expansion in cart
   const toggleItemExpansion = (itemId: string) => {

@@ -1,7 +1,7 @@
 'use client'
 import { AddOrderSchemaType } from '@/app/dashboard/timeline/add-order.dialog'
 import { COMPANY_LABELS_TYPE } from '@/config/global'
-import { clientSchema, ClientType } from '@/lib/validations'
+import { clientValidationSchema, ClientValidationType } from '@/lib/validations'
 import { ClientTableEntry, Customer } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -18,12 +18,12 @@ import { Label } from './ui/label'
 import { Separator } from './ui/separator'
 
 interface Props {
-  data: ClientType[]
+  data: ClientValidationType[]
 }
 
 export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   const { order, setOrder } = useOrder()
-  const [customer, setCustomer] = useState<ClientType | undefined>(
+  const [customer, setCustomer] = useState<ClientValidationType | undefined>(
     order?.client
   )
   const router = useRouter()
@@ -36,7 +36,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   }, [order?.client, customer])
 
   // Simple button action component
-  const renderRowActions = (client: ClientType) => {
+  const renderRowActions = (client: ClientValidationType) => {
     return (
       <Button
         variant={'outline'}
@@ -57,9 +57,13 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   return (
     <CustomerSearchInput
       selected={customer}
-      onSelectChange={(client: ClientWithOrdersCount | undefined) =>
+      onSelectChange={(client: ClientWithOrdersCount | undefined) => {
         setCustomer(client)
-      }
+        setOrder((prev) => ({
+          ...prev,
+          client: client
+        }))
+      }}
     >
       <div className=" flex flex-col gap-4 w-full">
         <Label className="text-foreground">Derniers Acheteurs</Label>

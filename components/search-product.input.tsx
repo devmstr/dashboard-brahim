@@ -30,14 +30,14 @@ export interface Product {
 }
 
 interface ProductSearchInputProps {
-  selectedProduct: Product | null
-  setSelectedProduct: (product: Product | null) => void
+  selected: Product | null
+  onSelectChange: (product: Product | null) => void
   children?: React.ReactNode
 }
 
 export default function ProductSearchInput({
-  selectedProduct,
-  setSelectedProduct,
+  selected,
+  onSelectChange,
   children
 }: ProductSearchInputProps) {
   const [productSearchTerm, setProductSearchTerm] = useState('')
@@ -98,11 +98,11 @@ export default function ProductSearchInput({
   // Select a product
   const handleSelectProduct = useCallback(
     (product: Product) => {
-      setSelectedProduct(product)
+      onSelectChange(product)
       setProductSearchTerm('')
       setIsProductPopoverOpen(false)
     },
-    [setSelectedProduct]
+    [onSelectChange]
   )
 
   // Handle input change
@@ -134,7 +134,7 @@ export default function ProductSearchInput({
   }, [])
 
   return (
-    <div className="p-3">
+    <div className="">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 py-3">
           <Icons.package className="h-6 w-6" />
@@ -205,19 +205,19 @@ export default function ProductSearchInput({
         </PopoverContent>
       </Popover>
 
-      {selectedProduct && (
+      {selected && (
         <div className="mt-4 p-3 flex items-center justify-between border rounded-md ">
           <div className="grid gap-1">
             <div className="flex items-center text-sm">
               <Package className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="font-medium">{selectedProduct.description}</span>
+              <span className="font-medium">{selected.description}</span>
             </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6"
-            onClick={() => setSelectedProduct(null)}
+            onClick={() => onSelectChange(null)}
             aria-label="Supprimer le produit sélectionné"
           >
             <X className="h-4 w-4" />

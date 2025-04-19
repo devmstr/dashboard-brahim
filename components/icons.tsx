@@ -57,7 +57,8 @@ import {
   UserRound,
   UserPlus,
   UploadCloud,
-  Database
+  Database,
+  Car
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackage, LuPackageCheck } from 'react-icons/lu'
@@ -81,6 +82,7 @@ import { cn } from '@/lib/utils'
 export type Icon = LucideIcon
 
 export const Icons = {
+  sideCar: Car,
   database: Database,
   ledger: TbDeviceIpadDollar,
   upload: UploadCloud,

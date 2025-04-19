@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 
-// GET all radiators with optional filtering
+// GET all products with optional filtering
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -17,7 +17,9 @@ export async function GET(request: NextRequest) {
     // Add search functionality across multiple fields
     if (search) {
       filter.OR = [
+        // Search by name/label
         { label: { contains: search } },
+        // Search by model name
         {
           Models: {
             some: {
@@ -25,6 +27,7 @@ export async function GET(request: NextRequest) {
             }
           }
         },
+        // Search by brand name
         {
           Models: {
             some: {
@@ -36,10 +39,13 @@ export async function GET(request: NextRequest) {
             }
           }
         },
+        // Search by client name
         {
-          Clients: {
+          Order: {
             some: {
-              name: { contains: search }
+              Client: {
+                name: { contains: search }
+              }
             }
           }
         }
@@ -51,8 +57,8 @@ export async function GET(request: NextRequest) {
     const limit = Number.parseInt(searchParams.get('limit') || '10', 10)
     const skip = (page - 1) * limit
 
-    // Fetch radiators with relations
-    const radiators = await prisma.radiator.findMany({
+    // Fetch products with relations
+    const products = await prisma.product.findMany({
       where: filter,
       include: {
         Models: {
@@ -63,6 +69,12 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        Order: {
+          include: {
+            Client: true
+          },
+          take: 3 // Limit the number of orders returned
         }
       },
       skip,
@@ -73,10 +85,44 @@ export async function GET(request: NextRequest) {
     })
 
     // Get total count for pagination
-    const total = await prisma.radiator.count({ where: filter })
+    const total = await prisma.product.count({ where: filter })
+
+    // Format the response to include only essential fields
+    const formattedData = products.map((product) => {
+      // Extract brand, model, and type information
+      const brands = new Set<string>()
+      const models = new Set<string>()
+
+      product.Models.forEach((model) => {
+        if (model.family?.brand?.name) {
+          brands.add(model.family.brand.name)
+        }
+        if (model.name) {
+          models.add(model.name)
+        }
+      })
+
+      // Get client names from all associated orders
+      const clients = new Set<string>()
+      product.Order?.forEach((order) => {
+        if (order.Client?.name) {
+          clients.add(order.Client.name)
+        }
+      })
+
+      return {
+        id: product.id,
+        label: product.label || `Product ${product.id}`,
+        Brands: Array.from(brands).join(', ') || null,
+        Models: Array.from(models).join(', ') || null,
+        Clients: Array.from(clients).join(', ') || null,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
+      }
+    })
 
     return NextResponse.json({
-      data: radiators,
+      data: formattedData,
       pagination: {
         total,
         page,
@@ -85,43 +131,26 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error fetching radiators:', error)
+    console.error('Error fetching products:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch radiators' },
+      { error: 'Failed to fetch products' },
       { status: 500 }
     )
   }
 }
 
-// POST - Create a new radiator
+// POST - Create a new product
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    // Validate required fields
-    if (!body.hash) {
-      return NextResponse.json({ error: 'Hash is required' }, { status: 400 })
-    }
+    // Extract car models and orders to connect
+    const { Models, Components, Orders, ...productData } = body
 
-    // Check if radiator with hash already exists
-    const existing = await prisma.radiator.findUnique({
-      where: { hash: body.hash }
-    })
-
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Radiator with this hash already exists' },
-        { status: 409 }
-      )
-    }
-
-    // Extract car models to connect
-    const { Models, core, collector, ...radiatorData } = body
-
-    // Create the radiator with nested relations
-    const radiator = await prisma.radiator.create({
+    // Create the product with nested relations
+    const product = await prisma.product.create({
       data: {
-        ...radiatorData,
+        ...productData,
         // Connect car models if provided
         ...(Models && Models.length > 0
           ? {
@@ -130,26 +159,43 @@ export async function POST(request: NextRequest) {
               }
             }
           : {}),
-        // Create or connect core if provided
-        ...(core
+        // Connect orders if provided
+        ...(Orders && Orders.length > 0
           ? {
-              core: {
-                create: core
+              Order: {
+                connect: Orders.map((orderId: string) => ({ id: orderId }))
               }
             }
           : {}),
-        // Create or connect collector if provided
-        ...(collector
+        // Create components if provided
+        ...(Components && Components.length > 0
           ? {
-              collector: {
-                create: collector
+              Components: {
+                create: Components.map((component: any) => {
+                  const { core, collector, ...componentData } = component
+                  return {
+                    ...componentData,
+                    ...(core
+                      ? {
+                          core: {
+                            create: core
+                          }
+                        }
+                      : {}),
+                    ...(collector
+                      ? {
+                          collector: {
+                            create: collector
+                          }
+                        }
+                      : {})
+                  }
+                })
               }
             }
           : {})
       },
       include: {
-        core: true,
-        collector: true,
         Models: {
           include: {
             family: {
@@ -158,15 +204,57 @@ export async function POST(request: NextRequest) {
               }
             }
           }
+        },
+        Components: {
+          include: {
+            Core: true,
+            Collector: true
+          }
+        },
+        Order: {
+          include: {
+            Client: true
+          }
         }
       }
     })
 
-    return NextResponse.json(radiator, { status: 201 })
+    // Format the response to include only essential fields
+    const brands = new Set<string>()
+    const models = new Set<string>()
+
+    product.Models.forEach((model) => {
+      if (model.family?.brand?.name) {
+        brands.add(model.family.brand.name)
+      }
+      if (model.name) {
+        models.add(model.name)
+      }
+    })
+
+    // Get client names from all associated orders
+    const clients = new Set<string>()
+    product.Order?.forEach((order) => {
+      if (order.Client?.name) {
+        clients.add(order.Client.name)
+      }
+    })
+
+    const formattedResponse = {
+      id: product.id,
+      label: product.label || `Product ${product.id}`,
+      Brands: Array.from(brands).join(', ') || null,
+      Models: Array.from(models).join(', ') || null,
+      Clients: Array.from(clients).join(', ') || null,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    }
+
+    return NextResponse.json(formattedResponse, { status: 201 })
   } catch (error) {
-    console.error('Error creating radiator:', error)
+    console.error('Error creating product:', error)
     return NextResponse.json(
-      { error: 'Failed to create radiator' },
+      { error: 'Failed to create product' },
       { status: 500 }
     )
   }

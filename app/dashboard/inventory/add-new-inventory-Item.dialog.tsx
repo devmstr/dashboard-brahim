@@ -26,7 +26,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/hooks/use-toast'
-import { addNewRadiator } from '@/lib/actions'
+// import { addNewRadiator } from '@/lib/actions'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
@@ -72,7 +72,7 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
           }
         })
 
-        await addNewRadiator(formData)
+        // await addNewRadiator(formData)
         router.refresh()
         toast({
           title: 'Succès',
@@ -112,8 +112,8 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
             >
               <div className="border rounded-md">
                 <ProductSearchInput
-                  selectedProduct={selectedProduct}
-                  setSelectedProduct={setSelectedProduct}
+                  selected={selectedProduct}
+                  onSelectChange={setSelectedProduct}
                 />
               </div>
 

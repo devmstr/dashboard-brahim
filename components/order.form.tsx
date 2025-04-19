@@ -31,7 +31,10 @@ import { CarSelectionForm, type Selection } from './car-selection.from'
 import { useOrder } from './new-order.provider'
 import { toast } from '@/hooks/use-toast'
 import { generateProductTitle } from '@/lib/utils'
-import { orderSchema, type OrderType } from '@/lib/validations/order'
+import {
+  componentValidationSchema,
+  type ComponentValidationSchema
+} from '@/lib/validations/order'
 import {
   CLAMPING_TYPES,
   COLLECTOR_MATERIALS_TYPES,
@@ -62,7 +65,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
   const router = useRouter()
 
   // Form initialization with default values
-  const form = useForm<OrderType>({
+  const form = useForm<ComponentValidationSchema>({
     defaultValues: {
       type: 'Radiateur',
       fabrication: 'Confection',
@@ -73,29 +76,20 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
         fins: 'D',
         finsPitch: 10,
         tube: '7',
-        rows: 1,
-        dimensions: {
-          width: 0,
-          height: 0
-        }
+        rows: 1
       },
       collector: {
         isTinned: false,
         perforation: 'Perforé',
         tightening: 'P',
         position: 'C',
-        material: 'Laiton',
-        upperDimensions: {
-          width: 0,
-          height: 0,
-          thickness: 1.5
-        }
+        material: 'Laiton'
       }
     },
     resolver: zodResolver(
       // Modify the schema to make dimensions not required for Radiator type
       // and note required when car is not included
-      orderSchema.refine(
+      componentValidationSchema.refine(
         (data) => {
           if (data.type === 'Faisceaux') {
             return data.core?.dimensions?.width && data.core?.dimensions?.height
@@ -134,7 +128,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
   }, [isModelAvailable, note, form])
 
   // Handle form submission
-  const onSubmit = (formData: OrderType) => {
+  const onSubmit = (formData: ComponentValidationSchema) => {
     // Validate car selection or note
     if (!isModelAvailable && !formData.note) {
       toast({
@@ -176,7 +170,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
         lowerWidth: Number(formData.collector?.lowerDimensions?.width)
       },
       rows: formData.core?.rows,
-      type: formData.type as 'Faisceaux' | 'Radiateur',
+      type: formData.type as 'Faisceau' | 'Radiateur',
       fabrication: formData.fabrication as 'Renovation' | 'Confection',
       fins: formData.core?.fins as 'Z' | 'A' | 'D',
       finsPitch: formData.core?.finsPitch as 10 | 11 | 12 | 14,
@@ -186,8 +180,11 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
     })
 
     // Data normalization
-    const normalizedData = JSON.parse(JSON.stringify(formData)) as OrderType
+    const normalizedData = JSON.parse(
+      JSON.stringify(formData)
+    ) as ComponentValidationSchema
 
+    if (!isModelAvailable) delete normalizedData.car
     if (normalizedData.type === 'Radiateur') delete normalizedData.collector
 
     if (normalizedData.type === 'Autre') {
@@ -232,7 +229,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
       const width = form.watch('core.dimensions.width')
       const height = form.watch('core.dimensions.height')
 
-      if (!width || width === 0 || !height || height === 0) {
+      if (!width || !height) {
         form.setError('core.dimensions', {
           type: 'required',
           message: 'Les dimensions sont obligatoires pour le type Faisceau'
@@ -245,6 +242,26 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
     }
   }, [type, form])
 
+  // Check collector dimensions requirement when type changes
+  useEffect(() => {
+    if (type === 'Faisceau') {
+      const collectorWidth = form.watch('collector.upperDimensions.width')
+      const collectorHeight = form.watch('collector.upperDimensions.height')
+
+      if (!collectorWidth || !collectorHeight) {
+        form.setError('collector.upperDimensions', {
+          type: 'required',
+          message:
+            'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
+        })
+      } else {
+        form.clearErrors('collector.upperDimensions')
+      }
+    } else {
+      form.clearErrors('collector.upperDimensions')
+    }
+  }, [type, form])
+
   // Handle form submission with validation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -253,19 +270,42 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
     if (type === 'Faisceau') {
       const width = form.getValues('core.dimensions.width')
       const height = form.getValues('core.dimensions.height')
+      const collectorWidth = form.getValues('collector.upperDimensions.width')
+      const collectorHeight = form.getValues('collector.upperDimensions.height')
 
-      if (!width || width === 0 || !height || height === 0) {
+      let hasError = false
+
+      if (!width || !height) {
         toast({
           title: 'Erreur de validation',
-          description: 'Les dimensions sont obligatoires pour le type Faisceau',
+          description:
+            'Les dimensions du faisceau sont obligatoires pour le type Faisceau',
           variant: 'destructive'
         })
         form.setError('core.dimensions', {
           type: 'required',
-          message: 'Les dimensions sont obligatoires pour le type Faisceau'
+          message:
+            'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
         })
-        return
+        hasError = true
       }
+
+      if (!collectorWidth || !collectorHeight) {
+        toast({
+          title: 'Erreur de validation',
+          description:
+            'Les dimensions du collecteur sont obligatoires pour le type Faisceau',
+          variant: 'destructive'
+        })
+        form.setError('collector.upperDimensions', {
+          type: 'required',
+          message:
+            'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
+        })
+        hasError = true
+      }
+
+      if (hasError) return
     }
 
     const isValid = await form.trigger()

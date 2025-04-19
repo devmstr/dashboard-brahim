@@ -59,17 +59,13 @@ export async function PUT(
             ? body.isCompany
             : existingClient.isCompany,
         website: body.website,
-        rc: body.rc,
-        mf: body.mf,
-        ai: body.ai,
-        nif: body.nif,
-        nis: body.nis,
-        na: body.na,
-        address: body.address,
-        country: body.country,
-        province: body.province,
-        city: body.city,
-        zip: body.zip
+        tradeRegisterNumber: body.tradeRegisterNumber,
+        fiscalNumber: body.fiscalNumber,
+        taxIdNumber: body.taxIdNumber,
+        statisticalIdNumber: body.statisticalIdNumber,
+        registrationArticle: body.registrationArticle,
+        approvalNumber: body.approvalNumber
+        // add the address informations
       }
     })
 

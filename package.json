@@ -13,7 +13,8 @@
     "script": "ts-node -P tsconfig.seed.json",
     "seed:clients": "npm run script scripts/clients.ts",
     "seed:cars": "npm run script scripts/cars.ts",
-    "seed:locations": "npm run script scripts/locations.ts"
+    "seed:locations": "npm run script scripts/locations.ts",
+    "seed:products": "npm run script scripts/products.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",

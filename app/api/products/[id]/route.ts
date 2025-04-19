@@ -7,75 +7,96 @@ interface RouteParams {
   }
 }
 
-// GET a single radiator by ID
+// GET a single product by ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
 
-    const radiator = await prisma.radiator.findUnique({
+    const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        core: true,
-        collector: true,
-        Models: true,
-        Order: true
+        Models: {
+          include: {
+            family: {
+              include: {
+                brand: true
+              }
+            }
+          }
+        },
+        Components: {
+          include: {
+            Collector: true,
+            Core: true
+          }
+        }
       }
     })
 
-    if (!radiator) {
-      return NextResponse.json({ error: 'Radiator not found' }, { status: 404 })
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    return NextResponse.json(radiator)
+    // Extract brand, model, and type information
+    const brands = new Set<string>()
+    const models = new Set<string>()
+
+    product.Models.forEach((model) => {
+      if (model.family?.brand?.name) {
+        brands.add(model.family.brand.name)
+      }
+      if (model.name) {
+        models.add(model.name)
+      }
+    })
+
+    // Format the response to include only essential fields
+    const formattedResponse = {
+      id: product.id,
+      label: product.label || `Product ${product.id}`,
+      Brands: Array.from(brands),
+      Models: Array.from(models),
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    }
+
+    return NextResponse.json(formattedResponse)
   } catch (error) {
-    console.error('Error fetching radiator:', error)
+    console.error('Error fetching product:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch radiator' },
+      { error: 'Failed to fetch product' },
       { status: 500 }
     )
   }
 }
 
-// PUT - Update an existing radiator
+// PUT - Update an existing product
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
     const body = await request.json()
 
-    // Check if radiator exists
-    const existingRadiator = await prisma.radiator.findUnique({
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
       where: { id },
       include: {
-        Models: true
+        Models: true,
+        Order: true
       }
     })
 
-    if (!existingRadiator) {
-      return NextResponse.json({ error: 'Radiator not found' }, { status: 404 })
+    if (!existingProduct) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // If hash is being updated, check for uniqueness
-    if (body.hash && body.hash !== existingRadiator.hash) {
-      const hashExists = await prisma.radiator.findUnique({
-        where: { hash: body.hash }
-      })
+    // Extract car models and orders to update
+    const { Models, Orders, Components, ...productData } = body
 
-      if (hashExists) {
-        return NextResponse.json(
-          { error: 'Radiator with this hash already exists' },
-          { status: 409 }
-        )
-      }
-    }
-
-    // Extract car models to update
-    const { Models, ...radiatorData } = body
-
-    // Update the radiator
-    const updatedRadiator = await prisma.radiator.update({
+    // Update the product
+    const updatedProduct = await prisma.product.update({
       where: { id },
       data: {
-        ...radiatorData,
+        ...productData,
         // Update car models if provided
         ...(Models
           ? {
@@ -84,53 +105,119 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
                 connect: Models.map((modelId: string) => ({ id: modelId }))
               }
             }
+          : {}),
+        // Update orders if provided
+        ...(Orders
+          ? {
+              Order: {
+                set: [], // First disconnect all existing orders
+                connect: Orders.map((orderId: string) => ({ id: orderId }))
+              }
+            }
           : {})
+        // Update components if provided (this is more complex and would need careful handling)
+        // For simplicity, we're not updating components in this example
       },
       include: {
-        core: true,
-        collector: true,
-        Models: true,
-        Order: true
+        Components: {
+          include: {
+            Core: true,
+            Collector: true
+          }
+        },
+        Models: {
+          include: {
+            family: {
+              include: {
+                brand: true
+              }
+            },
+            Types: true
+          }
+        },
+        Order: {
+          include: {
+            Client: true
+          }
+        }
       }
     })
 
-    return NextResponse.json(updatedRadiator)
+    // Extract brand, model, and type information
+    const brands = new Set<string>()
+    const models = new Set<string>()
+    const types = new Set<string>()
+
+    updatedProduct.Models.forEach((model) => {
+      if (model.family?.brand?.name) {
+        brands.add(model.family.brand.name)
+      }
+      if (model.name) {
+        models.add(model.name)
+      }
+      model.Types?.forEach((type) => {
+        if (type.name) {
+          types.add(type.name)
+        }
+      })
+    })
+
+    // Get client names from all associated orders
+    const clients = new Set<string>()
+    updatedProduct.Order?.forEach((order) => {
+      if (order.Client?.name) {
+        clients.add(order.Client.name)
+      }
+    })
+
+    // Format the response to include only essential fields
+    const formattedResponse = {
+      id: updatedProduct.id,
+      label: updatedProduct.label || `Product ${updatedProduct.id}`,
+      Brands: Array.from(brands).join(', ') || null,
+      Models: Array.from(models).join(', ') || null,
+      Clients: Array.from(clients).join(', ') || null,
+      createdAt: updatedProduct.createdAt,
+      updatedAt: updatedProduct.updatedAt
+    }
+
+    return NextResponse.json(formattedResponse)
   } catch (error) {
-    console.error('Error updating radiator:', error)
+    console.error('Error updating product:', error)
     return NextResponse.json(
-      { error: 'Failed to update radiator' },
+      { error: 'Failed to update product' },
       { status: 500 }
     )
   }
 }
 
-// DELETE - Delete a radiator
+// DELETE - Delete a product
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
 
-    // Check if radiator exists
-    const existingRadiator = await prisma.radiator.findUnique({
+    // Check if product exists
+    const existingProduct = await prisma.product.findUnique({
       where: { id }
     })
 
-    if (!existingRadiator) {
-      return NextResponse.json({ error: 'Radiator not found' }, { status: 404 })
+    if (!existingProduct) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Delete the radiator
-    await prisma.radiator.delete({
+    // Delete the product
+    await prisma.product.delete({
       where: { id }
     })
 
     return NextResponse.json(
-      { message: 'Radiator deleted successfully' },
+      { message: 'Product deleted successfully' },
       { status: 200 }
     )
   } catch (error) {
-    console.error('Error deleting radiator:', error)
+    console.error('Error deleting product:', error)
     return NextResponse.json(
-      { error: 'Failed to delete radiator' },
+      { error: 'Failed to delete product' },
       { status: 500 }
     )
   }

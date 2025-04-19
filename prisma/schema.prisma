@@ -10,6 +10,7 @@ datasource db {
 enum ComponentType {
   CORE
   COLLECTOR
+  // ... and i will add some specific components like HEADERS and so on 
 }
 
 model Account {
@@ -85,14 +86,13 @@ model Province {
 }
 
 model City {
-  id         String   @id @default(cuid())
-  zip_code   String   @unique
+  id         String    @id @default(cuid())
+  zip_code   String    @unique
   name_ar    String
   name       String
-  Province   Province @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  Province   Province  @relation(fields: [provinceId], references: [id], onDelete: Cascade)
   provinceId String
-
-  Address Address[]
+  Address    Address[]
 }
 
 model Inventory {
@@ -112,7 +112,6 @@ model Price {
 model Product {
   id          String      @id @default(cuid())
   reference   String?     @unique
-  name        String?
   category    String?
   dir         String?
   cooling     String?
@@ -123,30 +122,31 @@ model Product {
   Inventory   Inventory?  @relation(fields: [inventoryId], references: [id])
   Price       Price?      @relation(fields: [priceId], references: [id])
   // relations
-  Order       Order?      @relation(fields: [orderId], references: [id])
+  Order       Order[]
   Models      CarModel[]
   Components  Component[]
   inventoryId String?
   priceId     String?
-  orderId     String?
+  createdAt   DateTime?   @default(now())
+  updatedAt   DateTime?   @updatedAt
 }
 
 model Component {
-  id        String        @id @default(cuid())
-  name      String
-  type      ComponentType
-  productId String
-  product   Product       @relation(fields: [productId], references: [id])
-
+  id          String        @id @default(cuid())
+  name        String
+  type        ComponentType
+  productId   String
+  product     Product       @relation(fields: [productId], references: [id])
+  // 
   coreId      String?
   collectorId String?
-
-  core      Core?      @relation(fields: [coreId], references: [id])
-  collector Collector? @relation(fields: [collectorId], references: [id])
+  Core        Core?         @relation(fields: [coreId], references: [id])
+  // 
+  Collector   Collector?    @relation(fields: [collectorId], references: [id])
 }
 
 model Collector {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   width       Int
   height      Int
   thickness   Int?
@@ -157,19 +157,17 @@ model Collector {
   material    String?
   perforation String?
   isTinned    Boolean?
-
-  components Component[] // One collector used in many components
+  components  Component[] // One collector used in many components
 }
 
 model Core {
-  id        String @id @default(cuid())
-  width     Int
-  height    Int
-  rows      Int
-  fins      String
-  finsPitch Int
-  tube      String
-
+  id         String      @id @default(cuid())
+  width      Int
+  height     Int
+  rows       Int
+  fins       String
+  finsPitch  Int
+  tube       String
   components Component[] // One core used in many components
 }
 
@@ -249,7 +247,6 @@ model Address {
 model Order {
   id                     String    @id @default(cuid())
   deadline               DateTime  @default(now())
-  title                  String?
   note                   Json?
   description            Json?
   modifications          Json?

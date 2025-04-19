@@ -32,7 +32,7 @@ interface Dimensions {
 }
 
 interface ProductConfig {
-  type?: 'Faisceaux' | 'Radiateur'
+  type?: 'Faisceau' | 'Radiateur'
   fabrication?: 'Renovation' | 'Confection'
   core: Dimensions
   rows?: number
@@ -53,7 +53,7 @@ function formatDimension(main: number, lower?: number): string {
 }
 
 function formatProductPrefix(type: string, fabrication: string): string {
-  if (type === 'Faisceaux') return 'FX'
+  if (type === 'Faisceau') return 'FX'
   return fabrication === 'Confection' ? 'RA' : 'RE'
 }
 

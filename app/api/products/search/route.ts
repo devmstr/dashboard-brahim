@@ -1,24 +1,28 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 
-// Advanced search endpoint for radiators
+// Advanced search endpoint for products
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const query = searchParams.get('q') || ''
-
-    // Get radiators matching the search query
-    const radiators = await prisma.radiator.findMany({
+    // Get products matching the search query
+    const products = await prisma.product.findMany({
       where: {
         OR: [
+          // Search by name/label
           { label: { contains: query } },
+          // Search by client name (through orders)
           {
-            Clients: {
+            Order: {
               some: {
-                name: { contains: query }
+                Client: {
+                  name: { contains: query }
+                }
               }
             }
           },
+          // Search by model name
           {
             Models: {
               some: {
@@ -26,6 +30,7 @@ export async function GET(request: NextRequest) {
               }
             }
           },
+          // Search by brand name
           {
             Models: {
               some: {
@@ -40,8 +45,6 @@ export async function GET(request: NextRequest) {
         ]
       },
       include: {
-        // core: true,
-        // collector: true,
         Models: {
           include: {
             family: {
@@ -50,7 +53,13 @@ export async function GET(request: NextRequest) {
               }
             }
           },
-          take: 3 // Limit the number of models returned to avoid large payloads
+          take: 3
+        },
+        Order: {
+          include: {
+            Client: true
+          },
+          take: 2
         }
       },
       take: 10,
@@ -60,12 +69,12 @@ export async function GET(request: NextRequest) {
     })
 
     // Format the results to be more client-friendly
-    const formattedResults = radiators.map((radiator) => {
-      // Extract brand and model information for easier client-side display
+    const formattedResults = products.map((product) => {
+      // Extract brand, model, and type information for easier client-side display
       const brands = new Set<string>()
       const models = new Set<string>()
 
-      radiator.Models.forEach((model) => {
+      product.Models.forEach((model) => {
         if (model.family?.brand?.name) {
           brands.add(model.family.brand.name)
         }
@@ -74,30 +83,29 @@ export async function GET(request: NextRequest) {
         }
       })
 
+      // Get client names from all associated orders
+      const clients = new Set<string>()
+      product.Order?.forEach((order) => {
+        if (order.Client?.name) {
+          clients.add(order.Client.name)
+        }
+      })
+
       return {
-        id: radiator.id,
-        // barcode: radiator.barcode,
-        // description: radiator.description,
-        // hash: radiator.hash,
-        label: radiator.label,
-        isActive: radiator.isActive,
-        // Add formatted brand and model information
-        brandNames: Array.from(brands),
-        modelNames: Array.from(models),
-        // Include the full data for detailed views
-        // core: radiator.core,
-        // collector: radiator.collector,
-        // Models: radiator.Models,
-        updatedAt: radiator.updatedAt,
-        createdAt: radiator.createdAt
+        id: product.id,
+        label: product.label || `Product ${product.id}`,
+        Brands: Array.from(brands).join(', ') || null,
+        Models: Array.from(models).join(', ') || null,
+        Clients: Array.from(clients).join(', ') || null,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
       }
     })
-
     return NextResponse.json(formattedResults)
   } catch (error) {
-    console.error('Error searching radiators:', error)
+    console.error('Error searching products:', error)
     return NextResponse.json(
-      { error: 'Failed to search radiators' },
+      { error: 'Failed to search products' },
       { status: 500 }
     )
   }
