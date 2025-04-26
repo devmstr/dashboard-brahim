@@ -21,7 +21,7 @@ export async function GET(
         brandId: params.brandId
       },
       include: {
-        Models: true
+        models: true
       }
     })
     return NextResponse.json(families)

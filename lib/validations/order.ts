@@ -87,12 +87,12 @@ export const clientValidationSchema = z.object({
   isCompany: z.boolean(),
   _count: z
     .object({
-      Orders: z.number()
+      orders: z.number()
     })
     .optional(),
-  Address: z
+  address: z
     .object({
-      City: z.object({
+      city: z.object({
         name: z.string()
       })
     })
@@ -128,76 +128,35 @@ const coreSchema = z.object({
 
 export const carValidationSchema = z.object({
   id: z.string().optional(),
-  manufacture: z.string().optional(),
+  brand: z.string().optional(),
   model: z.string().optional()
 })
 
 export type CarValidationType = z.infer<typeof carValidationSchema>
 
 // Modified order schema to make note required when car is not included
-export const componentValidationSchema = z
-  .object({
-    id: z.string().optional(),
-    title: z.string().optional(),
-    isCarIncluded: z.boolean().optional().default(true),
-    car: carValidationSchema.optional(),
-    core: coreSchema.optional(),
-    collector: collectorSchema.optional(),
-    isModificationIncluded: z.boolean().default(false).optional(),
-    modification: contentSchema.optional(),
-    note: contentSchema.optional(),
-    description: contentSchema.optional(),
-    type: z.string(),
-    quantity: z.number().positive().optional().default(1),
-    fabrication: z.string().optional().default('Confection'),
-    cooling: z.string().optional().default('Eau'),
-    packaging: z.string().optional().default('Carton')
-  })
-  .refine(
-    (data) => {
-      // Skip dimension validation for Radiator type
-      if (data.type === 'Radiateur') {
-        return true
-      }
-      // For Faisceau type, ensure both core and collector dimensions are provided
-      if (data.type === 'Faisceau') {
-        const hasCoreValidDimensions =
-          data.core?.dimensions?.width && data.core?.dimensions?.height
-        const hasCollectorValidDimensions =
-          data.collector?.upperDimensions?.width &&
-          data.collector?.upperDimensions?.height
-
-        return hasCoreValidDimensions && hasCollectorValidDimensions
-      }
-      return true
-    },
-    {
-      message: 'Les dimensions sont obligatoires pour le type Faisceau',
-      path: ['core.dimensions']
-    }
-  )
-  .refine(
-    (data) => {
-      // Only validate collector dimensions for Faisceau type
-      if (data.type === 'Faisceau') {
-        return (
-          data.collector?.upperDimensions?.width &&
-          data.collector?.upperDimensions?.height
-        )
-      }
-      return true
-    },
-    {
-      message:
-        'Les dimensions du collecteur sont obligatoires pour le type Faisceau',
-      path: ['collector.upperDimensions']
-    }
-  )
+export const articleValidationSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().optional(),
+  isCarIncluded: z.boolean().optional().default(true),
+  car: carValidationSchema.optional(),
+  core: coreSchema.optional(),
+  collector: collectorSchema.optional(),
+  isModificationIncluded: z.boolean().default(false).optional(),
+  modification: contentSchema.optional(),
+  note: contentSchema.optional(),
+  description: contentSchema.optional(),
+  type: z.string(),
+  quantity: z.number().positive().optional().default(1),
+  fabrication: z.string().optional().default('Confection'),
+  cooling: z.string().optional().default('Eau'),
+  packaging: z.string().optional().default('Carton')
+})
 
 export const orderValidationSchema = z.object({
   client: clientValidationSchema.optional(),
   payment: paymentSchema.optional(),
-  components: z.array(componentValidationSchema).optional(),
+  components: z.array(articleValidationSchema).optional(),
   receivingDate: z
     .string()
     .default(() => new Date().toISOString())
@@ -211,6 +170,4 @@ export const orderValidationSchema = z.object({
 })
 
 export type OrderValidationType = z.infer<typeof orderValidationSchema>
-export type ComponentValidationSchema = z.infer<
-  typeof componentValidationSchema
->
+export type ArticleValidationType = z.infer<typeof articleValidationSchema>

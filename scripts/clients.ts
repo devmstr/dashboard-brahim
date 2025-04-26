@@ -18,7 +18,7 @@ async function seedClients() {
   // Get provinces from Algeria
   const provinces = await prisma.province.findMany({
     where: {
-      Country: {
+      country: {
         code: 'DZ'
       }
     },
@@ -61,9 +61,9 @@ async function seedClients() {
     const address = await prisma.address.create({
       data: {
         street: faker.location.streetAddress(),
-        Country: { connect: { code: 'DZ' } },
-        Province: { connect: { id: randomProvince.id } },
-        City: { connect: { id: randomCity.id } }
+        country: { connect: { code: 'DZ' } },
+        province: { connect: { id: randomProvince.id } },
+        city: { connect: { id: randomCity.id } }
       }
     })
 
@@ -83,7 +83,7 @@ async function seedClients() {
         taxIdNumber: faker.string.numeric(15), // NIF
         statisticalIdNumber: faker.string.numeric(15), // NIS
         approvalNumber: faker.string.alphanumeric(10).toUpperCase(), // NA
-        Address: { connect: { id: address.id } }
+        address: { connect: { id: address.id } }
       }
     })
   })

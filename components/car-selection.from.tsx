@@ -1,6 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef, SetStateAction, Dispatch } from 'react'
+import {
+  useState,
+  useEffect,
+  useRef,
+  type SetStateAction,
+  type Dispatch
+} from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -29,10 +35,8 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CardGrid } from './card'
-import { useOrder } from './new-order.provider'
+import { CardGrid } from '@/components/card'
 
 // Define types for our API responses
 interface Brand {
@@ -49,8 +53,8 @@ interface Family {
 interface Model {
   id: string
   name: string
-  production: string
-  familyId: string
+  production?: string
+  familyId?: string
 }
 
 interface CarType {
@@ -77,7 +81,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-export type Selection = {
+export type CarSelection = {
   brand?: Brand
   model?: Model
 }
@@ -86,8 +90,8 @@ export function CarSelectionForm({
   selected,
   onSelectChange
 }: {
-  selected?: Selection
-  onSelectChange: Dispatch<SetStateAction<Selection | undefined>>
+  selected?: CarSelection
+  onSelectChange: Dispatch<SetStateAction<CarSelection | undefined>>
 }) {
   // State for storing API data
   const [brands, setBrands] = useState<Brand[]>([])
@@ -200,7 +204,7 @@ export function CarSelectionForm({
           setSelectedBrand(brand)
           // return brand to parent
           onSelectChange((prev) => {
-            return { ...prev, brand }
+            return { ...prev, brand: brand }
           })
         }
       } catch (err) {
@@ -211,7 +215,7 @@ export function CarSelectionForm({
     }
 
     fetchFamilies()
-  }, [watchBrandId, brands, form])
+  }, [watchBrandId, brands, form, onSelectChange])
 
   // Fetch models when family is selected
   useEffect(() => {
@@ -285,7 +289,7 @@ export function CarSelectionForm({
     }
 
     fetchTypes()
-  }, [watchModelId, watchBrandId, watchFamilyId, models, form])
+  }, [watchModelId, watchBrandId, watchFamilyId, models, form, onSelectChange])
 
   useEffect(() => {
     if (isBrandPopoverOpen && brandTriggerRef.current) {
@@ -332,6 +336,19 @@ export function CarSelectionForm({
       }, 0)
     }
   }, [isTypePopoverOpen])
+
+  // Set initial values if provided
+  useEffect(() => {
+    if (selected?.brand && !selectedBrand) {
+      // Find the brand in the list or use the provided one
+      const brand =
+        brands.find((b) => b.id === selected.brand?.id) || selected.brand
+      if (brand) {
+        setSelectedBrand(brand)
+        form.setValue('brandId', brand.id)
+      }
+    }
+  }, [selected, brands, form, selectedBrand])
 
   // Handle form submission
   async function onSubmit(values: FormValues) {

@@ -14,17 +14,23 @@ export const paymentSchema = z.object({
       'À terme'
     ])
     .optional(),
+  bank: z
+    .enum([
+      'Banque Extérieure d’Algérie',
+      'Banque Nationale d’Algérie',
+      'Société Générale Algérie',
+      'Algerian Gulf Bank'
+    ])
+    .optional(),
   iban: z.string().optional(),
+  checkUrl: z.string().url().optional(),
   depositor: z.string().optional(),
   endDate: z
     .string()
     .optional()
     .refine((str) => !str || !isNaN(Date.parse(str)), {
       message: 'Invalid Date'
-    }),
-  discountRate: z.number().positive().max(100).optional(),
-  refundRate: z.number().positive().max(100).optional(),
-  stampTaxRate: z.number().default(0.01)
+    })
 })
 
 export type PaymentType = z.infer<typeof paymentSchema>

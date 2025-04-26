@@ -249,7 +249,7 @@ export function ClientTable({
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-1">
-            {row.original.Address?.City.name}
+            {row.original.address?.city.name}
           </div>
         )
       }

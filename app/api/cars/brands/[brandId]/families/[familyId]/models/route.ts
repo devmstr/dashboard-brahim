@@ -24,7 +24,7 @@ export async function GET(
         familyId: params.familyId
       },
       include: {
-        Types: true
+        types: true
       }
     })
     return NextResponse.json(models)
@@ -60,7 +60,7 @@ export async function POST(
         name: json.name,
         production: json.production,
         familyId: params.familyId,
-        productId: json.productId,
+        radiatorId: json.radiatorId
       }
     })
     return NextResponse.json(model, { status: 201 })

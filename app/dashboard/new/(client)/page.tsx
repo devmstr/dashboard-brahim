@@ -10,13 +10,13 @@ const Page: React.FC<Props> = async ({}: Props) => {
     where: { isCompany: true },
     orderBy: { updatedAt: 'desc' },
     include: {
-      Address: {
+      address: {
         include: {
-          City: true
+          city: true
         }
       },
       _count: {
-        select: { Orders: true }
+        select: { orders: true }
       }
     },
     take: 4

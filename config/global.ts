@@ -43,6 +43,12 @@ export const PAYMENT_TYPES = [
   'Cheque',
   'À terme'
 ]
+export const BANK_TYPES = [
+  'Banque Extérieure d’Algérie',
+  'Banque Nationale d’Algérie',
+  'Société Générale Algérie',
+  'Algerian Gulf Bank'
+]
 
 export const PERFORATION_TYPES = ['Perforé', 'Non Perforé']
 export const CAR_ENERGY_TYPES = ['Diesel', 'Essence']

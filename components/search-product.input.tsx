@@ -1,10 +1,8 @@
 'use client'
 
 import type React from 'react'
-
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -17,57 +15,68 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { Search, Package, X } from 'lucide-react'
+import { Search, Package, Car, User } from 'lucide-react'
 import { Icons } from '@/components/icons'
 import { useDebounce } from '@/hooks/use-debounce'
 import { format } from 'date-fns'
+import type { Radiator } from '@prisma/client'
 
-// Define the Product interface
-export interface Product {
+// Updated Product interface to match API response
+export type RadiatorResp = {
   id: string
-  description: string
+  label: string
+  Models: { id: string; name: string }[]
+  Clients: { id: string; name: string }[]
   createdAt?: string
+  updatedAt?: string
 }
 
 interface ProductSearchInputProps {
-  selected: Product | null
-  onSelectChange: (product: Product | null) => void
+  selected?: Pick<Radiator, 'id' | 'label'>
+  onSelectChange: (product?: RadiatorResp) => void
   children?: React.ReactNode
+  placeholder?: string
 }
 
 export default function ProductSearchInput({
   selected,
   onSelectChange,
-  children
+  children,
+  placeholder = 'Rechercher par description, modèle, marque, type ou client'
 }: ProductSearchInputProps) {
-  const [productSearchTerm, setProductSearchTerm] = useState('')
-  const [isProductPopoverOpen, setIsProductPopoverOpen] = useState(false)
-  const [products, setProducts] = useState<Product[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+  const [products, setProducts] = useState<RadiatorResp[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const triggerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [triggerWidth, setTriggerWidth] = useState(0)
 
   // Debounce search term to avoid excessive API calls
-  const debouncedSearchTerm = useDebounce(productSearchTerm, 300)
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
-  // Fetch products function - extracted for reuse
+  // Fetch products function - updated to use the correct endpoint
   const fetchProducts = useCallback(async (searchTerm: string) => {
     setIsLoading(true)
+    setError(null)
+
     try {
+      // Updated to use the correct endpoint
       const response = await fetch(
-        `/api/product?description=${encodeURIComponent(searchTerm)}`
+        `/api/products?search=${encodeURIComponent(searchTerm)}`
       )
 
       if (!response.ok) {
-        throw new Error('Failed to fetch products')
+        throw new Error(`Failed to fetch products: ${response.status}`)
       }
 
-      const data = await response.json()
+      const { data } = await response.json()
       setProducts(data)
     } catch (error) {
       console.error('Error fetching products:', error)
+      setError('Impossible de charger les produits. Veuillez réessayer.')
       setProducts([])
     } finally {
       setIsLoading(false)
@@ -76,92 +85,123 @@ export default function ProductSearchInput({
 
   // Update trigger width when popover opens
   useEffect(() => {
-    if (isProductPopoverOpen && triggerRef.current) {
+    if (isPopoverOpen && triggerRef.current) {
       setTriggerWidth(triggerRef.current.getBoundingClientRect().width)
       // Delay refocusing to the next tick
       setTimeout(() => {
         inputRef.current?.focus()
       }, 0)
     }
-  }, [isProductPopoverOpen])
+  }, [isPopoverOpen])
 
-  // Initial load effect - fetch products on component mount
+  // Initial fetch of all products
   useEffect(() => {
     fetchProducts('')
   }, [fetchProducts])
 
-  // Fetch products when search term changes
+  // Fetch products when debounced search term changes
   useEffect(() => {
-    fetchProducts(debouncedSearchTerm)
+    if (debouncedSearchTerm !== undefined) {
+      fetchProducts(debouncedSearchTerm)
+    }
   }, [debouncedSearchTerm, fetchProducts])
 
   // Select a product
   const handleSelectProduct = useCallback(
-    (product: Product) => {
+    (product: RadiatorResp) => {
+      // Pass the full product object to the parent component
       onSelectChange(product)
-      setProductSearchTerm('')
-      setIsProductPopoverOpen(false)
+      setSearchTerm('')
+      setIsPopoverOpen(false)
     },
     [onSelectChange]
   )
 
-  // Handle input change
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value
-      setProductSearchTerm(value)
-      if (value.length > 0) {
-        setIsProductPopoverOpen(true)
+  // Clear selected product
+  const clearSelectedProduct = useCallback(() => {
+    onSelectChange(undefined)
+  }, [onSelectChange])
+
+  // Format date - memoized to avoid recreating on every render
+  const formatDate = useMemo(
+    () => (dateString?: string) => {
+      if (!dateString) return ''
+
+      try {
+        return format(new Date(dateString), 'dd/MM/yyyy')
+      } catch (error) {
+        return 'Date invalide'
       }
     },
     []
   )
 
-  // Handle input click
-  const handleInputClick = useCallback(() => {
-    if (productSearchTerm.length > 0 || products.length > 0) {
-      setIsProductPopoverOpen(true)
-    }
-  }, [productSearchTerm.length, products.length])
+  // Handle popover state
+  const handlePopoverState = useCallback(
+    (open: boolean) => {
+      setIsPopoverOpen(open)
 
-  // Format date
-  const formatDate = useCallback((dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy')
-    } catch (error) {
-      return 'Invalid date'
-    }
-  }, [])
+      // If closing the popover and no product is selected, clear the search term
+      if (!open && !selected) {
+        setSearchTerm('')
+      }
+    },
+    [selected]
+  )
+
+  // Highlight matching text in search results
+  const highlightMatch = useCallback(
+    (text: string | null | undefined) => {
+      if (!searchTerm || !text) return text || ''
+
+      const regex = new RegExp(
+        `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
+        'gi'
+      )
+      const parts = text.split(regex)
+
+      return parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-yellow-200 rounded-sm px-0.5">
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )
+    },
+    [searchTerm]
+  )
 
   return (
-    <div className="">
+    <div className="w-full">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2 py-3">
           <Icons.package className="h-6 w-6" />
-          Sélectionner Un Produit
+          <span className="font-medium">Sélectionner Un Produit</span>
         </div>
       </div>
-      <Popover
-        open={isProductPopoverOpen}
-        onOpenChange={setIsProductPopoverOpen}
-      >
+
+      <Popover open={isPopoverOpen} onOpenChange={handlePopoverState}>
         <PopoverTrigger asChild>
           <div className="relative w-full" ref={triggerRef}>
             <Search className="absolute left-2.5 top-4 h-4 w-4 text-muted-foreground" />
             <Input
               ref={inputRef}
-              placeholder="Rechercher par description du produit"
-              value={productSearchTerm}
-              onChange={handleInputChange}
+              placeholder={placeholder}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                if (!isPopoverOpen) setIsPopoverOpen(true)
+              }}
               className="pl-8 h-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-              onClick={handleInputClick}
-              onFocus={handleInputClick}
+              onClick={() => setIsPopoverOpen(true)}
               aria-label="Rechercher un produit"
             />
           </div>
         </PopoverTrigger>
+
         <PopoverContent
-          usePortal={false}
           className="p-0"
           align="start"
           style={{ width: triggerWidth > 0 ? `${triggerWidth}px` : 'auto' }}
@@ -170,33 +210,67 @@ export default function ProductSearchInput({
           <Command>
             <CommandList>
               {isLoading ? (
-                <div className="flex gap-3 text-muted-foreground/30 p-2">
-                  Recherche de produits...{' '}
+                <div className="flex items-center justify-center gap-3 text-muted-foreground p-4">
                   <Icons.spinner className="animate-spin w-5 h-5" />
+                  <span>Recherche de produits...</span>
                 </div>
+              ) : error ? (
+                <div className="p-4 text-destructive text-center">{error}</div>
               ) : (
                 <>
                   <CommandEmpty>Aucun produit trouvé.</CommandEmpty>
                   <CommandGroup heading="Produits">
-                    {products.map((product) => (
-                      <CommandItem
-                        key={product.id}
-                        onSelect={() => handleSelectProduct(product)}
-                        className="cursor-pointer data-[selected=true]:bg-muted-foreground/20 hover:bg-muted-foreground/10"
-                      >
-                        <Package className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <div className="flex flex-col flex-1 overflow-hidden">
-                          <span className="text-md truncate">
-                            {product.description}
-                          </span>
-                        </div>
-                        {product.createdAt && (
-                          <span className="ml-auto text-sm text-muted-foreground whitespace-nowrap flex-shrink-0">
-                            {formatDate(product.createdAt)}
-                          </span>
-                        )}
-                      </CommandItem>
-                    ))}
+                    {products.length > 0 &&
+                      products.map((product) => (
+                        <CommandItem
+                          key={product.id}
+                          onSelect={() => handleSelectProduct(product)}
+                          className="cursor-pointer data-[selected=true]:bg-accent hover:bg-accent/50 flex flex-col items-start gap-1 py-2"
+                        >
+                          <div className="flex justify-between items-end w-full">
+                            <div>
+                              <div className="flex items-center gap-2 w-full">
+                                <Package className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm font-medium truncate">
+                                  {highlightMatch(product.label)}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pl-7 text-xs text-muted-foreground">
+                                {product.Models.length > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Car className="w-3 h-3" />
+                                    <span>
+                                      {highlightMatch(
+                                        product.Models.map(
+                                          ({ name }) => name
+                                        ).join(',')
+                                      )}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {product.Clients.length > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <User className="w-3 h-3" />
+                                    <span>
+                                      {highlightMatch(
+                                        product.Clients.map(
+                                          ({ name }) => name
+                                        ).join(',')
+                                      )}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="">
+                              <span>
+                                {formatDate(product.createdAt?.toString())}
+                              </span>
+                            </div>
+                          </div>
+                        </CommandItem>
+                      ))}
                   </CommandGroup>
                 </>
               )}
@@ -205,25 +279,7 @@ export default function ProductSearchInput({
         </PopoverContent>
       </Popover>
 
-      {selected && (
-        <div className="mt-4 p-3 flex items-center justify-between border rounded-md ">
-          <div className="grid gap-1">
-            <div className="flex items-center text-sm">
-              <Package className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="font-medium">{selected.description}</span>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => onSelectChange(null)}
-            aria-label="Supprimer le produit sélectionné"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      {children}
     </div>
   )
 }

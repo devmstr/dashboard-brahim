@@ -9,12 +9,12 @@ export const clientSchema = z.object({
   isCompany: z.boolean(),
   _count: z
     .object({
-      Orders: z.number()
+      orders: z.number()
     })
     .optional(),
-  Address: z
+  address: z
     .object({
-      City: z.object({
+      city: z.object({
         name: z.string()
       })
     })

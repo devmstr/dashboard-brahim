@@ -1,7 +1,7 @@
 'use client'
 import { Combobox } from '@/components/combobox'
 import { Input } from '@/components/ui/input'
-import { PAYMENT_TYPES } from '@/config/global'
+import { BANK_TYPES, PAYMENT_TYPES } from '@/config/global'
 import { paymentSchema, PaymentType } from '@/lib/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
@@ -10,7 +10,7 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { CardGrid } from './card'
 import { DatePicker } from './date-picker'
-import { FileUploadArea } from './file-upload-area'
+import { FileUploadArea } from './upload-file-area'
 import { Icons } from './icons'
 import { useOrder } from './new-order.provider'
 import { Button } from './ui/button'
@@ -23,7 +23,8 @@ import {
   FormMessage
 } from './ui/form'
 import { Separator } from './ui/separator'
-import { UploadFile } from '@/components/upload-file'
+import { Uploader } from '@/components/uploader'
+import { Label } from './ui/label'
 
 interface Props {}
 
@@ -33,9 +34,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
   const router = useRouter()
   const form = useForm<PaymentType>({
     defaultValues: {
-      // discountRate: 0,
-      // refundRate: 0,
-      stampTaxRate: 0.01,
+      bank: 'Banque Nationale d’Algérie',
       mode: 'Espèces',
       endDate: new Date().toISOString()
     },
@@ -158,40 +157,76 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                 </FormItem>
               )}
             />
-            {mode === 'Versement' || mode === 'Espèces + Versement' ? (
-              <FormField
-                control={form.control}
-                name="depositor"
-                render={({ field }) => (
-                  <FormItem className="group ">
-                    <FormLabel className="capitalize">{'Expéditeur'}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : mode === 'Virement' ? (
-              <FormField
-                control={form.control}
-                name="iban"
-                render={({ field }) => (
-                  <FormItem className="group ">
-                    <FormLabel className="capitalize">
-                      {'R.I.B DU CLIENT'}
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : null}
+            {(mode === 'Versement' ||
+              mode === 'Espèces + Versement' ||
+              mode === 'Virement') && (
+              <>
+                {/* Bank Selector - shared across all three modes */}
+                <FormField
+                  control={form.control}
+                  name="bank"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">Banque</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          id="bank"
+                          options={BANK_TYPES}
+                          selected={form.getValues('bank')}
+                          onSelect={(v) => {
+                            form.setValue('bank', v as PaymentType['bank'])
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Conditional fields based on mode */}
+                {mode === 'Versement' || mode === 'Espèces + Versement' ? (
+                  <FormField
+                    control={form.control}
+                    name="depositor"
+                    render={({ field }) => (
+                      <FormItem className="group">
+                        <FormLabel className="capitalize">Expéditeur</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : mode === 'Virement' ? (
+                  <FormField
+                    control={form.control}
+                    name="iban"
+                    render={({ field }) => (
+                      <FormItem className="group">
+                        <FormLabel className="capitalize">
+                          R.I.B DU CLIENT
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : null}
+              </>
+            )}
           </CardGrid>
         </div>
-        {mode == 'Cheque' && <UploadFile />}
+        {mode == 'Cheque' && (
+          <div className="relative space-y-3  border rounded-md p-3">
+            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+              pièce jointe
+            </span>
+            <Label>Uploader Un Cheque</Label>
+            <Uploader isShowDestination uploadPath={'data/payments'} />
+          </div>
+        )}
         <div className="relative border rounded-md px-3 pt-4 py-3">
           <CardGrid className="">
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">

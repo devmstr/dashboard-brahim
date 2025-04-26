@@ -1,9 +1,13 @@
-'use client'
-
 import * as React from 'react'
 import * as ToastPrimitives from '@radix-ui/react-toast'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react'
+import {
+  X,
+  Info,
+  AlertTriangle,
+  CheckCircle,
+  MessageCircle
+} from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -31,7 +35,9 @@ const toastVariants = cva(
       variant: {
         default: 'border bg-background text-foreground',
         destructive: 'group border-red-400 bg-red-100 text-red-800',
-        warning: 'border-yellow-400 bg-yellow-100 text-yellow-800'
+        warning: 'border-yellow-400 bg-yellow-100 text-yellow-800',
+        success: 'border-green-400 bg-green-100 text-green-800',
+        information: 'border-gray-200 bg-white text-gray-800'
       }
     },
     defaultVariants: {
@@ -48,7 +54,9 @@ const Toast = React.forwardRef<
   const iconMap = {
     default: <Info className="h-5 w-5 text-foreground" />,
     destructive: <X className="h-5 w-5 text-red-600" />,
-    warning: <AlertTriangle className="h-5 w-5 text-yellow-600" />
+    warning: <AlertTriangle className="h-5 w-5 text-yellow-600" />,
+    success: <CheckCircle className="h-5 w-5 text-green-600" />,
+    information: <MessageCircle className="h-5 w-5 text-gray-600" />
   }
   return (
     <ToastPrimitives.Root

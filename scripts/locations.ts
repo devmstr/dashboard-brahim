@@ -89,7 +89,7 @@ async function main() {
         data: {
           code: wilaya.code,
           name: wilaya.name,
-          name_ar: wilaya.name_ar,
+          nameAr: wilaya.name_ar,
           countryId: algeria.id
         }
       })
@@ -101,9 +101,9 @@ async function main() {
     let totalCities = 0
     for (const { province, wilaya } of provinces) {
       const citiesToCreate = Array.from(wilaya.cities.values()).map((city) => ({
-        zip_code: city.post_code,
+        zipCode: city.post_code,
         name: city.commune_name_ascii,
-        name_ar: city.commune_name,
+        nameAr: city.commune_name,
         provinceId: province.id
       }))
 

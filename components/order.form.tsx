@@ -25,15 +25,15 @@ import { Combobox } from '@/components/combobox'
 import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
 import { CardGrid } from './card'
-import { CarSelectionForm, type Selection } from './car-selection.from'
+import { CarSelectionForm, type CarSelection } from './car-selection.from'
 
 // Utilities and Config
 import { useOrder } from './new-order.provider'
 import { toast } from '@/hooks/use-toast'
 import { generateProductTitle } from '@/lib/utils'
 import {
-  componentValidationSchema,
-  type ComponentValidationSchema
+  articleValidationSchema,
+  type ArticleValidationType
 } from '@/lib/validations/order'
 import {
   CLAMPING_TYPES,
@@ -55,17 +55,14 @@ interface OrderFormProps {
 export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
   // State management
   const { order, setOrder } = useOrder()
-  const [isCollectorsDifferent, setIsCollectorsDifferent] = useState(false)
-  // const [isTechnicalExist, setIsTechnicalExist] = useState(false)
-  const [carSelection, setCarSelection] = useState<Selection | undefined>(
-    undefined
-  )
+  const [carSelection, setCarSelection] = useState<CarSelection>()
   const [isModelAvailable, setIsModelAvailable] = useState(true)
   const [isModificationIncluded, setIsModificationIncluded] = useState(false)
+  const [isCollectorsDifferent, setIsCollectorsDifferent] = useState(false)
   const router = useRouter()
 
   // Form initialization with default values
-  const form = useForm<ComponentValidationSchema>({
+  const form = useForm<ArticleValidationType>({
     defaultValues: {
       type: 'Radiateur',
       fabrication: 'Confection',
@@ -76,35 +73,50 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
         fins: 'D',
         finsPitch: 10,
         tube: '7',
-        rows: 1
+        rows: 1,
+        dimensions: {
+          height: 0,
+          width: 0
+        }
       },
       collector: {
         isTinned: false,
         perforation: 'Perforé',
         tightening: 'P',
         position: 'C',
-        material: 'Laiton'
+        material: 'Laiton',
+        upperDimensions: {
+          height: 0,
+          width: 0,
+          thickness: 1.5
+        }
       }
     },
     resolver: zodResolver(
-      // Modify the schema to make dimensions not required for Radiator type
-      // and note required when car is not included
-      componentValidationSchema.refine(
+      articleValidationSchema.refine(
         (data) => {
-          if (data.type === 'Faisceaux') {
-            return data.core?.dimensions?.width && data.core?.dimensions?.height
+          if (data.type === 'Radiateur') return true
+
+          if (data.type === 'Faisceau') {
+            const hasCore =
+              data.core?.dimensions?.width && data.core?.dimensions?.height
+            const hasCollector =
+              data.collector?.upperDimensions?.width &&
+              data.collector?.upperDimensions?.height
+            return hasCore && hasCollector
           }
+
           return true
         },
         {
-          message: 'Dimensions are required for this type',
+          message: 'Les dimensions sont obligatoires pour le type Faisceau',
           path: ['core.dimensions']
         }
       )
     )
   })
 
-  // Watch form values for conditional rendering
+  // Watched values
   const type = form.watch('type')
   const tightening = form.watch('collector.tightening')
   const finsPitch = form.watch('core.finsPitch')
@@ -115,35 +127,79 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
   const width = form.watch('collector.upperDimensions.width')
   const note = form.watch('note')
 
-  // Validate car selection or note requirement
+  // Enforce "remarque" when no vehicle
   useEffect(() => {
-    if (!isModelAvailable && !note) {
+    const noteEmpty = !note?.toString().trim()
+    if (!isModelAvailable && noteEmpty) {
       form.setError('note', {
         type: 'required',
-        message: "Remarque est obligatoire quand le véhicule n'est pas inclus"
+        message:
+          "La remarque est obligatoire quand le véhicule n'est pas inclus"
       })
-    } else if (!isModelAvailable && note) {
+    } else {
       form.clearErrors('note')
     }
   }, [isModelAvailable, note, form])
 
+  // Validate dimensions when type is "Faisceau"
+  useEffect(() => {
+    const isFaisceau = type === 'Faisceau'
+
+    const core = form.getValues('core.dimensions')
+    const collector = form.getValues('collector.upperDimensions')
+
+    const missingCore = !core?.width || !core?.height
+    const missingCollector = !collector?.width || !collector?.height
+
+    if (isFaisceau && missingCore) {
+      form.setError('core.dimensions', {
+        type: 'required',
+        message: 'Les dimensions sont obligatoires pour le type Faisceau'
+      })
+    } else {
+      form.clearErrors('core.dimensions')
+    }
+
+    if (isFaisceau && missingCollector) {
+      form.setError('collector.upperDimensions', {
+        type: 'required',
+        message:
+          'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
+      })
+    } else {
+      form.clearErrors('collector.upperDimensions')
+    }
+  }, [type, form])
+
+  // Sync lower collector dimensions with upper when identical
+  useEffect(() => {
+    if (isCollectorsDifferent) {
+      form.setValue('collector.lowerDimensions', {
+        thickness,
+        width,
+        height
+      })
+    } else {
+      form.setValue('collector.lowerDimensions', undefined)
+    }
+  }, [isCollectorsDifferent, thickness, width, height, form])
+
   // Handle form submission
-  const onSubmit = (formData: ComponentValidationSchema) => {
-    // Validate car selection or note
-    if (!isModelAvailable && !formData.note) {
+  const onSubmit = (formData: ArticleValidationType) => {
+    const isNoteMissing = !formData.note?.toString().trim()
+
+    if (!isModelAvailable && isNoteMissing) {
       toast({
         title: 'Erreur de validation',
         description:
-          "Remarque est obligatoire quand le véhicule n'est pas inclus",
+          "La remarque est obligatoire quand le véhicule n'est pas inclus",
         variant: 'destructive'
       })
       return
     }
 
     if (!order) {
-      setOrder({
-        components: []
-      })
+      setOrder({ components: [] })
     }
 
     if (!carSelection && isModelAvailable) {
@@ -173,24 +229,11 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
       type: formData.type as 'Faisceau' | 'Radiateur',
       fabrication: formData.fabrication as 'Renovation' | 'Confection',
       fins: formData.core?.fins as 'Z' | 'A' | 'D',
-      finsPitch: formData.core?.finsPitch as 10 | 11 | 12 | 14,
+      pitch: formData.core?.finsPitch as 10 | 11 | 12 | 14,
       position: formData.collector?.position as 'C' | 'D',
       tightening: formData.collector?.tightening as 'P' | 'B',
       tube: formData.core?.tube as '7' | '9' | 'M'
     })
-
-    // Data normalization
-    const normalizedData = JSON.parse(
-      JSON.stringify(formData)
-    ) as ComponentValidationSchema
-
-    if (!isModelAvailable) delete normalizedData.car
-    if (normalizedData.type === 'Radiateur') delete normalizedData.collector
-
-    if (normalizedData.type === 'Autre') {
-      delete normalizedData.collector
-      delete normalizedData.core
-    }
 
     setOrder((prev) => ({
       ...prev,
@@ -203,16 +246,13 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
             ? {
                 id: carSelection?.model?.id,
                 model: carSelection?.model?.name,
-                manufacture: carSelection?.brand?.name
+                brand: carSelection?.brand?.name
               }
             : undefined,
-          ...normalizedData
+          ...formData
         }
       ]
     }))
-
-    // check the order
-    console.log(order)
 
     toast({
       title: 'Commande ajoutée',
@@ -223,129 +263,67 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
     if (setOpen) setOpen(false)
   }
 
-  // Check dimensions requirement when type changes
-  useEffect(() => {
-    if (type === 'Faisceau') {
-      const width = form.watch('core.dimensions.width')
-      const height = form.watch('core.dimensions.height')
-
-      if (!width || !height) {
-        form.setError('core.dimensions', {
-          type: 'required',
-          message: 'Les dimensions sont obligatoires pour le type Faisceau'
-        })
-      } else {
-        form.clearErrors('core.dimensions')
-      }
-    } else {
-      form.clearErrors('core.dimensions')
-    }
-  }, [type, form])
-
-  // Check collector dimensions requirement when type changes
-  useEffect(() => {
-    if (type === 'Faisceau') {
-      const collectorWidth = form.watch('collector.upperDimensions.width')
-      const collectorHeight = form.watch('collector.upperDimensions.height')
-
-      if (!collectorWidth || !collectorHeight) {
-        form.setError('collector.upperDimensions', {
-          type: 'required',
-          message:
-            'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
-        })
-      } else {
-        form.clearErrors('collector.upperDimensions')
-      }
-    } else {
-      form.clearErrors('collector.upperDimensions')
-    }
-  }, [type, form])
-
   // Handle form submission with validation
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Special validation for Faisceau type
-    if (type === 'Faisceau') {
-      const width = form.getValues('core.dimensions.width')
-      const height = form.getValues('core.dimensions.height')
-      const collectorWidth = form.getValues('collector.upperDimensions.width')
-      const collectorHeight = form.getValues('collector.upperDimensions.height')
+    const isFaisceau = type === 'Faisceau'
+    const core = form.getValues('core.dimensions')
+    const collector = form.getValues('collector.upperDimensions')
 
-      let hasError = false
+    let hasError = false
 
-      if (!width || !height) {
-        toast({
-          title: 'Erreur de validation',
-          description:
-            'Les dimensions du faisceau sont obligatoires pour le type Faisceau',
-          variant: 'destructive'
-        })
-        form.setError('core.dimensions', {
-          type: 'required',
-          message:
-            'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
-        })
-        hasError = true
-      }
+    if (isFaisceau && (!core?.width || !core?.height)) {
+      form.setError('core.dimensions', {
+        type: 'required',
+        message:
+          'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
+      })
+      hasError = true
+    }
 
-      if (!collectorWidth || !collectorHeight) {
-        toast({
-          title: 'Erreur de validation',
-          description:
-            'Les dimensions du collecteur sont obligatoires pour le type Faisceau',
-          variant: 'destructive'
-        })
-        form.setError('collector.upperDimensions', {
-          type: 'required',
-          message:
-            'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
-        })
-        hasError = true
-      }
+    if (isFaisceau && (!collector?.width || !collector?.height)) {
+      form.setError('collector.upperDimensions', {
+        type: 'required',
+        message:
+          'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
+      })
+      hasError = true
+    }
 
-      if (hasError) return
+    if (hasError) {
+      toast({
+        title: 'Erreur de validation',
+        description:
+          'Veuillez remplir toutes les dimensions requises pour le type Faisceau.',
+        variant: 'destructive'
+      })
+      return
     }
 
     const isValid = await form.trigger()
+
     if (!isValid) {
-      // Get all form errors and display them in a toast
-      const errorMessages = Object.entries(form.formState.errors)
-        .map(([key, error]) => error?.message?.toString())
+      const errorMessages = Object.values(form.formState.errors)
+        .map((error) => error?.message?.toString())
         .filter(Boolean)
 
-      if (errorMessages.length > 0) {
-        toast({
-          title: 'Erreurs de validation',
-          description: (
-            <ul className="list-disc pl-4 mt-2 space-y-1">
-              {errorMessages.map((message, index) => (
-                <li key={index}>{message}</li>
-              ))}
-            </ul>
-          ),
-          variant: 'destructive'
-        })
-      }
+      toast({
+        title: 'Erreurs de validation',
+        description: (
+          <ul className="list-disc pl-4 mt-2 space-y-1">
+            {errorMessages.map((message, index) => (
+              <li key={index}>{message}</li>
+            ))}
+          </ul>
+        ),
+        variant: 'destructive'
+      })
       return
     }
 
     form.handleSubmit(onSubmit)(e)
   }
-
-  // Sync lower dimensions with upper dimensions when they're the same
-  useEffect(() => {
-    if (isCollectorsDifferent) {
-      form.setValue('collector.lowerDimensions', {
-        thickness: thickness,
-        width,
-        height: height
-      })
-    } else {
-      form.setValue('collector.lowerDimensions', undefined)
-    }
-  }, [isCollectorsDifferent, thickness, width, height, form])
 
   return (
     <Form {...form}>

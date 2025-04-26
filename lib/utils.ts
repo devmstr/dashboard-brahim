@@ -10,9 +10,11 @@ export enum SKU_PREFIX {
   FA = 'FA',
   AU = 'AU',
   CO = 'CO',
+  CB = 'CB',
   CL = 'CL',
   VE = 'VE',
-  PA = 'PA'
+  PA = 'PA',
+  FL = 'FL'
 }
 
 export type PREFIX = keyof typeof SKU_PREFIX
@@ -22,6 +24,18 @@ export function skuId(prefix: PREFIX): string {
   const generateId = customAlphabet(alphabet, 6)
   const uniqueId = generateId()
   return `${prefix}X${uniqueId}`
+}
+
+// Function to get file extension
+export function getFileExtension(filename: string): string {
+  return filename.split('.').pop()?.toLowerCase() || ''
+}
+
+// Function to generate a unique filename with SKU ID
+export function generateUniqueFilename(originalFilename: string): string {
+  const extension = getFileExtension(originalFilename)
+  const uniqueId = skuId('FL')
+  return `${uniqueId}.${extension}`
 }
 
 interface Dimensions {
@@ -38,7 +52,7 @@ interface ProductConfig {
   rows?: number
   fins?: 'Z' | 'A' | 'D'
   tube?: '7' | '9' | 'M'
-  finsPitch?: 10 | 11 | 12 | 14
+  pitch?: 10 | 11 | 12 | 14
   collector: Dimensions
   tightening?: 'P' | 'B'
   position?: 'C' | 'D'
@@ -65,7 +79,7 @@ export function generateProductTitle({
   rows = 1,
   fins = 'D',
   tube = '7',
-  finsPitch = 10,
+  pitch: finsPitch = 10,
   tightening = 'P',
   position = 'C'
 }: ProductConfig): string {
@@ -175,198 +189,198 @@ export function amountToWords(amount: number): string {
   return `${dinarsInWords} dinars Algériens et ${centimesInWords} centimes`
 }
 
-function consommation({
-  fins,
-  finPitch,
-  rows,
-  coreWidth,
-  coreHeight,
-  weight
-}: {
-  finPitch: number
-  fins: 'AERE' | 'NL' | 'TR'
-  rows: number
-  coreWidth: number
-  coreHeight: number
-  weight: {
-    fins: number
-    tubes: number
-    headers: number
-    sidePlates: number
-  }
-}) {
-  // Tube consumption
-  const gutter = fins == 'TR' ? 20 : 10
-  const tubeConsumption =
-    ((coreWidth - gutter) / finPitch + 1) * rows * weight.tubes
+// function consommation({
+//   fins,
+//   finPitch,
+//   rows,
+//   coreWidth,
+//   coreHeight,
+//   weight
+// }: {
+//   finPitch: number
+//   fins: 'AERE' | 'NL' | 'TR'
+//   rows: number
+//   coreWidth: number
+//   coreHeight: number
+//   weight: {
+//     fins: number
+//     tubes: number
+//     headers: number
+//     sidePlates: number
+//   }
+// }) {
+//   // Tube consumption
+//   const gutter = fins == 'TR' ? 20 : 10
+//   const tubeConsumption =
+//     ((coreWidth - gutter) / finPitch + 1) * rows * weight.tubes
 
-  // Fins consumption
-  let finsConsumption = 0
-  if (fins == 'TR') {
-    finsConsumption =
-      ((coreWidth - 20) / finPitch + 1) *
-      ((coreHeight - 20) / finPitch + 1) *
-      weight.fins
-  } else if (fins == 'NL') {
-    finsConsumption = ((coreHeight - 20) / 3 + 1) * weight.fins
-  } else {
-    finsConsumption = (((coreHeight - 20) / 3 + 1) / 2) * weight.fins
-  }
+//   // Fins consumption
+//   let finsConsumption = 0
+//   if (fins == 'TR') {
+//     finsConsumption =
+//       ((coreWidth - 20) / finPitch + 1) *
+//       ((coreHeight - 20) / finPitch + 1) *
+//       weight.fins
+//   } else if (fins == 'NL') {
+//     finsConsumption = ((coreHeight - 20) / 3 + 1) * weight.fins
+//   } else {
+//     finsConsumption = (((coreHeight - 20) / 3 + 1) / 2) * weight.fins
+//   }
 
-  // Headers consumption
-  const headersConsumption =
-    (coreWidth + 20) * (coreHeight + 20) * weight.headers
+//   // Headers consumption
+//   const headersConsumption =
+//     (coreWidth + 20) * (coreHeight + 20) * weight.headers
 
-  // Side Plates (formerly faux joue) consumption
-  const sidePlateConsumption = coreHeight * weight.sidePlates
+//   // Side Plates (formerly faux joue) consumption
+//   const sidePlateConsumption = coreHeight * weight.sidePlates
 
-  return {
-    tubeConsumption,
-    finsConsumption,
-    headersConsumption,
-    sidePlateConsumption
-  }
-}
+//   return {
+//     tubeConsumption,
+//     finsConsumption,
+//     headersConsumption,
+//     sidePlateConsumption
+//   }
+// }
 
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null
+// export function debounce<T extends (...args: any[]) => any>(
+//   func: T,
+//   wait: number
+// ): (...args: Parameters<T>) => void {
+//   let timeout: NodeJS.Timeout | null = null
 
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
-}
+//   return (...args: Parameters<T>) => {
+//     if (timeout) clearTimeout(timeout)
+//     timeout = setTimeout(() => func(...args), wait)
+//   }
+// }
 
-// barcode logic
+// // barcode logic
 
-export type FinsType = 'TR' | 'NL' | 'AERE'
-export type TubeType = 'MP' | 'MG' | 'E7' | 'E9'
+// export type FinsType = 'TR' | 'NL' | 'AERE'
+// export type TubeType = 'MP' | 'MG' | 'E7' | 'E9'
 
-export const FinsInSpreadSheet = {
-  NL: 'NL',
-  TR: 'TR',
-  Aé: 'AERE'
-}
+// export const FinsInSpreadSheet = {
+//   NL: 'NL',
+//   TR: 'TR',
+//   Aé: 'AERE'
+// }
 
-export const TubeInSpreadSheet = {
-  ET7: '7',
-  ET9: '9',
-  'Mach-P': 'P'
-}
+// export const TubeInSpreadSheet = {
+//   ET7: '7',
+//   ET9: '9',
+//   'Mach-P': 'P'
+// }
 
-export const FabricationInSpreadSheet = {
-  Con: 'RAD',
-  Fx: 'FAIS',
-  Rén: 'REN'
-}
+// export const FabricationInSpreadSheet = {
+//   Con: 'RAD',
+//   Fx: 'FAIS',
+//   Rén: 'REN'
+// }
 
-export const FINS_IN_DESCRIPTION = {
-  TR: 'Z',
-  NL: 'D',
-  AERE: 'A'
-}
+// export const FINS_IN_DESCRIPTION = {
+//   TR: 'Z',
+//   NL: 'D',
+//   AERE: 'A'
+// }
 
-export function coreToString({
-  core,
-  fabrication,
-  fins,
-  tube,
-  finsPitch
-}: {
-  core: Partial<Core>
-  fabrication: string
-  fins: FinsType
-  tube: TubeType
-  finsPitch: number
-}): string {
-  return [
-    `SONERAS, ${fabrication}:`,
-    `${core.height?.toString().padStart(4, '0')} x ${core.width
-      ?.toString()
-      .padStart(4, '0')}`,
-    core.rows && core.rows > 1 ? `${core.rows}R` : '',
-    FINS_IN_DESCRIPTION[fins],
-    tube,
-    `PAS ${finsPitch}`
-  ]
-    .filter(Boolean)
-    .join(' ')
-}
+// export function coreToString({
+//   core,
+//   fabrication,
+//   fins,
+//   tube,
+//   finsPitch
+// }: {
+//   core: Partial<Core>
+//   fabrication: string
+//   fins: FinsType
+//   tube: TubeType
+//   finsPitch: number
+// }): string {
+//   return [
+//     `SONERAS, ${fabrication}:`,
+//     `${core.height?.toString().padStart(4, '0')} x ${core.width
+//       ?.toString()
+//       .padStart(4, '0')}`,
+//     core.rows && core.rows > 1 ? `${core.rows}R` : '',
+//     FINS_IN_DESCRIPTION[fins],
+//     tube,
+//     `PAS ${finsPitch}`
+//   ]
+//     .filter(Boolean)
+//     .join(' ')
+// }
 
-export function collectorToString(collector: Omit<Collector, 'id'>): string {
-  const formatDimension = (
-    value: number,
-    lowerValue: number | null,
-    padLength: number
-  ): string => {
-    if (value !== lowerValue) {
-      return `${value.toString().padStart(padLength, '0')}/${lowerValue
-        ?.toString()
-        .padStart(padLength, '0')}`
-    }
-    return value.toString().padStart(padLength, '0')
-  }
+// export function collectorToString(collector: Omit<Collector, 'id'>): string {
+//   const formatDimension = (
+//     value: number,
+//     lowerValue: number | null,
+//     padLength: number
+//   ): string => {
+//     if (value !== lowerValue) {
+//       return `${value.toString().padStart(padLength, '0')}/${lowerValue
+//         ?.toString()
+//         .padStart(padLength, '0')}`
+//     }
+//     return value.toString().padStart(padLength, '0')
+//   }
 
-  // Get the formatted height and width
-  const collectorHeight = formatDimension(
-    collector.height,
-    collector.lowerHeight,
-    4
-  )
-  const collectorWidth = formatDimension(
-    collector.width,
-    collector.lowerWidth,
-    3
-  )
+//   // Get the formatted height and width
+//   const collectorHeight = formatDimension(
+//     collector.height,
+//     collector.lowerHeight,
+//     4
+//   )
+//   const collectorWidth = formatDimension(
+//     collector.width,
+//     collector.lowerWidth,
+//     3
+//   )
 
-  // Return the formatted string for the collector
-  return `, COLL ${collectorHeight} x ${collectorWidth} ${collector.tightening} ${collector.position}`
-}
+//   // Return the formatted string for the collector
+//   return `, COLL ${collectorHeight} x ${collectorWidth} ${collector.tightening} ${collector.position}`
+// }
 
-export function descriptionAndLabelGenerator({
-  core,
-  fabrication,
-  fins,
-  tube,
-  finsPitch,
-  collector,
-  brand,
-  model
-}: {
-  core: Partial<Core>
-  fabrication: string
-  fins: FinsType
-  tube: TubeType
-  finsPitch: number
-  collector?: Omit<Collector, 'id'>
-  brand?: string
-  model?: string
-}): string {
-  const coreSrt = coreToString({
-    core,
-    fabrication,
-    fins,
-    tube,
-    finsPitch
-  })
-  let description = coreSrt
+// export function descriptionAndLabelGenerator({
+//   core,
+//   fabrication,
+//   fins,
+//   tube,
+//   finsPitch,
+//   collector,
+//   brand,
+//   model
+// }: {
+//   core: Partial<Core>
+//   fabrication: string
+//   fins: FinsType
+//   tube: TubeType
+//   finsPitch: number
+//   collector?: Omit<Collector, 'id'>
+//   brand?: string
+//   model?: string
+// }): string {
+//   const coreSrt = coreToString({
+//     core,
+//     fabrication,
+//     fins,
+//     tube,
+//     finsPitch
+//   })
+//   let description = coreSrt
 
-  if (collector) description += collectorToString(collector)
+//   if (collector) description += collectorToString(collector)
 
-  if (brand?.trim() || model?.trim()) {
-    // Construct the brand and model string in one go
-    const brandAndModelStr = [
-      brand?.trim() && `, ${brand.toUpperCase()}`,
-      model?.trim() && ` ${model.toUpperCase()}`
-    ]
-      .filter(Boolean) // Remove any falsy values (empty strings)
-      .join('') // Join the non-empty parts into a single string
+//   if (brand?.trim() || model?.trim()) {
+//     // Construct the brand and model string in one go
+//     const brandAndModelStr = [
+//       brand?.trim() && `, ${brand.toUpperCase()}`,
+//       model?.trim() && ` ${model.toUpperCase()}`
+//     ]
+//       .filter(Boolean) // Remove any falsy values (empty strings)
+//       .join('') // Join the non-empty parts into a single string
 
-    description += brandAndModelStr
-  }
+//     description += brandAndModelStr
+//   }
 
-  return description
-}
+//   return description
+// }

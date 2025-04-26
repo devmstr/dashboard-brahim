@@ -17,7 +17,7 @@ export async function GET(
         }
       },
       include: {
-        Types: true
+        types: true
       }
     })
 
@@ -63,7 +63,7 @@ export async function PUT(
       data: {
         name: json.name,
         production: json.production,
-        productId: json.productId
+        radiatorId: json.radiatorId
       }
     })
     return NextResponse.json(updatedModel)

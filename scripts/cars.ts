@@ -38,7 +38,6 @@ async function main() {
     data: {
       id: skuId(),
       name: 'X1',
-      production: '10/2009 - 06/2015',
       familyId: bmwXSeries.id
     }
   })
@@ -72,7 +71,6 @@ async function main() {
     data: {
       id: skuId(),
       name: 'X3',
-      production: '08/2010 - 03/2017',
       familyId: bmwXSeries.id
     }
   })

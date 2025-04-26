@@ -1,4 +1,4 @@
-import { ComponentValidationSchema } from './validations'
+import { ArticleValidationType } from './validations'
 
 const FINS_DICTIONARY = {
   'Droite (Normale)': 'NL',
@@ -17,7 +17,7 @@ export function genTitle({
   collector,
   car,
   description
-}: ComponentValidationSchema) {
+}: ArticleValidationType) {
   const getTitleDimensions = (dim1?: number, dim2?: number) =>
     dim1 === dim2 ? `${dim1}` : `${dim1}/${dim2}`
 
@@ -41,7 +41,7 @@ export function genTitle({
   } else if (type == 'Radiateur') {
     const fabricationInTitle = fabrication.slice(0, 3).toUpperCase()
     const carInTitle = car
-      ? `${car?.manufacture?.toUpperCase()} ${car?.model?.toUpperCase()} ${car?.manufacture?.toUpperCase()}`
+      ? `${car?.brand?.toUpperCase()} ${car?.model?.toUpperCase()} ${car?.brand?.toUpperCase()}`
       : 'SELON MODEL'
     return `RAD ${fabricationInTitle} ${carInTitle} ${core?.rows}R ${finsInTitle} PAS ${core?.finsPitch}`
   } else {

@@ -10,7 +10,15 @@ datasource db {
 enum ComponentType {
   CORE
   COLLECTOR
-  // ... and i will add some specific components like HEADERS and so on 
+
+  @@map("component_type")
+}
+
+enum CollectorType {
+  TOP
+  BOTTOM
+
+  @@map("collector_position")
 }
 
 model Account {
@@ -66,203 +74,294 @@ model VerificationRequest {
   @@unique([identifier, token])
 }
 
+// ENUMS
+enum AccessLevel {
+  VIEW
+  EDIT
+  MANAGE
+
+  @@map("access_levels")
+}
+
+// LOCATION MODELS
 model Country {
   id        String     @id @default(cuid())
   code      String     @unique
   name      String
-  Provinces Province[]
-  Address   Address[]
+  provinces Province[]
+  addresses Address[]
+
+  @@map("countries")
 }
 
 model Province {
   id        String    @id @default(cuid())
   code      String    @unique
-  name_ar   String
+  nameAr    String
   name      String
-  City      City[]
-  Country   Country?  @relation(fields: [countryId], references: [id], onDelete: Cascade)
   countryId String?
-  Address   Address[]
+  country   Country?  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  cities    City[]
+  addresses Address[]
+
+  @@map("provinces")
 }
 
 model City {
   id         String    @id @default(cuid())
-  zip_code   String    @unique
-  name_ar    String
+  zipCode    String    @unique
+  nameAr     String
   name       String
-  Province   Province  @relation(fields: [provinceId], references: [id], onDelete: Cascade)
   provinceId String
-  Address    Address[]
+  province   Province  @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  addresses  Address[]
+
+  @@map("cities")
 }
 
+model Address {
+  id         String  @id @default(cuid())
+  street     String?
+  cityId     String
+  provinceId String
+  countryId  String
+
+  city     City     @relation(fields: [cityId], references: [id])
+  province Province @relation(fields: [provinceId], references: [id])
+  country  Country  @relation(fields: [countryId], references: [id])
+  client   Client?
+
+  @@map("addresses")
+}
+
+// RADIATOR, INVENTORY, COMPONENTS
+
 model Inventory {
-  id          String    @id @default(cuid())
-  quantity    Int       @default(0)
-  minQuantity Int       @default(0)
-  Product     Product[]
+  id        String     @id @default(cuid())
+  level     Int        @default(0)
+  alertAt   Int        @default(0)
+  radiators Radiator[]
+
+  @@map("inventories")
 }
 
 model Price {
-  id      String    @id @default(cuid())
-  unit    Float     @default(0)
-  bulk    Float     @default(0)
-  Product Product[]
+  id        String     @id @default(cuid())
+  unit      Float      @default(0)
+  bulk      Float      @default(0)
+  radiators Radiator[]
+
+  @@map("prices")
 }
 
-model Product {
-  id          String      @id @default(cuid())
-  reference   String?     @unique
-  category    String?
-  dir         String?
-  cooling     String?
-  barcode     String?     @unique
-  label       String?     @unique
-  isActive    Boolean?    @default(false)
-  Directories Directory[]
-  Inventory   Inventory?  @relation(fields: [inventoryId], references: [id])
-  Price       Price?      @relation(fields: [priceId], references: [id])
-  // relations
-  Order       Order[]
-  Models      CarModel[]
-  Components  Component[]
+model Radiator {
+  id        String   @id @default(cuid())
+  reference String?  @unique
+  category  String?
+  dir       String?
+  cooling   String?
+  barcode   String?  @unique
+  label     String?  @unique
+  isActive  Boolean? @default(false)
+
   inventoryId String?
   priceId     String?
-  createdAt   DateTime?   @default(now())
-  updatedAt   DateTime?   @updatedAt
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  inventory   Inventory?          @relation(fields: [inventoryId], references: [id])
+  price       Price?              @relation(fields: [priceId], references: [id])
+  directories Directory[]
+  orders      Order[]
+  models      CarModel[]
+  components  RadiatorComponent[]
+
+  @@map("radiators")
 }
 
-model Component {
-  id          String        @id @default(cuid())
-  name        String
-  type        ComponentType
-  productId   String
-  product     Product       @relation(fields: [productId], references: [id])
-  // 
-  coreId      String?
-  collectorId String?
-  Core        Core?         @relation(fields: [coreId], references: [id])
-  // 
-  Collector   Collector?    @relation(fields: [collectorId], references: [id])
-}
+model RadiatorComponent {
+  id         String        @id @default(cuid())
+  name       String
+  type       ComponentType
+  radiatorId String
 
-model Collector {
-  id          String      @id @default(cuid())
-  width       Int
-  height      Int
-  thickness   Int?
-  lowerHeight Int?
-  lowerWidth  Int?
-  position    String
-  tightening  String
-  material    String?
-  perforation String?
-  isTinned    Boolean?
-  components  Component[] // One collector used in many components
+  radiator  Radiator                 @relation(fields: [radiatorId], references: [id])
+  materials ComponentMaterialUsage[]
+
+  core      Core?
+  collector Collector?
+
+  @@map("radiator_components")
 }
 
 model Core {
-  id         String      @id @default(cuid())
-  width      Int
-  height     Int
-  rows       Int
-  fins       String
-  finsPitch  Int
-  tube       String
-  components Component[] // One core used in many components
+  id     String @id @default(cuid())
+  width  Int
+  height Int
+  rows   Int
+  fins   String
+  pitch  Int
+  tube   String
+
+  componentId String            @unique
+  component   RadiatorComponent @relation(fields: [componentId], references: [id])
+
+  @@map("cores")
 }
+
+model Collector {
+  id                  String        @id @default(cuid())
+  type                CollectorType
+  width               Int
+  height              Int
+  componentId         String        @unique
+  collectorTemplateId String
+
+  template  CollectorTemplate @relation(fields: [collectorTemplateId], references: [id])
+  component RadiatorComponent @relation(fields: [componentId], references: [id])
+
+  @@map("collectors")
+}
+
+model CollectorTemplate {
+  id           String   @id @default(cuid())
+  thickness    Int?
+  position     String
+  tightening   String
+  isPerforated Boolean?
+  isTinned     Boolean?
+  material     String?
+
+  collectors Collector[]
+
+  @@map("collector_templates")
+}
+
+// MATERIAL SYSTEM
+
+model RawMaterial {
+  id     String                   @id @default(cuid())
+  name   String                   @unique
+  usages ComponentMaterialUsage[]
+}
+
+model ComponentMaterialUsage {
+  id          String @id @default(cuid())
+  componentId String
+  materialId  String
+  weight      Float
+
+  component RadiatorComponent @relation(fields: [componentId], references: [id])
+  material  RawMaterial       @relation(fields: [materialId], references: [id])
+
+  @@unique([componentId, materialId])
+}
+
+// CAR SYSTEM
 
 model Brand {
   id       String      @id @default(cuid())
   name     String
-  Families CarFamily[]
+  families CarFamily[]
 
-  @@map("car_brand")
+  @@map("car_brands")
 }
 
 model CarFamily {
-  id      String     @id @default(cuid())
+  id      String @id @default(cuid())
   name    String
-  brand   Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   brandId String
-  Models  CarModel[]
 
-  @@map("car_family")
+  brand  Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  models CarModel[]
+
+  @@map("car_families")
 }
 
 model CarModel {
-  id         String    @id @default(cuid())
-  name       String // E.g., "E84"
-  production String // E.g., "10/2009 - 06/2015"
-  family     CarFamily @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id         String  @id @default(cuid())
+  name       String
+  production String?
   familyId   String
-  Types      CarType[]
-  Product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  productId  String?
+  radiatorId String?
 
-  @@map("car_model")
+  family   CarFamily @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  types    CarType[]
+  radiator Radiator? @relation(fields: [radiatorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("car_models")
 }
 
 model CarType {
-  id      String   @id @default(cuid())
-  name    String // E.g., "16d sDrive 2.0 d 16V DPF 116cv"
-  model   CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id      String @id @default(cuid())
+  name    String
   modelId String
+
+  model CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("car_type")
 }
 
+// CLIENTS & ORDERS
+
 model Client {
-  id                  String    @id @default(cuid())
+  id                  String  @id @default(cuid())
   name                String
-  phone               String    @unique
+  phone               String  @unique
   label               String?
-  email               String?   @unique
-  isCompany           Boolean   @default(false)
+  email               String? @unique
+  isCompany           Boolean @default(false)
   website             String?
-  tradeRegisterNumber String? // RC
-  fiscalNumber        String? // MF
-  registrationArticle String? // AI
-  taxIdNumber         String? // NIF
-  statisticalIdNumber String? // NIS
-  approvalNumber      String? // NA
-  Address             Address?  @relation(fields: [addressId], references: [id])
-  addressId           String?   @unique
-  Orders              Order[]
-  createdAt           DateTime? @default(now())
-  updatedAt           DateTime? @updatedAt
+  tradeRegisterNumber String?
+  fiscalNumber        String?
+  registrationArticle String?
+  taxIdNumber         String?
+  statisticalIdNumber String?
+  approvalNumber      String?
+
+  addressId String?  @unique
+  address   Address? @relation(fields: [addressId], references: [id])
+
+  orders    Order[]
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  @@map("clients")
 }
 
-model Address {
-  id         String   @id @default(cuid())
-  street     String?
-  City       City     @relation(fields: [cityId], references: [id])
-  cityId     String
-  Province   Province @relation(fields: [provinceId], references: [id])
-  provinceId String
-  Country    Country  @relation(fields: [countryId], references: [id])
-  countryId  String
-  Client     Client?
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  url       String // URL of the uploaded file
+  type      String // MIME type like 'image/jpeg', 'application/pdf', etc.
+  name      String // Original file name
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+  createdAt DateTime @default(now())
 }
 
 model Order {
-  id                     String    @id @default(cuid())
-  deadline               DateTime  @default(now())
-  note                   Json?
-  description            Json?
-  modifications          Json?
-  state                  String?
-  progress               Int       @default(0)
-  packaging              String?
-  fabrication            String?
-  isModificationIncluded String?
-  validatedAt            DateTime?
-  canceledAt             DateTime?
-  createdAt              DateTime? @default(now())
-  updatedAt              DateTime? @updatedAt
-  // relations
-  Client                 Client    @relation(fields: [clientId], references: [id])
-  clientId               String
-  Products               Product[]
+  id            String    @id @default(cuid())
+  deadline      DateTime  @default(now())
+  notes         Json?
+  description   Json?
+  modifications Json?
+  state         String?
+  progress      Int       @default(0)
+  packaging     String?
+  fabrication   String?
+  isModified    String?
+  validatedAt   DateTime?
+  canceledAt    DateTime?
+  createdAt     DateTime? @default(now())
+  updatedAt     DateTime? @updatedAt
+
+  clientId    String
+  client      Client       @relation(fields: [clientId], references: [id])
+  radiators   Radiator[]
+  attachments Attachment[]
+
+  @@map("orders")
 }
 
 model Payment {
@@ -270,15 +369,11 @@ model Payment {
   amount    Float
   deposit   Float
   remaining Float
+
+  @@map("payments")
 }
 
-// file managements schemas 
-
-enum AccessLevel {
-  VIEW
-  EDIT
-  MANAGE
-}
+// FILE SYSTEM
 
 model Directory {
   id        String   @id @default(cuid())
@@ -286,15 +381,15 @@ model Directory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  productId String?
-  Product   Product? @relation(fields: [productId], references: [id])
+  radiatorId String?
+  radiator   Radiator? @relation(fields: [radiatorId], references: [id])
 
   parentId String?
-  Parent   Directory?  @relation("FolderParent", fields: [parentId], references: [id])
-  Children Directory[] @relation("FolderParent")
+  parent   Directory?  @relation("FolderParent", fields: [parentId], references: [id])
+  children Directory[] @relation("FolderParent")
 
-  Files      File[]
-  Permission Permission[]
+  files       File[]
+  permissions Permission[]
 }
 
 model File {
@@ -310,20 +405,11 @@ model File {
   updatedAt DateTime @updatedAt
 
   directoryId String
-  Directory   Directory @relation(fields: [directoryId], references: [id])
+  directory   Directory @relation(fields: [directoryId], references: [id])
 
-  Tags        Tag[]
-  FileVersion FileVersion[]
-  Permission  Permission[]
-}
-
-model Tag {
-  id    String @id @default(cuid())
-  name  String @unique
-  Files File[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  tags        Tag[]
+  versions    FileVersion[]
+  permissions Permission[]
 }
 
 model FileVersion {
@@ -333,19 +419,26 @@ model FileVersion {
   createdAt DateTime @default(now())
 
   fileId String
-  File   File   @relation(fields: [fileId], references: [id])
+  file   File   @relation(fields: [fileId], references: [id])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  files File[]
 }
 
 model Permission {
   id     String      @id @default(cuid())
   access AccessLevel
-
   userId String
-  User   User   @relation(fields: [userId], references: [id])
-
   fileId String?
-  File   File?   @relation(fields: [fileId], references: [id])
+  dirId  String?
 
-  dirId     String?
-  Directory Directory? @relation(fields: [dirId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+  file      File?      @relation(fields: [fileId], references: [id])
+  directory Directory? @relation(fields: [dirId], references: [id])
 }

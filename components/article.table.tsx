@@ -90,7 +90,7 @@ export function OrderArticlesTable({
           quantity: quantity as number,
           type,
           title: title as string,
-          brand: car?.manufacture,
+          brand: car?.brand,
           model: car?.model
         })
       )
@@ -224,13 +224,22 @@ export function OrderArticlesTable({
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
+            className=" flex gap-2 hover:text-primary cursor-pointer "
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      }
+      },
+      cell: ({
+        row: {
+          original: { brand }
+        }
+      }) => (
+        <div className=" truncate  overflow-hidden whitespace-nowrap">
+          {brand || '/'}
+        </div>
+      )
     },
 
     {
@@ -245,7 +254,16 @@ export function OrderArticlesTable({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      }
+      },
+      cell: ({
+        row: {
+          original: { model }
+        }
+      }) => (
+        <div className=" truncate  overflow-hidden whitespace-nowrap">
+          {model || '/'}
+        </div>
+      )
     },
 
     {
@@ -352,64 +370,41 @@ function Actions({
   id: string
   onDelete: (id: string) => void
 }) {
-  const pathname = usePathname()
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
-        <Icons.ellipsis className="h-4 w-4" />
-        <span className="sr-only">Open</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
-            )}
-            href={`${pathname}/${id}`}
-          >
-            <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant={'ghost'}
-                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
-              >
-                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Êtes-vous sûr de vouloir supprimer cet article ?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Attention, cette action est irréversible.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction asChild>
-                  <Button
-                    className={cn(
-                      buttonVariants({ variant: 'outline' }),
-                      ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                    )}
-                    onClick={() => onDelete(id)}
-                  >
-                    <Icons.trash className="mr-2 h-4 w-4" />
-                    Supprimer
-                  </Button>
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <AlertDialog>
+      <AlertDialogTrigger className="px-2">
+        <Button
+          variant={'ghost'}
+          className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
+        >
+          <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Êtes-vous sûr de vouloir supprimer cet article ?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Attention, cette action est irréversible.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+              )}
+              onClick={() => onDelete(id)}
+            >
+              <Icons.trash className="mr-2 h-4 w-4" />
+              Supprimer
+            </Button>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

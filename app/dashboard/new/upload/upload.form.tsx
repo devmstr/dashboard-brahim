@@ -1,6 +1,6 @@
 'use client'
 import { Separator } from '@/components/ui/separator'
-import { UploadFile } from '../../../../components/upload-file'
+import { Uploader } from '../../../../components/uploader'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { Icons } from '@/components/icons'
@@ -12,9 +12,12 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
   const router = useRouter()
   return (
     <div className="space-y-6">
-      <div className="py-4  border px-3 rounded-md space-y-3">
-        <Label className="capitalize">{'Importer des annexes'}</Label>
-        <UploadFile />
+      <div className="relative space-y-3  border rounded-md p-3">
+        <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+          pièce jointe
+        </span>
+        <Label className="capitalize">uploader une annexe</Label>
+        <Uploader isShowDestination uploadPath={'data/orders'} />
       </div>
       <div className="flex flex-col items-end gap-4">
         <Separator />

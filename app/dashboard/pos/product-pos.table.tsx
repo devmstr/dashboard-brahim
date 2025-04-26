@@ -210,7 +210,7 @@ export function ProductPosTable({ data, t, addToCart }: Props) {
       id: 'actions',
       enableHiding: false,
       cell: ({ row: { original } }) => (
-        <Button onClick={() => addToCart(original)} size="sm" variant="outline">
+        <Button onClick={() => addToCart(original)} size="sm" variant="ghost">
           <Icons.packagePlus className="w-4 mr-2" />
           Ajouter
         </Button>
