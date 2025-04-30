@@ -150,10 +150,22 @@ export const articleValidationSchema = z.object({
   quantity: z.number().positive().optional().default(1),
   fabrication: z.string().optional().default('Confection'),
   cooling: z.string().optional().default('Eau'),
-  packaging: z.string().optional().default('Carton')
+  packaging: z.string().optional().default('Carton'),
+  price: z.number().positive().optional(),
+  bulkPrice: z.number().positive().optional()
 })
 
+export const orderAttachementSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  url: z.string(),
+  type: z.string()
+})
+
+export type OrderAttachementType = z.infer<typeof orderAttachementSchema>
+
 export const orderValidationSchema = z.object({
+  id: z.string().optional(),
   client: clientValidationSchema.optional(),
   payment: paymentSchema.optional(),
   components: z.array(articleValidationSchema).optional(),
@@ -166,7 +178,8 @@ export const orderValidationSchema = z.object({
     .optional()
     .refine((str) => !str || !isNaN(Date.parse(str)), {
       message: 'Invalid Date'
-    })
+    }),
+  attachements: z.array(orderAttachementSchema).optional()
 })
 
 export type OrderValidationType = z.infer<typeof orderValidationSchema>

@@ -47,3 +47,6 @@ prisma/*.db
 # prisma 
 /prisma 
 !/prisma/schema.prisma
+
+# uploads
+/uploads

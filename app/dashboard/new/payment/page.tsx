@@ -2,7 +2,7 @@ import { CalculatorForm } from '@/components/calculator.form'
 import { Card } from '@/components/card'
 import { DaysCalculatorDialog } from '@/components/days-calculator.dialog'
 import { FileUploadArea } from '@/components/upload-file-area'
-import { PaymentForm } from '@/components/payment.form'
+import { PaymentForm } from '@/app/dashboard/new/payment/payment.form'
 
 interface Props {}
 

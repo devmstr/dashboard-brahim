@@ -170,9 +170,11 @@ model Radiator {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
-  inventory   Inventory?          @relation(fields: [inventoryId], references: [id])
-  price       Price?              @relation(fields: [priceId], references: [id])
-  directories Directory[]
+  inventory Inventory? @relation(fields: [inventoryId], references: [id])
+  price     Price?     @relation(fields: [priceId], references: [id])
+  directory Directory? @relation(fields: [directoryId], references: [id])
+
+  directoryId String?
   orders      Order[]
   models      CarModel[]
   components  RadiatorComponent[]
@@ -341,25 +343,26 @@ model Attachment {
 }
 
 model Order {
-  id            String    @id @default(cuid())
-  deadline      DateTime  @default(now())
+  id            String       @id @default(cuid())
+  deadline      DateTime     @default(now())
   notes         Json?
   description   Json?
   modifications Json?
   state         String?
-  progress      Int       @default(0)
+  progress      Int          @default(0)
   packaging     String?
   fabrication   String?
   isModified    String?
   validatedAt   DateTime?
   canceledAt    DateTime?
-  createdAt     DateTime? @default(now())
-  updatedAt     DateTime? @updatedAt
-
-  clientId    String
-  client      Client       @relation(fields: [clientId], references: [id])
-  radiators   Radiator[]
-  attachments Attachment[]
+  createdAt     DateTime?    @default(now())
+  updatedAt     DateTime?    @updatedAt
+  payment       Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id])
+  paymentId     String       @unique
+  clientId      String
+  client        Client       @relation(fields: [clientId], references: [id])
+  radiators     Radiator[]
+  attachments   Attachment[]
 
   @@map("orders")
 }
@@ -369,6 +372,7 @@ model Payment {
   amount    Float
   deposit   Float
   remaining Float
+  order     Order? @relation(name: "OrderToPayment")
 
   @@map("payments")
 }
@@ -381,15 +385,14 @@ model Directory {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  radiatorId String?
-  radiator   Radiator? @relation(fields: [radiatorId], references: [id])
-
   parentId String?
   parent   Directory?  @relation("FolderParent", fields: [parentId], references: [id])
   children Directory[] @relation("FolderParent")
 
   files       File[]
   permissions Permission[]
+
+  Radiator Radiator[]
 }
 
 model File {

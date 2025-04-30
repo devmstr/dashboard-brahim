@@ -33,6 +33,16 @@ type FileUploadResult = {
   uniqueFileName?: string
   url?: string
   storedPath?: string
+  fileId?: number
+}
+
+interface InitialFile {
+  name: string
+  uniqueName: string
+  path: string
+  url?: string
+  fileId?: number
+  type?: string
 }
 
 interface FileUploadAreaProps {
@@ -44,6 +54,7 @@ interface FileUploadAreaProps {
   className?: string
   disabled?: boolean
   fileDeleteStates?: Record<string, boolean>
+  initialFiles?: InitialFile[]
 }
 
 export function FileUploadArea({
@@ -54,20 +65,65 @@ export function FileUploadArea({
   onDelete,
   className = '',
   disabled = false,
-  fileDeleteStates = {}
+  fileDeleteStates = {},
+  initialFiles = []
 }: FileUploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [uploads, setUploads] = useState<
     Array<{
-      file: File
+      file: File | null // Allow null for initial files that don't have a File object
       status: UploadStatus
       progress: number
       result?: FileUploadResult
       id: string // Add unique ID for better React key handling
+      name: string // Original file name
+      url?: string // URL for viewing the file
+      fileId?: number // Database ID for the attachment
     }>
   >([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const progressIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({})
+
+  // Initialize uploads with initial files
+  useEffect(() => {
+    if (initialFiles.length > 0) {
+      // Create a map of existing upload IDs to prevent duplicates
+      const existingUploadIds = new Map(
+        uploads.map((upload) => [
+          // Use fileId as the primary identifier if available, otherwise use name
+          upload.fileId || upload.name,
+          upload.id
+        ])
+      )
+
+      const initialUploads = initialFiles
+        .filter((file) => {
+          // Skip files that are already in the uploads state
+          return !existingUploadIds.has(file.fileId || file.name)
+        })
+        .map((file) => ({
+          file: null, // No File object for initial files
+          status: 'success' as UploadStatus,
+          progress: 100,
+          id: `initial-${file.fileId || file.name}-${Date.now()}`,
+          name: file.name,
+          url: file.url,
+          fileId: file.fileId,
+          result: {
+            success: true,
+            message: 'File already uploaded',
+            fileName: file.name,
+            uniqueFileName: file.uniqueName,
+            url: file.url,
+            fileId: file.fileId
+          }
+        }))
+
+      if (initialUploads.length > 0) {
+        setUploads((prev) => [...prev, ...initialUploads])
+      }
+    }
+  }, [initialFiles])
 
   // Memoize handlers to prevent recreating functions on each render
   const handleDragOver = useCallback(
@@ -145,6 +201,7 @@ export function FileUploadArea({
               status: 'error',
               progress: 100,
               id: fileId,
+              name: file.name,
               result: {
                 success: false,
                 message: validation.errorMessage || 'Fichier invalide',
@@ -162,7 +219,8 @@ export function FileUploadArea({
             file,
             status: 'uploading',
             progress: 0,
-            id: fileId
+            id: fileId,
+            name: file.name
           }
         ])
 
@@ -228,7 +286,9 @@ export function FileUploadArea({
                   ...item,
                   status: result.success ? 'success' : 'error',
                   progress: 100,
-                  result
+                  result,
+                  url: result.url,
+                  fileId: result.fileId
                 }
               : item
           )
@@ -269,13 +329,13 @@ export function FileUploadArea({
       if (!uploadItem) return
 
       // If onDelete callback is provided, call it
-      if (onDelete && uploadItem.file.name) {
+      if (onDelete && uploadItem.name) {
         try {
-          const success = await onDelete(uploadItem.file.name)
+          const success = await onDelete(uploadItem.name)
           if (!success) {
             console.error(
               'Échec de la suppression du fichier:',
-              uploadItem.file.name
+              uploadItem.name
             )
             return
           }
@@ -286,7 +346,15 @@ export function FileUploadArea({
       }
 
       // Remove the file from the uploads list
-      setUploads((prev) => prev.filter((item) => item.id !== fileId))
+      // Also remove any duplicates with the same fileId or name
+      setUploads((prev) => {
+        // If the item has a fileId, remove all items with that fileId
+        if (uploadItem.fileId) {
+          return prev.filter((item) => item.fileId !== uploadItem.fileId)
+        }
+        // Otherwise just remove the specific item
+        return prev.filter((item) => item.id !== fileId)
+      })
     },
     [uploads, onDelete]
   )
@@ -413,8 +481,8 @@ export function FileUploadArea({
       {uploads.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-1">
           {uploads.map((upload) => {
-            const isDeleting = fileDeleteStates[upload.file.name] || false
-            const displayName = truncateFilename(upload.file.name)
+            const isDeleting = fileDeleteStates[upload.name] || false
+            const displayName = truncateFilename(upload.name)
 
             return (
               <div
@@ -433,7 +501,7 @@ export function FileUploadArea({
                             e.stopPropagation()
                             handleDeleteFile(upload.id)
                           }}
-                          aria-label={`Supprimer ${upload.file.name}`}
+                          aria-label={`Supprimer ${upload.name}`}
                           disabled={disabled || isDeleting}
                         >
                           {isDeleting ? (
@@ -455,7 +523,7 @@ export function FileUploadArea({
                 )}
 
                 <div className="flex items-start space-x-2">
-                  {upload.status === 'success' && upload.result?.url ? (
+                  {upload.status === 'success' && upload.url ? (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -463,27 +531,27 @@ export function FileUploadArea({
                             onClick={(e) => {
                               e.stopPropagation()
                               window.open(
-                                upload.result?.url,
+                                upload.url,
                                 '_blank',
                                 'noopener,noreferrer'
                               )
                             }}
                             className="h-14 w-14 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 hover:scale-105 transition-all relative"
                             role="button"
-                            aria-label={`Ouvrir ${upload.file.name}`}
+                            aria-label={`Ouvrir ${upload.name}`}
                             tabIndex={0}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault()
                                 window.open(
-                                  upload.result?.url,
+                                  upload.url,
                                   '_blank',
                                   'noopener,noreferrer'
                                 )
                               }
                             }}
                           >
-                            {getFileIcon(upload.file.name, true)}
+                            {getFileIcon(upload.name, true)}
                             <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                               <span className="sr-only">Ouvrir le fichier</span>
                             </div>
@@ -496,7 +564,7 @@ export function FileUploadArea({
                     </TooltipProvider>
                   ) : (
                     <div className="h-14 w-14 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                      {getFileIcon(upload.file.name, false)}
+                      {getFileIcon(upload.name, false)}
                     </div>
                   )}
 
@@ -522,14 +590,16 @@ export function FileUploadArea({
                             </span>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>{upload.file.name}</p>
+                            <p>{upload.name}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
 
                     <span className="text-xs text-muted-foreground block mt-1 truncate">
-                      {(upload.file.size / 1024 / 1024).toFixed(2)} MB •
+                      {upload.file
+                        ? `${(upload.file.size / 1024 / 1024).toFixed(2)} MB •`
+                        : ''}
                       {upload.status === 'uploading'
                         ? ' Téléchargement...'
                         : upload.status === 'success'
@@ -548,17 +618,16 @@ export function FileUploadArea({
                       </div>
                     )}
 
-                    {upload.status === 'success' &&
-                      upload.result?.uniqueFileName && (
-                        <div className="mt-1">
-                          <Badge
-                            variant="outline"
-                            className="text-xs font-normal"
-                          >
-                            {upload.result.uniqueFileName}
-                          </Badge>
-                        </div>
-                      )}
+                    {upload.status === 'success' && upload.fileId && (
+                      <div className="mt-1">
+                        <Badge
+                          variant="outline"
+                          className="text-xs font-normal"
+                        >
+                          ID: {upload.fileId}
+                        </Badge>
+                      </div>
+                    )}
 
                     <Progress
                       value={upload.progress}

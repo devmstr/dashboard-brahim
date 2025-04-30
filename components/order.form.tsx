@@ -30,7 +30,7 @@ import { CarSelectionForm, type CarSelection } from './car-selection.from'
 // Utilities and Config
 import { useOrder } from './new-order.provider'
 import { toast } from '@/hooks/use-toast'
-import { generateProductTitle } from '@/lib/utils'
+import { generateProductTitle, skuId } from '@/lib/utils'
 import {
   articleValidationSchema,
   type ArticleValidationType
@@ -328,10 +328,53 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
   return (
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={handleSubmit}>
+        <div className="relative border rounded-md px-3 py-3">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            Prix
+          </span>
+          <div className="flex flex-col gap-5 md:grid md:grid-cols-2 ">
+            <FormField
+              control={form.control}
+              name="price"
+              render={({ field }) => (
+                <FormItem className="group">
+                  <FormLabel className="capitalize">Prix (Unité)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type={'number'}
+                      placeholder="68000.00"
+                      onChange={(e) => {
+                        const { value } = e.target
+                        form.setValue('price', Number(value))
+                        form.setValue('bulkPrice', Number(value))
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="bulkPrice"
+              render={({ field }) => (
+                <FormItem className="group">
+                  <FormLabel className="capitalize">Prix (Gros)</FormLabel>
+                  <FormControl>
+                    <Input {...field} type={'number'} placeholder="68000.00" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
         {/* Vehicle Section */}
         <div className="flex items-center gap-2">
           <Label id="isModelAvailable">Véhicule</Label>
           <Switcher
+            className="data-[state=checked]:bg-yellow-400"
             id="isModelAvailable"
             checked={isModelAvailable}
             onCheckedChange={() => setIsModelAvailable(!isModelAvailable)}
@@ -352,9 +395,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                 <FormControl>
                   <MdEditor
                     editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
-                    className={`w-full min-h-36 group ${
-                      !field.value ? 'border-destructive' : ''
-                    }`}
+                    className={`w-full min-h-36 group
+                      bg-yellow-50 focus-within:border-yellow-400 ${
+                        !field.value ? 'border-destructive' : ''
+                      }`}
                     placeholder="Ajouter Le Model Caterpillar D430 ..."
                     setValue={(markdown) => form.setValue('note', markdown)}
                     value={field.value}
@@ -366,51 +410,53 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
           />
         )}
 
-        {/* Modifications Section */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label id="isModificationIncluded">Modifications</Label>
-            <Switcher
-              id="isModificationIncluded"
-              checked={isModificationIncluded}
-              onCheckedChange={() =>
-                setIsModificationIncluded(!isModificationIncluded)
-              }
-            />
-          </div>
-
-          {isModificationIncluded && (
-            <FormField
-              control={form.control}
-              name="modification"
-              render={({ field }) => (
-                <FormItem className="group md:col-span-2 lg:col-span-3">
-                  {/* <FormLabel className="capitalize">
-                    Les Modifications
-                  </FormLabel> */}
-                  <FormControl>
-                    <MdEditor
-                      editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
-                      className="w-full min-h-36 group"
-                      placeholder="Listez les changements à effectuer..."
-                      value={field.value}
-                      setValue={(markdown) =>
-                        form.setValue('modification', markdown)
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
-
         {/* Order Details Section */}
         <div className="relative border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
             commande
           </span>
+          {/* Modifications Section */}
+          {type != 'Autre' && (
+            <div className="space-y-2 py-3">
+              <div className="flex items-center gap-2">
+                <Label id="isModificationIncluded">Modifications</Label>
+                <Switcher
+                  id="isModificationIncluded"
+                  className="data-[state=checked]:bg-blue-400"
+                  checked={isModificationIncluded}
+                  onCheckedChange={() =>
+                    setIsModificationIncluded(!isModificationIncluded)
+                  }
+                />
+              </div>
+
+              {isModificationIncluded && (
+                <FormField
+                  control={form.control}
+                  name="modification"
+                  render={({ field }) => (
+                    <FormItem className="group md:col-span-2 lg:col-span-3">
+                      {/* <FormLabel className="capitalize">
+                    Les Modifications
+                  </FormLabel> */}
+                      <FormControl>
+                        <MdEditor
+                          editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+                          className="w-full min-h-36 group bg-blue-50 focus-within:border-blue-400"
+                          placeholder="Listez les changements à effectuer..."
+                          value={field.value}
+                          setValue={(markdown) =>
+                            form.setValue('modification', markdown)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+          )}
           <CardGrid>
             <FormField
               control={form.control}

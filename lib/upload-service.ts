@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { unlink } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
+import prisma from '@/lib/db' // Assuming you have a prisma client export
 
 // Define the base uploads directory - must match the one in upload route
 const BASE_UPLOADS_DIR = path.join(process.cwd(), 'uploads')
@@ -14,9 +15,78 @@ export type UploadResult = {
   fileName?: string
   storedPath?: string
   url?: string
+  fileId?: number // Added to track the attachment ID
 }
 
-// This server action directly handles file deletion
+// This function creates an attachment record in the database
+export async function createAttachment(
+  orderId: string,
+  fileName: string,
+  fileUrl: string,
+  fileType: string
+): Promise<number | null> {
+  try {
+    const attachment = await prisma.attachment.create({
+      data: {
+        name: fileName,
+        url: fileUrl,
+        type: fileType,
+        order: {
+          connect: {
+            id: orderId
+          }
+        }
+      }
+    })
+    return attachment.id
+  } catch (error) {
+    console.error('Error creating attachment record:', error)
+    return null
+  }
+}
+
+// This function deletes an attachment from the database and file system
+export async function deleteAttachment(attachmentId: number): Promise<boolean> {
+  try {
+    // First, get the attachment to find its URL
+    const attachment = await prisma.attachment.findUnique({
+      where: {
+        id: attachmentId
+      }
+    })
+
+    if (!attachment) {
+      console.error(`Attachment not found: ${attachmentId}`)
+      return false
+    }
+
+    // Extract the file path from the URL
+    const urlPath = attachment.url.replace(/^\/uploads\//, '')
+    const filePath = path.join(BASE_UPLOADS_DIR, urlPath)
+
+    // Delete the file from the filesystem
+    if (existsSync(filePath)) {
+      await unlink(filePath)
+    }
+
+    // Delete the attachment record from the database
+    await prisma.attachment.delete({
+      where: {
+        id: attachmentId
+      }
+    })
+
+    // Revalidate the path to update any server components
+    revalidatePath('/')
+
+    return true
+  } catch (error) {
+    console.error('Delete attachment error:', error)
+    return false
+  }
+}
+
+// Legacy function for backward compatibility
 export async function deleteFile(filePath: string): Promise<boolean> {
   try {
     if (!filePath) {

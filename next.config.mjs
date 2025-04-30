@@ -28,6 +28,15 @@ const nextConfig = {
         ]
       }
     ]
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/static/:path*'
+      }
+    ]
   }
 }
 

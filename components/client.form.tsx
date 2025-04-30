@@ -18,6 +18,8 @@ import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { Separator } from './ui/separator'
 import CustomerSearchInput from './customer-search.input'
+import { skuId } from '@/lib/utils'
+import { toast } from '@/hooks/use-toast'
 
 interface Props {
   data: ClientValidationType[]
@@ -41,35 +43,40 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   const renderRowActions = (client: ClientValidationType) => {
     return (
       <div className="px-2">
-        <Button
-          variant={'ghost'}
-          className=""
-          onClick={() => {
-            console.log('Full row data:', client)
-            setCustomer(client)
-            setOrder((prev) => ({
-              ...prev,
-              client
-            }))
-          }}
-        >
+        <Button variant={'ghost'} className="" onClick={() => onSubmit(client)}>
           Choisir
         </Button>
       </div>
     )
   }
 
+  function onSubmit(client: ClientType | undefined) {
+    setCustomer(client)
+    setOrder((prev) => ({
+      ...prev,
+      client
+    }))
+  }
+
+  function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    if (!customer) {
+      toast({
+        title: 'Missing Customer',
+        description: 'You have to select a customer first',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    onSubmit(customer)
+
+    router.push('new/order')
+    return
+  }
+
   return (
-    <CustomerSearchInput
-      selected={customer}
-      onSelectChange={(client: ClientType | undefined) => {
-        setCustomer(client)
-        setOrder((prev) => ({
-          ...prev,
-          client: client
-        }))
-      }}
-    >
+    <CustomerSearchInput selected={customer} onSelectChange={onSubmit}>
       <div className=" flex flex-col gap-4 w-full">
         <Label className="text-foreground">Derniers Acheteurs</Label>
         <ClientTable
@@ -83,11 +90,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
         />
         <Separator />
         <div className="flex w-full justify-end">
-          <Button
-            onClick={() => router.push('new/order')}
-            className="min-w-28"
-            type="submit"
-          >
+          <Button onClick={handleSubmit} className="min-w-28" type="submit">
             {'Commande'}
             <Icons.arrowRight className="ml-2 w-4 text-secondary" />
           </Button>

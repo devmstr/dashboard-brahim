@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
-import { generateUniqueFilename } from '@/lib/utils'
+import { generateUniqueFilename, skuId } from '@/lib/utils'
+import { createAttachment } from '@/lib/upload-service'
 
 // Define the base uploads directory for physical storage
 const BASE_UPLOADS_DIR = path.join(process.cwd(), 'uploads')
@@ -12,6 +13,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File
     const userPath = formData.get('path') as string
+    const orderId = formData.get('orderId') as string // Get the orderId from the form data
 
     if (!file) {
       return NextResponse.json(
@@ -62,11 +64,13 @@ export async function POST(request: NextRequest) {
     const physicalFilePath = path.join(fullUploadPath, uniqueFilename)
 
     // Create a URL-friendly path for accessing the file
-    // This path will be relative to the /api/files endpoint
     const urlPath = path.join(relativePath, uniqueFilename)
 
     // Store the original filename for reference
     const originalFilename = file.name
+
+    // Get the file type (MIME type)
+    const fileType = file.type || 'application/octet-stream'
 
     // Convert file to buffer
     const bytes = await file.arrayBuffer()
@@ -75,14 +79,29 @@ export async function POST(request: NextRequest) {
     // Write file to disk
     try {
       await writeFile(physicalFilePath, buffer)
+
+      // Create the URL for the file
+      const fileUrl = `/uploads/${urlPath}`
+
+      // If orderId is provided, create an attachment record in the database
+      let attachmentId = null
+      if (orderId) {
+        attachmentId = await createAttachment(
+          orderId,
+          originalFilename,
+          fileUrl,
+          fileType
+        )
+      }
+
       return NextResponse.json({
         success: true,
         message: 'File uploaded successfully',
         fileName: originalFilename,
         uniqueFileName: uniqueFilename,
         storedPath: physicalFilePath,
-        // Use a URL-friendly path that doesn't expose the full filesystem path
-        url: `/api/files/${encodeURIComponent(urlPath)}`
+        url: fileUrl,
+        fileId: attachmentId // Return the attachment ID if created
       })
     } catch (error) {
       console.error('Error writing file:', error)

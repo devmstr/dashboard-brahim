@@ -8,12 +8,11 @@ import { fr } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import { CardGrid } from './card'
-import { DatePicker } from './date-picker'
-import { FileUploadArea } from './upload-file-area'
-import { Icons } from './icons'
-import { useOrder } from './new-order.provider'
-import { Button } from './ui/button'
+import { CardGrid } from '@/components/card'
+import { DatePicker } from '@/components/date-picker'
+import { Icons } from '@/components/icons'
+import { useOrder } from '@/components/new-order.provider'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -21,22 +20,27 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from './ui/form'
-import { Separator } from './ui/separator'
-import { Uploader } from '@/components/uploader'
-import { Label } from './ui/label'
+} from '@/components/ui/form'
+import { Separator } from '@/components/ui/separator'
+import { UploadedFile, Uploader } from '@/components/uploader'
+import { Label } from '@/components/ui/label'
 
 interface Props {}
 
 export const PaymentForm: React.FC<Props> = ({}: Props) => {
   const { order, setOrder } = useOrder()
-  console.log(order)
   const router = useRouter()
   const form = useForm<PaymentType>({
     defaultValues: {
-      bank: 'Banque Nationale d’Algérie',
-      mode: 'Espèces',
-      endDate: new Date().toISOString()
+      price: order?.payment?.price,
+      deposit: order?.payment?.deposit,
+      remaining: order?.payment?.remaining,
+      iban: order?.payment?.iban,
+      depositor: order?.payment?.depositor,
+      checkUrl: order?.payment?.checkUrl,
+      bank: order?.payment?.bank || 'Banque Nationale d’Algérie',
+      mode: order?.payment?.mode || 'Espèces',
+      endDate: order?.payment?.endDate || new Date().toISOString()
     },
     resolver: zodResolver(paymentSchema)
   })
@@ -50,6 +54,28 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
       payment: formData
     }))
   }
+
+  function onFileUploaded(files: UploadedFile[]) {
+    if (files.length < 1) return
+    setOrder((prev) => ({
+      ...prev,
+      attachements: files.map(({ fileId, uniqueName, url, type }) => ({
+        id: fileId,
+        name: uniqueName,
+        url: url,
+        type: type
+      }))
+    }))
+  }
+
+  async function onDeleteAttachment(attachmentId: number) {
+    //
+    setOrder((prev) => ({
+      ...prev,
+      attachements: prev?.attachements?.filter(({ id }) => id == attachmentId)
+    }))
+  }
+
   return (
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
@@ -224,7 +250,15 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
               pièce jointe
             </span>
             <Label>Uploader Un Cheque</Label>
-            <Uploader isShowDestination uploadPath={'data/payments'} />
+            <Uploader
+              isShowDestination
+              onFilesUploaded={onFileUploaded}
+              onDeleteAttachment={onDeleteAttachment}
+              initialAttachments={order?.attachements?.filter(
+                ({ url }) => url != order.payment?.checkUrl
+              )}
+              uploadPath={`data/orders/${order?.id || 'unknown'}`}
+            />
           </div>
         )}
         <div className="relative border rounded-md px-3 pt-4 py-3">

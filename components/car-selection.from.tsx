@@ -5,7 +5,8 @@ import {
   useEffect,
   useRef,
   type SetStateAction,
-  type Dispatch
+  type Dispatch,
+  ReactNode
 } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -88,9 +89,11 @@ export type CarSelection = {
 
 export function CarSelectionForm({
   selected,
-  onSelectChange
+  onSelectChange,
+  children
 }: {
-  selected?: CarSelection
+  children?: React.ReactNode
+  selected?: CarSelection | undefined
   onSelectChange: Dispatch<SetStateAction<CarSelection | undefined>>
 }) {
   // State for storing API data
@@ -714,6 +717,7 @@ export function CarSelectionForm({
                 )}
               />
             </CardGrid>
+            <div className="my-3">{children}</div>
           </div>
         </form>
       </Form>

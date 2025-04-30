@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
+import { cn, skuId } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import ProductSearchInput, {
   type RadiatorResp
 } from '@/components/search-product.input'
 import { ProductDetailsForm } from './product-details.form'
+import { toast } from '@/hooks/use-toast'
 
 type Props = {}
 
@@ -155,6 +156,15 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
     }
   }, [selectedProduct, fetchProduct])
 
+  // setup order id
+  useEffect(() => {
+    if (order?.id) return
+    setOrder((prev) => ({
+      ...prev,
+      id: skuId('CB')
+    }))
+  }, [])
+
   // Function to open the product details form dialog
   const openProductForm = useCallback(() => {
     if (fetchedProduct) {
@@ -165,7 +175,6 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
   // Function to handle form submission and add product to order
   const handleAddProductToOrder = useCallback(
     (formData: any) => {
-      console.log(formData)
       // Update the order with the new component
       setOrder((prevOrder) => {
         if (!prevOrder) return { components: [formData] }
@@ -175,6 +184,7 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
           components: [...(prevOrder.components || []), formData]
         }
       })
+      console.log(order?.components)
 
       // Close the dialog and reset selection
       setIsProductFormOpen(false)
@@ -183,6 +193,24 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
     },
     [setOrder]
   )
+
+  function handleSubmit(
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ): void {
+    event.preventDefault()
+    if (
+      !order?.components ||
+      (order?.components && order.components?.length < 1)
+    ) {
+      toast({
+        title: 'Missing Articles!',
+        description: 'Vous devez sélectionner au moins un article.',
+        variant: 'destructive'
+      })
+      return
+    }
+    router.push('payment')
+  }
 
   return (
     <div className="space-y-3">
@@ -359,12 +387,11 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
           <Button
             onClick={() => router.push('/dashboard/new')}
             className={'min-w-28'}
-            type="submit"
           >
             <Icons.arrowRight className="mr-2 w-4 text-secondary rotate-180" />
             {'Acheteur'}
           </Button>
-          <Button onClick={() => router.push('payment')} className={'min-w-28'}>
+          <Button onClick={handleSubmit} type="submit" className={'min-w-28'}>
             {'Paiement'}
             <Icons.arrowRight className="ml-2 w-4 text-secondary " />
           </Button>

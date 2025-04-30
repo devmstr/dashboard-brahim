@@ -3,6 +3,7 @@ import { ROLES } from './config/accounts'
 
 const ADMIN_ROUTES = ['/dashboard/settings']
 
+// Only use middleware for authentication, not for file caching
 export default withAuth({
   callbacks: {
     authorized: async ({ req, token }) => {
@@ -19,6 +20,7 @@ export default withAuth({
   }
 })
 
+// Only match dashboard routes, not upload routes
 export const config = {
   matcher: ['/dashboard/:path*']
 }

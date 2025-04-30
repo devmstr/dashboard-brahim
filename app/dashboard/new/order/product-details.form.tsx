@@ -29,6 +29,7 @@ import {
   ORDER_TYPES,
   PACKAGING_TYPES
 } from '@/config/global'
+import { skuId } from '@/lib/utils'
 
 // Form schema
 const productFormSchema = z.object({
@@ -86,6 +87,7 @@ export function ProductDetailsForm({
   const type = form.watch('type')
 
   function handleSubmit(data: ProductFormValues) {
+    
     onSubmit({
       ...data,
       id: initialData.id,
@@ -103,6 +105,7 @@ export function ProductDetailsForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Order Details Section */}
         <div className="space-y-4">
           {/* Modifications Section */}
           <div className="space-y-2">
