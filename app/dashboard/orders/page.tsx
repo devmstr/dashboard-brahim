@@ -1,29 +1,67 @@
+import React from 'react'
 import { Card } from '@/components/card'
 import { OrderTable } from '@/components/orders-table'
-// import data from './data.json'
-import React from 'react'
+import prisma from '@/lib/db'
+import { OrderTableEntry } from '@/types'
 
 interface PageProps {}
 
 const Page: React.FC<PageProps> = async ({}: PageProps) => {
+  const orders = await prisma.order.findMany({
+    select: {
+      id: true,
+      createdAt: true,
+      Client: {
+        select: {
+          name: true,
+          phone: true,
+          Address: {
+            select: {
+              Province: true
+            }
+          }
+        }
+      },
+      OrdersItems: {
+        select: {
+          _count: true,
+          Radiator: {
+            select: {
+              Price: true
+            }
+          }
+        }
+      },
+      deadline: true,
+      state: true,
+      progress: true
+    }
+  })
+
+  const data = orders.map((order: any) => {
+    const items = order.OrdersItems.length || 0
+    const total = order.OrdersItems.reduce((sum: number, item: any) => {
+      return sum + (item.Radiator?.Price?.unit || 0)
+    }, 0)
+
+    return {
+      id: order.id,
+      customer: order.Client?.name || '—',
+      phone: order.Client?.phone || '—',
+      deadline: order.deadline.toISOString(),
+      status: 'Encours',
+      progress: order.progress || 0,
+      state: order.Client?.Address?.Province.name || '—',
+      items,
+      total: total,
+      createdAt: order.createdAt
+    } as OrderTableEntry
+  })
+  console.log(data)
+
   return (
     <Card className="">
-      <OrderTable
-        data={[
-          {
-            id: 'COXL5R6T8',
-            customer: 'Mohamed',
-            phone: '0776459823',
-            deadline: new Date().toISOString(),
-            status: 'Encours',
-            progress: 13,
-            state: 'Ouargla',
-            items: 5,
-            total: 267000
-          }
-        ]}
-        userRole={'SALES_AGENT'}
-      />
+      <OrderTable data={data} userRole="SALES_AGENT" />
     </Card>
   )
 }

@@ -11,7 +11,7 @@ interface OrderUploaderProps {
   uploadPath: string
   initialAttachments?: Attachment[]
   onAttachmentAdded?: (attachment: Attachment) => void
-  onAttachmentDeleted?: (fileName: string) => void
+  onAttachmentDeleted?: (fileId: string) => void // Changed from fileName to fileId
   acceptedFileTypes?: string
   maxFileSizeMB?: number
   maxFiles?: number
@@ -97,6 +97,14 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
           type: file.type
         }
 
+        // Log for debugging
+        console.log('File uploaded successfully:', {
+          uniqueName: newAttachment.uniqueName,
+          name: newAttachment.name,
+          url: newAttachment.url,
+          path: newAttachment.path
+        })
+
         // Update state
         const updatedAttachments = [...attachments, newAttachment]
         setAttachments(updatedAttachments)
@@ -132,11 +140,11 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
   }
 
   // Handle file deletion
-  const handleDelete = async (fileName: string) => {
-    const fileToDelete = attachments.find((file) => file.name === fileName)
+  const handleDelete = async (fileId: string) => {
+    const fileToDelete = attachments.find((file) => file.id === fileId)
     if (!fileToDelete) return false
 
-    setIsDeleting((prev) => ({ ...prev, [fileName]: true }))
+    setIsDeleting((prev) => ({ ...prev, [fileId]: true }))
 
     try {
       // Only try to delete from server if we have a path
@@ -154,18 +162,18 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
 
       // Update state
       const updatedAttachments = attachments.filter(
-        (file) => file.name !== fileName
+        (file) => file.id !== fileId
       )
       setAttachments(updatedAttachments)
 
       // Notify parent using the specific handler
       if (onAttachmentDeleted) {
-        onAttachmentDeleted(fileName)
+        onAttachmentDeleted(fileId)
       }
 
       toast({
         title: 'Fichier supprimé',
-        description: <span>{fileName} a été supprimé</span>,
+        description: <span>{fileToDelete.name} a été supprimé</span>,
         variant: 'information'
       })
 
@@ -178,7 +186,7 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
       })
       return false
     } finally {
-      setIsDeleting((prev) => ({ ...prev, [fileName]: false }))
+      setIsDeleting((prev) => ({ ...prev, [fileId]: false }))
     }
   }
 

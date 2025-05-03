@@ -39,6 +39,7 @@ export type OrderTableEntry = {
   state?: string
   total?: number
   items?: number
+  createdAt?: string
 }
 export type CarsTableEntry = {
   id: string

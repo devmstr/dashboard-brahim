@@ -17,7 +17,18 @@ export async function GET(
         Payment: true,
         OrdersItems: {
           include: {
-            Radiator: true,
+            Radiator: {
+              include: {
+                Components: {
+                  include: {
+                    Collector: true,
+                    Core: true,
+                    Materials: true
+                  }
+                }
+              }
+            },
+
             Attachments: true
           }
         },
@@ -120,7 +131,7 @@ export async function PUT(
               fabrication: item.fabrication,
               isModified: item.isModified,
               radiatorId: item.radiatorId,
-              orderBatchId: id
+              orderId: id
             }
           })
         }
@@ -136,7 +147,8 @@ export async function PUT(
               url: attachment.url,
               type: attachment.type || 'unknown',
               name: attachment.name,
-              orderBatchId: id
+              uniqueName: attachment.uniqueName,
+              orderId: id
             }
           })
         }

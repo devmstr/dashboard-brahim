@@ -21,9 +21,15 @@ const Layout: React.FC<Props> = ({ children }: Props) => {
       icon: 'packagePlus'
     },
     {
-      title: 'Valider',
+      title: 'Payment',
       key: 'payment',
       href: '/dashboard/new/payment',
+      icon: 'dollar'
+    },
+    {
+      title: 'Valider',
+      key: 'validate',
+      href: '/dashboard/new/validate',
       icon: 'checkCircle'
     }
   ] as SidebarNavItem[]

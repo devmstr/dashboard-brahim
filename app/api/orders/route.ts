@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import type { Attachment, OrderItem } from '@/lib/validations'
+import { Item } from 'react-stately'
+import { skuId } from '@/lib/utils'
 
 const prisma = new PrismaClient()
 
@@ -9,15 +12,17 @@ export async function POST(request: Request) {
 
     // Extract data from the request body
     const {
+      id,
       clientId,
       deadline,
       state,
       progress,
-      payment,
-      orderItems,
-      attachments
+      Payment,
+      OrderItems,
+      Attachments
     } = body
-
+    console.log(OrderItems[0].Radiator.Core)
+    console.log(OrderItems[0].Radiator.Collector)
     // Validate required fields
     if (!clientId) {
       return NextResponse.json(
@@ -27,9 +32,9 @@ export async function POST(request: Request) {
     }
 
     if (
-      !payment ||
-      typeof payment.amount !== 'number' ||
-      typeof payment.deposit !== 'number'
+      !Payment ||
+      typeof Payment.price !== 'number' ||
+      typeof Payment.deposit !== 'number'
     ) {
       return NextResponse.json(
         { message: 'Valid payment information is required' },
@@ -37,64 +42,212 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
+    if (!OrderItems || !Array.isArray(OrderItems) || OrderItems.length === 0) {
       return NextResponse.json(
         { message: 'At least one order item is required' },
         { status: 400 }
       )
     }
 
-    // Create the payment record first
-    const createdPayment = await prisma.payment.create({
-      data: {
-        amount: payment.amount,
-        deposit: payment.deposit,
-        remaining: payment.remaining || payment.amount - payment.deposit
-      }
-    })
+    // Use a transaction to ensure all operations succeed or fail together
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the payment record first
+      const createdPayment = await tx.payment.create({
+        data: {
+          amount: Payment.price,
+          deposit: Payment.deposit,
+          remaining: Payment.remaining || Payment.price - Payment.deposit,
+          mode: Payment.mode,
+          bank: ['Espèces', 'Cheque', 'À terme'].includes(Payment.mode)
+            ? null
+            : Payment.bank,
+          iban: Payment.iban,
+          depositor: Payment.depositor
+        }
+      })
 
-    // Create the order with the payment ID
-    const createdOrder = await prisma.order.create({
-      data: {
-        clientId,
-        deadline: new Date(deadline),
-        state: state || 'PENDING',
-        progress: progress || 0,
-        paymentId: createdPayment.id,
-        // Create order items
-        OrdersItems: {
-          create: orderItems.map((item: any) => ({
-            note: item.note || {},
-            description: item.description || {},
-            modification: item.modification || {},
-            packaging: item.packaging,
-            fabrication: item.fabrication,
-            isModified: item.isModified,
-            radiatorId: item.radiatorId
-          }))
+      // Process each order item to ensure radiators exist
+      const processedOrderItems = await Promise.all(
+        OrderItems.map(async (item: OrderItem) => {
+          let radiatorId = item.Radiator?.id || item.id
+          const isExist = await tx.radiator.findUnique({
+            where: { id: radiatorId }
+          })
+          // If we have radiator data but no existing radiator ID, or if we want to create a new radiator
+          if (!isExist) {
+            // Create the new radiator with its components
+            const newRadiator = await tx.radiator.create({
+              data: {
+                id: radiatorId,
+                label: item.Radiator.label || 'Custom Radiator',
+                cooling: item.Radiator.cooling || 'water',
+                category: item.Radiator.category || 'automotive',
+                // connecting model if it exist only
+                ...(item.Radiator.Car?.id
+                  ? {
+                      Models: {
+                        connect: {
+                          id: item.Radiator.Car.id
+                        }
+                      }
+                    }
+                  : {})
+              }
+            })
+
+            // Update the radiator ID for this item
+            radiatorId = newRadiator.id
+            await tx.radiatorComponent.create({
+              data: {
+                name: 'Faisceau',
+                type: 'CORE',
+                radiatorId,
+                Core: {
+                  create: {
+                    height:
+                      (item.Radiator.Core?.dimensions?.height as number) || 0,
+                    width:
+                      (item.Radiator.Core?.dimensions?.width as number) || 0,
+                    rows: (item.Radiator.Core?.rows as number) || 1,
+                    fins: (item.Radiator.Core?.fins as string) || 'Normale',
+                    pitch: Number(item.Radiator.Core?.finsPitch),
+                    tube: item.Radiator.Core?.tube as string
+                  }
+                }
+              }
+            })
+            const collectorTemplate = await tx.collectorTemplate.create({
+              data: {
+                position: item.Radiator.Collector.position,
+                tightening: item.Radiator.Collector.tightening,
+                perforation: item.Radiator.Collector.perforation,
+                isTinned: item.Radiator.Collector.isTinned
+              }
+            })
+            await tx.radiatorComponent.create({
+              data: {
+                name: 'Collecteur Haut',
+                type: 'COLLECTOR',
+                radiatorId,
+                Collector: {
+                  create: {
+                    width: item.Radiator.Collector?.dimensions1?.width,
+                    height: item.Radiator.Collector?.dimensions1?.height,
+                    thickness: item.Radiator.Collector?.dimensions1?.thickness,
+                    type: 'TOP',
+                    Template: {
+                      connect: { id: collectorTemplate.id }
+                    }
+                  }
+                }
+              }
+            })
+            await tx.radiatorComponent.create({
+              data: {
+                name: 'Collecteur Bas',
+                type: 'COLLECTOR',
+                radiatorId,
+                Collector: {
+                  create: {
+                    width: item.Radiator.Collector?.dimensions2?.width
+                      ? item.Radiator.Collector?.dimensions2?.width
+                      : item.Radiator.Collector?.dimensions1.width,
+                    height: item.Radiator.Collector?.dimensions2?.height
+                      ? item.Radiator.Collector?.dimensions2?.height
+                      : item.Radiator.Collector?.dimensions1.height,
+                    thickness: item.Radiator.Collector?.dimensions2?.thickness
+                      ? item.Radiator.Collector?.dimensions2?.thickness
+                      : item.Radiator.Collector?.dimensions1?.thickness,
+                    type: 'BOTTOM',
+                    Template: {
+                      connect: { id: collectorTemplate.id }
+                    }
+                  }
+                }
+              }
+            })
+            console.log('Created new radiator with ID:', radiatorId)
+          }
+          // Return the processed order item with the correct radiator ID
+          return {
+            id: skuId('AR'),
+            note: item.note || undefined,
+            description: item.description || undefined,
+            modification: item.modification || undefined,
+            packaging: item.packaging || null,
+            fabrication: item.fabrication || null,
+            isModified: item.isModified || null,
+            quantity: item.quantity || 1,
+            radiatorId: radiatorId // Use the existing or newly created radiator ID
+          }
+        })
+      )
+
+      // Prepare attachments data if provided
+      const attachmentsData =
+        Attachments && Attachments.length > 0
+          ? Attachments.map((attachment: Attachment) => ({
+              url: attachment.url,
+              type: attachment.type || 'unknown',
+              name: attachment.name,
+              uniqueName: attachment.uniqueName
+            }))
+          : []
+
+      // Create the order with the payment ID and related items
+      const createdOrder = await tx.order.create({
+        data: {
+          id,
+          clientId,
+          deadline: new Date(deadline).toISOString(),
+          state: state || 'PENDING',
+          progress: progress || 0,
+          paymentId: createdPayment.id,
+
+          // Create order items with processed radiator IDs
+          OrdersItems: {
+            createMany: {
+              data: processedOrderItems
+            }
+          },
+
+          // Create attachments if provided
+          ...(attachmentsData.length > 0
+            ? {
+                Attachments: {
+                  create: attachmentsData
+                }
+              }
+            : {})
         },
-        // Create attachments if provided
-        ...(attachments && attachments.length > 0
-          ? {
-              Attachments: {
-                create: attachments.map((attachment: any) => ({
-                  url: attachment.url,
-                  type: attachment.type || 'unknown',
-                  name: attachment.name
-                }))
+        include: {
+          OrdersItems: {
+            include: {
+              Radiator: {
+                include: {
+                  Components: {
+                    include: {
+                      Collector: true,
+                      Core: true
+                    }
+                  },
+                  Price: true,
+                  Models: true
+                }
               }
             }
-          : {})
-      },
-      include: {
-        OrdersItems: true,
-        Attachments: true,
-        Payment: true,
-        Client: true
-      }
+          },
+          Attachments: true,
+          Payment: true,
+          Client: true
+        }
+      })
+
+      return createdOrder
     })
 
-    return NextResponse.json(createdOrder)
+    console.log('Order created successfully:', result.id)
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Error creating order:', error)
     return NextResponse.json(
@@ -126,7 +279,18 @@ export async function GET(request: Request) {
         Payment: true,
         OrdersItems: {
           include: {
-            Radiator: true
+            Radiator: {
+              include: {
+                Components: {
+                  include: {
+                    Collector: true,
+                    Core: true
+                  }
+                },
+                Price: true,
+                Models: true
+              }
+            }
           }
         },
         Attachments: true

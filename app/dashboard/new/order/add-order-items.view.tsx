@@ -184,6 +184,13 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
     }
     // call the order endpoint and create the order
     router.push('payment')
+
+    toast({
+      title: 'Étape 2 : Articles enregistrés',
+      description:
+        'Tous les articles de la commande ont été enregistrés avec succès.',
+      variant: 'success'
+    })
   }
 
   // Function to handle form submission and add product to order

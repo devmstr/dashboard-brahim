@@ -67,6 +67,7 @@ interface OrderTableProps {
     total: string
     items: string
     state: string
+    createdAt: string
     status: string
     progress: string
     limit: string
@@ -96,6 +97,7 @@ export function OrderTable({
     state: 'Location',
     deadline: 'Délais',
     status: 'État',
+    createdAt: 'Ajouter Le',
     progress: 'Avancement',
     placeholder: 'Rechercher...',
     columns: 'Colonnes',
@@ -197,6 +199,18 @@ export function OrderTable({
         )
       }
     },
+    createdAt: {
+      cell: ({ row }) => {
+        const endDate = row.original.createdAt
+        return (
+          <div className="flex items-center">
+            {endDate
+              ? format(new Date(endDate), 'dd/MM/yyyy')
+              : 'Non Déterminé'}
+          </div>
+        )
+      }
+    },
     phone: {
       cell: ({ row }) => (
         <div className="flex items-center">
@@ -208,9 +222,13 @@ export function OrderTable({
       )
     },
     total: {
-      cell: ({ row }) => (
+      cell: ({
+        row: {
+          original: { total }
+        }
+      }) => (
         <div className="flex items-center">
-          {Number(row.original?.total?.toFixed(2)).toLocaleString('fr-FR', {
+          {Number(total?.toFixed(2)).toLocaleString('fr-FR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           })}
@@ -268,7 +286,7 @@ export function OrderTable({
       order: 3
     },
     {
-      id: 'deadline',
+      id: 'createdAt',
       roles: [
         'GUEST',
         'SALES_AGENT',
@@ -281,20 +299,33 @@ export function OrderTable({
       responsiveClass: 'hidden md:table-cell'
     },
     {
+      id: 'deadline',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 5,
+      responsiveClass: 'hidden md:table-cell'
+    },
+    {
       id: 'customer',
       roles: ['SALES_AGENT', 'SALES_MANAGER'], // Only sales roles can see customer data
-      order: 5,
+      order: 6,
       responsiveClass: 'hidden sm:table-cell'
     },
     {
       id: 'phone',
       roles: ['SALES_AGENT', 'SALES_MANAGER'], // Only sales roles can see customer data
-      order: 6
+      order: 7
     },
     {
       id: 'total',
       roles: ['SALES_AGENT', 'SALES_MANAGER'], // Only sales roles can see customer data
-      order: 7
+      order: 8
     },
     {
       id: 'items',
@@ -306,7 +337,7 @@ export function OrderTable({
         'ENGINEER',
         'ENGINEERING_MANAGER'
       ],
-      order: 8
+      order: 9
     },
     {
       id: 'state',
@@ -318,7 +349,7 @@ export function OrderTable({
         'ENGINEER',
         'ENGINEERING_MANAGER'
       ],
-      order: 9
+      order: 10
     },
     {
       id: 'actions',
@@ -330,7 +361,7 @@ export function OrderTable({
         'ENGINEER',
         'ENGINEERING_MANAGER'
       ],
-      order: 10
+      order: 11
     }
   ]
 

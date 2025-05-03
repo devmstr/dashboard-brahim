@@ -6,22 +6,23 @@ import { Collector, Core } from '@prisma/client'
 import { customAlphabet } from 'nanoid'
 
 export enum SKU_PREFIX {
-  RA = 'RA',
-  RE = 'RE',
-  FA = 'FA',
-  AU = 'AU',
-  CO = 'CO',
-  CB = 'CB',
-  CL = 'CL',
-  VE = 'VE',
+  RA = 'RA', // radiator
+  AR = 'AR', // order item
+  RE = 'RE', // renovation (typeof radiator)
+  FA = 'FA', // core (typeof radiator)
+  AU = 'AU', // Other (typeof order item)
+  CO = 'CO', // order
+  CB = 'CB', // non confirmed order
+  CL = 'CL', // client
+  VE = 'VE', // model
   PA = 'PA',
-  FL = 'FL'
+  FL = 'FL' // file
 }
 
 export type PREFIX = keyof typeof SKU_PREFIX
 
 export function skuId(prefix: PREFIX): string {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWYZ0123456789'
   const generateId = customAlphabet(alphabet, 6)
   const uniqueId = generateId()
   return `${prefix}X${uniqueId}`

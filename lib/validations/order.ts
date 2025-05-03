@@ -84,17 +84,11 @@ export const orderItemSchema = z.object({
   quantity: z.number().positive().optional().default(1),
   Core: coreSchema.optional(),
   Collector: collectorSchema.optional(),
-  Pricing: z
-    .object({
-      price: z.number().optional(),
-      bulkPrice: z.number().optional()
-    })
-    .optional(),
-  // Relations
   radiatorId: z.string().optional(),
   orderId: z.string().nullable().optional(),
   Attachments: z.array(attachmentSchema).optional(),
-  Car: carSchema.optional()
+  Car: carSchema.optional(),
+  Radiator: z.any().optional()
 })
 
 export type OrderItem = z.infer<typeof orderItemSchema>

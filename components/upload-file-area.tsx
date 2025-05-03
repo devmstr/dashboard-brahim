@@ -51,7 +51,7 @@ interface FileUploadAreaProps {
   maxFileSizeMB?: number
   multiple?: boolean
   onUpload: (file: File) => Promise<FileUploadResult>
-  onDelete?: (fileName: string) => Promise<boolean>
+  onDelete?: (fileId: string) => Promise<boolean> // Changed from fileName to fileId
   className?: string
   disabled?: boolean
   fileDeleteStates?: Record<string, boolean>
@@ -72,61 +72,64 @@ export function FileUploadArea({
   const [isDragging, setIsDragging] = useState(false)
   const [uploads, setUploads] = useState<
     Array<{
-      file: File | null // Allow null for initial files that don't have a File object
+      file: File | null
       status: UploadStatus
       progress: number
       result?: FileUploadResult
-      id: string // Add unique ID for better React key handling
-      name: string // Original file name
-      url?: string // URL for viewing the file
-      fileId?: string // Database ID for the attachment
+      id: string
+      name: string
+      url?: string
+      fileId?: string
     }>
   >([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const progressIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({})
 
+  // Track processed files to avoid duplicates
+  const processedFilesRef = useRef<Set<string>>(new Set())
+
   // Initialize uploads with initial files
   useEffect(() => {
-    if (initialFiles.length > 0) {
-      // Create a map of existing upload IDs to prevent duplicates
-      const existingUploadIds = new Map(
-        uploads.map((upload) => [
-          // Use fileId as the primary identifier if available, otherwise use name
-          upload.fileId || upload.name,
-          upload.id
-        ])
-      )
+    if (initialFiles.length === 0) return
 
-      const initialUploads = initialFiles
-        .filter((file) => {
-          // Skip files that are already in the uploads state
-          return !existingUploadIds.has(file.fileId || file.name)
-        })
-        .map((file) => ({
-          file: null, // No File object for initial files
-          status: 'success' as UploadStatus,
-          progress: 100,
-          id: `initial-${file.fileId || file.name}-${Date.now()}`,
-          name: file.name,
+    // Create a map of existing files by name to prevent duplicates
+    const existingFileNames = new Set(uploads.map((upload) => upload.name))
+
+    const newUploads = initialFiles
+      .filter((file) => {
+        // Skip files that are already in the uploads state
+        if (existingFileNames.has(file.name)) return false
+
+        // Also check our processed files reference
+        if (processedFilesRef.current.has(file.name)) return false
+
+        // Mark this file as processed
+        processedFilesRef.current.add(file.name)
+        return true
+      })
+      .map((file) => ({
+        file: null,
+        status: 'success' as UploadStatus,
+        progress: 100,
+        id: `file-${file.name}-${Date.now()}`,
+        name: file.name,
+        url: file.url,
+        fileId: file.fileId,
+        result: {
+          success: true,
+          message: 'File already uploaded',
+          fileName: file.name,
+          uniqueFileName: file.uniqueName,
           url: file.url,
-          fileId: file.fileId,
-          result: {
-            success: true,
-            message: 'File already uploaded',
-            fileName: file.name,
-            uniqueFileName: file.uniqueName,
-            url: file.url,
-            fileId: file.fileId
-          }
-        }))
+          fileId: file.fileId
+        }
+      }))
 
-      if (initialUploads.length > 0) {
-        setUploads((prev) => [...prev, ...initialUploads])
-      }
+    if (newUploads.length > 0) {
+      setUploads((prev) => [...prev, ...newUploads])
     }
   }, [initialFiles])
 
-  // Memoize handlers to prevent recreating functions on each render
   const handleDragOver = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       if (disabled) return
@@ -191,7 +194,15 @@ export function FileUploadArea({
       if (disabled) return
 
       for (const file of newFiles) {
-        const fileId = `${file.name}-${Date.now()}`
+        // Check if we already have this file by name
+        if (processedFilesRef.current.has(file.name)) {
+          continue
+        }
+
+        // Mark this file as being processed
+        processedFilesRef.current.add(file.name)
+
+        const fileId = `upload-${file.name}-${Date.now()}`
         const validation = validateFile(file)
 
         if (!validation.valid) {
@@ -251,23 +262,17 @@ export function FileUploadArea({
   const uploadFile = useCallback(
     async (file: File, fileId: string) => {
       try {
-        // More realistic progress simulation with non-linear increments
-        const progressSteps = [10, 20, 30, 50, 65, 80, 90]
-        let stepIndex = 0
-
+        // Simple progress simulation
         progressIntervalsRef.current[fileId] = setInterval(() => {
-          if (stepIndex < progressSteps.length) {
-            setUploads((prev) =>
-              prev.map((item) =>
-                item.id === fileId && item.status === 'uploading'
-                  ? { ...item, progress: progressSteps[stepIndex] }
-                  : item
-              )
-            )
-            stepIndex++
-          } else {
-            clearInterval(progressIntervalsRef.current[fileId])
-          }
+          setUploads((prev) =>
+            prev.map((item) => {
+              if (item.id === fileId && item.status === 'uploading') {
+                const newProgress = Math.min(item.progress + 10, 90)
+                return { ...item, progress: newProgress }
+              }
+              return item
+            })
+          )
         }, 300)
 
         // Perform the actual upload
@@ -318,6 +323,9 @@ export function FileUploadArea({
               : item
           )
         )
+
+        // Remove from processed files so it can be tried again
+        processedFilesRef.current.delete(file.name)
       }
     },
     [onUpload]
@@ -329,15 +337,14 @@ export function FileUploadArea({
       const uploadItem = uploads.find((item) => item.id === fileId)
       if (!uploadItem) return
 
-      // If onDelete callback is provided, call it
-      if (onDelete && uploadItem.name) {
+      // If onDelete callback is provided, call it with the fileId
+      if (onDelete) {
         try {
-          const success = await onDelete(uploadItem.name)
+          // Use the fileId from the result or the upload item's id
+          const idToDelete = uploadItem.fileId || uploadItem.id
+          const success = await onDelete(idToDelete)
           if (!success) {
-            console.error(
-              'Échec de la suppression du fichier:',
-              uploadItem.name
-            )
+            console.error('Échec de la suppression du fichier:', idToDelete)
             return
           }
         } catch (error) {
@@ -347,15 +354,12 @@ export function FileUploadArea({
       }
 
       // Remove the file from the uploads list
-      // Also remove any duplicates with the same fileId or name
-      setUploads((prev) => {
-        // If the item has a fileId, remove all items with that fileId
-        if (uploadItem.fileId) {
-          return prev.filter((item) => item.fileId !== uploadItem.fileId)
-        }
-        // Otherwise just remove the specific item
-        return prev.filter((item) => item.id !== fileId)
-      })
+      setUploads((prev) => prev.filter((item) => item.id !== fileId))
+
+      // Remove from processed files so it can be uploaded again
+      if (uploadItem.name) {
+        processedFilesRef.current.delete(uploadItem.name)
+      }
     },
     [uploads, onDelete]
   )
@@ -363,25 +367,40 @@ export function FileUploadArea({
   const getFileIcon = useCallback(
     (fileName: string, showPreviewHint = false) => {
       const extension = fileName.split('.').pop()?.toLowerCase()
-      let icon
 
       if (
         ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'].includes(
           extension || ''
         )
       ) {
-        icon = <ImageIcon className="h-8 w-8 text-secondary" />
-      } else if (
-        ['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(extension || '')
-      ) {
-        icon = <FileText className="h-8 w-8 text-secondary" />
-      } else {
-        icon = <FileIcon className="h-8 w-8 text-secondary" />
+        return (
+          <div className="relative">
+            <ImageIcon className="h-8 w-8 text-secondary" />
+            {showPreviewHint && (
+              <div className="absolute -bottom-1 -right-1 bg-secondary text-white rounded-full p-0.5">
+                <ExternalLink className="h-3 w-3" />
+              </div>
+            )}
+          </div>
+        )
+      }
+
+      if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(extension || '')) {
+        return (
+          <div className="relative">
+            <FileText className="h-8 w-8 text-secondary" />
+            {showPreviewHint && (
+              <div className="absolute -bottom-1 -right-1 bg-secondary text-white rounded-full p-0.5">
+                <ExternalLink className="h-3 w-3" />
+              </div>
+            )}
+          </div>
+        )
       }
 
       return (
         <div className="relative">
-          {icon}
+          <FileIcon className="h-8 w-8 text-secondary" />
           {showPreviewHint && (
             <div className="absolute -bottom-1 -right-1 bg-secondary text-white rounded-full p-0.5">
               <ExternalLink className="h-3 w-3" />
@@ -399,6 +418,11 @@ export function FileUploadArea({
     if (errorUploads.length > 0) {
       const timer = setTimeout(() => {
         setUploads((prev) => prev.filter((upload) => upload.status !== 'error'))
+
+        // Remove error files from processed list so they can be tried again
+        errorUploads.forEach((upload) => {
+          processedFilesRef.current.delete(upload.name)
+        })
       }, 5000)
       return () => clearTimeout(timer)
     }
@@ -432,6 +456,19 @@ export function FileUploadArea({
       maxLength - 3 - extension.length
     )}...${extension ? `.${extension}` : ''}`
   }
+
+  // Function to handle file preview
+  const handleFilePreview = useCallback((url: string, fileName: string) => {
+    if (!url) {
+      console.error('No URL available for file:', fileName)
+      return
+    }
+
+    console.log('Opening file for preview:', url)
+
+    // Open the file in a new tab
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }, [])
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -531,11 +568,7 @@ export function FileUploadArea({
                           <div
                             onClick={(e) => {
                               e.stopPropagation()
-                              window.open(
-                                upload.url,
-                                '_blank',
-                                'noopener,noreferrer'
-                              )
+                              handleFilePreview(upload.url!, upload.name)
                             }}
                             className="h-14 w-14 flex-shrink-0 rounded-md overflow-hidden bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 hover:scale-105 transition-all relative"
                             role="button"
@@ -544,18 +577,13 @@ export function FileUploadArea({
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault()
-                                window.open(
-                                  upload.url,
-                                  '_blank',
-                                  'noopener,noreferrer'
-                                )
+                                if (upload.url) {
+                                  handleFilePreview(upload.url, upload.name)
+                                }
                               }
                             }}
                           >
                             {getFileIcon(upload.name, true)}
-                            <div className="absolute inset-0 bg-black/5 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                              <span className="sr-only">Ouvrir le fichier</span>
-                            </div>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>

@@ -34,6 +34,7 @@ const productFormSchema = z.object({
   quantity: z.number().min(1, { message: 'Quantity must be at least 1' }),
   cooling: z.string().min(1, { message: 'Cooling is required' }),
   packaging: z.string().min(1, { message: 'Packaging is required' }),
+  isModified: z.boolean().default(false).optional(),
   note: contentSchema.optional(),
   modification: contentSchema.optional(),
   description: contentSchema.optional()
@@ -47,6 +48,7 @@ interface ProductDetailsFormProps {
     label: string
     category?: string
     cooling?: string
+    isModified?: boolean
     Car?: {
       model?: string
       brand?: string
@@ -56,7 +58,7 @@ interface ProductDetailsFormProps {
     values: ProductFormValues & {
       id: string
       label: string
-      Car?: { model?: string; brand?: string }
+      Car?: { model?: string; brand?: string } | null
     }
   ) => void
 }
@@ -65,7 +67,6 @@ export function AddOrderItemFromDbFrom({
   initialData,
   onSubmit
 }: ProductDetailsFormProps) {
-  const [isModelAvailable, setIsModelAvailable] = useState(false)
   const [isModificationIncluded, setIsModificationIncluded] = useState(false)
 
   // Initialize form with default values
@@ -76,6 +77,7 @@ export function AddOrderItemFromDbFrom({
       fabrication: 'Confection',
       quantity: 1,
       cooling: initialData.cooling || 'Eau',
+      isModified: false,
       packaging: 'Carton',
       modification: '',
       description: ''
@@ -89,10 +91,13 @@ export function AddOrderItemFromDbFrom({
       ...data,
       id: initialData.id,
       label: initialData.label,
-      Car: initialData.Car && {
-        brand: initialData.Car.brand,
-        model: initialData.Car.model
-      }
+      isModified: initialData.isModified || false,
+      Car: initialData.Car
+        ? {
+            brand: initialData.Car.brand,
+            model: initialData.Car.model
+          }
+        : null
     })
   }
 

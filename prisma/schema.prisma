@@ -217,6 +217,7 @@ model Collector {
   type                CollectorType
   width               Int
   height              Int
+  thickness           Int?
   componentId         String        @unique
   collectorTemplateId String
 
@@ -227,12 +228,11 @@ model Collector {
 }
 
 model CollectorTemplate {
-  id           String   @id @default(cuid())
-  thickness    Int?
-  position     String
-  tightening   String
-  isPerforated Boolean?
-  isTinned     Boolean?
+  id          String   @id @default(cuid())
+  position    String
+  tightening  String
+  perforation String?
+  isTinned    Boolean?
 
   Collectors Collector[]
 
@@ -332,15 +332,16 @@ model Client {
 }
 
 model Attachment {
-  id           Int        @id @default(autoincrement())
-  url          String // URL of the uploaded file
-  type         String // MIME type like 'image/jpeg', 'application/pdf', etc.
-  name         String // Original file name
-  OrderBatch   Order?     @relation(fields: [orderBatchId], references: [id], onDelete: Cascade)
-  orderBatchId String?
-  createdAt    DateTime   @default(now())
-  Order        OrderItem? @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId      String? // Made optional to fix the issue
+  id          Int        @id @default(autoincrement())
+  url         String // URL of the uploaded file
+  type        String // MIME type like 'image/jpeg', 'application/pdf', etc.
+  name        String // Original file name
+  uniqueName  String     @unique // Unique file serial
+  Order       Order?     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId     String?
+  createdAt   DateTime   @default(now())
+  OrderItem   OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  orderItemId String? // Made optional to fix the issue @map("orderId")
 
   @@map("attachments") // Added map directive for consistency
 }
@@ -351,7 +352,7 @@ model Order {
   state       String?
   progress    Int          @default(0)
   OrdersItems OrderItem[]
-  Payment     Payment      @relation(name: "OrderBatchToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
+  Payment     Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
   paymentId   String       @unique
   clientId    String
   Client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -371,26 +372,31 @@ model OrderItem {
   packaging    String?
   fabrication  String?
   isModified   String?
+  quantity     Int?
   validatedAt  DateTime?
   canceledAt   DateTime?
   createdAt    DateTime     @default(now()) // Made consistent (not optional)
   updatedAt    DateTime     @updatedAt // Made consistent (not optional)
   Radiator     Radiator     @relation(fields: [radiatorId], references: [id], onDelete: Restrict)
   radiatorId   String
-  Order        Order?       @relation(fields: [orderBatchId], references: [id], onDelete: SetNull)
-  orderBatchId String?
+  Order        Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId      String?
   Attachments  Attachment[]
 
   @@map("orders")
 }
 
 model Payment {
-  id         String @id @default(cuid())
-  amount     Float
-  deposit    Float
-  remaining  Float
-  OrderBatch Order? @relation(name: "OrderBatchToPayment")
+  id        String  @id @default(cuid())
+  amount    Float
+  deposit   Float
+  remaining Float
+  mode      String?
+  bank      String?
+  iban      String?
+  depositor String?
 
+  Order     Order?   @relation(name: "OrderToPayment")
   createdAt DateTime @default(now()) // Added for consistency
   updatedAt DateTime @updatedAt // Added for consistency
 

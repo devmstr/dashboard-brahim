@@ -54,6 +54,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
         'ledger',
         'inventory',
         'db',
+        'cars',
         'settings'
       ].includes(key as string)
     )
@@ -66,7 +67,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
           items={linkedList}
         />
         <div className="flex flex-col  min-h-screen w-full">
-          <DashboardNav className="w-full bg-white flex items-center z-30 h-16 shadow-md " />
+          <DashboardNav className="w-full bg-white flex items-center z-30 h-16 shadow-md px-3" />
           <ScrollArea className="w-full h-full max-h-[calc(100vh-4rem)]">
             <main className="container py-8">{children}</main>
           </ScrollArea>

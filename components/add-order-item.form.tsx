@@ -311,47 +311,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   return (
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={handleSubmit}>
-        <div className="relative border rounded-md px-3 py-3">
-          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-            Prix
-          </span>
-          <div className="flex flex-col gap-5 md:grid md:grid-cols-2 ">
-            <FormField
-              control={form.control}
-              name="Pricing.price"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Prix (Unité)</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type={'number'}
-                      placeholder="68000.00"
-                      onChange={(e) => {
-                        const { value } = e.target
-                        form.setValue('Pricing.price', Number(value))
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Pricing.bulkPrice"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Prix (Gros)</FormLabel>
-                  <FormControl>
-                    <Input {...field} type={'number'} placeholder="68000.00" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
         {/* Vehicle Section */}
         <div className="flex items-center gap-2">
           <Label id="isModelAvailable">Véhicule</Label>
@@ -376,12 +335,12 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                 </FormLabel>
                 <FormControl>
                   <MdEditor
-                    editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+                    editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full min-h-28"
                     className={`w-full min-h-36 group
                       bg-yellow-50 focus-within:border-yellow-400 ${
                         !field.value ? 'border-destructive' : ''
                       }`}
-                    placeholder="Ajouter Le Model Caterpillar D430 ..."
+                    placeholder={`Solen Le Model TRAC VERSATILE  \nOù Bien Ajouter Le Model TRAC VERSATILE...`}
                     setValue={(markdown) => form.setValue('note', markdown)}
                     value={field.value}
                   />
