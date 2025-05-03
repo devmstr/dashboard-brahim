@@ -37,6 +37,7 @@ type FileUploadResult = {
 }
 
 interface InitialFile {
+  id: string
   name: string
   uniqueName: string
   path: string

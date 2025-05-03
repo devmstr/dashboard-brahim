@@ -33,19 +33,15 @@ type Props = {}
 
 export const PaymentForm: React.FC<Props> = ({}: Props) => {
   const { order, setOrder } = useOrder()
+  console.log('order before ', order)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>(
-    []
+    order?.Attachments || []
   )
-
   const form = useForm<PaymentType>({
     defaultValues: {
-      price: order?.Payment?.price,
-      deposit: order?.Payment?.deposit,
-      remaining: order?.Payment?.remaining,
-      iban: order?.Payment?.iban,
-      depositor: order?.Payment?.depositor,
+      ...order?.Payment,
       bank: order?.Payment?.bank || 'BNA',
       mode: order?.Payment?.mode || 'Espèces'
     },
@@ -76,8 +72,8 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
     // Update order with payment information
     setOrder((prev) => ({
       ...prev,
-      payment: formData,
-      attachments: uploadedAttachments
+      Payment: formData,
+      Attachments: uploadedAttachments
     }))
 
     toast({
@@ -88,7 +84,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
 
     // Submit the order
     // submitOrder()
-    console.log(order)
+    console.log('order after ', order)
   }
 
   async function submitOrder(
@@ -207,16 +203,16 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
   }
 
   // Handle when a new attachment is added
-  function handleAttachmentAdded(attachment: Attachment) {
-    console.log('Attachment added:', attachment)
+  function handleAttachmentAdded(Attachment: Attachment) {
+    console.log('Attachment added:', Attachment)
 
     // Add the new attachment to our state
-    setUploadedAttachments((prev) => [...prev, attachment])
+    setUploadedAttachments((prev) => [...prev, Attachment])
 
     // Update the order context
     setOrder((prev) => ({
       ...prev,
-      attachments: [...(prev?.Attachments || []), attachment]
+      Attachments: [...(prev?.Attachments || []), Attachment]
     }))
   }
 
@@ -233,7 +229,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
     // Update the order context
     setOrder((prev) => ({
       ...prev,
-      attachments: updatedAttachments
+      Attachments: updatedAttachments
     }))
   }
 
@@ -241,28 +237,26 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <div className="relative border rounded-md px-3 pt-4 py-3">
-          <CardGrid className="">
-            <div className="">
-              <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-                délais
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            délais
+          </span>
+          <div className="flex flex-col gap-2">
+            <Label className="capitalize">
+              {' Délais estimé'}
+              <span className="text-xs text-muted-foreground/50">
+                {'(susceptible de changer)'}
               </span>
-              <Label className="capitalize">
-                {' Délais estimé'}
-                <span className="text-xs text-muted-foreground/50">
-                  {'(susceptible de changer)'}
-                </span>
-              </Label>
-              <DatePicker
-                date={order?.deadline || new Date().toISOString()}
-                onDateChange={(v) =>
-                  setOrder((prev) => ({ ...prev, deadline: v }))
-                }
-                locale={fr}
-                placeholder="Choisir une date"
-                formatStr="PPP"
-              />
-            </div>
-          </CardGrid>
+            </Label>
+            <DatePicker
+              date={order?.deadline || new Date().toISOString()}
+              onDateChange={(v) =>
+                setOrder((prev) => ({ ...prev, deadline: v }))
+              }
+              locale={fr}
+              placeholder="Choisir une date"
+              formatStr="PPP"
+            />
+          </div>
         </div>
         <div className="relative space-y-3 border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
@@ -423,7 +417,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
           </span>
           <Label className="capitalize">Joindre des fichiers</Label>
           <OrderUploader
-            uploadPath={`data/orders/${order?.id || 'unknown'}`}
+            uploadPath={`orders/${order?.id || 'unknown'}`}
             initialAttachments={uploadedAttachments}
             onAttachmentAdded={handleAttachmentAdded}
             onAttachmentDeleted={handleAttachmentDeleted}

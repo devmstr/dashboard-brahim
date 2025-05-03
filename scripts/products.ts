@@ -170,13 +170,12 @@ async function main() {
       thickness: faker.number.int({ min: 5, max: 15 }),
       position,
       tightening,
-      material: faker.helpers.arrayElement(MATERIALS),
       isPerforated: faker.datatype.boolean(),
       isTinned: faker.datatype.boolean()
     }
 
     // Create TOP collector
-    const topCollector = await prisma.radiatorComponent.create({
+    await prisma.radiatorComponent.create({
       data: {
         name: `Collector TOP ${faker.string.alphanumeric(4).toUpperCase()}`,
         type: ComponentType.COLLECTOR,

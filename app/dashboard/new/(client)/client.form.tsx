@@ -5,7 +5,9 @@ import { Client } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ClientTable, ClientTableInput } from '@/components/client-table'
-import CustomerSearchInput from '@/components/customer-search.input'
+import CustomerSearchInput, {
+  ClientWithAddress
+} from '@/components/customer-search.input'
 import { Icons } from '@/components/icons'
 import { useOrder } from '@/components/new-order.provider'
 import { Button } from '@/components/ui/button'
@@ -18,13 +20,15 @@ interface Props {
 
 export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   const { order, setOrder } = useOrder()
-  const [customer, setCustomer] = useState<Client | undefined>(order?.Client)
+  const [customer, setCustomer] = useState<ClientWithAddress | undefined>(
+    order?.Client
+  )
   const router = useRouter()
 
   // Add an effect to keep local state in sync with order context
   useEffect(() => {
     if (order?.Client && order.Client !== customer) {
-      setCustomer(order.Client)
+      setCustomer(order?.Client)
     }
   }, [order?.Client, customer])
 
@@ -32,19 +36,23 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   const renderRowActions = (client: Client) => {
     return (
       <div className="px-2">
-        <Button variant={'ghost'} className="" onClick={() => onSubmit(client)}>
+        <Button
+          variant={'ghost'}
+          className=""
+          onClick={() => onClientChange(client)}
+        >
           Choisir
         </Button>
       </div>
     )
   }
 
-  function onSubmit(client: ClientTableInput | undefined) {
-    setCustomer(client)
+  function onClientChange(Client: ClientWithAddress | undefined) {
+    setCustomer(Client)
     setOrder((prev) => ({
       ...prev,
-      clientId: client?.id,
-      client
+      clientId: Client?.id,
+      Client
     }))
   }
 
@@ -59,12 +67,11 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
       return
     }
 
-    onSubmit(customer)
+    onClientChange(customer)
     // setup an order id
-    const orderId = skuId('CO')
     setOrder((prev) => ({
       ...prev,
-      id: orderId
+      id: order?.id || skuId('CO')
     }))
 
     router.push('new/order')
@@ -72,7 +79,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   }
 
   return (
-    <CustomerSearchInput selected={customer} onSelectChange={onSubmit}>
+    <CustomerSearchInput selected={customer} onSelectChange={onClientChange}>
       <div className=" flex flex-col gap-4 w-full">
         <Label className="text-foreground">Derniers Acheteurs</Label>
         <ClientTable

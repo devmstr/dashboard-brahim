@@ -58,7 +58,7 @@ export type Core = z.infer<typeof coreSchema>
 
 // Attachment schema
 export const attachmentSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   name: z.string(),
   uniqueName: z.string().optional(),
   url: z.string(),

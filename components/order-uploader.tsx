@@ -5,11 +5,12 @@ import { useState, useEffect } from 'react'
 import { FileUploadArea } from '@/components/upload-file-area'
 import { toast } from '@/hooks/use-toast'
 import type { Attachment } from '@/lib/validations/order'
+import { skuId } from '@/lib/utils'
 
 interface OrderUploaderProps {
   uploadPath: string
   initialAttachments?: Attachment[]
-  onAttachmentAdded?: (attachment: Attachment) => void
+  onAttachmentAdded?: (Attachment: Attachment) => void
   onAttachmentDeleted?: (fileName: string) => void
   acceptedFileTypes?: string
   maxFileSizeMB?: number
@@ -49,7 +50,7 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
         setAttachments((prev) => [...prev, ...newAttachments])
       }
     }
-  }, [initialAttachments]) // Only run when initialAttachments changes
+  }, [initialAttachments])
 
   // Handle file upload
   const handleUpload = async (file: File) => {
@@ -88,7 +89,7 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
       if (result.success) {
         // Create new attachment
         const newAttachment: Attachment = {
-          id: 0,
+          id: skuId('FL'),
           name: file.name,
           uniqueName: result.uniqueFileName || file.name,
           path: result.storedPath || '',
@@ -201,6 +202,7 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
         disabled={isUploading || disabled}
         fileDeleteStates={isDeleting}
         initialFiles={attachments.map((file) => ({
+          id: file.id,
           name: file.name,
           uniqueName: file.uniqueName || file.name,
           path: file.path || '',
