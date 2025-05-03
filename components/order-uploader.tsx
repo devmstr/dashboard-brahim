@@ -10,7 +10,7 @@ import { skuId } from '@/lib/utils'
 interface OrderUploaderProps {
   uploadPath: string
   initialAttachments?: Attachment[]
-  onAttachmentAdded?: (Attachment: Attachment) => void
+  onAttachmentAdded?: (attachment: Attachment) => void
   onAttachmentDeleted?: (fileName: string) => void
   acceptedFileTypes?: string
   maxFileSizeMB?: number
@@ -37,7 +37,7 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
 
   // Initialize attachments from props once
   useEffect(() => {
-    if (initialAttachments.length > 0) {
+    if (initialAttachments && initialAttachments.length > 0) {
       // Create a map of existing file names to prevent duplicates
       const existingFileNames = new Set(attachments.map((file) => file.name))
 
@@ -50,7 +50,7 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
         setAttachments((prev) => [...prev, ...newAttachments])
       }
     }
-  }, [initialAttachments])
+  }, [initialAttachments]) // Only run when initialAttachments changes
 
   // Handle file upload
   const handleUpload = async (file: File) => {

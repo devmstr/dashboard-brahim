@@ -83,7 +83,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
     })
 
     // Submit the order
-    // submitOrder()
+    submitOrder()
     console.log('order after ', order)
   }
 
@@ -131,29 +131,36 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
     try {
       // Create the order
       const orderData = {
-        clientId: order.Client.id,
+        clientId: order.clientId,
         deadline: order.deadline || new Date().toISOString(),
         state: 'PENDING',
         progress: 0,
-        payment: {
-          price: paymentData.price,
-          deposit: paymentData.deposit,
-          remaining: paymentData.remaining,
-          mode: paymentData.mode,
-          bank: paymentData.bank,
-          iban: paymentData.iban,
-          depositor: paymentData.depositor
+        Payment: {
+          amount: paymentData.price || 0,
+          deposit: paymentData.deposit || 0,
+          remaining: paymentData.remaining || 0,
+          // Store additional payment info in metadata if needed
+          metadata: {
+            mode: paymentData.mode,
+            bank: paymentData.bank,
+            iban: paymentData.iban,
+            depositor: paymentData.depositor
+          }
         },
-        orderItems: order.OrderItems.map((item) => ({
-          ...item,
-          orderId: null // Will be set by the server
+        OrderItems: order.OrderItems.map((item) => ({
+          id: item.id,
+          note: item.note,
+          description: item.description,
+          modification: item.modification,
+          packaging: item.packaging,
+          fabrication: item.fabrication,
+          isModified: item.isModified,
+          radiatorId: item.radiatorId
         })),
-        fileAttachments: uploadedAttachments.map((att) => ({
-          name: att.name,
-          uniqueName: att.uniqueName,
+        Attachments: uploadedAttachments.map((att) => ({
           url: att.url,
-          path: att.path,
-          type: att.type
+          type: att.type,
+          name: att.name
         }))
       }
 
@@ -203,16 +210,16 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
   }
 
   // Handle when a new attachment is added
-  function handleAttachmentAdded(Attachment: Attachment) {
-    console.log('Attachment added:', Attachment)
+  function handleAttachmentAdded(attachment: Attachment) {
+    console.log('Attachment added:', attachment)
 
     // Add the new attachment to our state
-    setUploadedAttachments((prev) => [...prev, Attachment])
+    setUploadedAttachments((prev) => [...prev, attachment])
 
     // Update the order context
     setOrder((prev) => ({
       ...prev,
-      Attachments: [...(prev?.Attachments || []), Attachment]
+      Attachments: [...(prev?.Attachments || []), attachment]
     }))
   }
 

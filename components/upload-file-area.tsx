@@ -33,7 +33,7 @@ type FileUploadResult = {
   uniqueFileName?: string
   url?: string
   storedPath?: string
-  fileId?: number
+  fileId?: string
 }
 
 interface InitialFile {
@@ -42,7 +42,7 @@ interface InitialFile {
   uniqueName: string
   path: string
   url?: string
-  fileId?: number
+  fileId?: string
   type?: string
 }
 
@@ -79,7 +79,7 @@ export function FileUploadArea({
       id: string // Add unique ID for better React key handling
       name: string // Original file name
       url?: string // URL for viewing the file
-      fileId?: number // Database ID for the attachment
+      fileId?: string // Database ID for the attachment
     }>
   >([])
   const fileInputRef = useRef<HTMLInputElement>(null)
