@@ -12,7 +12,16 @@ export async function GET(
     const id = params.id
 
     const client = await prisma.client.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        Address: {
+          include: {
+            City: true,
+            Province: true,
+            Country: true
+          }
+        }
+      }
     })
 
     if (!client) {

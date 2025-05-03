@@ -12,7 +12,7 @@ export async function GET(
         id: params.brandId
       },
       include: {
-        families: true
+        Families: true
       }
     })
 

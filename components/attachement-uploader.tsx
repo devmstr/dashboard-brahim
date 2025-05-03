@@ -1,62 +1,82 @@
 'use client'
 
-import React from 'react'
+import type React from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FileUploadArea } from '@/components/upload-file-area'
-import { useState, useEffect } from 'react'
 import { toast } from '@/components/ui/use-toast'
-
-interface Attachment {
-  id: number
-  name: string
-  url: string
-  type: string
-}
 
 export type UploadedFile = {
   name: string // Original filename
-  uniqueName: string // SKU ID filename
+  uniqueName: string // Unique filename
   path: string
   url: string
-  fileId: number // Attachment ID in the database
+  fileId?: number // Optional ID in the database
   type: string // MIME type
 }
 
-interface Props {
-  uploadPath: string
-  onFilesUploaded?: (files: UploadedFile[]) => void
-  onDeleteAttachment?: (attachmentId: number) => Promise<void>
-  maxFiles?: number
-  acceptedFileTypes?: string
-  maxFileSizeMB?: number
-  orderId?: string // Optional order ID to associate uploads with
-  initialAttachments?: Attachment[] // Initial attachments to display
-  isShowDestination?: boolean
+type FileUploadResult = {
+  success: boolean
+  message: string
+  fileName?: string
+  uniqueFileName?: string
+  url?: string
+  storedPath?: string
+  fileId?: number
 }
 
-export const Uploader: React.FC<Props> = ({
+interface OrderAttachmentUploaderProps {
+  orderId: string
+  uploadPath: string
+  initialAttachments?: Array<{
+    id: number
+    name: string
+    url: string
+    type: string
+  }>
+  onAttachmentsChanged?: (
+    attachments: Array<{
+      id: number
+      name: string
+      url: string
+      type: string
+    }>
+  ) => void
+  acceptedFileTypes?: string
+  maxFileSizeMB?: number
+  maxFiles?: number
+  isShowDestination?: boolean
+  disabled?: boolean
+}
+
+export const OrderAttachmentUploader: React.FC<
+  OrderAttachmentUploaderProps
+> = ({
+  orderId,
   uploadPath,
-  onFilesUploaded,
-  onDeleteAttachment,
-  maxFiles = 10,
+  initialAttachments = [],
+  onAttachmentsChanged,
   acceptedFileTypes = '.pdf,.jpg,.jpeg,.png,.tiff',
   maxFileSizeMB = 20,
-  orderId,
-  initialAttachments = [],
-  isShowDestination = false
+  maxFiles = 10,
+  isShowDestination = false,
+  disabled = false
 }) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({})
+  const initialFilesProcessed = useRef(false)
 
-  // Convert initial attachments to the format expected by the component
-  const initialFilesProcessed = React.useRef(false)
-
+  // Initialize with initial attachments
   useEffect(() => {
     if (initialAttachments.length > 0 && !initialFilesProcessed.current) {
       // Create a map of existing file IDs to prevent duplicates
-      const existingFileIds = new Set(uploadedFiles.map((file) => file.fileId))
+      const existingFileIds = new Set(
+        uploadedFiles
+          .filter((file) => file.fileId !== undefined)
+          .map((file) => file.fileId)
+      )
 
-      const files = initialAttachments
+      const filesToAdd = initialAttachments
         .filter((attachment) => {
           // Skip attachments that are already in the uploadedFiles state
           return !existingFileIds.has(attachment.id)
@@ -70,16 +90,16 @@ export const Uploader: React.FC<Props> = ({
           type: attachment.type
         }))
 
-      if (files.length > 0) {
-        setUploadedFiles((prev) => [...prev, ...files])
+      if (filesToAdd.length > 0) {
+        setUploadedFiles((prev) => [...prev, ...filesToAdd])
       }
 
       initialFilesProcessed.current = true
     }
-  }, [initialAttachments])
+  }, [initialAttachments, uploadedFiles])
 
-  // Handle file upload - this is a client function, not a server action
-  const handleUpload = async (file: File) => {
+  // Handle file upload
+  const handleUpload = async (file: File): Promise<FileUploadResult> => {
     console.log(`Uploading file: ${file.name} to path: ${uploadPath}`)
 
     // Check if max files limit is reached
@@ -100,24 +120,18 @@ export const Uploader: React.FC<Props> = ({
     setIsUploading(true)
 
     try {
-      // Create FormData and append the file and path
+      // Step 1: Upload the file using the generic upload endpoint
       const formData = new FormData()
       formData.append('file', file)
       formData.append('path', uploadPath)
 
-      // If orderId is provided, include it in the form data
-      if (orderId) {
-        formData.append('orderId', orderId)
-      }
-
-      // Send to API route using fetch directly
-      const response = await fetch('/api/upload', {
+      const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json()
         setIsUploading(false)
 
         toast({
@@ -138,15 +152,44 @@ export const Uploader: React.FC<Props> = ({
         }
       }
 
-      const result = await response.json()
+      const uploadResult = await uploadResponse.json()
 
-      if (result.success) {
+      // Step 2: If we have an order ID, create an attachment in the database
+      if (orderId && uploadResult.success) {
+        try {
+          const attachmentResponse = await fetch(
+            '/api/attachments/create-from-upload',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                orderId: orderId,
+                fileName: file.name,
+                fileUrl: uploadResult.url,
+                fileType: file.type
+              })
+            }
+          )
+
+          if (attachmentResponse.ok) {
+            const attachment = await attachmentResponse.json()
+            // Update the result with the attachment ID
+            uploadResult.fileId = attachment.fileId
+          }
+        } catch (error) {
+          console.error('Error creating attachment:', error)
+        }
+      }
+
+      if (uploadResult.success) {
         const newFile: UploadedFile = {
           name: file.name,
-          uniqueName: result.uniqueFileName || '',
-          path: result.storedPath || '',
-          url: result.url,
-          fileId: result.fileId, // Store the attachment ID
+          uniqueName: uploadResult.uniqueFileName || file.name,
+          path: uploadResult.storedPath || '',
+          url: uploadResult.url || '',
+          fileId: uploadResult.fileId,
           type: file.type
         }
 
@@ -154,8 +197,17 @@ export const Uploader: React.FC<Props> = ({
         setUploadedFiles(newFiles)
 
         // Notify parent component if callback provided
-        if (onFilesUploaded) {
-          onFilesUploaded([newFile])
+        if (onAttachmentsChanged) {
+          const allAttachments = [
+            ...initialAttachments,
+            {
+              id: uploadResult.fileId || 0,
+              name: file.name,
+              url: uploadResult.url || '',
+              type: file.type
+            }
+          ]
+          onAttachmentsChanged(allAttachments)
         }
 
         toast({
@@ -168,7 +220,7 @@ export const Uploader: React.FC<Props> = ({
           title: 'Échec !',
           description: (
             <span>
-              Échec du téléchargement de {file.name}: {result.message}
+              Échec du téléchargement de {file.name}: {uploadResult.message}
             </span>
           ),
           variant: 'destructive'
@@ -176,7 +228,7 @@ export const Uploader: React.FC<Props> = ({
       }
 
       setIsUploading(false)
-      return result
+      return uploadResult
     } catch (error) {
       console.error('Upload error:', error)
       setIsUploading(false)
@@ -199,7 +251,7 @@ export const Uploader: React.FC<Props> = ({
   }
 
   // Handle file deletion
-  const handleDelete = async (fileName: string) => {
+  const handleDelete = async (fileName: string): Promise<boolean> => {
     // Find the file in our state
     const fileToDelete = uploadedFiles.find((file) => file.name === fileName)
     if (!fileToDelete) {
@@ -212,12 +264,22 @@ export const Uploader: React.FC<Props> = ({
     try {
       let success = false
 
-      // If the file has an attachment ID and we have a delete callback, use it
-      if (fileToDelete.fileId && onDeleteAttachment) {
-        await onDeleteAttachment(fileToDelete.fileId)
+      // If the file has an attachment ID, delete the attachment
+      if (fileToDelete.fileId) {
+        const response = await fetch(
+          `/api/attachments/${fileToDelete.fileId}`,
+          {
+            method: 'DELETE'
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error('Failed to delete attachment')
+        }
+
         success = true
       } else if (fileToDelete.path) {
-        // Otherwise use the legacy file deletion
+        // Otherwise use the file deletion API
         const response = await fetch('/api/delete-file', {
           method: 'POST',
           headers: {
@@ -238,13 +300,18 @@ export const Uploader: React.FC<Props> = ({
       setIsDeleting((prev) => ({ ...prev, [fileName]: false }))
 
       if (success) {
-        // Update state - remove all instances of this file by fileId or name
-        setUploadedFiles((prev) => {
-          if (fileToDelete.fileId) {
-            return prev.filter((file) => file.fileId !== fileToDelete.fileId)
-          }
-          return prev.filter((file) => file.name !== fileName)
-        })
+        // Update state - remove the deleted file
+        setUploadedFiles((prev) =>
+          prev.filter((file) => file.name !== fileName)
+        )
+
+        // Notify parent component if callback provided
+        if (onAttachmentsChanged && fileToDelete.fileId) {
+          const updatedAttachments = initialAttachments.filter(
+            (attachment) => attachment.id !== fileToDelete.fileId
+          )
+          onAttachmentsChanged(updatedAttachments)
+        }
 
         toast({
           title: 'Fichier supprimé',
@@ -292,9 +359,16 @@ export const Uploader: React.FC<Props> = ({
         multiple={true}
         onUpload={handleUpload}
         onDelete={handleDelete}
-        disabled={isUploading}
+        disabled={isUploading || disabled}
         fileDeleteStates={isDeleting}
-        initialFiles={uploadedFiles}
+        initialFiles={uploadedFiles.map((file) => ({
+          name: file.name,
+          uniqueName: file.uniqueName,
+          path: file.path,
+          url: file.url,
+          fileId: file.fileId,
+          type: file.type
+        }))}
       />
     </div>
   )

@@ -21,9 +21,9 @@ export async function GET(
       where: {
         id: params.typeId,
         modelId: params.modelId,
-        model: {
+        Model: {
           familyId: params.familyId,
-          family: {
+          Family: {
             brandId: params.brandId
           }
         }
@@ -60,9 +60,9 @@ export async function PUT(
       where: {
         id: params.typeId,
         modelId: params.modelId,
-        model: {
+        Model: {
           familyId: params.familyId,
-          family: {
+          Family: {
             brandId: params.brandId
           }
         }
@@ -111,9 +111,9 @@ export async function DELETE(
       where: {
         id: params.typeId,
         modelId: params.modelId,
-        model: {
+        Model: {
           familyId: params.familyId,
-          family: {
+          Family: {
             brandId: params.brandId
           }
         }

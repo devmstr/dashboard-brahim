@@ -50,10 +50,21 @@ import {
 } from '@/components/ui/alert-dialog'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import { useRouter } from 'next/navigation'
-import { ClientType } from '@/lib/validations/client'
+import { Client } from '@/lib/validations'
+
+export type ClientTableInput = Client & {
+  Address?: {
+    City: { name: string }
+  }
+  _count?:
+    | {
+        Orders: number
+      }
+    | undefined
+}
 
 interface Props {
-  data: ClientType[]
+  data: ClientTableInput[]
   t?: {
     columns: string
     limit: string
@@ -71,7 +82,7 @@ interface Props {
   showLimitSelector?: boolean
   showPaginationButtons?: boolean
   // Replace customActions with renderActions
-  renderActions?: (rowData: ClientType) => React.ReactNode
+  renderActions?: (rowData: ClientTableInput) => React.ReactNode
   onDelete?: (id: string) => Promise<void>
   className?: string
 }
@@ -127,7 +138,7 @@ export function ClientTable({
     }
   }
 
-  const columns: ColumnDef<ClientType>[] = [
+  const columns: ColumnDef<ClientTableInput>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -249,7 +260,7 @@ export function ClientTable({
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-1">
-            {row.original.address?.city.name}
+            {row.original.Address?.City.name}
           </div>
         )
       }

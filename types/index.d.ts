@@ -49,15 +49,6 @@ export type CarsTableEntry = {
   year?: number
 }
 
-export type OrderComponentsTableEntry = {
-  id: string
-  title: string
-  brand?: string
-  model?: string
-  fabrication: string
-  type: string
-  quantity: number
-}
 export type InventoryTableEntry = {
   id: string
   designation: string

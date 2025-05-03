@@ -4,7 +4,7 @@ import { clientSchema } from '@/app/dashboard/timeline/add-order.dialog'
 import { z } from 'zod'
 import { skuId } from '@/lib/utils'
 
-// Update the GET function to handle empty search terms and improve search matching
+// Update the GET function to handle empty searchTerm terms and improve search matching
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -14,12 +14,23 @@ export async function GET(request: Request) {
     const clients = await prisma.client.findMany({
       where: {
         OR: [
-          { name: { contains: searchTerm } },
-          { phone: { contains: searchTerm } }
+          { name: { contains: searchTerm, mode: 'insensitive' } },
+          { phone: { contains: searchTerm, mode: 'insensitive' } },
+          { email: { contains: searchTerm, mode: 'insensitive' } },
+          { label: { contains: searchTerm, mode: 'insensitive' } },
+          {
+            Address: {
+              Province: { name: { contains: searchTerm, mode: 'insensitive' } }
+            }
+          }
         ]
       },
       // Limit results to prevent performance issues with large datasets
-      take: 10
+      take: 10,
+      include: {
+        Address: { include: { City: true, Province: true, Country: true } },
+        _count: { select: { Orders: true } }
+      }
     })
 
     return NextResponse.json(clients)

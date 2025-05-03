@@ -1,15 +1,16 @@
 'use client'
+
 import { Combobox } from '@/components/combobox'
 import { Input } from '@/components/ui/input'
 import { BANK_TYPES, PAYMENT_TYPES } from '@/config/global'
-import { paymentSchema, PaymentType } from '@/lib/validations'
+import { paymentSchema, type PaymentType } from '@/lib/validations/payment'
+import type { Attachment } from '@/lib/validations/order'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { fr } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
-import React from 'react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { CardGrid } from '@/components/card'
-import { DatePicker } from '@/components/date-picker'
 import { Icons } from '@/components/icons'
 import { useOrder } from '@/components/new-order.provider'
 import { Button } from '@/components/ui/button'
@@ -22,64 +23,248 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
-import { UploadedFile, Uploader } from '@/components/uploader'
+import { OrderUploader } from '@/components/order-uploader'
 import { Label } from '@/components/ui/label'
+import { toast } from '@/hooks/use-toast'
+import { DatePicker } from '@/components/date-picker'
+import { fr } from 'date-fns/locale'
 
-interface Props {}
+type Props = {}
 
 export const PaymentForm: React.FC<Props> = ({}: Props) => {
   const { order, setOrder } = useOrder()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>(
+    []
+  )
+
   const form = useForm<PaymentType>({
     defaultValues: {
-      price: order?.payment?.price,
-      deposit: order?.payment?.deposit,
-      remaining: order?.payment?.remaining,
-      iban: order?.payment?.iban,
-      depositor: order?.payment?.depositor,
-      checkUrl: order?.payment?.checkUrl,
-      bank: order?.payment?.bank || 'Banque Nationale d’Algérie',
-      mode: order?.payment?.mode || 'Espèces',
-      endDate: order?.payment?.endDate || new Date().toISOString()
+      price: order?.Payment?.price,
+      deposit: order?.Payment?.deposit,
+      remaining: order?.Payment?.remaining,
+      iban: order?.Payment?.iban,
+      depositor: order?.Payment?.depositor,
+      bank: order?.Payment?.bank || 'BNA',
+      mode: order?.Payment?.mode || 'Espèces'
     },
     resolver: zodResolver(paymentSchema)
   })
+
   const price = form.watch('price')
   const deposit = form.watch('deposit')
   const mode = form.watch('mode')
 
-  const onSubmit = (formData: PaymentType) => {
+  // Update remaining amount when price or deposit changes
+  useEffect(() => {
+    if (price && deposit && price > deposit) {
+      form.setValue('remaining', price - deposit)
+    } else {
+      form.setValue('remaining', 0)
+    }
+  }, [price, deposit, form])
+
+  // Initialize attachments from order
+  useEffect(() => {
+    if (order?.Attachments) {
+      setUploadedAttachments(order.Attachments)
+    }
+  }, [order?.Attachments])
+
+  function onSubmit(formData: PaymentType) {
+    // Update order with payment information
     setOrder((prev) => ({
       ...prev,
-      payment: formData
+      payment: formData,
+      attachments: uploadedAttachments
+    }))
+
+    toast({
+      title: 'Paiement enregistré',
+      description: 'Les informations de paiement ont été enregistrées',
+      variant: 'success'
+    })
+
+    // Submit the order
+    // submitOrder()
+    console.log(order)
+  }
+
+  async function submitOrder(
+    event?: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ): Promise<void> {
+    if (event) {
+      event.preventDefault()
+    }
+
+    if (!order) {
+      toast({
+        title: 'Erreur',
+        description: 'Aucune commande à soumettre',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    if (!order.Client?.id) {
+      toast({
+        title: 'Client manquant',
+        description: 'Veuillez sélectionner un client pour cette commande',
+        variant: 'destructive'
+      })
+      router.push('/dashboard/new')
+      return
+    }
+
+    if (!order.OrderItems || order.OrderItems.length === 0) {
+      toast({
+        title: 'Articles manquants',
+        description: 'Veuillez ajouter au moins un article à cette commande',
+        variant: 'destructive'
+      })
+      router.push('/dashboard/new/order')
+      return
+    }
+
+    // Get the latest payment data from the form
+    const paymentData = form.getValues()
+
+    setIsSubmitting(true)
+
+    try {
+      // Create the order
+      const orderData = {
+        clientId: order.Client.id,
+        deadline: order.deadline || new Date().toISOString(),
+        state: 'PENDING',
+        progress: 0,
+        payment: {
+          price: paymentData.price,
+          deposit: paymentData.deposit,
+          remaining: paymentData.remaining,
+          mode: paymentData.mode,
+          bank: paymentData.bank,
+          iban: paymentData.iban,
+          depositor: paymentData.depositor
+        },
+        orderItems: order.OrderItems.map((item) => ({
+          ...item,
+          orderId: null // Will be set by the server
+        })),
+        fileAttachments: uploadedAttachments.map((att) => ({
+          name: att.name,
+          uniqueName: att.uniqueName,
+          url: att.url,
+          path: att.path,
+          type: att.type
+        }))
+      }
+
+      console.log('Submitting order with data:', orderData)
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(
+          errorData.message || 'Échec de la création de la commande'
+        )
+      }
+
+      const createdOrder = await response.json()
+
+      toast({
+        title: 'Commande créée',
+        description: `Commande #${createdOrder.id} créée avec succès`,
+        variant: 'success'
+      })
+
+      // Reset order state
+      setOrder(undefined)
+
+      // Redirect to order details or dashboard
+      router.push(`/dashboard/orders/${createdOrder.id}`)
+    } catch (error) {
+      console.error('Error creating order:', error)
+      toast({
+        title: 'Erreur',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur est survenue lors de la création de la commande',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Handle when a new attachment is added
+  function handleAttachmentAdded(attachment: Attachment) {
+    console.log('Attachment added:', attachment)
+
+    // Add the new attachment to our state
+    setUploadedAttachments((prev) => [...prev, attachment])
+
+    // Update the order context
+    setOrder((prev) => ({
+      ...prev,
+      attachments: [...(prev?.Attachments || []), attachment]
     }))
   }
 
-  function onFileUploaded(files: UploadedFile[]) {
-    if (files.length < 1) return
-    setOrder((prev) => ({
-      ...prev,
-      attachements: files.map(({ fileId, uniqueName, url, type }) => ({
-        id: fileId,
-        name: uniqueName,
-        url: url,
-        type: type
-      }))
-    }))
-  }
+  // Handle when an attachment is deleted
+  function handleAttachmentDeleted(fileName: string) {
+    console.log('Attachment deleted:', fileName)
 
-  async function onDeleteAttachment(attachmentId: number) {
-    //
+    // Remove the deleted attachment from our state
+    const updatedAttachments = uploadedAttachments.filter(
+      (att) => att.name !== fileName
+    )
+    setUploadedAttachments(updatedAttachments)
+
+    // Update the order context
     setOrder((prev) => ({
       ...prev,
-      attachements: prev?.attachements?.filter(({ id }) => id == attachmentId)
+      attachments: updatedAttachments
     }))
   }
 
   return (
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="relative space-y-3  border rounded-md px-3 py-3">
+        <div className="relative border rounded-md px-3 pt-4 py-3">
+          <CardGrid className="">
+            <div className="">
+              <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+                délais
+              </span>
+              <Label className="capitalize">
+                {' Délais estimé'}
+                <span className="text-xs text-muted-foreground/50">
+                  {'(susceptible de changer)'}
+                </span>
+              </Label>
+              <DatePicker
+                date={order?.deadline || new Date().toISOString()}
+                onDateChange={(v) =>
+                  setOrder((prev) => ({ ...prev, deadline: v }))
+                }
+                locale={fr}
+                placeholder="Choisir une date"
+                formatStr="PPP"
+              />
+            </div>
+          </CardGrid>
+        </div>
+        <div className="relative space-y-3 border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
             paiement
           </span>
@@ -139,19 +324,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                     <Input
                       {...field}
                       type="number"
-                      value={
-                        price && deposit && price > deposit
-                          ? price - deposit
-                          : 0
-                      }
-                      onChange={() => {
-                        form.setValue(
-                          'remaining',
-                          price && deposit && price > deposit
-                            ? price - deposit
-                            : 0
-                        )
-                      }}
+                      value={field.value || 0}
                       disabled={true}
                     />
                   </FormControl>
@@ -198,7 +371,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                         <Combobox
                           id="bank"
                           options={BANK_TYPES}
-                          selected={form.getValues('bank')}
+                          selected={field.value as string}
                           onSelect={(v) => {
                             form.setValue('bank', v as PaymentType['bank'])
                           }}
@@ -217,7 +390,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                       <FormItem className="group">
                         <FormLabel className="capitalize">Expéditeur</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value as string} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -233,7 +406,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                           R.I.B DU CLIENT
                         </FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value as string} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -244,54 +417,19 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
             )}
           </CardGrid>
         </div>
-        {mode == 'Cheque' && (
-          <div className="relative space-y-3  border rounded-md p-3">
-            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              pièce jointe
-            </span>
-            <Label>Uploader Un Cheque</Label>
-            <Uploader
-              isShowDestination
-              onFilesUploaded={onFileUploaded}
-              onDeleteAttachment={onDeleteAttachment}
-              initialAttachments={order?.attachements?.filter(
-                ({ url }) => url != order.payment?.checkUrl
-              )}
-              uploadPath={`data/orders/${order?.id || 'unknown'}`}
-            />
-          </div>
-        )}
-        <div className="relative border rounded-md px-3 pt-4 py-3">
-          <CardGrid className="">
-            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              délais
-            </span>
-            <FormField
-              control={form.control}
-              name="endDate"
-              render={({ field }) => (
-                <FormItem className="group flex flex-col gap-1 ">
-                  <FormLabel className="capitalize">
-                    {' Délais estimé'}
-                    <span className="text-xs text-muted-foreground/50">
-                      {'(susceptible de changer)'}
-                    </span>
-                  </FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      {...field}
-                      date={field.value}
-                      onDateChange={(v) => form.setValue('endDate', v)}
-                      locale={fr}
-                      placeholder="Choisir une date"
-                      formatStr="PPP"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardGrid>
+        <div className="relative space-y-3 border rounded-md p-3">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            pièces jointes
+          </span>
+          <Label className="capitalize">Joindre des fichiers</Label>
+          <OrderUploader
+            uploadPath={`data/orders/${order?.id || 'unknown'}`}
+            initialAttachments={uploadedAttachments}
+            onAttachmentAdded={handleAttachmentAdded}
+            onAttachmentDeleted={handleAttachmentDeleted}
+            isShowDestination
+            maxFiles={10}
+          />
         </div>
 
         <div className="flex flex-col items-end gap-4">
@@ -303,18 +441,24 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                 router.replace('order')
               }}
               className={'min-w-28'}
-              type="submit"
+              type="button"
+              disabled={isSubmitting}
             >
               <Icons.arrowRight className="mr-2 w-4 text-secondary rotate-180" />
               {'Commande'}
             </Button>
-            <Button
-              className="min-w-28"
-              type="submit"
-              onClick={() => router.push('upload')}
-            >
-              {'Annexes'}
-              <Icons.arrowRight className="ml-2 w-4 text-secondary " />
+            <Button className="min-w-28" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                  {'Traitement...'}
+                </>
+              ) : (
+                <>
+                  {'Confirmer'}
+                  <Icons.check className="ml-2 w-4 text-secondary" />
+                </>
+              )}
             </Button>
           </div>
         </div>

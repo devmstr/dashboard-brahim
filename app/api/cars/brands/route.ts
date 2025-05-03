@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const brands = await prisma.brand.findMany({
       include: {
-        families: true
+        Families: true
       }
     })
     return NextResponse.json(brands)

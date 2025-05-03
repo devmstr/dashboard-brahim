@@ -2,10 +2,9 @@
 
 import type React from 'react'
 
-import { OrderArticlesTable } from '@/components/article.table'
+import { OrderItemsTable } from '@/components/order-items.table'
 import { Icons } from '@/components/icons'
 import { useOrder } from '@/components/new-order.provider'
-import { OrderForm } from '@/components/order.form'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -16,8 +15,10 @@ import { useCallback, useEffect, useState } from 'react'
 import ProductSearchInput, {
   type RadiatorResp
 } from '@/components/search-product.input'
-import { ProductDetailsForm } from './product-details.form'
 import { toast } from '@/hooks/use-toast'
+import { AddOrderItemForm } from '@/components/add-order-item.form'
+import type { OrderItem } from '@/lib/validations'
+import { AddOrderItemFromDbFrom } from './add-order-item-from-db.form'
 
 type Props = {}
 
@@ -32,20 +33,15 @@ type Response = {
   createdAt: string
   updatedAt: string
 
-  inventory: {
+  Inventory: {
     level: number
     alertAt: number
   } | null
 
-  price: {
+  Price: {
     unit: number
     bulk: number
   } | null
-
-  Models: {
-    id: string
-    name: string
-  }[]
 
   Clients: {
     id: string
@@ -55,20 +51,24 @@ type Response = {
   Brands: {
     id: string
     name: string
+    Models: {
+      id: string
+      name: string
+    }[]
   }[]
 
-  components: {
+  Components: {
     id: string
     name: string
     type: string
-    materials: {
+    Materials: {
       id: string
       name: string
       weight: number
     }[]
 
     // Optional type-specific fields
-    core?: {
+    Core?: {
       id: string
       width: number
       height: number
@@ -78,12 +78,12 @@ type Response = {
       tube: string
     }
 
-    collector?: {
+    Collector?: {
       id: string
       type: string
       width: number
       height: number
-      template: {
+      Template: {
         id: string
         thickness: number
         position: string
@@ -96,7 +96,7 @@ type Response = {
   }[]
 }
 
-export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
+export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   const router = useRouter()
   const { order, setOrder } = useOrder()
   const [open, setOpen] = useState(false)
@@ -125,7 +125,7 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
 
     try {
       console.log(`Fetching product with ID: ${id}`)
-      const response = await fetch(`/api/products/${id}`)
+      const response = await fetch(`/api/radiators/${id}`)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch product: ${response.status}`)
@@ -140,10 +140,14 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
       }
 
       setFetchedProduct(data)
-
-      console.log('Product fetched successfully:', fetchedProduct)
+      console.log('Product fetched successfully:', data)
     } catch (error) {
       console.error('Error fetching product:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch product details',
+        variant: 'destructive'
+      })
     } finally {
       setIsLoading(false)
     }
@@ -156,15 +160,6 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
     }
   }, [selectedProduct, fetchProduct])
 
-  // setup order id
-  useEffect(() => {
-    if (order?.id) return
-    setOrder((prev) => ({
-      ...prev,
-      id: skuId('CB')
-    }))
-  }, [])
-
   // Function to open the product details form dialog
   const openProductForm = useCallback(() => {
     if (fetchedProduct) {
@@ -172,19 +167,39 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
     }
   }, [fetchedProduct])
 
+  function handleSubmit(
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ): void {
+    event.preventDefault()
+    if (
+      !order?.OrderItems ||
+      (order?.OrderItems && order.OrderItems?.length < 1)
+    ) {
+      toast({
+        title: 'Missing Articles!',
+        description: 'Vous devez sélectionner au moins un article.',
+        variant: 'destructive'
+      })
+      return
+    }
+    // call the order endpoint and create the order
+    router.push('payment')
+  }
+
   // Function to handle form submission and add product to order
   const handleAddProductToOrder = useCallback(
     (formData: any) => {
-      // Update the order with the new component
-      setOrder((prevOrder) => {
-        if (!prevOrder) return { components: [formData] }
+      // add the orderItem to orderItem list
+      setOrder((prev) => ({
+        ...prev,
+        OrderItems: [...(prev?.OrderItems || []), formData]
+      }))
 
-        return {
-          ...prevOrder,
-          components: [...(prevOrder.components || []), formData]
-        }
+      toast({
+        title: 'Succès',
+        description: 'Article ajouté à la commande',
+        variant: 'success'
       })
-      console.log(order?.components)
 
       // Close the dialog and reset selection
       setIsProductFormOpen(false)
@@ -194,22 +209,28 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
     [setOrder]
   )
 
-  function handleSubmit(
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ): void {
-    event.preventDefault()
-    if (
-      !order?.components ||
-      (order?.components && order.components?.length < 1)
-    ) {
-      toast({
-        title: 'Missing Articles!',
-        description: 'Vous devez sélectionner au moins un article.',
-        variant: 'destructive'
-      })
-      return
-    }
-    router.push('payment')
+  function onOrderPlaced(orderItem: OrderItem) {
+    let orderItemPrefix = orderItem.type?.substring(0, 2).toUpperCase() as
+      | 'FA'
+      | 'RA'
+      | 'AU'
+      | 'RE'
+    if (orderItem.fabrication == 'Rénovation') orderItemPrefix = 'RE'
+
+    orderItem.id = skuId(orderItemPrefix)
+    // add the orderItem to orderItem list
+    setOrder((prev) => ({
+      ...prev,
+      OrderItems: [...(prev?.OrderItems || []), orderItem]
+    }))
+
+    setOpen(false)
+
+    toast({
+      title: 'Article ajoutée',
+      description: 'La Article a été ajoutée avec succès.',
+      variant: 'success'
+    })
   }
 
   return (
@@ -254,35 +275,30 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
           </div>
 
           <div className="mt-4 space-y-3">
-            {/* Brands */}
+            {/* Brands with nested Models */}
             {fetchedProduct.Brands?.length > 0 && (
               <div className="flex items-start gap-2">
                 <span className="text-sm font-medium min-w-20">Brands:</span>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-col gap-2 w-full">
                   {fetchedProduct.Brands.map((brand) => (
-                    <span
-                      key={brand.id}
-                      className="text-sm px-2 py-0.5 bg-muted rounded-full"
-                    >
-                      {brand.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <div key={brand.id} className="flex flex-col">
+                      <span className="text-sm font-medium bg-muted px-2 py-0.5 rounded-full inline-block mb-1 w-fit">
+                        {brand.name}
+                      </span>
 
-            {/* Models */}
-            {fetchedProduct.Models?.length > 0 && (
-              <div className="flex items-start gap-2">
-                <span className="text-sm font-medium min-w-20">Models:</span>
-                <div className="flex flex-wrap gap-1">
-                  {fetchedProduct.Models.map((model) => (
-                    <span
-                      key={model.id}
-                      className="text-sm px-2 py-0.5 bg-muted rounded-full"
-                    >
-                      {model.name}
-                    </span>
+                      {brand.Models?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 ml-3">
+                          {brand.Models.map((model) => (
+                            <span
+                              key={model.id}
+                              className="text-xs px-2 py-0.5 bg-muted/50 rounded-full"
+                            >
+                              {model.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -317,22 +333,19 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
                 Complete Product Details
               </h2>
               {fetchedProduct && !isLoading && (
-                <ProductDetailsForm
+                <AddOrderItemFromDbFrom
+                  onSubmit={handleAddProductToOrder}
                   initialData={{
                     id: fetchedProduct.id,
-                    label: fetchedProduct.label,
+                    label:
+                      fetchedProduct.label || `Product ${fetchedProduct.id}`,
                     category: fetchedProduct.category,
                     cooling: fetchedProduct.cooling,
-                    car: {
-                      brand: fetchedProduct.Brands.flatMap(
-                        ({ name }) => name
-                      ).join(','),
-                      model: fetchedProduct.Models.flatMap(
-                        ({ name }) => name
-                      ).join(',')
+                    Car: {
+                      brand: fetchedProduct.Brands?.at(0)?.name,
+                      model: fetchedProduct.Brands?.at(0)?.Models?.at(0)?.name
                     }
                   }}
-                  onSubmit={handleAddProductToOrder}
                 />
               )}
             </div>
@@ -341,16 +354,16 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
       </Dialog>
 
       <div>
-        <OrderArticlesTable
-          data={order?.components?.map(
-            ({ id, title, car, fabrication, type, quantity }) => ({
+        <OrderItemsTable
+          data={order?.OrderItems?.map(
+            ({ id, label, Car, fabrication, type, quantity }) => ({
               id: id as string,
-              title: title as string,
-              brand: car?.brand,
-              model: car?.model,
-              fabrication,
-              type,
-              quantity
+              label: label as string,
+              brand: Car?.brand,
+              model: Car?.model,
+              fabrication: fabrication as string,
+              type: type as string,
+              quantity: quantity as number
             })
           )}
           className="rounded-b-none border-b-0"
@@ -362,8 +375,8 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
                 variant={'outline'}
                 className={cn(
                   'flex w-full h-24 justify-center gap-1  text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30  hover:bg-gray-100 text-md border-dashed broder-dash py-4',
-                  order?.components?.length &&
-                    order?.components?.length > 0 &&
+                  order?.OrderItems?.length &&
+                    order?.OrderItems?.length > 0 &&
                     'h-fit'
                 )}
               >
@@ -375,7 +388,7 @@ export const ProductSelectionView: React.FC<Props> = ({}: Props) => {
             </DialogTrigger>
             <DialogContent className="h-fit container max-w-5xl">
               <ScrollArea className="max-h-[80vh] pt-2 px-1 pr-2">
-                <OrderForm setOpen={setOpen} />
+                <AddOrderItemForm setOpen={setOpen} onSubmit={onOrderPlaced} />
               </ScrollArea>
             </DialogContent>
           </Dialog>

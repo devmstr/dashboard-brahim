@@ -1,5 +1,5 @@
 'use client'
-import { OrderValidationType } from '@/lib/validations'
+import { Order } from '@/lib/validations'
 import {
   createContext,
   Dispatch,
@@ -13,14 +13,14 @@ interface Props {
 }
 
 type ContextType = {
-  order?: OrderValidationType
-  setOrder: Dispatch<SetStateAction<OrderValidationType | undefined>>
+  order?: Order
+  setOrder: Dispatch<SetStateAction<Order | undefined>>
 }
 
 const OrderContext = createContext<ContextType | null>(null)
 
 export const NewOrderProvider: React.FC<Props> = ({ children }: Props) => {
-  const [order, setOrder] = useState<OrderValidationType | undefined>()
+  const [order, setOrder] = useState<Order | undefined>()
   return (
     <OrderContext.Provider value={{ order, setOrder }}>
       {children}

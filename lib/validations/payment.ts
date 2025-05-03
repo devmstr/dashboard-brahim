@@ -1,36 +1,24 @@
 import { z } from 'zod'
 
 export const paymentSchema = z.object({
-  price: z.number().positive().optional(),
-  deposit: z.number().positive().optional(),
-  remaining: z.number().positive().optional(),
-  mode: z
-    .enum([
-      'Espèces',
-      'Versement',
-      'Espèces + Versement',
-      'Virement',
-      'Cheque',
-      'À terme'
-    ])
-    .optional(),
+  price: z.number().min(0).default(0).optional(),
+  deposit: z.number().min(0).default(0).optional(),
+  remaining: z.number().min(0).default(0).optional(),
+  mode: z.enum([
+    'Espèces',
+    'Versement',
+    'Espèces + Versement',
+    'Virement',
+    'Cheque',
+    'À terme'
+  ]),
   bank: z
-    .enum([
-      'Banque Extérieure d’Algérie',
-      'Banque Nationale d’Algérie',
-      'Société Générale Algérie',
-      'Algerian Gulf Bank'
-    ])
-    .optional(),
-  iban: z.string().optional(),
-  checkUrl: z.string().url().optional(),
-  depositor: z.string().optional(),
-  endDate: z
-    .string()
+    .enum(['BEA', 'BNA', 'SGA', 'AGB'])
     .optional()
-    .refine((str) => !str || !isNaN(Date.parse(str)), {
-      message: 'Invalid Date'
-    })
+    .nullable()
+    .default(null),
+  iban: z.string().optional().nullable().default(null),
+  depositor: z.string().optional().nullable().default(null)
 })
 
 export type PaymentType = z.infer<typeof paymentSchema>

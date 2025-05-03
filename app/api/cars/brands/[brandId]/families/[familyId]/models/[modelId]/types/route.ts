@@ -12,7 +12,7 @@ export async function GET(
       where: {
         id: params.modelId,
         familyId: params.familyId,
-        family: {
+        Family: {
           brandId: params.brandId
         }
       }
@@ -47,7 +47,7 @@ export async function POST(
       where: {
         id: params.modelId,
         familyId: params.familyId,
-        family: {
+        Family: {
           brandId: params.brandId
         }
       }

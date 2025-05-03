@@ -1,5 +1,5 @@
 export * from './auth'
 export * from './tiptap'
-export * from './client'
 export * from './order'
+export * from './client'
 export * from './payment'

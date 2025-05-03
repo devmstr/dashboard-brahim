@@ -150,7 +150,7 @@ async function main() {
         name: `Core ${faker.string.alphanumeric(4).toUpperCase()}`,
         type: ComponentType.CORE,
         radiatorId: radiator.id,
-        core: {
+        Core: {
           create: {
             width: coreWidth,
             height: coreHeight,
@@ -181,18 +181,18 @@ async function main() {
         name: `Collector TOP ${faker.string.alphanumeric(4).toUpperCase()}`,
         type: ComponentType.COLLECTOR,
         radiatorId: radiator.id,
-        collector: {
+        Collector: {
           create: {
             width: collectorWidth,
             height: collectorHeight,
             type: 'TOP',
-            template: {
+            Template: {
               create: collectorTemplate
             }
           }
         }
       },
-      include: { collector: true }
+      include: { Collector: true }
     })
 
     console.log(
@@ -205,12 +205,12 @@ async function main() {
         name: `Collector BOTTOM ${faker.string.alphanumeric(4).toUpperCase()}`,
         type: ComponentType.COLLECTOR,
         radiatorId: radiator.id,
-        collector: {
+        Collector: {
           create: {
             width: collectorWidth,
             height: collectorHeight,
             type: 'BOTTOM',
-            template: {
+            Template: {
               create: collectorTemplate
             }
           }

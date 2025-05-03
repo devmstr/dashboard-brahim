@@ -24,7 +24,7 @@ export async function GET(
         familyId: params.familyId
       },
       include: {
-        types: true
+        Types: true
       }
     })
     return NextResponse.json(models)

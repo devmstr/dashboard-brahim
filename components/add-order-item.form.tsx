@@ -26,15 +26,16 @@ import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
 import { CardGrid } from './card'
 import { CarSelectionForm, type CarSelection } from './car-selection.from'
-
-// Utilities and Config
-import { useOrder } from './new-order.provider'
 import { toast } from '@/hooks/use-toast'
-import { generateProductTitle, skuId } from '@/lib/utils'
 import {
-  articleValidationSchema,
-  type ArticleValidationType
-} from '@/lib/validations/order'
+  FinsPitch,
+  FinsType,
+  generateProductTitle,
+  PositionType,
+  TighteningType,
+  TubeType
+} from '@/lib/utils'
+import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
 import {
   CLAMPING_TYPES,
   COLLECTOR_MATERIALS_TYPES,
@@ -48,13 +49,16 @@ import {
   TUBE_TYPES
 } from '@/config/global'
 
-interface OrderFormProps {
+interface OrderItemFormProps {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
+  onSubmit: (orderItem: OrderItem) => void
 }
 
-export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
+export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
+  setOpen,
+  onSubmit
+}) => {
   // State management
-  const { order, setOrder } = useOrder()
   const [carSelection, setCarSelection] = useState<CarSelection>()
   const [isModelAvailable, setIsModelAvailable] = useState(true)
   const [isModificationIncluded, setIsModificationIncluded] = useState(false)
@@ -62,69 +66,53 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
   const router = useRouter()
 
   // Form initialization with default values
-  const form = useForm<ArticleValidationType>({
+  const form = useForm<OrderItem>({
     defaultValues: {
       type: 'Radiateur',
       fabrication: 'Confection',
       cooling: 'Eau',
       packaging: 'Carton',
       quantity: 1,
-      core: {
-        fins: 'D',
-        finsPitch: 10,
-        tube: '7',
+      Core: {
+        fins: 'Normale',
+        finsPitch: '10',
+        tube: 'ET7',
         rows: 1,
         dimensions: {
           height: 0,
           width: 0
         }
       },
-      collector: {
+      Collector: {
         isTinned: false,
         perforation: 'Perforé',
-        tightening: 'P',
-        position: 'C',
+        tightening: 'Plié',
+        position: 'Centrer',
         material: 'Laiton',
-        upperDimensions: {
+        dimensions1: {
+          height: 0,
+          width: 0,
+          thickness: 1.5
+        },
+        dimensions2: {
           height: 0,
           width: 0,
           thickness: 1.5
         }
       }
     },
-    resolver: zodResolver(
-      articleValidationSchema.refine(
-        (data) => {
-          if (data.type === 'Radiateur') return true
-
-          if (data.type === 'Faisceau') {
-            const hasCore =
-              data.core?.dimensions?.width && data.core?.dimensions?.height
-            const hasCollector =
-              data.collector?.upperDimensions?.width &&
-              data.collector?.upperDimensions?.height
-            return hasCore && hasCollector
-          }
-
-          return true
-        },
-        {
-          message: 'Les dimensions sont obligatoires pour le type Faisceau',
-          path: ['core.dimensions']
-        }
-      )
-    )
+    resolver: zodResolver(orderItemSchema)
   })
 
   // Watched values
   const type = form.watch('type')
-  const tightening = form.watch('collector.tightening')
-  const finsPitch = form.watch('core.finsPitch')
-  const fins = form.watch('core.fins')
+  const tightening = form.watch('Collector.tightening')
+  const finsPitch = form.watch('Core.finsPitch')
+  const fins = form.watch('Core.fins')
   const cooling = form.watch('cooling')
-  const thickness = form.watch('collector.upperDimensions.thickness')
-  const height = form.watch('collector.upperDimensions.height')
-  const width = form.watch('collector.upperDimensions.width')
+  const thickness = form.watch('Collector.dimensions1.thickness')
+  const height = form.watch('Collector.dimensions1.height')
+  const width = form.watch('Collector.dimensions1.width')
   const note = form.watch('note')
 
   // Enforce "remarque" when no vehicle
@@ -145,47 +133,47 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
   useEffect(() => {
     const isFaisceau = type === 'Faisceau'
 
-    const core = form.getValues('core.dimensions')
-    const collector = form.getValues('collector.upperDimensions')
+    const Core = form.getValues('Core.dimensions')
+    const Collector = form.getValues('Collector.dimensions1')
 
-    const missingCore = !core?.width || !core?.height
-    const missingCollector = !collector?.width || !collector?.height
+    const missingCore = !Core?.width || !Core?.height
+    const missingCollector = !Collector?.width || !Collector?.height
 
     if (isFaisceau && missingCore) {
-      form.setError('core.dimensions', {
+      form.setError('Core.dimensions', {
         type: 'required',
         message: 'Les dimensions sont obligatoires pour le type Faisceau'
       })
     } else {
-      form.clearErrors('core.dimensions')
+      form.clearErrors('Core.dimensions')
     }
 
     if (isFaisceau && missingCollector) {
-      form.setError('collector.upperDimensions', {
+      form.setError('Collector.dimensions1', {
         type: 'required',
         message:
           'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
       })
     } else {
-      form.clearErrors('collector.upperDimensions')
+      form.clearErrors('Collector.dimensions1')
     }
   }, [type, form])
 
-  // Sync lower collector dimensions with upper when identical
+  // Sync lower Collector dimensions with upper when identical
   useEffect(() => {
     if (isCollectorsDifferent) {
-      form.setValue('collector.lowerDimensions', {
+      form.setValue('Collector.dimensions2', {
         thickness,
         width,
         height
       })
     } else {
-      form.setValue('collector.lowerDimensions', undefined)
+      form.setValue('Collector.dimensions2', undefined)
     }
   }, [isCollectorsDifferent, thickness, width, height, form])
 
   // Handle form submission
-  const onSubmit = (formData: ArticleValidationType) => {
+  const onSubmitHandler = (formData: OrderItem) => {
     const isNoteMissing = !formData.note?.toString().trim()
 
     if (!isModelAvailable && isNoteMissing) {
@@ -198,10 +186,6 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
       return
     }
 
-    if (!order) {
-      setOrder({ components: [] })
-    }
-
     if (!carSelection && isModelAvailable) {
       toast({
         title: 'Attention !',
@@ -212,52 +196,51 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
       return
     }
 
-    const id = order?.components ? String(order.components.length + 1) : '1'
-
-    const title = generateProductTitle({
-      core: {
-        width: Number(formData.core?.dimensions?.width),
-        height: Number(formData.core?.dimensions?.height)
+    const label = generateProductTitle({
+      coreDim: {
+        width: Number(formData.Core?.dimensions?.width),
+        height: Number(formData.Core?.dimensions?.height)
       },
-      collector: {
-        width: Number(formData.collector?.upperDimensions?.width),
-        height: Number(formData.collector?.upperDimensions?.height),
-        lowerHeight: Number(formData.collector?.lowerDimensions?.height),
-        lowerWidth: Number(formData.collector?.lowerDimensions?.width)
+      collectorDim1: {
+        width: Number(formData.Collector?.dimensions1?.width),
+        height: Number(formData.Collector?.dimensions1?.height)
       },
-      rows: formData.core?.rows,
+      collectorDim2: {
+        height: Number(formData.Collector?.dimensions2?.height),
+        width: Number(formData.Collector?.dimensions2?.width)
+      },
+      rows: formData.Core?.rows,
       type: formData.type as 'Faisceau' | 'Radiateur',
       fabrication: formData.fabrication as 'Renovation' | 'Confection',
-      fins: formData.core?.fins as 'Z' | 'A' | 'D',
-      pitch: formData.core?.finsPitch as 10 | 11 | 12 | 14,
-      position: formData.collector?.position as 'C' | 'D',
-      tightening: formData.collector?.tightening as 'P' | 'B',
-      tube: formData.core?.tube as '7' | '9' | 'M'
+      fins: formData.Core?.fins,
+      pitch: formData.Core?.finsPitch,
+      position: formData.Collector?.position,
+      tightening: formData.Collector?.tightening,
+      tube: formData.Core?.tube
     })
 
-    setOrder((prev) => ({
-      ...prev,
-      components: [
-        ...(prev?.components ?? []),
-        {
-          id,
-          title,
-          car: isModelAvailable
-            ? {
-                id: carSelection?.model?.id,
-                model: carSelection?.model?.name,
-                brand: carSelection?.brand?.name
-              }
-            : undefined,
-          ...formData
-        }
-      ]
-    }))
+    const orderItem: OrderItem = {
+      ...formData,
+      label,
+      Car:
+        isModelAvailable &&
+        carSelection?.model?.id &&
+        carSelection?.model?.name &&
+        carSelection?.brand?.name
+          ? {
+              id: carSelection.model.id,
+              model: carSelection.model.name,
+              brand: carSelection.brand.name
+            }
+          : undefined
+    }
+
+    onSubmit(orderItem)
 
     toast({
-      title: 'Commande ajoutée',
-      description: 'La commande a été ajoutée avec succès.',
-      variant: 'default'
+      title: 'Article ajoutée',
+      description: 'La Article a été ajoutée avec succès.',
+      variant: 'success'
     })
 
     if (setOpen) setOpen(false)
@@ -268,13 +251,13 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
     e.preventDefault()
 
     const isFaisceau = type === 'Faisceau'
-    const core = form.getValues('core.dimensions')
-    const collector = form.getValues('collector.upperDimensions')
+    const Core = form.getValues('Core.dimensions')
+    const Collector = form.getValues('Collector.dimensions1')
 
     let hasError = false
 
-    if (isFaisceau && (!core?.width || !core?.height)) {
-      form.setError('core.dimensions', {
+    if (isFaisceau && (!Core?.width || !Core?.height)) {
+      form.setError('Core.dimensions', {
         type: 'required',
         message:
           'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
@@ -282,8 +265,8 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
       hasError = true
     }
 
-    if (isFaisceau && (!collector?.width || !collector?.height)) {
-      form.setError('collector.upperDimensions', {
+    if (isFaisceau && (!Collector?.width || !Collector?.height)) {
+      form.setError('Collector.dimensions1', {
         type: 'required',
         message:
           'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
@@ -322,7 +305,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
       return
     }
 
-    form.handleSubmit(onSubmit)(e)
+    form.handleSubmit(onSubmitHandler)(e)
   }
 
   return (
@@ -335,7 +318,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
           <div className="flex flex-col gap-5 md:grid md:grid-cols-2 ">
             <FormField
               control={form.control}
-              name="price"
+              name="Pricing.price"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Prix (Unité)</FormLabel>
@@ -346,8 +329,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                       placeholder="68000.00"
                       onChange={(e) => {
                         const { value } = e.target
-                        form.setValue('price', Number(value))
-                        form.setValue('bulkPrice', Number(value))
+                        form.setValue('Pricing.price', Number(value))
                       }}
                     />
                   </FormControl>
@@ -357,7 +339,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
             />
             <FormField
               control={form.control}
-              name="bulkPrice"
+              name="Pricing.bulkPrice"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Prix (Gros)</FormLabel>
@@ -499,7 +481,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                           : FABRICATION_TYPES
                       }
                       onSelect={(v) => form.setValue('fabrication', v)}
-                      selected={field.value}
+                      selected={field.value as string}
                       isInSideADialog
                     />
                   </FormControl>
@@ -540,7 +522,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                       onSelect={(v) => {
                         form.setValue('cooling', v)
                         if (v !== 'Eau') {
-                          form.setValue('collector.tightening', 'Plié')
+                          form.setValue('Collector.tightening', 'Plié')
                         }
                       }}
                       selected={field.value}
@@ -563,7 +545,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                       id="packaging"
                       options={PACKAGING_TYPES}
                       onSelect={(v) => form.setValue('packaging', v)}
-                      selected={field.value}
+                      selected={field.value as string}
                       isInSideADialog
                     />
                   </FormControl>
@@ -610,7 +592,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                 <>
                   <FormField
                     control={form.control}
-                    name="core.dimensions.height"
+                    name="Core.dimensions.height"
                     render={({ field }) => (
                       <FormItem className="group">
                         <FormLabel className="capitalize">
@@ -625,7 +607,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                             type="number"
                             onChange={({ target: { value } }) =>
                               form.setValue(
-                                'core.dimensions.height',
+                                'Core.dimensions.height',
                                 Number(value)
                               )
                             }
@@ -638,7 +620,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                   />
                   <FormField
                     control={form.control}
-                    name="core.dimensions.width"
+                    name="Core.dimensions.width"
                     render={({ field }) => (
                       <FormItem className="group">
                         <FormLabel className="capitalize">
@@ -653,7 +635,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                             {...field}
                             onChange={({ target: { value } }) =>
                               form.setValue(
-                                'core.dimensions.width',
+                                'Core.dimensions.width',
                                 Number(value)
                               )
                             }
@@ -668,7 +650,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
               )}
               <FormField
                 control={form.control}
-                name="core.rows"
+                name="Core.rows"
                 render={({ field }) => (
                   <FormItem className="group">
                     <FormLabel className="capitalize">
@@ -679,7 +661,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                         type="number"
                         {...field}
                         onChange={({ target: { value } }) =>
-                          form.setValue('core.rows', Number(value))
+                          form.setValue('Core.rows', Number(value))
                         }
                         className="w-full"
                       />
@@ -689,16 +671,16 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                 )}
               />
             </CardGrid>
-            {type === 'Faisceau' && form.formState.errors.core?.dimensions && (
+            {type === 'Faisceau' && form.formState.errors.Core?.dimensions && (
               <div className="mt-2 text-destructive text-sm">
-                {form.formState.errors.core.dimensions.message}
+                {form.formState.errors.Core.dimensions.message}
               </div>
             )}
 
             <CardGrid>
               <FormField
                 control={form.control}
-                name="core.fins"
+                name="Core.fins"
                 render={({ field }) => (
                   <FormItem className="group">
                     <FormLabel className="capitalize">Ailette</FormLabel>
@@ -708,14 +690,14 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                         options={FINS_TYPES}
                         onSelect={(v) => {
                           if (
-                            (v === 'Zigzag' && finsPitch === 11) ||
+                            (v === 'Zigzag' && finsPitch === '11') ||
                             ((v === 'Droite (Aérer)' ||
                               v === 'Droite (Normale)') &&
-                              finsPitch === 12)
+                              finsPitch === '12')
                           ) {
-                            form.setValue('core.finsPitch', 10)
+                            form.setValue('Core.finsPitch', '10')
                           }
-                          form.setValue('core.fins', v)
+                          form.setValue('Core.fins', v as FinsType)
                         }}
                         selected={field.value}
                         isInSideADialog
@@ -727,7 +709,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
               />
               <FormField
                 control={form.control}
-                name="core.tube"
+                name="Core.tube"
                 render={({ field }) => (
                   <FormItem className="group">
                     <FormLabel className="capitalize">Tube</FormLabel>
@@ -735,7 +717,9 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                       <Combobox
                         id="tube"
                         options={TUBE_TYPES}
-                        onSelect={(v) => form.setValue('core.tube', v)}
+                        onSelect={(v) =>
+                          form.setValue('Core.tube', v as TubeType)
+                        }
                         selected={field.value}
                         isInSideADialog
                       />
@@ -746,7 +730,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
               />
               <FormField
                 control={form.control}
-                name="core.finsPitch"
+                name="Core.finsPitch"
                 render={({ field }) => (
                   <FormItem className="group">
                     <FormLabel className="capitalize">Pas Des Tubes</FormLabel>
@@ -757,7 +741,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                           fins === 'Zigzag' ? ['10', '12'] : ['10', '11', '14']
                         }
                         onSelect={(v) =>
-                          form.setValue('core.finsPitch', Number(v))
+                          form.setValue('Core.finsPitch', v as FinsPitch)
                         }
                         selected={field.value?.toString()}
                         isInSideADialog
@@ -780,7 +764,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                   <CardGrid>
                     <FormField
                       control={form.control}
-                      name="collector.isTinned"
+                      name="Collector.isTinned"
                       render={({ field }) => (
                         <FormItem className="w-full md:col-span-2 lg:col-span-3">
                           <FormLabel className="capitalize">Étamé</FormLabel>
@@ -789,7 +773,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                               {...field}
                               checked={field.value as boolean}
                               onCheckedChange={(v) =>
-                                form.setValue('collector.isTinned', v)
+                                form.setValue('Collector.isTinned', v)
                               }
                             />
                           </FormControl>
@@ -799,7 +783,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                     />
                     <FormField
                       control={form.control}
-                      name="collector.material"
+                      name="Collector.material"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">Matière</FormLabel>
@@ -807,7 +791,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                             <Combobox
                               options={COLLECTOR_MATERIALS_TYPES}
                               onSelect={(v) =>
-                                form.setValue('collector.material', v)
+                                form.setValue(
+                                  'Collector.material',
+                                  v as 'Acier' | 'Laiton'
+                                )
                               }
                               selected={field.value}
                               isInSideADialog
@@ -819,19 +806,22 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                     />
                     <FormField
                       control={form.control}
-                      name="collector.tightening"
+                      name="Collector.tightening"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">Serrage</FormLabel>
                           <FormControl>
                             <Combobox
                               options={
-                                ['Air', 'Huile'].includes(cooling)
+                                ['Air', 'Huile'].includes(cooling as string)
                                   ? ['Plié']
                                   : CLAMPING_TYPES
                               }
                               onSelect={(v) =>
-                                form.setValue('collector.tightening', v)
+                                form.setValue(
+                                  'Collector.tightening',
+                                  v as TighteningType
+                                )
                               }
                               selected={field.value}
                               isInSideADialog
@@ -844,7 +834,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                     {tightening === 'Boulonné' && (
                       <FormField
                         control={form.control}
-                        name="collector.perforation"
+                        name="Collector.perforation"
                         render={({ field }) => (
                           <FormItem className="group">
                             <FormLabel className="capitalize">
@@ -855,7 +845,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                                 id="perforation"
                                 options={PERFORATION_TYPES}
                                 onSelect={(v) =>
-                                  form.setValue('collector.perforation', v)
+                                  form.setValue(
+                                    'Collector.perforation',
+                                    v as 'Perforé' | 'Non Perforé'
+                                  )
                                 }
                                 selected={field.value}
                                 isInSideADialog
@@ -868,7 +861,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                     )}
                     <FormField
                       control={form.control}
-                      name="collector.position"
+                      name="Collector.position"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">
@@ -878,7 +871,10 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                             <Combobox
                               options={COLLECTOR_POSITION_TYPES}
                               onSelect={(v) =>
-                                form.setValue('collector.position', v)
+                                form.setValue(
+                                  'Collector.position',
+                                  v as PositionType
+                                )
                               }
                               selected={field.value}
                               isInSideADialog
@@ -901,7 +897,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                   <CardGrid>
                     <FormField
                       control={form.control}
-                      name="collector.upperDimensions.height"
+                      name="Collector.dimensions1.height"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">
@@ -916,7 +912,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                               {...field}
                               onChange={({ target: { value } }) =>
                                 form.setValue(
-                                  'collector.upperDimensions.height',
+                                  'Collector.dimensions1.height',
                                   Number(value)
                                 )
                               }
@@ -928,7 +924,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                     />
                     <FormField
                       control={form.control}
-                      name="collector.upperDimensions.width"
+                      name="Collector.dimensions1.width"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">
@@ -943,7 +939,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                               {...field}
                               onChange={({ target: { value } }) =>
                                 form.setValue(
-                                  'collector.upperDimensions.width',
+                                  'Collector.dimensions1.width',
                                   Number(value)
                                 )
                               }
@@ -955,7 +951,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                     />
                     <FormField
                       control={form.control}
-                      name="collector.upperDimensions.thickness"
+                      name="Collector.dimensions1.thickness"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">
@@ -970,7 +966,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                               {...field}
                               onChange={({ target: { value } }) =>
                                 form.setValue(
-                                  'collector.upperDimensions.thickness',
+                                  'Collector.dimensions1.thickness',
                                   Number(value)
                                 )
                               }
@@ -993,7 +989,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                       <CardGrid>
                         <FormField
                           control={form.control}
-                          name="collector.lowerDimensions.height"
+                          name="Collector.dimensions2.height"
                           render={({ field }) => (
                             <FormItem className="group">
                               <FormLabel className="capitalize">
@@ -1008,7 +1004,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'collector.lowerDimensions.height',
+                                      'Collector.dimensions2.height',
                                       Number(value)
                                     )
                                   }
@@ -1020,7 +1016,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                         />
                         <FormField
                           control={form.control}
-                          name="collector.lowerDimensions.width"
+                          name="Collector.dimensions2.width"
                           render={({ field }) => (
                             <FormItem className="group">
                               <FormLabel className="capitalize">
@@ -1035,7 +1031,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'collector.lowerDimensions.width',
+                                      'Collector.dimensions2.width',
                                       Number(value)
                                     )
                                   }
@@ -1047,7 +1043,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                         />
                         <FormField
                           control={form.control}
-                          name="collector.lowerDimensions.thickness"
+                          name="Collector.dimensions2.thickness"
                           render={({ field }) => (
                             <FormItem className="group">
                               <FormLabel className="capitalize">
@@ -1062,7 +1058,7 @@ export const OrderForm: React.FC<OrderFormProps> = ({ setOpen }) => {
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'collector.lowerDimensions.thickness',
+                                      'Collector.dimensions2.thickness',
                                       Number(value)
                                     )
                                   }

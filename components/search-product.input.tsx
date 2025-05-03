@@ -25,8 +25,15 @@ import type { Radiator } from '@prisma/client'
 export type RadiatorResp = {
   id: string
   label: string
-  Models: { id: string; name: string }[]
+  reference?: string
+  category?: string
+  cooling?: string
+  barcode?: string
+  isActive?: boolean
   Clients: { id: string; name: string }[]
+  Brands: { id: string; name: string; Models: { id: string; name: string }[] }[]
+  Inventory?: { level: number; alertAt: number } | null
+  Price?: { unit: number; bulk: number } | null
   createdAt?: string
   updatedAt?: string
 }
@@ -65,7 +72,7 @@ export default function ProductSearchInput({
     try {
       // Updated to use the correct endpoint
       const response = await fetch(
-        `/api/products?search=${encodeURIComponent(searchTerm)}`
+        `/api/radiators?search=${encodeURIComponent(searchTerm)}`
       )
 
       if (!response.ok) {
@@ -234,31 +241,73 @@ export default function ProductSearchInput({
                                 <span className="text-sm font-medium truncate">
                                   {highlightMatch(product.label)}
                                 </span>
+                                {product.reference && (
+                                  <span className="text-xs text-muted-foreground">
+                                    ({highlightMatch(product.reference)})
+                                  </span>
+                                )}
                               </div>
                               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pl-7 text-xs text-muted-foreground">
-                                {product.Models.length > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <Car className="w-3 h-3" />
-                                    <span>
-                                      {highlightMatch(
-                                        product.Models.map(
-                                          ({ name }) => name
-                                        ).join(',')
-                                      )}
-                                    </span>
+                                {/* Display brands with their models */}
+                                {product.Brands &&
+                                  product.Brands.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <Car className="w-3 h-3" />
+                                      <span>
+                                        {product.Brands.map((brand, idx) => (
+                                          <span key={brand.id}>
+                                            {idx > 0 && ', '}
+                                            <strong>
+                                              {highlightMatch(brand.name)}
+                                            </strong>
+                                            {brand.Models &&
+                                              brand.Models.length > 0 && (
+                                                <span>
+                                                  {' '}
+                                                  (
+                                                  {brand.Models.map(
+                                                    (model, midx) => (
+                                                      <span key={model.id}>
+                                                        {midx > 0 && ', '}
+                                                        {highlightMatch(
+                                                          model.name
+                                                        )}
+                                                      </span>
+                                                    )
+                                                  )}
+                                                  )
+                                                </span>
+                                              )}
+                                          </span>
+                                        ))}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                {product.Clients &&
+                                  product.Clients.length > 0 && (
+                                    <div className="flex items-center gap-1">
+                                      <User className="w-3 h-3" />
+                                      <span>
+                                        {highlightMatch(
+                                          product.Clients.map(
+                                            ({ name }) => name
+                                          ).join(', ')
+                                        )}
+                                      </span>
+                                    </div>
+                                  )}
+
+                                {product.Price && (
+                                  <div className="text-xs">
+                                    Prix: {product.Price.unit.toLocaleString()}{' '}
+                                    DA
                                   </div>
                                 )}
 
-                                {product.Clients.length > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <User className="w-3 h-3" />
-                                    <span>
-                                      {highlightMatch(
-                                        product.Clients.map(
-                                          ({ name }) => name
-                                        ).join(',')
-                                      )}
-                                    </span>
+                                {product.Inventory && (
+                                  <div className="text-xs">
+                                    Stock: {product.Inventory.level}
                                   </div>
                                 )}
                               </div>

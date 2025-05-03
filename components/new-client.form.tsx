@@ -4,9 +4,7 @@ import type React from 'react'
 import { useEffect, useState, useTransition } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import * as z from 'zod'
 
-import type { ClientSchemaType } from '@/app/dashboard/timeline/add-order.dialog'
 import { SearchComboBox } from '@/components/search-combo-box'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,23 +14,29 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel
+  FormLabel,
+  FormMessage
 } from '@/components/ui/form'
-import { clientValidationSchema } from '@/lib/validations'
+import {
+  newClientSchema as clientSchema,
+  type NewClient as Client
+} from '@/lib/validations/client'
 import { toast } from '@/hooks/use-toast'
 
 interface Props {
-  data?: Partial<ClientSchemaType>
+  data?: Partial<Client>
+  onSuccess?: (client: Client) => void
 }
 
 interface LocationOption {
   value: string
   label: string
-  zip_code?: string
+  zipCode?: string
 }
 
 export const ClientInfoForm: React.FC<Props> = ({
-  data: initialData
+  data: initialData,
+  onSuccess
 }: Props) => {
   const [countries, setCountries] = useState<LocationOption[]>([
     { value: 'DZ', label: 'Algeria' }
@@ -43,11 +47,11 @@ export const ClientInfoForm: React.FC<Props> = ({
   const [isLoadingCities, setIsLoadingCities] = useState(false)
 
   // Initialize form with React Hook Form
-  const form = useForm<ClientSchemaType>({
-    resolver: zodResolver(clientValidationSchema),
+  const form = useForm<Client>({
+    resolver: zodResolver(clientSchema),
     defaultValues: {
       ...initialData,
-      label: initialData?.label || 'Société A Responsabilité limitée (SARL)',
+      label: initialData?.label || 'SARL',
       isCompany: initialData?.isCompany || false,
       country: initialData?.country || 'DZ',
       province: initialData?.province || 'Ghardaïa',
@@ -59,14 +63,16 @@ export const ClientInfoForm: React.FC<Props> = ({
   const isCompany = form.watch('isCompany')
   const countryValue = form.watch('country')
   const provinceValue = form.watch('province')
-  const cityValue = form.watch('city')
-  const zipValue = form.watch('zip')
+  const cityWatch = form.watch('city')
+  const zipWatch = form.watch('zip')
 
   // Update form when initialData changes
   useEffect(() => {
     if (initialData) {
       Object.entries(initialData).forEach(([key, value]) => {
-        form.setValue(key as any, value as any)
+        if (value !== undefined) {
+          form.setValue(key as any, value as any)
+        }
       })
     }
   }, [initialData, form])
@@ -104,7 +110,7 @@ export const ClientInfoForm: React.FC<Props> = ({
             data.map((city: any) => ({
               value: city.id,
               label: city.name,
-              zip_code: city.zip_code
+              zipCode: city.zipCode
             }))
           )
           setIsLoadingCities(false)
@@ -123,7 +129,7 @@ export const ClientInfoForm: React.FC<Props> = ({
       try {
         setIsLoadingProvinces(true)
         const provinces = await fetch(`/api/locations/provinces?country=DZ`)
-        const cities = await fetch(`/api/locations/cities?provinceCode=48`)
+        const cities = await fetch(`/api/locations/cities?provinceCode=47`)
         const provincesData = await provinces.json()
         setProvinces(
           provincesData.map((province: any) => ({
@@ -149,39 +155,70 @@ export const ClientInfoForm: React.FC<Props> = ({
   }, [])
 
   useEffect(() => {
-    if (cityValue) {
+    if (cityWatch) {
       // Find the selected city in the cities array
-      const selectedCity = cities.find((city) => city.value === cityValue)
-      if (selectedCity && selectedCity.zip_code) {
+      const selectedCity = cities.find((city) => city.value === cityWatch)
+      if (selectedCity && selectedCity.zipCode) {
         // Set the zip code field with the city's zip_code
-        form.setValue('zip', selectedCity.zip_code)
+        form.setValue('zip', selectedCity.zipCode)
+        console.log(zipWatch)
       }
     }
-  }, [cityValue])
+  }, [cityWatch, cities, form])
+
   const [isLoading, beginTransition] = useTransition()
+
   // Handle form submission
-  const onSubmit = async (data: ClientSchemaType) => {
+  const onSubmit = async (data: Client) => {
     beginTransition(async () => {
       try {
+        // Prepare the data for API submission
+        const clientData = {
+          ...data,
+          // Map form fields to API expected format
+          addressId: data.addressId,
+          address: {
+            street: data.street,
+            cityId: data.city,
+            provinceId: data.province,
+            countryId: data.country
+          }
+        }
+
         const res = await fetch('/api/clients/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify(clientData)
         })
 
         if (!res.ok) {
-          // Handle error response
-          console.error('Failed to create client')
-          return
+          const errorData = await res.json()
+          throw new Error(errorData.message || 'Failed to create client')
         }
-        // Optionally, update UI or show success message
-      } catch (error: any) {
-        console.log(error)
+
+        const createdClient = await res.json()
+
         toast({
-          title: error.error,
-          description: error.details
+          title: 'Success',
+          description: 'Client created successfully',
+          variant: 'success'
+        })
+
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess(createdClient)
+        }
+
+        // Reset form
+        form.reset()
+      } catch (error: any) {
+        console.error('Error creating client:', error)
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to create client',
+          variant: 'destructive'
         })
       }
     })
@@ -229,10 +266,11 @@ export const ClientInfoForm: React.FC<Props> = ({
                           id="label"
                           options={COMPANY_LABELS_TYPE}
                           onSelect={field.onChange}
-                          selected={field.value || COMPANY_LABELS_TYPE.at(4)}
+                          selected={field.value as string}
                           isInSideADialog={true}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -254,8 +292,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                           isCompany ? "nom d'entreprise" : 'nom du client'
                         }
                         {...field}
+                        value={field.value as string}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -269,8 +309,13 @@ export const ClientInfoForm: React.FC<Props> = ({
                   <FormItem>
                     <FormLabel className="capitalize">{'telephone'}</FormLabel>
                     <FormControl>
-                      <Input placeholder={'0665238745'} {...field} />
+                      <Input
+                        placeholder={'0665238745'}
+                        {...field}
+                        value={field.value as string}
+                      />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -288,8 +333,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                         placeholder="example@email.com"
                         type="email"
                         {...field}
+                        value={field.value as string}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -311,8 +358,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                           placeholder="https://"
                           type="url"
                           {...field}
+                          value={field.value as string}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -337,8 +386,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                             placeholder="16/00-1234567A"
                             type="text"
                             {...field}
+                            value={field.value as string}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -358,8 +409,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                             placeholder="163079123456789"
                             type="text"
                             {...field}
+                            value={field.value as string}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -379,8 +432,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                             placeholder="000016079123456"
                             type="text"
                             {...field}
+                            value={field.value as string}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -400,8 +455,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                             placeholder="16-1234567-001"
                             type="text"
                             {...field}
+                            value={field.value as string}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -421,8 +478,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                             placeholder="11103 2002 0004"
                             type="text"
                             {...field}
+                            value={field.value as string}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -442,8 +501,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                             placeholder="16-AGR-2023-001"
                             type="text"
                             {...field}
+                            value={field.value as string}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -478,6 +539,7 @@ export const ClientInfoForm: React.FC<Props> = ({
                         listClassName="max-h-64"
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -502,6 +564,7 @@ export const ClientInfoForm: React.FC<Props> = ({
                         listClassName="max-h-64"
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -526,6 +589,7 @@ export const ClientInfoForm: React.FC<Props> = ({
                         listClassName="max-h-64"
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -543,8 +607,10 @@ export const ClientInfoForm: React.FC<Props> = ({
                         placeholder="Rue de... or BP234 Ghardaia"
                         type="text"
                         {...field}
+                        value={field.value as string}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -564,9 +630,11 @@ export const ClientInfoForm: React.FC<Props> = ({
                         placeholder="47001"
                         type="text"
                         {...field}
+                        value={zipWatch}
                         disabled
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

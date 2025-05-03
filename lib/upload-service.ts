@@ -31,7 +31,7 @@ export async function createAttachment(
         name: fileName,
         url: fileUrl,
         type: fileType,
-        order: {
+        Order: {
           connect: {
             id: orderId
           }

@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+import { CardGrid } from '@/components/card'
+import { Combobox } from '@/components/combobox'
+import { MdEditor } from '@/components/md-editor'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -16,20 +15,17 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch as Switcher } from '@/components/ui/switch'
-import { Combobox } from '@/components/combobox'
-import { CardGrid } from '@/components/card'
-import { MdEditor } from '@/components/md-editor'
-import { CarSelection, CarSelectionForm } from '@/components/car-selection.from'
-import { Content } from '@tiptap/react'
-import { contentSchema } from '@/lib/validations'
-import { Brand, CarModel } from '@prisma/client'
 import {
   COOLING_SYSTEMS_TYPES,
   FABRICATION_TYPES,
   ORDER_TYPES,
   PACKAGING_TYPES
 } from '@/config/global'
-import { skuId } from '@/lib/utils'
+import { contentSchema } from '@/lib/validations'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
 
 // Form schema
 const productFormSchema = z.object({
@@ -51,18 +47,21 @@ interface ProductDetailsFormProps {
     label: string
     category?: string
     cooling?: string
-    car: { model?: string; brand?: string }
+    Car?: {
+      model?: string
+      brand?: string
+    }
   }
   onSubmit: (
     values: ProductFormValues & {
       id: string
-      title: string
-      car?: { model?: string; brand?: string }
+      label: string
+      Car?: { model?: string; brand?: string }
     }
   ) => void
 }
 
-export function ProductDetailsForm({
+export function AddOrderItemFromDbFrom({
   initialData,
   onSubmit
 }: ProductDetailsFormProps) {
@@ -78,7 +77,6 @@ export function ProductDetailsForm({
       quantity: 1,
       cooling: initialData.cooling || 'Eau',
       packaging: 'Carton',
-      note: '',
       modification: '',
       description: ''
     }
@@ -87,24 +85,35 @@ export function ProductDetailsForm({
   const type = form.watch('type')
 
   function handleSubmit(data: ProductFormValues) {
-    
     onSubmit({
       ...data,
       id: initialData.id,
-      title: initialData.label,
-      car:
-        initialData.car.model && initialData.car.brand
-          ? {
-              brand: initialData.car.brand,
-              model: initialData.car.model
-            }
-          : undefined
+      label: initialData.label,
+      Car: initialData.Car && {
+        brand: initialData.Car.brand,
+        model: initialData.Car.model
+      }
     })
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Product Information */}
+        <div className="relative border rounded-md px-3 py-3">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            produit
+          </span>
+          <div className="space-y-2">
+            <div className="font-medium text-lg">{initialData.label}</div>
+            {initialData.Car?.brand && initialData.Car?.model && (
+              <div className="text-sm text-muted-foreground">
+                {initialData.Car.brand} - {initialData.Car.model}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Order Details Section */}
         <div className="space-y-4">
           {/* Modifications Section */}
@@ -129,7 +138,7 @@ export function ProductDetailsForm({
                     <FormControl>
                       <MdEditor
                         editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
-                        className="w-full min-h-36 group"
+                        className="w-full min-h-36 group bg-blue-50 focus-within:border-blue-400"
                         placeholder="Listez les changements à effectuer..."
                         value={field.value}
                         setValue={(markdown) =>
@@ -217,6 +226,7 @@ export function ProductDetailsForm({
                           if (value > 0) form.setValue('quantity', value)
                         }}
                         type="number"
+                        value={field.value}
                       />
                     </FormControl>
                     <FormMessage />

@@ -43,7 +43,7 @@ interface CustomerSectionProps {
 }
 
 export default function ProductSearchInput({
-  selected: selectedClient,
+  selected,
   onSelectChange,
   children
 }: CustomerSectionProps) {
@@ -80,7 +80,8 @@ export default function ProductSearchInput({
           throw new Error('Failed to fetch clients')
         }
         const data = await response.json()
-        console.log(data)
+
+        console.log('Feteched : ', data)
         setProducts(data)
       } catch (error) {
         console.error('Error fetching clients:', error)

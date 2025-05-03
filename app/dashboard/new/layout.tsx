@@ -9,28 +9,22 @@ interface Props {
 const Layout: React.FC<Props> = ({ children }: Props) => {
   let items = [
     {
-      title: 'Acheteur',
+      title: 'Client',
       key: 'client',
       href: '/dashboard/new',
       icon: 'addClient'
     },
     {
-      title: 'Commande',
+      title: 'Articles',
       key: 'commande',
       href: '/dashboard/new/order',
       icon: 'packagePlus'
     },
     {
-      title: 'Paiement',
+      title: 'Valider',
       key: 'payment',
       href: '/dashboard/new/payment',
-      icon: 'dollar'
-    },
-    {
-      title: 'Annexes',
-      key: 'upload',
-      href: '/dashboard/new/upload',
-      icon: 'upload'
+      icon: 'checkCircle'
     }
   ] as SidebarNavItem[]
 

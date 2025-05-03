@@ -32,7 +32,7 @@ model Account {
   accessTokenExpires DateTime?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
-  user               User      @relation(fields: [userId], references: [id])
+  User               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, providerAccountId])
 }
@@ -45,7 +45,7 @@ model Session {
   accessToken  String   @unique
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id])
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -56,11 +56,11 @@ model User {
   passwordHash String
   employeeId   Int          @unique
   image        String?
-  accounts     Account[]
-  sessions     Session[]
+  Accounts     Account[]
+  Sessions     Session[]
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
-  Permission   Permission[]
+  Permissions  Permission[]
 }
 
 model VerificationRequest {
@@ -88,8 +88,8 @@ model Country {
   id        String     @id @default(cuid())
   code      String     @unique
   name      String
-  provinces Province[]
-  addresses Address[]
+  Provinces Province[]
+  Addresses Address[]
 
   @@map("countries")
 }
@@ -100,9 +100,9 @@ model Province {
   nameAr    String
   name      String
   countryId String?
-  country   Country?  @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  cities    City[]
-  addresses Address[]
+  Country   Country?  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  Cities    City[]
+  Addresses Address[]
 
   @@map("provinces")
 }
@@ -113,8 +113,8 @@ model City {
   nameAr     String
   name       String
   provinceId String
-  province   Province  @relation(fields: [provinceId], references: [id], onDelete: Cascade)
-  addresses  Address[]
+  Province   Province  @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  Addresses  Address[]
 
   @@map("cities")
 }
@@ -126,10 +126,10 @@ model Address {
   provinceId String
   countryId  String
 
-  city     City     @relation(fields: [cityId], references: [id])
-  province Province @relation(fields: [provinceId], references: [id])
-  country  Country  @relation(fields: [countryId], references: [id])
-  client   Client?
+  City     City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  Province Province @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  Country  Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  Client   Client?
 
   @@map("addresses")
 }
@@ -140,7 +140,7 @@ model Inventory {
   id        String     @id @default(cuid())
   level     Int        @default(0)
   alertAt   Int        @default(0)
-  radiators Radiator[]
+  Radiators Radiator[]
 
   @@map("inventories")
 }
@@ -149,7 +149,7 @@ model Price {
   id        String     @id @default(cuid())
   unit      Float      @default(0)
   bulk      Float      @default(0)
-  radiators Radiator[]
+  Radiators Radiator[]
 
   @@map("prices")
 }
@@ -167,17 +167,17 @@ model Radiator {
   inventoryId String?
   priceId     String?
 
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  inventory Inventory? @relation(fields: [inventoryId], references: [id])
-  price     Price?     @relation(fields: [priceId], references: [id])
-  directory Directory? @relation(fields: [directoryId], references: [id])
+  Inventory Inventory? @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+  Price     Price?     @relation(fields: [priceId], references: [id], onDelete: SetNull)
+  Directory Directory? @relation(fields: [directoryId], references: [id], onDelete: SetNull)
 
   directoryId String?
-  orders      Order[]
-  models      CarModel[]
-  components  RadiatorComponent[]
+  Models      CarModel[]
+  Components  RadiatorComponent[]
+  OrderItems  OrderItem[]
 
   @@map("radiators")
 }
@@ -188,11 +188,11 @@ model RadiatorComponent {
   type       ComponentType
   radiatorId String
 
-  radiator  Radiator                 @relation(fields: [radiatorId], references: [id])
-  materials ComponentMaterialUsage[]
+  Radiator  Radiator                 @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
+  Materials ComponentMaterialUsage[]
 
-  core      Core?
-  collector Collector?
+  Core      Core?
+  Collector Collector?
 
   @@map("radiator_components")
 }
@@ -207,7 +207,7 @@ model Core {
   tube   String
 
   componentId String            @unique
-  component   RadiatorComponent @relation(fields: [componentId], references: [id])
+  Component   RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
 
   @@map("cores")
 }
@@ -220,8 +220,8 @@ model Collector {
   componentId         String        @unique
   collectorTemplateId String
 
-  template  CollectorTemplate @relation(fields: [collectorTemplateId], references: [id])
-  component RadiatorComponent @relation(fields: [componentId], references: [id])
+  Template  CollectorTemplate @relation(fields: [collectorTemplateId], references: [id], onDelete: Cascade)
+  Component RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
 
   @@map("collectors")
 }
@@ -233,9 +233,8 @@ model CollectorTemplate {
   tightening   String
   isPerforated Boolean?
   isTinned     Boolean?
-  material     String?
 
-  collectors Collector[]
+  Collectors Collector[]
 
   @@map("collector_templates")
 }
@@ -245,7 +244,7 @@ model CollectorTemplate {
 model RawMaterial {
   id     String                   @id @default(cuid())
   name   String                   @unique
-  usages ComponentMaterialUsage[]
+  Usages ComponentMaterialUsage[]
 }
 
 model ComponentMaterialUsage {
@@ -254,8 +253,8 @@ model ComponentMaterialUsage {
   materialId  String
   weight      Float
 
-  component RadiatorComponent @relation(fields: [componentId], references: [id])
-  material  RawMaterial       @relation(fields: [materialId], references: [id])
+  Component RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  Material  RawMaterial       @relation(fields: [materialId], references: [id], onDelete: Cascade)
 
   @@unique([componentId, materialId])
 }
@@ -265,7 +264,7 @@ model ComponentMaterialUsage {
 model Brand {
   id       String      @id @default(cuid())
   name     String
-  families CarFamily[]
+  Families CarFamily[]
 
   @@map("car_brands")
 }
@@ -275,8 +274,8 @@ model CarFamily {
   name    String
   brandId String
 
-  brand  Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  models CarModel[]
+  Brand  Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Models CarModel[]
 
   @@map("car_families")
 }
@@ -288,9 +287,9 @@ model CarModel {
   familyId   String
   radiatorId String?
 
-  family   CarFamily @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  types    CarType[]
-  radiator Radiator? @relation(fields: [radiatorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Family   CarFamily @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Types    CarType[]
+  Radiator Radiator? @relation(fields: [radiatorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@map("car_models")
 }
@@ -300,7 +299,7 @@ model CarType {
   name    String
   modelId String
 
-  model CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Model CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("car_type")
 }
@@ -323,56 +322,77 @@ model Client {
   approvalNumber      String?
 
   addressId String?  @unique
-  address   Address? @relation(fields: [addressId], references: [id])
+  Address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
 
-  orders    Order[]
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
+  Orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("clients")
 }
 
 model Attachment {
-  id        Int      @id @default(autoincrement())
-  url       String // URL of the uploaded file
-  type      String // MIME type like 'image/jpeg', 'application/pdf', etc.
-  name      String // Original file name
-  order     Order    @relation(fields: [orderId], references: [id])
-  orderId   String
-  createdAt DateTime @default(now())
+  id           Int        @id @default(autoincrement())
+  url          String // URL of the uploaded file
+  type         String // MIME type like 'image/jpeg', 'application/pdf', etc.
+  name         String // Original file name
+  OrderBatch   Order?     @relation(fields: [orderBatchId], references: [id], onDelete: Cascade)
+  orderBatchId String?
+  createdAt    DateTime   @default(now())
+  Order        OrderItem? @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId      String? // Made optional to fix the issue
+
+  @@map("attachments") // Added map directive for consistency
 }
 
 model Order {
-  id            String       @id @default(cuid())
-  deadline      DateTime     @default(now())
-  notes         Json?
-  description   Json?
-  modifications Json?
-  state         String?
-  progress      Int          @default(0)
-  packaging     String?
-  fabrication   String?
-  isModified    String?
-  validatedAt   DateTime?
-  canceledAt    DateTime?
-  createdAt     DateTime?    @default(now())
-  updatedAt     DateTime?    @updatedAt
-  payment       Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id])
-  paymentId     String       @unique
-  clientId      String
-  client        Client       @relation(fields: [clientId], references: [id])
-  radiators     Radiator[]
-  attachments   Attachment[]
+  id          String       @id @default(cuid())
+  deadline    DateTime     @default(now())
+  state       String?
+  progress    Int          @default(0)
+  OrdersItems OrderItem[]
+  Payment     Payment      @relation(name: "OrderBatchToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
+  paymentId   String       @unique
+  clientId    String
+  Client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  Attachments Attachment[]
+
+  createdAt DateTime @default(now()) // Added for consistency
+  updatedAt DateTime @updatedAt // Added for consistency
+
+  @@map("order_batches") // Added map directive for consistency
+}
+
+model OrderItem {
+  id           String       @id @default(cuid())
+  note         Json?
+  description  Json?
+  modification Json?
+  packaging    String?
+  fabrication  String?
+  isModified   String?
+  validatedAt  DateTime?
+  canceledAt   DateTime?
+  createdAt    DateTime     @default(now()) // Made consistent (not optional)
+  updatedAt    DateTime     @updatedAt // Made consistent (not optional)
+  Radiator     Radiator     @relation(fields: [radiatorId], references: [id], onDelete: Restrict)
+  radiatorId   String
+  Order        Order?       @relation(fields: [orderBatchId], references: [id], onDelete: SetNull)
+  orderBatchId String?
+  Attachments  Attachment[]
 
   @@map("orders")
 }
 
 model Payment {
-  id        String @id @default(cuid())
-  amount    Float
-  deposit   Float
-  remaining Float
-  order     Order? @relation(name: "OrderToPayment")
+  id         String @id @default(cuid())
+  amount     Float
+  deposit    Float
+  remaining  Float
+  OrderBatch Order? @relation(name: "OrderBatchToPayment")
+
+  createdAt DateTime @default(now()) // Added for consistency
+  updatedAt DateTime @updatedAt // Added for consistency
 
   @@map("payments")
 }
@@ -386,13 +406,13 @@ model Directory {
   updatedAt DateTime @updatedAt
 
   parentId String?
-  parent   Directory?  @relation("FolderParent", fields: [parentId], references: [id])
-  children Directory[] @relation("FolderParent")
+  Parent   Directory?  @relation("FolderParent", fields: [parentId], references: [id], onDelete: SetNull)
+  Children Directory[] @relation("FolderParent")
 
-  files       File[]
-  permissions Permission[]
+  Files       File[]
+  Permissions Permission[]
 
-  Radiator Radiator[]
+  Radiators Radiator[]
 }
 
 model File {
@@ -408,11 +428,11 @@ model File {
   updatedAt DateTime @updatedAt
 
   directoryId String
-  directory   Directory @relation(fields: [directoryId], references: [id])
+  Directory   Directory @relation(fields: [directoryId], references: [id], onDelete: Cascade)
 
-  tags        Tag[]
-  versions    FileVersion[]
-  permissions Permission[]
+  Tags        Tag[]
+  Versions    FileVersion[]
+  Permissions Permission[]
 }
 
 model FileVersion {
@@ -422,7 +442,7 @@ model FileVersion {
   createdAt DateTime @default(now())
 
   fileId String
-  file   File   @relation(fields: [fileId], references: [id])
+  File   File   @relation(fields: [fileId], references: [id], onDelete: Cascade)
 }
 
 model Tag {
@@ -431,7 +451,7 @@ model Tag {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  files File[]
+  Files File[]
 }
 
 model Permission {
@@ -441,7 +461,7 @@ model Permission {
   fileId String?
   dirId  String?
 
-  user      User       @relation(fields: [userId], references: [id])
-  file      File?      @relation(fields: [fileId], references: [id])
-  directory Directory? @relation(fields: [dirId], references: [id])
+  User      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  File      File?      @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  Directory Directory? @relation(fields: [dirId], references: [id], onDelete: Cascade)
 }

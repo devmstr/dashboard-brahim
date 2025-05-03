@@ -82,6 +82,7 @@ import { cn } from '@/lib/utils'
 export type Icon = LucideIcon
 
 export const Icons = {
+  checkCircle: CheckCircle,
   sideCar: Car,
   database: Database,
   ledger: TbDeviceIpadDollar,

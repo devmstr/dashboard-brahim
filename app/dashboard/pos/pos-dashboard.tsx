@@ -3,13 +3,11 @@
 import { useState } from 'react'
 import { sampleProducts, sampleCustomers } from './data'
 import { CartItem, Customer, Product } from '@/types'
-import CustomerSearchInput, {
-  ClientWithOrdersCount
-} from '../../../components/customer-search.input'
+import CustomerSearchInput from '@/components/customer-search.input'
 import ProductsSection from './product-section'
 import CartSection from './cart-selection'
 import { useRouter } from 'next/navigation'
-import { AddNewClientDialogButton } from '@/components/add-new-client.button'
+import { ClientType } from '@/lib/validations'
 
 export default function PosDashboard() {
   const [cart, setCart] = useState<CartItem[]>([])
@@ -17,7 +15,7 @@ export default function PosDashboard() {
     {}
   )
   const [selectedCustomer, setSelectedCustomer] = useState<
-    ClientWithOrdersCount | undefined
+    ClientType | undefined
   >(undefined)
 
   // Toggle item expansion in cart

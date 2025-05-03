@@ -11,7 +11,7 @@ import {
 
 import { ScrollArea } from '@/components/ui/scroll-area'
 import React, { ButtonHTMLAttributes } from 'react'
-import { OrderForm } from './order.form'
+import { OrderForm } from './add-order-item.form'
 import { cn } from '@/lib/utils'
 
 interface Props {

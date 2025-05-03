@@ -2,8 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
-import { generateUniqueFilename, skuId } from '@/lib/utils'
-import { createAttachment } from '@/lib/upload-service'
+import { generateUniqueFilename } from '@/lib/utils'
 
 // Define the base uploads directory for physical storage
 const BASE_UPLOADS_DIR = path.join(process.cwd(), 'uploads')
@@ -13,7 +12,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const file = formData.get('file') as File
     const userPath = formData.get('path') as string
-    const orderId = formData.get('orderId') as string // Get the orderId from the form data
 
     if (!file) {
       return NextResponse.json(
@@ -83,17 +81,6 @@ export async function POST(request: NextRequest) {
       // Create the URL for the file
       const fileUrl = `/uploads/${urlPath}`
 
-      // If orderId is provided, create an attachment record in the database
-      let attachmentId = null
-      if (orderId) {
-        attachmentId = await createAttachment(
-          orderId,
-          originalFilename,
-          fileUrl,
-          fileType
-        )
-      }
-
       return NextResponse.json({
         success: true,
         message: 'File uploaded successfully',
@@ -101,7 +88,7 @@ export async function POST(request: NextRequest) {
         uniqueFileName: uniqueFilename,
         storedPath: physicalFilePath,
         url: fileUrl,
-        fileId: attachmentId // Return the attachment ID if created
+        fileType: fileType
       })
     } catch (error) {
       console.error('Error writing file:', error)

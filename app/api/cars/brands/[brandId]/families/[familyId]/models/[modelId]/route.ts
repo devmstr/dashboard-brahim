@@ -12,12 +12,12 @@ export async function GET(
       where: {
         id: params.modelId,
         familyId: params.familyId,
-        family: {
+        Family: {
           brandId: params.brandId
         }
       },
       include: {
-        types: true
+        Types: true
       }
     })
 
@@ -45,7 +45,7 @@ export async function PUT(
       where: {
         id: params.modelId,
         familyId: params.familyId,
-        family: {
+        Family: {
           brandId: params.brandId
         }
       }
@@ -86,7 +86,7 @@ export async function DELETE(
       where: {
         id: params.modelId,
         familyId: params.familyId,
-        family: {
+        Family: {
           brandId: params.brandId
         }
       }

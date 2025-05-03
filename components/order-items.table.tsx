@@ -16,7 +16,6 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { OrderComponentsTableEntry } from '@/types'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -47,24 +46,34 @@ import {
 import { usePathname, useRouter } from 'next/navigation'
 import { useOrder } from './new-order.provider'
 
+export type OrderItemsTableInput = {
+  id: string
+  label: string
+  brand?: string
+  model?: string
+  fabrication: string
+  type: string
+  quantity: number
+}
+
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  data?: OrderComponentsTableEntry[]
+  data?: OrderItemsTableInput[]
   t?: {
     id: string
     brand: string
     model: string
     type: string
-    title: string
+    label: string
     fabrication: string
     quantity: string
   }
 }
 
-export function OrderArticlesTable({
+export function OrderItemsTable({
   data: input = [],
   t = {
     id: 'Matricule',
-    title: 'Titre',
+    label: 'Titre',
     brand: 'Marque',
     model: 'Model',
     type: 'Commande',
@@ -73,7 +82,7 @@ export function OrderArticlesTable({
   },
   ...props
 }: Props) {
-  const [data, setData] = React.useState<OrderComponentsTableEntry[]>(input)
+  const [data, setData] = React.useState<OrderItemsTableInput[]>(input)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -82,19 +91,18 @@ export function OrderArticlesTable({
   const { order, setOrder } = useOrder()
 
   React.useEffect(() => {
-    let components: OrderComponentsTableEntry[] | undefined =
-      order?.components?.map(
-        ({ id, car, type, title, fabrication, quantity }) => ({
-          id: id as string,
-          fabrication,
-          quantity: quantity as number,
-          type,
-          title: title as string,
-          brand: car?.brand,
-          model: car?.model
-        })
-      )
-    if (components) setData(components)
+    let orderItems: OrderItemsTableInput[] | undefined = order?.OrderItems?.map(
+      ({ id, Car, type, label, fabrication, quantity }) => ({
+        id: id as string,
+        fabrication: fabrication as string,
+        quantity: quantity as number,
+        type: type as string,
+        label: label as string,
+        brand: Car?.brand,
+        model: Car?.model
+      })
+    )
+    if (orderItems) setData(orderItems)
   }, [order])
 
   const router = useRouter()
@@ -104,11 +112,11 @@ export function OrderArticlesTable({
     setData(data.filter(({ id }) => id != orderId))
     setOrder((prev) => ({
       ...prev,
-      components: prev?.components?.filter(({ id }) => id != orderId)
+      OrderItems: prev?.OrderItems?.filter(({ id }) => id != orderId)
     }))
   }
 
-  const columns: ColumnDef<OrderComponentsTableEntry>[] = [
+  const columns: ColumnDef<OrderItemsTableInput>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -135,7 +143,7 @@ export function OrderArticlesTable({
     },
 
     {
-      accessorKey: 'title',
+      accessorKey: 'label',
       header: ({ column }) => {
         return (
           <div
@@ -149,12 +157,12 @@ export function OrderArticlesTable({
       },
       cell: ({
         row: {
-          original: { title }
+          original: { label }
         }
       }) => {
         const regex = /(?<=x)\d+|\d+(?=x)/gi
-        const parts = title.split(regex)
-        const matches = title.match(regex)
+        const parts = label.split(regex)
+        const matches = label.match(regex)
 
         return (
           <p

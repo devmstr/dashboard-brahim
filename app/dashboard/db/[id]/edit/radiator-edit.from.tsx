@@ -27,7 +27,7 @@ import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
 import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
-import { Uploader } from '@/components/uploader'
+import { Uploader } from '@/components/order-uploader'
 
 // Utilities and Config
 import {

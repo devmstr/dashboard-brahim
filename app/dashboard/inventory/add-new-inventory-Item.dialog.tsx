@@ -31,19 +31,24 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { useForm } from 'react-hook-form'
-import { Icons } from '../../../components/icons'
-import ProductSearchInput, {
-  Product
-} from '../../../components/search-product.input'
-import { ScrollArea } from '../../../components/ui/scroll-area'
+import { Icons } from '@/components/icons'
+import ProductSearchInput from '@/components/search-product.input'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { inventorySchema, InventoryType } from './schema.zod'
+import { Radiator } from '@prisma/client'
 
 type AddInventoryItemProps = {}
 
 export function AddInventoryItem({}: AddInventoryItemProps) {
   const [open, setOpen] = useState(false)
 
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<
+    | {
+        id: string
+        label: string
+      }
+    | undefined
+  >(undefined)
   const [isCoreExists, setIsCoreExists] = useState(false)
   const [isCollectorExists, setIsCollectorExists] = useState(false)
   const [isAdding, setAddingTransition] = useTransition()

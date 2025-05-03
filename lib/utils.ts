@@ -7,6 +7,7 @@ import { customAlphabet } from 'nanoid'
 
 export enum SKU_PREFIX {
   RA = 'RA',
+  RE = 'RE',
   FA = 'FA',
   AU = 'AU',
   CO = 'CO',
@@ -41,60 +42,83 @@ export function generateUniqueFilename(originalFilename: string): string {
 interface Dimensions {
   width: number
   height: number
-  lowerWidth?: number
-  lowerHeight?: number
 }
+
+const FINS_T = {
+  Zigzag: 'Z',
+  Aérer: 'A',
+  Normale: 'D'
+} as const
+
+const TUBE_T = {
+  ET7: '7',
+  ET9: '9',
+  MP: 'M'
+} as const
+
+const TIGHTENING_T = {
+  Plié: 'P',
+  Boulonné: 'B'
+} as const
+
+const POSITION_T = {
+  Centrer: 'C',
+  Dépassée: 'D'
+} as const
+
+export type FinsPitch = '10' | '11' | '12' | '14'
+export type FinsType = keyof typeof FINS_T
+export type TubeType = keyof typeof TUBE_T
+export type TighteningType = keyof typeof TIGHTENING_T
+export type PositionType = keyof typeof POSITION_T
 
 interface ProductConfig {
   type?: 'Faisceau' | 'Radiateur'
   fabrication?: 'Renovation' | 'Confection'
-  core: Dimensions
+  coreDim: Dimensions
   rows?: number
-  fins?: 'Z' | 'A' | 'D'
-  tube?: '7' | '9' | 'M'
-  pitch?: 10 | 11 | 12 | 14
-  collector: Dimensions
-  tightening?: 'P' | 'B'
-  position?: 'C' | 'D'
+  fins?: FinsType
+  tube?: TubeType
+  pitch?: FinsPitch
+  collectorDim1: Dimensions
+  collectorDim2: Dimensions
+  tightening?: TighteningType
+  position?: PositionType
 }
 
-function pad(n: number): string {
-  return n.toString().padStart(4, '0')
-}
+const pad = (n: number): string => n.toString().padStart(4, '0')
 
-function formatDimension(main: number, lower?: number): string {
-  return lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
-}
+const formatDimension = (main: number, lower?: number): string =>
+  lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
 
-function formatProductPrefix(type: string, fabrication: string): string {
-  if (type === 'Faisceau') return 'FX'
-  return fabrication === 'Confection' ? 'RA' : 'RE'
-}
+const formatPrefix = (type: string, fabrication: string): string =>
+  type === 'Faisceau' ? 'FX' : fabrication === 'Confection' ? 'RA' : 'RE'
 
 export function generateProductTitle({
   type = 'Radiateur',
   fabrication = 'Confection',
-  core,
-  collector,
-  rows = 1,
-  fins = 'D',
-  tube = '7',
-  pitch: finsPitch = 10,
-  tightening = 'P',
-  position = 'C'
+  coreDim,
+  collectorDim1,
+  collectorDim2,
+  rows,
+  fins = 'Normale',
+  tube = 'ET7',
+  pitch = '10',
+  tightening = 'Plié',
+  position = 'Centrer'
 }: ProductConfig): string {
-  const coreCode = `${pad(core.height)}X${pad(core.width)}`
-  const rowsPart = (rows > 1 && rows.toString()) || ''
-  const rowFinsTubeCode = `${rowsPart}${fins}${tube}`
+  const coreCode = `${pad(coreDim.height)}X${pad(coreDim.width)}`
+  const rowFinsTube = `${rows && rows > 1 ? rows : ''}${FINS_T[fins]}${
+    TUBE_T[tube]
+  }`
   const collectorCode = `${formatDimension(
-    collector.height,
-    collector.lowerHeight
-  )}X${formatDimension(collector.width, collector.lowerWidth)}`
+    collectorDim1.height,
+    collectorDim2.height
+  )}X${formatDimension(collectorDim1.width, collectorDim2.width)}`
+  const tighteningPosition = `${TIGHTENING_T[tightening]}${POSITION_T[position]}`
+  const prefix = formatPrefix(type, fabrication)
 
-  return `${formatProductPrefix(
-    type,
-    fabrication
-  )} ${coreCode} ${rowFinsTubeCode} ${finsPitch} ${collectorCode} ${tightening}${position}`
+  return `${prefix} ${coreCode} ${rowFinsTube} ${pitch} ${collectorCode} ${tighteningPosition}`
 }
 
 export function cn(...inputs: ClassValue[]) {
