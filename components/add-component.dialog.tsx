@@ -10,9 +10,10 @@ import {
 } from '@/components/ui/dialog'
 
 import { ScrollArea } from '@/components/ui/scroll-area'
-import React, { ButtonHTMLAttributes } from 'react'
-import { OrderForm } from './add-order-item.form'
+import React from 'react'
+import { AddOrderItemForm } from './add-order-item.form'
 import { cn } from '@/lib/utils'
+import { OrderItem } from '@/lib/validations'
 
 interface Props {
   className?: string
@@ -31,7 +32,12 @@ export const AddComponentDialog: React.FC<Props> = ({ className }: Props) => {
       <DialogContent className="h-fit container max-w-5xl">
         {/* start  content */}
         <ScrollArea className="max-h-[80vh] pt-2 px-1 pr-2">
-          <OrderForm setOpen={setOpen} />
+          <AddOrderItemForm
+            setOpen={setOpen}
+            onSubmit={function (orderItem: OrderItem): void {
+              throw new Error('Function not implemented.')
+            }}
+          />
         </ScrollArea>
         {/* end content */}
       </DialogContent>

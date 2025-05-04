@@ -24,16 +24,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
       </div>
       <ClientTable
         data={clients.map(
-          ({
-            _count: { Orders: orderCount },
-            label,
-            phone,
-            name,
-            email,
-            isCompany,
-            Address,
-            id
-          }) => ({
+          ({ _count, label, phone, name, email, isCompany, Address, id }) => ({
             id,
             name,
             phone,
@@ -41,7 +32,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
             label,
             isCompany,
             city: Address?.City.name as string,
-            orderCount
+            _count
           })
         )}
       />

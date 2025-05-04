@@ -178,7 +178,7 @@ export const OrderMetaForm: React.FC<Props> = ({
                   <FormItem className="group ">
                     <FormLabel className="capitalize">{'CCP/IBAN'}</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} value={field.value as string} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -187,7 +187,7 @@ export const OrderMetaForm: React.FC<Props> = ({
             )}
           </CardGrid>
         </div>
-        <div className="relative border rounded-md px-3 py-3">
+        {/* <div className="relative border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase ">
             délais
           </span>
@@ -207,7 +207,7 @@ export const OrderMetaForm: React.FC<Props> = ({
                     <DatePicker
                       {...field}
                       date={field.value}
-                      onDateChange={(v) => form.setValue('endDate', v)}
+                      onDateChange={(v) => form.setValue('de', v)}
                       locale={fr}
                       placeholder="Choisir une date"
                       formatStr="PPP"
@@ -218,7 +218,7 @@ export const OrderMetaForm: React.FC<Props> = ({
               )}
             />
           </CardGrid>
-        </div>
+        </div> */}
         <div className="flex flex-col items-end gap-4">
           <Separator />
           <Button className="w-fit flex gap-1" type="submit">

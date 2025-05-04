@@ -163,13 +163,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               type: component.Collector.type,
               width: component.Collector.width,
               height: component.Collector.height,
+              thickness: component.Collector.thickness,
               Template: component.Collector.Template
                 ? {
                     id: component.Collector.Template.id,
-                    thickness: component.Collector.Template.thickness,
                     position: component.Collector.Template.position,
                     tightening: component.Collector.Template.tightening,
-                    isPerforated: component.Collector.Template.isPerforated,
+                    perforation: component.Collector.Template.perforation,
                     isTinned: component.Collector.Template.isTinned
                   }
                 : null

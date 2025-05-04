@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { generateUniqueFilename } from '@/lib/utils'
 
 // GET all attachments
 export async function GET(request: NextRequest) {
@@ -50,13 +51,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
+    const uniqueName = generateUniqueFilename(name)
+
     // Create new attachment
     const attachment = await prisma.attachment.create({
       data: {
         url,
         type,
         name,
-        orderId
+        orderId,
+        uniqueName
       }
     })
 

@@ -8,8 +8,8 @@ export const clientSchema = z.object({
   name: z.string(),
   phone: z.string(),
   isCompany: z.boolean(),
-  email: z.string().optional(),
-  label: z.string().optional(),
+  email: z.string().nullable().optional(),
+  label: z.string().nullable().optional(),
   addressId: z.string().optional()
 })
 

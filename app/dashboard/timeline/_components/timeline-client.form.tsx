@@ -56,7 +56,7 @@ export const ClientInfoForm: React.FC<Props> = ({
                 onSelect={(v) => {
                   handleChange('label', v)
                 }}
-                selected={data.label || COMPANY_LABELS_TYPE.at(4)}
+                selected={data.label}
               />
             </div>
           )}

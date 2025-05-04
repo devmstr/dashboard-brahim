@@ -7,16 +7,16 @@ import CustomerSearchInput from '@/components/customer-search.input'
 import ProductsSection from './product-section'
 import CartSection from './cart-selection'
 import { useRouter } from 'next/navigation'
-import { ClientType } from '@/lib/validations'
+import { Client } from '@/lib/validations'
 
 export default function PosDashboard() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   )
-  const [selectedCustomer, setSelectedCustomer] = useState<
-    ClientType | undefined
-  >(undefined)
+  const [selectedCustomer, setSelectedCustomer] = useState<Client | undefined>(
+    undefined
+  )
 
   // Toggle item expansion in cart
   const toggleItemExpansion = (itemId: string) => {
