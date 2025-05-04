@@ -1,6 +1,20 @@
 import * as z from 'zod'
 import { contentSchema } from './tiptap'
 import { paymentSchema } from './payment'
+import {
+  CATEGORY_TYPES,
+  CATEGORY_TYPES_ARR,
+  CLAMPING_TYPES,
+  COLLECTOR_MATERIALS_TYPES,
+  COLLECTOR_POSITION_TYPES,
+  COOLING_SYSTEMS_TYPES,
+  COOLING_SYSTEMS_TYPES_ARR,
+  FABRICATION_TYPES,
+  ORDER_TYPES,
+  PACKAGING_TYPES,
+  PERFORATION_TYPES,
+  STATUS_TYPES
+} from '@/config/global'
 
 // Client schema
 export const clientSchema = z.object({
@@ -35,10 +49,10 @@ export type Dimensions = z.infer<typeof dimensionsSchema>
 
 // Component schemas
 const collectorSchema = z.object({
-  position: z.enum(['Centrer', 'Dépassée']).optional(),
-  material: z.enum(['Acier', 'Laiton']).optional(),
-  tightening: z.enum(['Plié', 'Boulonné']).optional(),
-  perforation: z.enum(['Perforé', 'Non Perforé']).optional(),
+  position: z.enum(COLLECTOR_POSITION_TYPES).optional(),
+  material: z.enum(COLLECTOR_MATERIALS_TYPES).optional(),
+  tightening: z.enum(CLAMPING_TYPES).optional(),
+  perforation: z.enum(PERFORATION_TYPES).optional(),
   isTinned: z.boolean().default(false).optional(),
   dimensions1: dimensionsSchema,
   dimensions2: dimensionsSchema.optional()
@@ -71,15 +85,15 @@ export type Attachment = z.infer<typeof attachmentSchema>
 // Order schema - matches the Prisma Order model
 export const orderItemSchema = z.object({
   id: z.string().optional(),
-  type: z.string().optional(),
+  type: z.enum(ORDER_TYPES).optional(),
   note: contentSchema.optional(),
   description: contentSchema.optional(),
   modification: contentSchema.optional(),
-  packaging: z.string().nullable().optional(),
-  fabrication: z.string().nullable().optional(),
+  packaging: z.enum(PACKAGING_TYPES).optional(),
+  fabrication: z.enum(FABRICATION_TYPES).optional(),
   label: z.string().optional(),
-  category: z.string().optional(),
-  cooling: z.string().optional(),
+  category: z.enum(CATEGORY_TYPES).optional(),
+  cooling: z.enum(COOLING_SYSTEMS_TYPES).optional(),
   isModified: z.string().nullable().optional(),
   quantity: z.number().positive().optional().default(1),
   Core: coreSchema.optional(),
@@ -100,7 +114,7 @@ export const orderSchema = z.object({
     .string()
     .default(() => new Date().toISOString())
     .optional(),
-  state: z.string().optional(),
+  state: z.enum(STATUS_TYPES).optional(),
   progress: z.number().min(0).max(100).default(0).optional(),
   // Relations
   paymentId: z.string().optional(),

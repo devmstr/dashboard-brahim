@@ -371,7 +371,7 @@ model OrderItem {
   modification Json?
   packaging    String?
   fabrication  String?
-  isModified   String?
+  isModified   Boolean?
   quantity     Int?
   validatedAt  DateTime?
   canceledAt   DateTime?

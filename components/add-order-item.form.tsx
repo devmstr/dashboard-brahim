@@ -37,15 +37,25 @@ import {
 } from '@/lib/utils'
 import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
 import {
+  CATEGORY_TYPES,
+  CATEGORY_TYPES_ARR,
   CLAMPING_TYPES,
+  CLAMPING_TYPES_ARR,
   COLLECTOR_MATERIALS_TYPES,
+  COLLECTOR_MATERIALS_TYPES_ARR,
   COLLECTOR_POSITION_TYPES,
+  COLLECTOR_POSITION_TYPES_ARR,
   COOLING_SYSTEMS_TYPES,
+  COOLING_SYSTEMS_TYPES_ARR,
   FABRICATION_TYPES,
+  FABRICATION_TYPES_ARR,
   FINS_TYPES,
   ORDER_TYPES,
+  ORDER_TYPES_ARR,
   PACKAGING_TYPES,
+  PACKAGING_TYPES_ARR,
   PERFORATION_TYPES,
+  PERFORATION_TYPES_ARR,
   TUBE_TYPES
 } from '@/config/global'
 
@@ -73,14 +83,15 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       cooling: 'Eau',
       packaging: 'Carton',
       quantity: 1,
+      category: 'Automobile',
       Core: {
         fins: 'Normale',
         finsPitch: '10',
         tube: 'ET7',
         rows: 1,
         dimensions: {
-          height: 0,
-          width: 0
+          height: undefined,
+          width: undefined
         }
       },
       Collector: {
@@ -90,13 +101,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         position: 'Centrer',
         material: 'Laiton',
         dimensions1: {
-          height: 0,
-          width: 0,
+          height: undefined,
+          width: undefined,
           thickness: 1.5
         },
         dimensions2: {
-          height: 0,
-          width: 0,
+          height: undefined,
+          width: undefined,
           thickness: 1.5
         }
       }
@@ -142,7 +153,8 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
     if (isFaisceau && missingCore) {
       form.setError('Core.dimensions', {
         type: 'required',
-        message: 'Les dimensions sont obligatoires pour le type Faisceau'
+        message:
+          'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
       })
     } else {
       form.clearErrors('Core.dimensions')
@@ -333,6 +345,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                 <FormLabel className="capitalize">
                   Remarque <span className="text-destructive">*</span>
                 </FormLabel>
+                <FormMessage />
                 <FormControl>
                   <MdEditor
                     editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full min-h-28"
@@ -345,7 +358,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                     value={field.value}
                   />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
@@ -401,6 +413,31 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
           <CardGrid>
             <FormField
               control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem className="group">
+                  <FormLabel className="capitalize">Category</FormLabel>
+                  <FormControl>
+                    <Combobox
+                      {...field}
+                      id="category"
+                      options={CATEGORY_TYPES_ARR}
+                      onSelect={(v) => {
+                        if (v === 'Faisceau') {
+                          form.setValue('fabrication', 'Confection')
+                        }
+                        form.setValue('category', v as OrderItem['category'])
+                      }}
+                      selected={field.value}
+                      isInSideADialog
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="type"
               render={({ field }) => (
                 <FormItem className="group">
@@ -409,12 +446,12 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                     <Combobox
                       {...field}
                       id="type"
-                      options={ORDER_TYPES}
+                      options={ORDER_TYPES_ARR}
                       onSelect={(v) => {
                         if (v === 'Faisceau') {
                           form.setValue('fabrication', 'Confection')
                         }
-                        form.setValue('type', v)
+                        form.setValue('type', v as OrderItem['type'])
                       }}
                       selected={field.value}
                       isInSideADialog
@@ -436,10 +473,17 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       id="fabrication"
                       options={
                         type === 'Faisceau'
-                          ? FABRICATION_TYPES.filter((i) => i === 'Confection')
-                          : FABRICATION_TYPES
+                          ? FABRICATION_TYPES_ARR.filter(
+                              (i) => i === 'Confection'
+                            )
+                          : FABRICATION_TYPES_ARR
                       }
-                      onSelect={(v) => form.setValue('fabrication', v)}
+                      onSelect={(v) =>
+                        form.setValue(
+                          'fabrication',
+                          v as OrderItem['fabrication']
+                        )
+                      }
                       selected={field.value as string}
                       isInSideADialog
                     />
@@ -477,9 +521,9 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                   <FormControl>
                     <Combobox
                       {...field}
-                      options={COOLING_SYSTEMS_TYPES}
+                      options={COOLING_SYSTEMS_TYPES_ARR}
                       onSelect={(v) => {
-                        form.setValue('cooling', v)
+                        form.setValue('cooling', v as OrderItem['cooling'])
                         if (v !== 'Eau') {
                           form.setValue('Collector.tightening', 'Plié')
                         }
@@ -502,8 +546,10 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                     <Combobox
                       {...field}
                       id="packaging"
-                      options={PACKAGING_TYPES}
-                      onSelect={(v) => form.setValue('packaging', v)}
+                      options={PACKAGING_TYPES_ARR}
+                      onSelect={(v) =>
+                        form.setValue('packaging', v as OrderItem['packaging'])
+                      }
                       selected={field.value as string}
                       isInSideADialog
                     />
@@ -545,7 +591,34 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               faisceau
             </span>
+            {type === 'Faisceau' && form.formState.errors.Core?.dimensions && (
+              <div className="mt-2 w-full flex justify-start text-destructive/80 underline text-sm">
+                ** {form.formState.errors.Core.dimensions.message} **
+              </div>
+            )}
             <CardGrid>
+              <FormField
+                control={form.control}
+                name="Core.rows"
+                render={({ field }) => (
+                  <FormItem className="group">
+                    <FormLabel className="capitalize">
+                      Nombre De Rangées (N°R)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={({ target: { value } }) =>
+                          form.setValue('Core.rows', Number(value))
+                        }
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               {/* Only show dimensions for Faisceau type */}
               {type === 'Faisceau' && (
                 <>
@@ -607,34 +680,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                   />
                 </>
               )}
-              <FormField
-                control={form.control}
-                name="Core.rows"
-                render={({ field }) => (
-                  <FormItem className="group">
-                    <FormLabel className="capitalize">
-                      Nombre De Rangées (N°R)
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={({ target: { value } }) =>
-                          form.setValue('Core.rows', Number(value))
-                        }
-                        className="w-full"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </CardGrid>
-            {type === 'Faisceau' && form.formState.errors.Core?.dimensions && (
-              <div className="mt-2 text-destructive text-sm">
-                {form.formState.errors.Core.dimensions.message}
-              </div>
-            )}
 
             <CardGrid>
               <FormField
@@ -719,7 +765,14 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                   <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
                     collecteurs
                   </span>
-
+                  {type === 'Faisceau' &&
+                    form.formState.errors.Core?.dimensions && (
+                      <div className="mt-2 w-full flex justify-start text-destructive underline text-sm">
+                        **{' '}
+                        {form.formState.errors.Collector?.dimensions1?.message}
+                        **
+                      </div>
+                    )}
                   <CardGrid>
                     <FormField
                       control={form.control}
@@ -748,7 +801,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           <FormLabel className="capitalize">Matière</FormLabel>
                           <FormControl>
                             <Combobox
-                              options={COLLECTOR_MATERIALS_TYPES}
+                              options={COLLECTOR_MATERIALS_TYPES_ARR}
                               onSelect={(v) =>
                                 form.setValue(
                                   'Collector.material',
@@ -774,12 +827,12 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               options={
                                 ['Air', 'Huile'].includes(cooling as string)
                                   ? ['Plié']
-                                  : CLAMPING_TYPES
+                                  : CLAMPING_TYPES_ARR
                               }
                               onSelect={(v) =>
                                 form.setValue(
                                   'Collector.tightening',
-                                  v as TighteningType
+                                  v as (typeof CLAMPING_TYPES)[number]
                                 )
                               }
                               selected={field.value}
@@ -802,11 +855,11 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                             <FormControl>
                               <Combobox
                                 id="perforation"
-                                options={PERFORATION_TYPES}
+                                options={PERFORATION_TYPES_ARR}
                                 onSelect={(v) =>
                                   form.setValue(
                                     'Collector.perforation',
-                                    v as 'Perforé' | 'Non Perforé'
+                                    v as (typeof PERFORATION_TYPES)[number]
                                   )
                                 }
                                 selected={field.value}
@@ -828,11 +881,11 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           </FormLabel>
                           <FormControl>
                             <Combobox
-                              options={COLLECTOR_POSITION_TYPES}
+                              options={COLLECTOR_POSITION_TYPES_ARR}
                               onSelect={(v) =>
                                 form.setValue(
                                   'Collector.position',
-                                  v as PositionType
+                                  v as (typeof COLLECTOR_POSITION_TYPES)[number]
                                 )
                               }
                               selected={field.value}

@@ -246,7 +246,7 @@ export function DatabaseTable({
             buttonVariants({ variant: 'ghost' }),
             'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0'
           )}
-          href={`/dashboard/db/${id}/edit`}
+          href={`/dashboard/db/${id}`}
         >
           <Icons.edit className="w-4 h-4 group-hover:text-primary" />
         </Link>
