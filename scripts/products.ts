@@ -72,6 +72,7 @@ const COOLING_TYPES = ['Eau', 'Air', 'Huile']
 const POSITIONS = ['C', 'D']
 const TIGHTENING_TYPES = ['P', 'B']
 const MATERIALS = ['Acier', 'Laiton']
+const PERFORATION = ['Perforé', 'Non Perforé']
 const FINS_TYPES = ['Z', 'A', 'D']
 const TUBE_TYPES = ['7', '9', 'M']
 const FINS_PITCHES = [10, 11, 12, 14]
@@ -167,10 +168,9 @@ async function main() {
 
     // Create a template for both collectors
     const collectorTemplate = {
-      thickness: faker.number.int({ min: 5, max: 15 }),
       position,
       tightening,
-      isPerforated: faker.datatype.boolean(),
+      perforation: faker.helpers.arrayElement(PERFORATION),
       isTinned: faker.datatype.boolean()
     }
 
@@ -184,6 +184,7 @@ async function main() {
           create: {
             width: collectorWidth,
             height: collectorHeight,
+            thickness: faker.number.int({ min: 5, max: 15 }),
             type: 'TOP',
             Template: {
               create: collectorTemplate
@@ -208,6 +209,7 @@ async function main() {
           create: {
             width: collectorWidth,
             height: collectorHeight,
+            thickness: faker.number.int({ min: 5, max: 15 }),
             type: 'BOTTOM',
             Template: {
               create: collectorTemplate
