@@ -16,17 +16,18 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { OrderComponentsTableEntry } from '@/types'
+
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
+  type VisibilityState
 } from '@tanstack/react-table'
 import { ArrowUpDown } from 'lucide-react'
 import Link from 'next/link'
@@ -45,18 +46,38 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { usePathname, useRouter } from 'next/navigation'
-import { useOrder } from './new-order.provider'
+import { Badge } from './ui/badge'
+import { Input } from '@/components/ui/input'
+import { ChevronDown } from 'lucide-react'
+import { usePersistedState } from '@/hooks/use-persisted-state'
+import {
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
+} from '@/components/ui/dropdown-menu'
+
+export type ComponentsTableEntry = {
+  id: string
+  brand: string
+  model: string
+  fabrication: string
+  category: string
+  label: string
+  quantity: number
+  isModified: boolean
+}
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  data?: OrderComponentsTableEntry[]
+  data?: ComponentsTableEntry[]
   t?: {
     id: string
     brand: string
     model: string
-    type: string
-    title: string
+    category: string
+    label: string
     fabrication: string
     quantity: string
+    isModified: string
   }
 }
 
@@ -64,33 +85,44 @@ export function OrderComponentsTable({
   data: input = [],
   t = {
     id: 'Matricule',
-    title: 'Titre',
+    label: 'Designation',
     brand: 'Marque',
     model: 'Model',
-    type: 'Commande',
+    category: 'Category',
     fabrication: 'Fabrication',
-    quantity: 'Quantité'
+    quantity: 'Quantité',
+    isModified: 'Modification'
   },
   ...props
 }: Props) {
-  const [data, setData] = React.useState<OrderComponentsTableEntry[]>(input)
+  const [data, setData] = React.useState<ComponentsTableEntry[]>(input)
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+  const [columnVisibility, setColumnVisibility] =
+    usePersistedState<VisibilityState>(
+      'components-table-columns-visibility',
+      {}
+    )
 
   const router = useRouter()
   const pathname = usePathname()
+
+  React.useEffect(() => {
+    table.setPageSize(limit)
+  }, [limit])
 
   const handleDelete = async (orderId: string) => {
     setData(data.filter(({ id }) => id != orderId))
     // TODO: delete the item from database
   }
 
-  const columns: ColumnDef<OrderComponentsTableEntry>[] = [
+  const columns: ColumnDef<ComponentsTableEntry>[] = [
     {
       accessorKey: 'id',
+      enableHiding: true,
       header: ({ column }) => {
         return (
           <div
@@ -113,9 +145,9 @@ export function OrderComponentsTable({
         </div>
       )
     },
-
     {
-      accessorKey: 'title',
+      accessorKey: 'label',
+      enableHiding: true,
       header: ({ column }) => {
         return (
           <div
@@ -129,49 +161,43 @@ export function OrderComponentsTable({
       },
       cell: ({
         row: {
-          original: { title }
+          original: { label, isModified }
         }
       }) => {
         const regex = /(?<=x)\d+|\d+(?=x)/gi
-        const parts = title.split(regex)
-        const matches = title.match(regex)
+        const parts = label.split(regex)
+        const matches = label.match(regex)
 
         return (
-          <p
-            className="text-foreground/85  truncate  overflow-hidden whitespace-nowrap"
-            style={{
-              fontSize: ' 1.05rem',
-              lineHeight: '1.65rem'
-            }}
-          >
-            {parts.map((part, index) => (
-              <React.Fragment key={index}>
-                {part}
-                {matches && matches[index] && (
-                  <span className="font-semibold">{matches[index]}</span>
-                )}
-              </React.Fragment>
-            ))}
-          </p>
-        )
-      }
-    },
-    {
-      accessorKey: 'quantity',
-      header: ({ column }) => {
-        return (
-          <div
-            className="flex gap-2 hover:text-primary  cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+          <div className="flex items-center justify-start gap-2">
+            <p
+              className="text-foreground/85  truncate  overflow-hidden whitespace-nowrap"
+              style={{
+                fontSize: ' 1.05rem',
+                lineHeight: '1.65rem'
+              }}
+            >
+              {parts.map((part, index) => (
+                <React.Fragment key={index}>
+                  {part}
+                  {matches && matches[index] && (
+                    <span className="font-semibold">{matches[index]}</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </p>
+            {isModified ? (
+              <Badge className="bg-yellow-50 text-yellow-500 border-yellow-500 border-2">
+                {'Modifier'}
+              </Badge>
+            ) : null}
           </div>
         )
       }
     },
     {
-      accessorKey: 'type',
+      accessorKey: 'category',
+      enableHiding: true,
       header: ({ column }) => {
         return (
           <div
@@ -186,6 +212,7 @@ export function OrderComponentsTable({
     },
     {
       accessorKey: 'fabrication',
+      enableHiding: true,
       header: ({ column }) => {
         return (
           <div
@@ -200,11 +227,12 @@ export function OrderComponentsTable({
     },
     {
       accessorKey: 'brand',
+      enableHiding: true,
       header: ({ column }) => {
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
+            className="truncate flex gap-2 hover:text-primary  cursor-pointer "
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -212,14 +240,14 @@ export function OrderComponentsTable({
         )
       }
     },
-
     {
       accessorKey: 'model',
+      enableHiding: true,
       header: ({ column }) => {
         return (
           <div
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
+            className="truncate flex gap-2 hover:text-primary  cursor-pointer "
           >
             {t[column.id as keyof typeof t]}
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -227,7 +255,21 @@ export function OrderComponentsTable({
         )
       }
     },
-
+    {
+      accessorKey: 'quantity',
+      enableHiding: true,
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
     {
       id: 'actions',
       enableHiding: false,
@@ -246,85 +288,187 @@ export function OrderComponentsTable({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
-      columnFilters
+      columnFilters,
+      columnVisibility
     },
     initialState: {
       pagination: {
         pageSize: limit,
         pageIndex: 0
-      }
+      },
+      columnVisibility
     }
   })
 
   return (
-    <div {...props} className={cn('w-full rounded-md border', props.className)}>
-      <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto ">
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead
-                    key={header.id}
-                    className={cn(
-                      'px-2 py-1 whitespace-nowrap',
-                      header.id === 'customer' && 'hidden sm:table-cell',
-                      header.id === 'status' && 'hidden md:table-cell',
-                      header.id === 'subParts' && 'hidden md:table-cell',
-                      header.id === 'deadline' && 'hidden md:table-cell'
-                    )}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && 'selected'}
-              >
-                {row.getVisibleCells().map((cell) => {
-                  return (
-                    <TableCell
-                      key={cell.id}
+    <div {...props} className={cn('w-full', props.className)}>
+      <div className="flex items-center justify-between pb-4">
+        <div className="flex gap-3">
+          <Input
+            placeholder="Rechercher..."
+            value={table.getState().globalFilter ?? ''}
+            onChange={(event) => table.setGlobalFilter(event.target.value)}
+            className="w-80"
+          />
+          <div className="hidden md:flex gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="ml-auto text-muted-foreground hover:text-foreground"
+                >
+                  Colonnes
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize text-muted-foreground hover:text-foreground"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {t[column.id as keyof typeof t] || column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Limite ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={limit.toString()}
+                  onValueChange={(value) => setLimit(Number.parseInt(value))}
+                >
+                  {['10', '25', '50', '100'].map((value) => (
+                    <DropdownMenuRadioItem
                       className={cn(
-                        'py-[0.5rem] pl-2 pr-0',
-                        cell.column.id == 'subParts' && 'hidden md:table-cell',
-                        cell.column.id == 'deadline' && 'hidden md:table-cell',
-                        cell.column.id == 'status' && 'hidden md:table-cell',
-                        cell.column.id == 'customer' && 'hidden sm:table-cell'
+                        'text-muted-foreground font-medium hover:text-primary',
+                        limit === Number.parseInt(value) && 'text-primary'
+                      )}
+                      key={value}
+                      value={value}
+                    >
+                      {value}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+      <div className="rounded-md border">
+        <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        'px-2 py-1 whitespace-nowrap',
+                        header.id === 'customer' && 'hidden sm:table-cell',
+                        header.id === 'status' && 'hidden md:table-cell',
+                        header.id === 'subParts' && 'hidden md:table-cell',
+                        header.id === 'deadline' && 'hidden md:table-cell'
                       )}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   )
                 })}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-36 text-center">
-                Pas d'articles.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          'py-[0.5rem] pl-2 pr-0',
+                          cell.column.id == 'subParts' &&
+                            'hidden md:table-cell',
+                          cell.column.id == 'deadline' &&
+                            'hidden md:table-cell',
+                          cell.column.id == 'status' && 'hidden md:table-cell',
+                          cell.column.id == 'customer' && 'hidden sm:table-cell'
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    )
+                  })}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-36 text-center"
+                >
+                  Pas d'articles.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

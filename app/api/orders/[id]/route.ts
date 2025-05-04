@@ -28,7 +28,6 @@ export async function GET(
                 }
               }
             },
-
             Attachments: true
           }
         },
@@ -39,7 +38,6 @@ export async function GET(
     if (!order) {
       return NextResponse.json({ message: 'Order not found' }, { status: 404 })
     }
-
     return NextResponse.json(order)
   } catch (error) {
     console.error('Error fetching order:', error)

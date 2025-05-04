@@ -1,14 +1,14 @@
 import { Card } from '@/components/card'
-import { OrderComponentsTable } from '@/components/components.table'
-import { Icons } from '@/components/icons'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { OrderMetaForm } from './_components/order-meta.form'
-import CustomGantt from '@/components/gantt_chart/CustomGantt'
-import { Task } from '@/types/gantt'
-import ComponentsTimeline from '@/components/gantt_chart/components-timeline'
-import { signIn, useSession } from 'next-auth/react'
-import { useServerUser } from '@/hooks/useServerUser'
+import {
+  ComponentsTableEntry,
+  OrderComponentsTable
+} from '@/components/components.table'
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
+import { useServerUser } from '@/hooks/useServerUser'
+import { Task } from '@/types/gantt'
+import { signIn } from 'next-auth/react'
+import prisma from '@/lib/db'
+import { ca } from 'date-fns/locale'
 
 interface PageProps {
   params: {
@@ -105,6 +105,68 @@ const Page: React.FC<PageProps> = async ({
     'PRODUCTION_MANAGER',
     'PRODUCTION_MANAGER'
   ])
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      Client: true,
+      Payment: true,
+      OrdersItems: {
+        include: {
+          Radiator: {
+            include: {
+              Models: {
+                include: {
+                  Family: {
+                    include: {
+                      Brand: true
+                    }
+                  }
+                }
+              },
+              Components: {
+                include: {
+                  Collector: true,
+                  Core: true,
+                  Materials: true
+                }
+              }
+            }
+          },
+          Attachments: true
+        }
+      },
+      Attachments: true
+    }
+  })
+
+  const data = order?.OrdersItems.map(
+    ({
+      Radiator: { id, label, category, Models },
+      fabrication,
+      quantity,
+      isModified
+    }) => {
+      return {
+        id,
+        label,
+        category,
+        fabrication,
+        quantity,
+        isModified,
+        model: Models.map(({ name }) => name).join(', ') || '_',
+        brand:
+          Models.map(
+            ({
+              Family: {
+                Brand: { name }
+              }
+            }) => name
+          ).join(', ') || '_'
+      }
+    }
+  ) as ComponentsTableEntry[]
+
   return (
     <div className="space-y-4">
       {/* {isUserRoleSales && (
@@ -114,12 +176,7 @@ const Page: React.FC<PageProps> = async ({
       )} */}
       {true && (
         <Card className="">
-          <div className="flex items-center justify-between select-none">
-            <span className="absolute -top-0 left-6 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              articles
-            </span>
-          </div>
-          <OrderComponentsTable t={t} data={testData} />
+          <OrderComponentsTable data={data} />
         </Card>
       )}
       {/* {(isUserRoleSales || isUserRoleProduction) && (

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { BANK_TYPES, PAYMENT_TYPES } from '@/config/global'
+import { BANK_TYPES, PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
 import { paymentSchema, type PaymentType } from '@/lib/validations/payment'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -154,7 +154,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                   <FormControl>
                     <Combobox
                       id="mode"
-                      options={PAYMENT_TYPES}
+                      options={PAYMENT_TYPES_ARR}
                       selected={form.getValues('mode') || PAYMENT_TYPES[0]}
                       onSelect={(v) => {
                         form.setValue('mode', v as PaymentType['mode'])
