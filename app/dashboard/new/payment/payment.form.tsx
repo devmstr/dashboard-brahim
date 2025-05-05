@@ -62,12 +62,12 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
 
     router.push('/dashboard/new/validate')
 
-    toast({
-      title: 'Étape 3 : Paiement enregistré',
-      description:
-        'Les informations de paiement ont été enregistrées avec succès.',
-      variant: 'success'
-    })
+    // toast({
+    //   title: 'Étape 3 : Paiement enregistré',
+    //   description:
+    //     'Les informations de paiement ont été enregistrées avec succès.',
+    //   variant: 'success'
+    // })
   }
 
   return (

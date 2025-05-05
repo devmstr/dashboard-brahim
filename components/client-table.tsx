@@ -33,7 +33,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
+import { ArrowUpDown, Building, Building2, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 import { Icons } from './icons'
@@ -53,14 +53,12 @@ import { useRouter } from 'next/navigation'
 import { Client } from '@/lib/validations'
 
 export type ClientTableInput = Client & {
-  Address?: {
-    City: { name: string }
-  }
-  _count?:
-    | {
-        Orders: number
-      }
-    | undefined
+  Address: {
+    Province: { name: string }
+  } | null
+  _count?: {
+    Orders: number
+  } | null
 }
 
 interface Props {
@@ -71,10 +69,10 @@ interface Props {
     placeholder: string
     id: string
     label: string
-    location: string
     name: string
     phone: string
-    orderCount: string
+    Address: string
+    _count: string
   }
   // New props for configurable UI elements
   showSearch?: boolean
@@ -90,7 +88,7 @@ interface Props {
 export function ClientTable({
   data,
   t = {
-    orderCount: 'Commandes',
+    _count: 'Commandes',
     columns: 'Colonnes',
     limit: 'Limite',
     placeholder: 'Rechercher ...',
@@ -98,7 +96,7 @@ export function ClientTable({
     label: 'F.Juridique',
     name: 'Client',
     phone: 'Tél',
-    location: 'Location'
+    Address: 'Location'
   },
   showSearch = true,
   showColumnSelector = true,
@@ -180,9 +178,19 @@ export function ClientTable({
           </div>
         )
       },
-      cell: ({ row }) => {
-        const fullName = row.original.name
-        return <div className="flex items-center">{fullName}</div>
+      cell: ({
+        row: {
+          original: { name, isCompany }
+        }
+      }) => {
+        return (
+          <div className="items-center flex gap-1">
+            {name}
+            {isCompany && (
+              <Building className="w-4 h-4 text-muted-foreground" />
+            )}
+          </div>
+        )
       }
     },
 
@@ -231,7 +239,7 @@ export function ClientTable({
       }
     },
     {
-      accessorKey: 'orderCount',
+      accessorKey: '_count',
       header: ({ column }) => {
         return (
           <div
@@ -242,10 +250,17 @@ export function ClientTable({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
+      },
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-1">
+            {row.original._count?.Orders}
+          </div>
+        )
       }
     },
     {
-      accessorKey: 'location',
+      accessorKey: 'Address',
       header: ({ column }) => {
         return (
           <div
@@ -260,7 +275,7 @@ export function ClientTable({
       cell: ({ row }) => {
         return (
           <div className="flex items-center gap-1">
-            {row.original.Address?.City.name}
+            {row.original.Address?.Province?.name}
           </div>
         )
       }

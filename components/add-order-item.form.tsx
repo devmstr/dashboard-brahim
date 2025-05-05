@@ -90,8 +90,8 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         tube: 'ET7',
         rows: 1,
         dimensions: {
-          height: undefined,
-          width: undefined
+          height: 0,
+          width: 0
         }
       },
       Collector: {
@@ -101,13 +101,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         position: 'Centrer',
         material: 'Laiton',
         dimensions1: {
-          height: undefined,
-          width: undefined,
+          height: 0,
+          width: 0,
           thickness: 1.5
         },
         dimensions2: {
-          height: undefined,
-          width: undefined,
+          height: 0,
+          width: 0,
           thickness: 1.5
         }
       }
@@ -209,21 +209,21 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
     }
 
     const label = generateProductTitle({
-      coreDim: {
+      coreDimensions: {
         width: Number(formData.Core?.dimensions?.width),
         height: Number(formData.Core?.dimensions?.height)
       },
-      collectorDim1: {
+      collector1Dimensions: {
         width: Number(formData.Collector?.dimensions1?.width),
         height: Number(formData.Collector?.dimensions1?.height)
       },
-      collectorDim2: {
+      collector2Dimensions: {
         height: Number(formData.Collector?.dimensions2?.height),
         width: Number(formData.Collector?.dimensions2?.width)
       },
       rows: formData.Core?.rows,
-      type: formData.type as 'Faisceau' | 'Radiateur',
-      fabrication: formData.fabrication as 'Renovation' | 'Confection',
+      type: formData.type,
+      fabrication: formData.fabrication,
       fins: formData.Core?.fins,
       pitch: formData.Core?.finsPitch,
       position: formData.Collector?.position,

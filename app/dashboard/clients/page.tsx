@@ -10,7 +10,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
     where: { isCompany: true },
     orderBy: { updatedAt: 'desc' },
     include: {
-      Address: { include: { City: true } },
+      Address: { include: { Province: true } },
       _count: {
         select: { Orders: true }
       }
@@ -22,20 +22,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
       <div className="flex justify-end items-center gap-3 mb-5">
         <AddNewClientDialogButton />
       </div>
-      <ClientTable
-        data={clients.map(
-          ({ _count, label, phone, name, email, isCompany, Address, id }) => ({
-            id,
-            name,
-            phone,
-            email,
-            label,
-            isCompany,
-            city: Address?.City.name as string,
-            _count
-          })
-        )}
-      />
+      <ClientTable data={clients} />
     </Card>
   )
 }

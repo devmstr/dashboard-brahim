@@ -26,28 +26,16 @@ type Response = {
   id: string
   reference: string
   label: string
-  category: string
-  cooling: string
+  category: OrderItem['category']
+  cooling: OrderItem['cooling']
   barcode: string
   isActive: boolean
   createdAt: string
   updatedAt: string
-
-  Inventory: {
-    level: number
-    alertAt: number
-  } | null
-
-  Price: {
-    unit: number
-    bulk: number
-  } | null
-
   Clients: {
     id: string
     name: string
   }[]
-
   Brands: {
     id: string
     name: string
@@ -55,44 +43,6 @@ type Response = {
       id: string
       name: string
     }[]
-  }[]
-
-  Components: {
-    id: string
-    name: string
-    type: string
-    Materials: {
-      id: string
-      name: string
-      weight: number
-    }[]
-
-    // Optional type-specific fields
-    Core?: {
-      id: string
-      width: number
-      height: number
-      rows: number
-      fins: number
-      pitch: number
-      tube: string
-    }
-
-    Collector?: {
-      id: string
-      type: string
-      width: number
-      height: number
-      Template: {
-        id: string
-        thickness: number
-        position: string
-        tightening: string
-        isPerforated: boolean
-        isTinned: boolean
-        material: string
-      } | null
-    }
   }[]
 }
 
@@ -185,12 +135,12 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
     // call the order endpoint and create the order
     router.push('payment')
 
-    toast({
-      title: 'Étape 2 : Articles enregistrés',
-      description:
-        'Tous les articles de la commande ont été enregistrés avec succès.',
-      variant: 'success'
-    })
+    // toast({
+    //   title: 'Étape 2 : Articles enregistrés',
+    //   description:
+    //     'Tous les articles de la commande ont été enregistrés avec succès.',
+    //   variant: 'success'
+    // })
   }
 
   // Function to handle form submission and add product to order
@@ -267,7 +217,7 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
             <div>
               <h3 className="text-lg font-semibold">{fetchedProduct.label}</h3>
               <p className="text-sm text-muted-foreground">
-                Ref: {fetchedProduct.reference || 'N/A'}
+                {fetchedProduct.id}
               </p>
             </div>
             <Button

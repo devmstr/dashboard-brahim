@@ -241,9 +241,9 @@ export default function ProductSearchInput({
                                 <span className="text-sm font-medium truncate">
                                   {highlightMatch(product.label)}
                                 </span>
-                                {product.reference && (
+                                {product.id && (
                                   <span className="text-xs text-muted-foreground">
-                                    ({highlightMatch(product.reference)})
+                                    ({highlightMatch(product.id)})
                                   </span>
                                 )}
                               </div>

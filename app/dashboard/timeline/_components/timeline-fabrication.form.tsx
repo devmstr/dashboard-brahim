@@ -5,9 +5,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   COOLING_SYSTEMS_TYPES,
+  COOLING_SYSTEMS_TYPES_ARR,
   FABRICATION_TYPES,
+  FABRICATION_TYPES_ARR,
   ORDER_TYPES,
-  PACKAGING_TYPES
+  ORDER_TYPES_ARR,
+  PACKAGING_TYPES,
+  PACKAGING_TYPES_ARR
 } from '@/config/global'
 import React, { useEffect, useState } from 'react'
 import { AddOrderSchemaType, InputNameType } from '../add-order.dialog'
@@ -66,7 +70,7 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="type">{'Type'}</Label>
             <Combobox
               id="type"
-              options={ORDER_TYPES}
+              options={ORDER_TYPES_ARR}
               onSelect={(v) => {
                 if (v == 'Faisceau') onChange('buildType', 'Confection')
                 onChange('orderType', v)
@@ -80,8 +84,8 @@ export const FabricationForm: React.FC<Props> = ({
               id="buildType"
               options={
                 data.orderType === 'Faisceau'
-                  ? FABRICATION_TYPES.filter((i) => i !== 'Rénovation')
-                  : FABRICATION_TYPES
+                  ? FABRICATION_TYPES_ARR.filter((i) => i !== 'Rénovation')
+                  : FABRICATION_TYPES_ARR
               }
               onSelect={(v) => {
                 onChange('buildType', v)
@@ -104,7 +108,7 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="coolingSystem">{'Refroidissement'}</Label>
             <Combobox
               id="buildType"
-              options={COOLING_SYSTEMS_TYPES}
+              options={COOLING_SYSTEMS_TYPES_ARR}
               onSelect={(v) => {
                 onChange('coolingSystem', v)
                 if (v != 'Eau') onChange('collectorType', 'Plié')
@@ -116,7 +120,7 @@ export const FabricationForm: React.FC<Props> = ({
             <Label htmlFor="packaging">{'Emballage'}</Label>
             <Combobox
               id="packaging"
-              options={PACKAGING_TYPES}
+              options={PACKAGING_TYPES_ARR}
               onSelect={(v) => {
                 onChange('packaging', v)
               }}

@@ -76,12 +76,12 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
 
     router.push('new/order')
 
-    toast({
-      title: 'Étape 1 : Client enregistré',
-      description:
-        'Les informations du client ont été enregistrées avec succès.',
-      variant: 'success'
-    })
+    // toast({
+    //   title: 'Étape 1 : Client enregistré',
+    //   description:
+    //     'Les informations du client ont été enregistrées avec succès.',
+    //   variant: 'success'
+    // })
 
     return
   }

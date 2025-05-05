@@ -22,7 +22,7 @@ import type { InvoiceItem } from '@/types'
 import './print.css'
 import { Icons } from '@/components/icons'
 import { useRouter } from 'next/navigation'
-import { PAYMENT_TYPES } from '@/config/global'
+import { PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
 import {
   Select,
   SelectTrigger,
@@ -74,7 +74,8 @@ export default function Invoice({
     paymentMode == 'Versement (Banque)' ? 0 : 0.01
   )
   const [editingItemId, setEditingItemId] = useState<number | null>(null)
-  const [paymentType, setPaymentType] = useState(PAYMENT_TYPES[1])
+  const [paymentType, setPaymentType] =
+    useState<(typeof PAYMENT_TYPES)[number]>('Versement')
 
   const [editedDescriptions, setEditedDescriptions] = useState<
     Record<string, string>
@@ -92,7 +93,7 @@ export default function Invoice({
   )
 
   // Handle payment type change
-  const handlePaymentTypeChange = (value: string) => {
+  const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
     setPaymentType(value)
 
     // If payment type is Espèces or Espèces + Versement, set stampTaxRate to 0.01 (1%)

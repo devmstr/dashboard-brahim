@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
+import { COMPANY_LABELS_TYPE } from '@/config/global'
 
 const prisma = new PrismaClient()
 
@@ -8,6 +9,8 @@ let counter = 1
 function skuId() {
   return `CLX${String(counter++).padStart(4, '0')}`
 }
+
+const LABELS = ['SARL', 'EURL', null]
 
 async function seedClients() {
   console.log('🧹 Cleaning up old clients...')
@@ -46,7 +49,7 @@ async function seedClients() {
   console.log('🌱 Creating clients with addresses...')
 
   // Create clients with proper relations
-  const clientsToCreate = Array.from({ length: 10 }).map(async () => {
+  const clientsToCreate = Array.from({ length: 25 }).map(async () => {
     // Select random province and city that belongs to that province
     const randomProvince = faker.helpers.arrayElement(provinces)
     const provinceCities = cities.filter(
@@ -73,9 +76,9 @@ async function seedClients() {
         id: skuId(),
         name: faker.company.name(),
         phone: `+213${faker.string.numeric(9)}`,
-        label: faker.company.catchPhrase(),
+        label: faker.helpers.arrayElement(LABELS),
         email: faker.internet.email(),
-        isCompany: true,
+        isCompany: faker.helpers.arrayElement([false, false, true, false]),
         website: faker.internet.url(),
         tradeRegisterNumber: faker.string.alphanumeric(10).toUpperCase(), // RC
         fiscalNumber: faker.string.alphanumeric(10).toUpperCase(), // MF

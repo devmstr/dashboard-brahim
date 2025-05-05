@@ -370,6 +370,7 @@ model OrderItem {
   description  Json?
   modification Json?
   packaging    String?
+  type         String?
   fabrication  String?
   isModified   Boolean?
   quantity     Int?

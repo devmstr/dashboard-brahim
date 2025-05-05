@@ -3,7 +3,7 @@
 // Company types
 export const COMPANY_LABELS_TYPE = [
   { label: 'Société Anonyme (SA)', value: 'SA' },
-  { label: 'Société Par Actions (SPA)', value: 'SPA)' },
+  { label: 'Société Par Actions (SPA)', value: 'SPA' },
   { label: 'Société en Commandité Simple (SCS)', value: 'SCS' },
   { label: 'Société en Commandité par Actions (SCA)', value: 'SCA' },
   { label: 'Société A Responsabilité limitée (SARL)', value: 'SARL' },
@@ -31,7 +31,12 @@ export const STATUS_TYPES = [
 ] as const
 export const STATUS_TYPE_ARR: string[] = [...STATUS_TYPES]
 // Orders
-export const ORDER_TYPES = ['Radiateur', 'Speral', 'Faisceau', 'Autre'] as const
+export const ORDER_TYPES = [
+  'Radiateur',
+  'Spirale',
+  'Faisceau',
+  'Autre'
+] as const
 export const ORDER_TYPES_ARR: string[] = [...ORDER_TYPES]
 
 // Cooling Systems

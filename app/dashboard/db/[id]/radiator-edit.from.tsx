@@ -31,14 +31,22 @@ import { Switcher } from '@/components/switcher'
 // Utilities and Config
 import {
   CLAMPING_TYPES,
+  CLAMPING_TYPES_ARR,
   COLLECTOR_MATERIALS_TYPES,
+  COLLECTOR_MATERIALS_TYPES_ARR,
   COLLECTOR_POSITION_TYPES,
+  COLLECTOR_POSITION_TYPES_ARR,
   COOLING_SYSTEMS_TYPES,
+  COOLING_SYSTEMS_TYPES_ARR,
   FABRICATION_TYPES,
+  FABRICATION_TYPES_ARR,
   FINS_TYPES,
   ORDER_TYPES,
+  ORDER_TYPES_ARR,
   PACKAGING_TYPES,
+  PACKAGING_TYPES_ARR,
   PERFORATION_TYPES,
+  PERFORATION_TYPES_ARR,
   TUBE_TYPES
 } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
@@ -245,7 +253,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Combobox
                       {...field}
                       id="type"
-                      options={ORDER_TYPES}
+                      options={ORDER_TYPES_ARR}
                       onSelect={(v) => form.setValue('type', v)}
                       selected={field.value}
                       isInSideADialog
@@ -265,7 +273,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Combobox
                       {...field}
                       id="fabrication"
-                      options={FABRICATION_TYPES}
+                      options={FABRICATION_TYPES_ARR}
                       onSelect={(v) => form.setValue('fabrication', v)}
                       selected={field.value}
                       isInSideADialog
@@ -304,7 +312,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Combobox
                       {...field}
-                      options={COOLING_SYSTEMS_TYPES}
+                      options={COOLING_SYSTEMS_TYPES_ARR}
                       onSelect={(v) => form.setValue('cooling', v)}
                       selected={field.value}
                       isInSideADialog
@@ -324,7 +332,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Combobox
                       {...field}
                       id="packaging"
-                      options={PACKAGING_TYPES}
+                      options={PACKAGING_TYPES_ARR}
                       onSelect={(v) => form.setValue('packaging', v)}
                       selected={field.value}
                       isInSideADialog
@@ -515,7 +523,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       <FormLabel className="capitalize">Matière</FormLabel>
                       <FormControl>
                         <Combobox
-                          options={COLLECTOR_MATERIALS_TYPES}
+                          options={COLLECTOR_MATERIALS_TYPES_ARR}
                           onSelect={(v) =>
                             form.setValue('collector.material', v)
                           }
@@ -535,7 +543,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       <FormLabel className="capitalize">Serrage</FormLabel>
                       <FormControl>
                         <Combobox
-                          options={CLAMPING_TYPES}
+                          options={CLAMPING_TYPES_ARR}
                           onSelect={(v) =>
                             form.setValue('collector.tightening', v)
                           }
@@ -557,7 +565,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       <FormControl>
                         <Combobox
                           id="perforation"
-                          options={PERFORATION_TYPES}
+                          options={PERFORATION_TYPES_ARR}
                           onSelect={(v) =>
                             form.setValue('collector.perforation', v)
                           }
@@ -579,7 +587,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       </FormLabel>
                       <FormControl>
                         <Combobox
-                          options={COLLECTOR_POSITION_TYPES}
+                          options={COLLECTOR_POSITION_TYPES_ARR}
                           onSelect={(v) =>
                             form.setValue('collector.position', v)
                           }

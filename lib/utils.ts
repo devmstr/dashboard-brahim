@@ -2,8 +2,10 @@ import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import n2words from 'n2words'
 import { BillingConfig, InvoiceItem, UserRole } from '@/types'
-import { Collector, Core } from '@prisma/client'
 import { customAlphabet } from 'nanoid'
+import { ORDER_TYPES, FABRICATION_TYPES } from '@/config/global'
+import { Collector, Core, OrderItem } from './validations'
+import { RSC_PREFETCH_SUFFIX } from 'next/dist/lib/constants'
 
 export enum SKU_PREFIX {
   RA = 'RA', // radiator
@@ -74,17 +76,17 @@ export type TighteningType = keyof typeof TIGHTENING_T
 export type PositionType = keyof typeof POSITION_T
 
 interface ProductConfig {
-  type?: 'Faisceau' | 'Radiateur'
-  fabrication?: 'Renovation' | 'Confection'
-  coreDim: Dimensions
+  type?: OrderItem['type']
+  fabrication?: OrderItem['fabrication']
+  coreDimensions: Dimensions
   rows?: number
-  fins?: FinsType
-  tube?: TubeType
-  pitch?: FinsPitch
-  collectorDim1: Dimensions
-  collectorDim2: Dimensions
-  tightening?: TighteningType
-  position?: PositionType
+  fins?: Core['fins']
+  tube?: Core['tube']
+  pitch?: Core['finsPitch']
+  collector1Dimensions: Dimensions
+  collector2Dimensions: Dimensions
+  tightening?: Collector['tightening']
+  position?: Collector['position']
 }
 
 const pad = (n: number): string => n.toString().padStart(4, '0')
@@ -92,34 +94,40 @@ const pad = (n: number): string => n.toString().padStart(4, '0')
 const formatDimension = (main: number, lower?: number): string =>
   lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
 
-const formatPrefix = (type: string, fabrication: string): string =>
-  type === 'Faisceau' ? 'FX' : fabrication === 'Confection' ? 'RA' : 'RE'
+const getPrefix = (
+  type: OrderItem['type'] = 'Radiateur',
+  fabrication: OrderItem['fabrication'] = 'Confection'
+): string =>
+  type === 'Radiateur'
+    ? fabrication === 'Confection'
+      ? 'RAD'
+      : 'REN'
+    : type.slice(0, 3).toUpperCase()
 
 export function generateProductTitle({
-  type = 'Radiateur',
-  fabrication = 'Confection',
-  coreDim,
-  collectorDim1,
-  collectorDim2,
-  rows,
+  type,
+  fabrication,
+  coreDimensions,
+  collector1Dimensions,
+  collector2Dimensions,
+  rows = 1,
   fins = 'Normale',
   tube = 'ET7',
   pitch = '10',
   tightening = 'Plié',
   position = 'Centrer'
 }: ProductConfig): string {
-  const coreCode = `${pad(coreDim.height)}X${pad(coreDim.width)}`
-  const rowFinsTube = `${rows && rows > 1 ? rows : ''}${FINS_T[fins]}${
-    TUBE_T[tube]
-  }`
-  const collectorCode = `${formatDimension(
-    collectorDim1.height,
-    collectorDim2.height
-  )}X${formatDimension(collectorDim1.width, collectorDim2.width)}`
-  const tighteningPosition = `${TIGHTENING_T[tightening]}${POSITION_T[position]}`
-  const prefix = formatPrefix(type, fabrication)
+  const prefix = getPrefix(type, fabrication)
 
-  return `${prefix} ${coreCode} ${rowFinsTube} ${pitch} ${collectorCode} ${tighteningPosition}`
+  const core4DigitsDimensions = `${pad(coreDimensions.height)}X${pad(
+    coreDimensions.width
+  )}`
+
+  const collector4DigitsDimensions = `${formatDimension(
+    collector1Dimensions.height,
+    collector2Dimensions.height
+  )}X${formatDimension(collector1Dimensions.width, collector2Dimensions.width)}`
+  return `${prefix} ${core4DigitsDimensions} ${rows}${FINS_T[fins]}${TUBE_T[tube]} ${pitch} ${collector4DigitsDimensions} ${TIGHTENING_T[tightening]}${POSITION_T[position]}`
 }
 
 export function cn(...inputs: ClassValue[]) {

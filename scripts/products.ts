@@ -36,8 +36,8 @@ function formatDimension(main: number, lower?: number): string {
 }
 
 function formatProductPrefix(type: string, fabrication: string): string {
-  if (type === 'Faisceau') return 'FX'
-  return fabrication === 'Confection' ? 'RA' : 'RE'
+  if (type === 'Faisceau') return 'FAI'
+  return fabrication === 'Confection' ? 'RAD' : 'REN'
 }
 
 export function generateProductTitle({
@@ -67,7 +67,8 @@ export function generateProductTitle({
 }
 
 // Constants for the seeding script
-const CATEGORIES = ['Radiateur', 'Faisceau', 'Autre']
+const TYPES = ['Radiateur', 'Faisceau']
+const CATEGORIES = ['Automobile', 'Industriel', 'Générateurs', 'Agricole']
 const COOLING_TYPES = ['Eau', 'Air', 'Huile']
 const POSITIONS = ['C', 'D']
 const TIGHTENING_TYPES = ['P', 'B']
@@ -81,18 +82,21 @@ async function main() {
   console.log('🌱 Starting database seeding...')
 
   // Clean up existing data if needed
-  await prisma.core.deleteMany({})
-  await prisma.collector.deleteMany({})
-  await prisma.collectorTemplate.deleteMany({})
-  await prisma.radiatorComponent.deleteMany({})
-  await prisma.radiator.deleteMany({})
+  await prisma.core.deleteMany()
+  await prisma.collector.deleteMany()
+  await prisma.collectorTemplate.deleteMany()
+  await prisma.radiatorComponent.deleteMany()
+  await prisma.orderItem.deleteMany()
+  await prisma.radiator.deleteMany()
 
   console.log('🧹 Cleaned up existing data')
 
   // Create 10 products with components
   for (let i = 0; i < 10; i++) {
+    const type = faker.helpers.arrayElement(TYPES)
+    const id = mockSkuId(type === 'Faisceau' ? 'FA' : 'RA')
     const category = faker.helpers.arrayElement(CATEGORIES)
-    const productReference = `REF-${faker.string.alphanumeric(6).toUpperCase()}`
+    const productReference = `${id}`
 
     // Generate core dimensions
     const coreWidth = faker.number.int({ min: 100, max: 800 })
@@ -112,7 +116,7 @@ async function main() {
 
     // Generate product title using the utility function
     const productLabel = generateProductTitle({
-      type: category === 'Faisceau' ? 'Faisceau' : 'Radiateur',
+      type: type === 'Faisceau' ? 'Faisceau' : 'Radiateur',
       core: {
         width: coreWidth,
         height: coreHeight
@@ -132,7 +136,7 @@ async function main() {
     // Create the product
     const radiator = await prisma.radiator.create({
       data: {
-        id: mockSkuId(category === 'Faisceau' ? 'FA' : 'RA'),
+        id: id,
         reference: productReference,
         label: productLabel,
         category,

@@ -12,7 +12,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
     include: {
       Address: {
         include: {
-          City: true
+          Province: true
         }
       },
       _count: {

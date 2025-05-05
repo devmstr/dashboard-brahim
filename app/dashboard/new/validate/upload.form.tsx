@@ -160,7 +160,7 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
       const createdOrder = await response.json()
 
       toast({
-        title: 'Étape 4 : Commande validée',
+        title: 'Commande validée',
         description: (
           <div>
             Votre commande a été validée. Vous pouvez aller à{' '}

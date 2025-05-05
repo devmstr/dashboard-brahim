@@ -5,7 +5,7 @@ import { AddOrderSchemaType, InputNameType } from '../add-order.dialog'
 
 import { Combobox } from '@/components/combobox'
 import { DatePicker } from '@/components/date-picker'
-import { PAYMENT_TYPES } from '@/config/global'
+import { PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
 import React, { useEffect } from 'react'
 
 interface Props {
@@ -85,7 +85,7 @@ export const PaymentForm: React.FC<Props> = ({
             <Label htmlFor="mode">{'Mode De Paiement'}</Label>
             <Combobox
               id="mode"
-              options={PAYMENT_TYPES}
+              options={PAYMENT_TYPES_ARR}
               selected={data.paymentMode}
               onSelect={(v) => {
                 onChange('paymentMode', v)

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { PAYMENT_TYPES } from '@/config/global'
+import { PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
 import { delay } from '@/lib/utils'
 import { paymentSchema, PaymentType } from '@/lib/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -151,7 +151,7 @@ export const OrderMetaForm: React.FC<Props> = ({
                   <FormControl>
                     <Combobox
                       id="mode"
-                      options={PAYMENT_TYPES}
+                      options={PAYMENT_TYPES_ARR}
                       onSelect={(v: string) => {
                         form.setValue(
                           'mode',

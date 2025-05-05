@@ -24,7 +24,7 @@ export const clientSchema = z.object({
   isCompany: z.boolean(),
   email: z.string().nullable().optional(),
   label: z.string().nullable().optional(),
-  addressId: z.string().optional()
+  addressId: z.string().nullable().optional()
 })
 
 export type Client = z.infer<typeof clientSchema>
@@ -33,7 +33,16 @@ export type Client = z.infer<typeof clientSchema>
 export const carSchema = z.object({
   id: z.string(),
   brand: z.string(),
-  model: z.string()
+  model: z.string(),
+  family: z.string().optional(),
+  type: z.string().optional(),
+  fuel: z.enum(['Essence', 'Diesel']).optional(),
+  productionYears: z
+    .string()
+    .regex(/^\d{4}–\d{4}$/, {
+      message: 'Must be in the format YYYY–YYYY'
+    })
+    .optional()
 })
 
 export type Car = z.infer<typeof carSchema>
@@ -94,7 +103,7 @@ export const orderItemSchema = z.object({
   label: z.string().optional(),
   category: z.enum(CATEGORY_TYPES).optional(),
   cooling: z.enum(COOLING_SYSTEMS_TYPES).optional(),
-  isModified: z.string().nullable().optional(),
+  isModified: z.boolean().nullable().optional(),
   quantity: z.number().positive().optional().default(1),
   Core: coreSchema.optional(),
   Collector: collectorSchema.optional(),

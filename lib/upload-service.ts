@@ -5,6 +5,7 @@ import { unlink } from 'fs/promises'
 import { existsSync } from 'fs'
 import path from 'path'
 import prisma from '@/lib/db' // Assuming you have a prisma client export
+import { skuId } from './utils'
 
 // Define the base uploads directory - must match the one in upload route
 const BASE_UPLOADS_DIR = path.join(process.cwd(), 'uploads')
@@ -26,11 +27,13 @@ export async function createAttachment(
   fileType: string
 ): Promise<number | null> {
   try {
+    const uniqueName = skuId('FL')
     const attachment = await prisma.attachment.create({
       data: {
         name: fileName,
         url: fileUrl,
         type: fileType,
+        uniqueName,
         Order: {
           connect: {
             id: orderId
