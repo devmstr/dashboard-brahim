@@ -90,11 +90,13 @@ export type CarSelection = {
 export function CarSelectionForm({
   selected,
   onSelectChange,
-  children
+  children,
+  isReadOnly = false
 }: {
   children?: React.ReactNode
   selected?: CarSelection | undefined
   onSelectChange: Dispatch<SetStateAction<CarSelection | undefined>>
+  isReadOnly?: boolean
 }) {
   // State for storing API data
   const [brands, setBrands] = useState<Brand[]>([])
@@ -250,7 +252,6 @@ export function CarSelectionForm({
         setLoadingModels(false)
       }
     }
-
     fetchModels()
   }, [watchFamilyId, watchBrandId, families, form])
 

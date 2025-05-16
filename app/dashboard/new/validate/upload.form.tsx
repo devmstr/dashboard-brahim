@@ -118,12 +118,12 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
           fabrication: item.fabrication,
           isModified: item.isModified,
           radiatorId: item.radiatorId,
+          type: item.type,
           Radiator: {
             id: item.Radiator?.id || item.radiatorId,
             cooling: item.cooling,
             category: item.category,
             label: item.label,
-            type: item.type,
             Core: item.Core,
             Collector: item.Collector,
             Car: item.Car

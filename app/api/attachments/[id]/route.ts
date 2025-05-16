@@ -4,12 +4,10 @@ import prisma from '@/lib/db'
 // GET a specific attachment by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params: { id } }: { params: { id: string } }
 ) {
   try {
-    const id = Number.parseInt(params.id)
-
-    if (isNaN(id)) {
+    if (id) {
       return NextResponse.json(
         { error: 'Invalid attachment ID' },
         { status: 400 }
@@ -41,12 +39,10 @@ export async function GET(
 // PUT update an attachment
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params: { id } }: { params: { id: string } }
 ) {
   try {
-    const id = Number.parseInt(params.id)
-
-    if (isNaN(id)) {
+    if (id) {
       return NextResponse.json(
         { error: 'Invalid attachment ID' },
         { status: 400 }
@@ -103,12 +99,10 @@ export async function PUT(
 // DELETE an attachment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params: { id } }: { params: { id: string } }
 ) {
   try {
-    const id = Number.parseInt(params.id)
-
-    if (isNaN(id)) {
+    if (id) {
       return NextResponse.json(
         { error: 'Invalid attachment ID' },
         { status: 400 }

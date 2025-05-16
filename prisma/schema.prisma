@@ -198,13 +198,14 @@ model RadiatorComponent {
 }
 
 model Core {
-  id     String @id @default(cuid())
-  width  Int
-  height Int
-  rows   Int
-  fins   String
-  pitch  Int
-  tube   String
+  id           String @id @default(cuid())
+  width        Int
+  height       Int
+  rows         Int
+  fins         String
+  finsPitch    Int
+  tubeDiameter Int?
+  tube         String
 
   componentId String            @unique
   Component   RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
@@ -217,7 +218,7 @@ model Collector {
   type                CollectorType
   width               Int
   height              Int
-  thickness           Int?
+  thickness           Float?
   componentId         String        @unique
   collectorTemplateId String
 
@@ -332,7 +333,7 @@ model Client {
 }
 
 model Attachment {
-  id          Int        @id @default(autoincrement())
+  id          String     @id @default(cuid())
   url         String // URL of the uploaded file
   type        String // MIME type like 'image/jpeg', 'application/pdf', etc.
   name        String // Original file name

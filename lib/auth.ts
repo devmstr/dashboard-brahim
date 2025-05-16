@@ -3,11 +3,8 @@ import { AuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import prisma from '@/lib/db'
 import { User } from 'next-auth'
-import { ROLES } from '@/config/accounts'
-import { CopyMinus } from 'lucide-react'
 import { JWT } from 'next-auth/jwt'
 import { UserRole } from '@/types'
-import { customAlphabet } from 'nanoid'
 
 export const authOptions: AuthOptions = {
   // Configure one or more authentication providers

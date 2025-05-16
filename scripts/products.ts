@@ -161,7 +161,7 @@ async function main() {
             height: coreHeight,
             rows,
             fins,
-            pitch: finsPitch,
+            finsPitch,
             tube
           }
         }

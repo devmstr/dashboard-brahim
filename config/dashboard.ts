@@ -32,7 +32,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     key: 'orders'
   },
   {
-    title: 'Inventaire',
+    title: 'Stock',
     href: '/dashboard/inventory',
     icon: 'inventory',
     key: 'inventory'

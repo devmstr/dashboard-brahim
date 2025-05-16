@@ -138,205 +138,58 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
         className="pt-2 space-y-6"
         onSubmit={form.handleSubmit(handleSubmit)}
       >
-        {/* Car Selection Form - Always visible */}
-        <CarSelectionForm
-          onSelectChange={setCarSelection}
-          selected={carSelection}
-        >
-          {/* Note Field - Always visible */}
-          <FormField
-            control={form.control}
-            name="note"
-            render={({ field }) => (
-              <FormItem className="group md:col-span-2 lg:col-span-3">
-                <div className="flex items-center gap-2">
-                  <FormLabel className="capitalize">Remarque</FormLabel>
-                  <Switcher
-                    className="data-[state=checked]:bg-yellow-400"
-                    id="isModificationIncluded"
-                    checked={hasNote}
-                    onCheckedChange={() => setHasNote(!hasNote)}
-                  />
-                </div>
-
-                {hasNote && (
-                  <FormControl>
-                    <MdEditor
-                      editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full 
-                      "
-                      className="w-full min-h-36 group bg-yellow-50 focus-within:border-yellow-400"
-                      placeholder="Ajouter Le Model Caterpillar D430 ..."
-                      setValue={(markdown) => form.setValue('note', markdown)}
-                      value={field.value}
-                    />
-                  </FormControl>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CarSelectionForm>
-
-        {/* Order Details Section */}
         <div className="relative border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-            commande
+            Véhicule
           </span>
-          {data.description ? (
-            <div className="py-3">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="group md:col-span-2 lg:col-span-3">
-                    <FormLabel className="capitalize">Description</FormLabel>
-                    <FormControl>
-                      <MdEditor
-                        editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
-                        className="w-full min-h-36 group"
-                        placeholder="Description de la commande..."
-                        setValue={(markdown) =>
-                          form.setValue('description', markdown)
-                        }
-                        value={field.value}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          ) : (
-            <div className="space-y-2 py-3">
-              <div className="flex items-center gap-2">
-                <Label id="isModificationIncluded">Modifications</Label>
-                <Switcher
-                  className="data-[state=checked]:bg-blue-400"
-                  id="isModificationIncluded"
-                  checked={hasModification}
-                  onCheckedChange={() => setHasModification(!hasModification)}
-                />
-              </div>
-
-              {hasModification && (
-                <FormField
-                  control={form.control}
-                  name="modification"
-                  render={({ field }) => (
-                    <FormItem className="group md:col-span-2 lg:col-span-3">
-                      <FormControl>
-                        <MdEditor
-                          editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
-                          className="w-full min-h-36 group bg-blue-50 focus-within:border-blue-400"
-                          placeholder="Listez les changements à effectuer..."
-                          value={field.value}
-                          setValue={(markdown) =>
-                            form.setValue('modification', markdown)
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-          )}
           <CardGrid>
             <FormField
               control={form.control}
-              name="type"
+              name="car.brand"
+              render={({ field }) => (
+                <FormItem className="group">
+                  <FormLabel className="capitalize">Marque</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="car.brand"
+              render={({ field }) => (
+                <FormItem className="group">
+                  <FormLabel className="capitalize">Famille</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="car.model"
+              render={({ field }) => (
+                <FormItem className="group">
+                  <FormLabel className="capitalize">Model</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="car.model"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Type</FormLabel>
                   <FormControl>
-                    <Combobox
-                      {...field}
-                      id="type"
-                      options={ORDER_TYPES_ARR}
-                      onSelect={(v) => form.setValue('type', v)}
-                      selected={field.value}
-                      isInSideADialog
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="fabrication"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Fabrication</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      {...field}
-                      id="fabrication"
-                      options={FABRICATION_TYPES_ARR}
-                      onSelect={(v) => form.setValue('fabrication', v)}
-                      selected={field.value}
-                      isInSideADialog
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Quantité</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      onChange={(e) => {
-                        const value = Number(e.target.value)
-                        if (value > 0) form.setValue('quantity', value)
-                      }}
-                      type="number"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cooling"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Refroidissement</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      {...field}
-                      options={COOLING_SYSTEMS_TYPES_ARR}
-                      onSelect={(v) => form.setValue('cooling', v)}
-                      selected={field.value}
-                      isInSideADialog
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="packaging"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Emballage</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      {...field}
-                      id="packaging"
-                      options={PACKAGING_TYPES_ARR}
-                      onSelect={(v) => form.setValue('packaging', v)}
-                      selected={field.value}
-                      isInSideADialog
-                    />
+                    <Input {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -344,6 +197,42 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
           </CardGrid>
         </div>
+
+        {/* Car Selection Form - Always visible */}
+
+        {/* Order Details Section */}
+        {hasModification && (
+          <div className="relative border rounded-md px-3 py-3">
+            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+              commande
+            </span>
+
+            <div className="space-y-2 py-3">
+              <FormField
+                control={form.control}
+                name="modification"
+                render={({ field }) => (
+                  <FormItem className="group md:col-span-2 lg:col-span-3">
+                    <Label>Modifications</Label>
+                    <FormControl>
+                      <MdEditor
+                        editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full"
+                        className="w-full min-h-36 group "
+                        placeholder="Listez les changements à effectuer..."
+                        value={field.value}
+                        setValue={(markdown) =>
+                          form.setValue('modification', markdown)
+                        }
+                        isReadOnly
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Technical Details Section - Always visible */}
         <div className="relative space-y-3 border rounded-md px-3 py-3">
@@ -439,7 +328,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       options={FINS_TYPES}
                       onSelect={(v) => form.setValue('core.fins', v)}
                       selected={field.value}
-                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -458,7 +346,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       options={TUBE_TYPES}
                       onSelect={(v) => form.setValue('core.tube', v)}
                       selected={field.value}
-                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -479,7 +366,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                         form.setValue('core.finsPitch', Number(v))
                       }
                       selected={field.value?.toString()}
-                      isInSideADialog
                     />
                   </FormControl>
                   <FormMessage />
@@ -528,7 +414,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                             form.setValue('collector.material', v)
                           }
                           selected={field.value}
-                          isInSideADialog
                         />
                       </FormControl>
                       <FormMessage />
@@ -548,7 +433,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                             form.setValue('collector.tightening', v)
                           }
                           selected={field.value}
-                          isInSideADialog
                         />
                       </FormControl>
                       <FormMessage />
@@ -570,7 +454,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                             form.setValue('collector.perforation', v)
                           }
                           selected={field.value}
-                          isInSideADialog
                         />
                       </FormControl>
                       <FormMessage />
@@ -592,7 +475,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                             form.setValue('collector.position', v)
                           }
                           selected={field.value}
-                          isInSideADialog
                         />
                       </FormControl>
                       <FormMessage />

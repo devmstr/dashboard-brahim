@@ -110,7 +110,7 @@ export async function POST(request: Request) {
                       (item.Radiator.Core?.dimensions?.width as number) || 0,
                     rows: (item.Radiator.Core?.rows as number) || 1,
                     fins: (item.Radiator.Core?.fins as string) || 'Normale',
-                    pitch: Number(item.Radiator.Core?.finsPitch),
+                    finsPitch: Number(item.Radiator.Core?.finsPitch),
                     tube: item.Radiator.Core?.tube as string
                   }
                 }
@@ -176,6 +176,7 @@ export async function POST(request: Request) {
             modification: item.modification || undefined,
             packaging: item.packaging || null,
             fabrication: item.fabrication || null,
+            type: item.type,
             isModified: item.isModified || null,
             quantity: item.quantity || 1,
             radiatorId: radiatorId // Use the existing or newly created radiator ID

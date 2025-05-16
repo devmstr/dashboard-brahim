@@ -6,6 +6,7 @@ import { customAlphabet } from 'nanoid'
 import { ORDER_TYPES, FABRICATION_TYPES } from '@/config/global'
 import { Collector, Core, OrderItem } from './validations'
 import { RSC_PREFETCH_SUFFIX } from 'next/dist/lib/constants'
+import { Content } from '@tiptap/react'
 
 export enum SKU_PREFIX {
   RA = 'RA', // radiator
@@ -220,6 +221,29 @@ export function amountToWords(amount: number): string {
     centimes === 0 ? 'zéro' : n2words(centimes, { lang: 'fr' })
 
   return `${dinarsInWords} dinars Algériens et ${centimesInWords} centimes`
+}
+
+export function isContentEmpty(note: Content): boolean {
+  if (note === null) return true
+
+  if (typeof note === 'string') {
+    return note.trim() === ''
+  }
+
+  if (Array.isArray(note)) {
+    return note.length === 0 || note.every(isContentEmpty)
+  }
+
+  // It's a single JSONContent object
+  if (typeof note === 'object') {
+    const hasText = typeof note.text === 'string' && note.text.trim() !== ''
+    const hasChildren =
+      Array.isArray(note.content) &&
+      note.content.some((child) => !isContentEmpty(child))
+    return !hasText && !hasChildren
+  }
+
+  return true
 }
 
 // function consommation({

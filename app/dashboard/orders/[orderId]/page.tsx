@@ -142,14 +142,19 @@ const Page: React.FC<PageProps> = async ({
 
   const data = order?.OrdersItems.map(
     ({
-      Radiator: { id, label, category, Models },
+      id,
+      Radiator: { label, category, Models },
+      radiatorId,
       fabrication,
       quantity,
+      type,
       isModified
     }) => {
       return {
         id,
+        radiatorId,
         label,
+        type,
         category,
         fabrication,
         quantity,

@@ -151,7 +151,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               height: component.Core.height,
               rows: component.Core.rows,
               fins: component.Core.fins,
-              pitch: component.Core.pitch,
+              pitch: component.Core.finsPitch,
               tube: component.Core.tube
             }
           }

@@ -35,7 +35,7 @@ const Toolbar = ({
   <div
     className={cn(
       'shrink-0 overflow-x-auto border-b border-border p-2',
-      isReadOnly && 'opacity-15 cursor-default pointer-events-none'
+      isReadOnly && 'opacity-60 cursor-default pointer-events-none'
     )}
   >
     <div className="flex w-max items-center gap-px">

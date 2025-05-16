@@ -25,7 +25,7 @@ export async function createAttachment(
   fileName: string,
   fileUrl: string,
   fileType: string
-): Promise<number | null> {
+): Promise<string | null> {
   try {
     const uniqueName = skuId('FL')
     const attachment = await prisma.attachment.create({
@@ -49,7 +49,7 @@ export async function createAttachment(
 }
 
 // This function deletes an attachment from the database and file system
-export async function deleteAttachment(attachmentId: number): Promise<boolean> {
+export async function deleteAttachment(attachmentId: string): Promise<boolean> {
   try {
     // First, get the attachment to find its URL
     const attachment = await prisma.attachment.findUnique({

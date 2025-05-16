@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-
 import { useState } from 'react'
-
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -26,7 +24,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/hooks/use-toast'
-// import { addNewRadiator } from '@/lib/actions'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
@@ -35,7 +32,6 @@ import { Icons } from '@/components/icons'
 import ProductSearchInput from '@/components/search-product.input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { inventorySchema, InventoryType } from './schema.zod'
-import { Radiator } from '@prisma/client'
 
 type AddInventoryItemProps = {}
 

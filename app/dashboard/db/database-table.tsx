@@ -203,7 +203,7 @@ export function DatabaseTable({
         <div className="flex items-center">
           <Link
             className="hover:text-primary hover:underline"
-            href={`/products/${row.original.id}`}
+            href={`/dashboard/db/${row.original.id}`}
           >
             {row.original.id}
           </Link>
@@ -743,7 +743,7 @@ function Actions({ id }: { id: string }) {
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0'
             )}
-            href={`/products/${id}/edit`}
+            href={`/dashboard/db/${id}`}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>

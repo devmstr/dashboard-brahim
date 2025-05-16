@@ -65,6 +65,7 @@ export type ComponentsTableEntry = {
   label: string
   quantity: number
   isModified: boolean
+  radiatorId: string
 }
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
@@ -140,7 +141,7 @@ export function OrderComponentsTable({
             className="hover:text-secondary hover:font-semibold hover:underline"
             href={`${pathname}/${row.original.id}`}
           >
-            {row.original.id}
+            {row.original.radiatorId}
           </Link>
         </div>
       )

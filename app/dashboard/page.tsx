@@ -17,6 +17,8 @@ const Page: React.FC<Props> = async ({}: Props) => {
     'ENGINEER',
     'ENGINEERING_MANAGER'
   ])
+  const isInventoryAgent = await useServerCheckRoles(['INVENTORY_AGENT'])
+  if (isInventoryAgent) redirect('/dashboard/inventory')
   if (isUserRoleSales) redirect('/dashboard/new')
   if (isUserRoleProduction || isUserRoleEngineer) redirect('/dashboard/orders')
   return notFound()
