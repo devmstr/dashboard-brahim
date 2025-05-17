@@ -67,10 +67,6 @@ export async function GET(request: NextRequest) {
       include: {
         Components: {
           include: {
-            Core: true,
-            Collector: {
-              include: { Template: true }
-            },
             Materials: {
               include: {
                 Material: true
@@ -161,16 +157,7 @@ export async function GET(request: NextRequest) {
             name: material.Material?.name || '',
             weight: material.weight
           })),
-          // Include type-specific fields
-          ...(component.Core && {
-            Core: component.Core
-          }),
-          ...(component.Collector && {
-            Collector: {
-              ...component.Collector,
-              template: component.Collector.Template
-            }
-          })
+          meta: component.MetaDate || null
         }
       })
 

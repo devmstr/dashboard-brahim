@@ -1,4 +1,4 @@
-import { PrismaClient, ComponentType } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 
 const prisma = new PrismaClient()
@@ -70,22 +70,20 @@ export function generateProductTitle({
 const TYPES = ['Radiateur', 'Faisceau']
 const CATEGORIES = ['Automobile', 'Industriel', 'Générateurs', 'Agricole']
 const COOLING_TYPES = ['Eau', 'Air', 'Huile']
-const POSITIONS = ['C', 'D']
-const TIGHTENING_TYPES = ['P', 'B']
+const POSITIONS = [, 'Centrer', 'Dépassée']
+const TIGHTENING_TYPES = ['Plié', 'Boulonné']
 const MATERIALS = ['Acier', 'Laiton']
 const PERFORATION = ['Perforé', 'Non Perforé']
-const FINS_TYPES = ['Z', 'A', 'D']
-const TUBE_TYPES = ['7', '9', 'M']
+export const FINS_TYPES = ['Zigzag', 'Aérer', 'Normale']
+const TUBE_TYPES = ['ET7', 'ET9', 'MP']
 const FINS_PITCHES = [10, 11, 12, 14]
 
 async function main() {
   console.log('🌱 Starting database seeding...')
 
   // Clean up existing data if needed
-  await prisma.core.deleteMany()
-  await prisma.collector.deleteMany()
-  await prisma.collectorTemplate.deleteMany()
-  await prisma.radiatorComponent.deleteMany()
+  await prisma.materialUsage.deleteMany()
+  await prisma.component.deleteMany()
   await prisma.orderItem.deleteMany()
   await prisma.radiator.deleteMany()
 
@@ -126,11 +124,11 @@ async function main() {
         height: collectorHeight
       },
       rows,
-      fins: fins as 'D' | 'Z' | 'A',
-      tube: tube as '7' | '9' | 'M',
-      pitch: finsPitch as 10 | 11 | 12 | 14,
-      tightening: tightening as 'P' | 'B',
-      position: position as 'C' | 'D'
+      fins: fins[0] as any,
+      tube: tube.startsWith('M') ? 'M' : (tube[tube.length - 1] as any),
+      pitch: finsPitch as any,
+      tightening: tightening[0] as any,
+      position: position?.at(0) as any
     })
 
     // Create the product
@@ -140,85 +138,72 @@ async function main() {
         reference: productReference,
         label: productLabel,
         category,
-        dir: `data/${faker.string.alphanumeric(8).toUpperCase()}`,
+        dir: `C${faker.string.numeric(3)}`,
         cooling: faker.helpers.arrayElement(COOLING_TYPES),
         barcode: faker.string.numeric(13),
-        isActive: faker.datatype.boolean()
+        isActive: true
       }
     })
 
     console.log(`✅ Created product: ${radiator.label} - ${productLabel}`)
 
     // Create a core component
-    await prisma.radiatorComponent.create({
+    await prisma.component.create({
       data: {
         name: `Core ${faker.string.alphanumeric(4).toUpperCase()}`,
-        type: ComponentType.CORE,
+        type: 'CORE',
         radiatorId: radiator.id,
-        Core: {
-          create: {
-            width: coreWidth,
-            height: coreHeight,
-            rows,
-            fins,
-            finsPitch,
-            tube
-          }
+        MetaDate: {
+          width: coreWidth,
+          height: coreHeight,
+          rows,
+          fins,
+          finsPitch,
+          tube
         }
       }
     })
 
     console.log(`  ➕ Added CORE component to product ${radiator.label}`)
 
-    // Create a template for both collectors
-    const collectorTemplate = {
-      position,
-      tightening,
-      perforation: faker.helpers.arrayElement(PERFORATION),
-      isTinned: faker.datatype.boolean()
-    }
-
-    // Create TOP collector
-    await prisma.radiatorComponent.create({
+    // Create TOP collector component
+    await prisma.component.create({
       data: {
         name: `Collector TOP ${faker.string.alphanumeric(4).toUpperCase()}`,
-        type: ComponentType.COLLECTOR,
+        type: 'COLLECTOR',
         radiatorId: radiator.id,
-        Collector: {
-          create: {
-            width: collectorWidth,
-            height: collectorHeight,
-            thickness: faker.number.int({ min: 5, max: 15 }),
-            type: 'TOP',
-            Template: {
-              create: collectorTemplate
-            }
-          }
+        MetaDate: {
+          width: collectorWidth,
+          height: collectorHeight,
+          thickness: faker.number.int({ min: 5, max: 15 }),
+          type: 'TOP',
+          position,
+          tightening,
+          perforation: faker.helpers.arrayElement(PERFORATION),
+          isTinned: faker.datatype.boolean()
         }
-      },
-      include: { Collector: true }
+      }
     })
 
     console.log(
       `  ➕ Added TOP COLLECTOR component to product ${radiator.label}`
     )
 
-    // Create BOTTOM collector with the same template and dimensions
-    await prisma.radiatorComponent.create({
+    // Create BOTTOM collector component
+    await prisma.component.create({
       data: {
         name: `Collector BOTTOM ${faker.string.alphanumeric(4).toUpperCase()}`,
-        type: ComponentType.COLLECTOR,
+        type: 'COLLECTOR',
         radiatorId: radiator.id,
-        Collector: {
-          create: {
-            width: collectorWidth,
-            height: collectorHeight,
-            thickness: faker.number.int({ min: 5, max: 15 }),
-            type: 'BOTTOM',
-            Template: {
-              create: collectorTemplate
-            }
-          }
+        MetaDate: {
+          width: collectorWidth,
+          height: collectorHeight,
+          thickness: faker.number.int({ min: 5, max: 15 }),
+          type: 'BOTTOM',
+          position,
+          tightening,
+          perforation: faker.helpers.arrayElement(PERFORATION),
+          isTinned: faker.datatype.boolean()
         }
       }
     })

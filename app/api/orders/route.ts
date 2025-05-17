@@ -21,8 +21,7 @@ export async function POST(request: Request) {
       OrderItems,
       Attachments
     } = body
-    console.log(OrderItems[0].Radiator.Core)
-    console.log(OrderItems[0].Radiator.Collector)
+    // Remove old Core/Collector logic and use Components
     // Validate required fields
     if (!clientId) {
       return NextResponse.json(
@@ -75,14 +74,13 @@ export async function POST(request: Request) {
           })
           // If we have radiator data but no existing radiator ID, or if we want to create a new radiator
           if (!isExist) {
-            // Create the new radiator with its components
+            // Create the new radiator
             const newRadiator = await tx.radiator.create({
               data: {
                 id: radiatorId,
                 label: item.Radiator.label || 'Custom Radiator',
                 cooling: item.Radiator.cooling || 'water',
                 category: item.Radiator.category || 'automotive',
-                // connecting model if it exist only
                 ...(item.Radiator.Car?.id
                   ? {
                       Models: {
@@ -94,78 +92,51 @@ export async function POST(request: Request) {
                   : {})
               }
             })
-
-            // Update the radiator ID for this item
             radiatorId = newRadiator.id
-            await tx.radiatorComponent.create({
-              data: {
-                name: 'Faisceau',
-                type: 'CORE',
-                radiatorId,
-                Core: {
-                  create: {
-                    height:
-                      (item.Radiator.Core?.dimensions?.height as number) || 0,
-                    width:
-                      (item.Radiator.Core?.dimensions?.width as number) || 0,
-                    rows: (item.Radiator.Core?.rows as number) || 1,
-                    fins: (item.Radiator.Core?.fins as string) || 'Normale',
-                    finsPitch: Number(item.Radiator.Core?.finsPitch),
-                    tube: item.Radiator.Core?.tube as string
-                  }
+
+            // Create core component as a Component with type 'CORE'
+            if (item.Radiator.Core) {
+              await tx.component.create({
+                data: {
+                  name: 'Faisceau',
+                  type: 'CORE',
+                  radiatorId,
+                  MetaDate: item.Radiator.Core // Store all core data in MetaDate JSON
                 }
-              }
-            })
-            const collectorTemplate = await tx.collectorTemplate.create({
-              data: {
-                position: item.Radiator.Collector.position,
-                tightening: item.Radiator.Collector.tightening,
-                perforation: item.Radiator.Collector.perforation,
-                isTinned: item.Radiator.Collector.isTinned
-              }
-            })
-            await tx.radiatorComponent.create({
-              data: {
-                name: 'Collecteur Haut',
-                type: 'COLLECTOR',
-                radiatorId,
-                Collector: {
-                  create: {
-                    width: item.Radiator.Collector?.dimensions1?.width,
-                    height: item.Radiator.Collector?.dimensions1?.height,
-                    thickness: item.Radiator.Collector?.dimensions1?.thickness,
+              })
+            }
+
+            // Create collector components as Components with type 'COLLECTOR'
+            if (item.Radiator.Collector) {
+              // TOP collector
+              await tx.component.create({
+                data: {
+                  name: 'Collecteur Haut',
+                  type: 'COLLECTOR',
+                  radiatorId,
+                  MetaDate: {
+                    ...item.Radiator.Collector,
                     type: 'TOP',
-                    Template: {
-                      connect: { id: collectorTemplate.id }
-                    }
+                    dimensions: item.Radiator.Collector.dimensions1
                   }
                 }
-              }
-            })
-            await tx.radiatorComponent.create({
-              data: {
-                name: 'Collecteur Bas',
-                type: 'COLLECTOR',
-                radiatorId,
-                Collector: {
-                  create: {
-                    width: item.Radiator.Collector?.dimensions2?.width
-                      ? item.Radiator.Collector?.dimensions2?.width
-                      : item.Radiator.Collector?.dimensions1.width,
-                    height: item.Radiator.Collector?.dimensions2?.height
-                      ? item.Radiator.Collector?.dimensions2?.height
-                      : item.Radiator.Collector?.dimensions1.height,
-                    thickness: item.Radiator.Collector?.dimensions2?.thickness
-                      ? item.Radiator.Collector?.dimensions2?.thickness
-                      : item.Radiator.Collector?.dimensions1?.thickness,
+              })
+              // BOTTOM collector
+              await tx.component.create({
+                data: {
+                  name: 'Collecteur Bas',
+                  type: 'COLLECTOR',
+                  radiatorId,
+                  MetaDate: {
+                    ...item.Radiator.Collector,
                     type: 'BOTTOM',
-                    Template: {
-                      connect: { id: collectorTemplate.id }
-                    }
+                    dimensions:
+                      item.Radiator.Collector.dimensions2 ||
+                      item.Radiator.Collector.dimensions1
                   }
                 }
-              }
-            })
+              })
+            }
             console.log('Created new radiator with ID:', radiatorId)
           }
           // Return the processed order item with the correct radiator ID
@@ -226,12 +197,7 @@ export async function POST(request: Request) {
             include: {
               Radiator: {
                 include: {
-                  Components: {
-                    include: {
-                      Collector: true,
-                      Core: true
-                    }
-                  },
+                  Components: true,
                   Price: true,
                   Models: true
                 }
@@ -282,12 +248,7 @@ export async function GET(request: Request) {
           include: {
             Radiator: {
               include: {
-                Components: {
-                  include: {
-                    Collector: true,
-                    Core: true
-                  }
-                },
+                Components: true,
                 Price: true,
                 Models: true
               }

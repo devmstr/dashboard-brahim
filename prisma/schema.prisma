@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum ComponentType {
-  CORE
-  COLLECTOR
-
-  @@map("component_type")
-}
-
 enum CollectorType {
   TOP
   BOTTOM
@@ -79,8 +72,6 @@ enum AccessLevel {
   VIEW
   EDIT
   MANAGE
-
-  @@map("access_levels")
 }
 
 // LOCATION MODELS
@@ -135,7 +126,6 @@ model Address {
 }
 
 // RADIATOR, INVENTORY, COMPONENTS
-
 model Inventory {
   id        String     @id @default(cuid())
   level     Int        @default(0)
@@ -155,109 +145,107 @@ model Price {
 }
 
 model Radiator {
-  id        String   @id @default(cuid())
-  reference String?  @unique
-  category  String?
-  dir       String?
-  cooling   String?
-  barcode   String?  @unique
-  label     String?  @unique
-  isActive  Boolean? @default(false)
-
+  id          String   @id @default(cuid())
+  reference   String?  @unique
+  category    String?
+  dir         String?
+  cooling     String?
+  barcode     String?  @unique
+  label       String?  @unique
+  isActive    Boolean? @default(false)
   inventoryId String?
   priceId     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  Inventory Inventory? @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
-  Price     Price?     @relation(fields: [priceId], references: [id], onDelete: SetNull)
-  Directory Directory? @relation(fields: [directoryId], references: [id], onDelete: SetNull)
-
   directoryId String?
-  Models      CarModel[]
-  Components  RadiatorComponent[]
-  OrderItems  OrderItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  Inventory  Inventory?  @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+  Price      Price?      @relation(fields: [priceId], references: [id], onDelete: SetNull)
+  Directory  Directory?  @relation(fields: [directoryId], references: [id], onDelete: SetNull)
+  Models     CarModel[]
+  Components Component[]
+  OrderItems OrderItem[]
 
   @@map("radiators")
 }
 
-model RadiatorComponent {
-  id         String        @id @default(cuid())
+model Component {
+  id         String @id @default(cuid())
   name       String
-  type       ComponentType
+  type       String
   radiatorId String
 
-  Radiator  Radiator                 @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
-  Materials ComponentMaterialUsage[]
+  Radiator  Radiator        @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
+  Materials MaterialUsage[]
+  MetaDate  Json?
 
-  Core      Core?
-  Collector Collector?
-
-  @@map("radiator_components")
+  @@map("components")
 }
 
-model Core {
-  id           String @id @default(cuid())
-  width        Int
-  height       Int
-  rows         Int
-  fins         String
-  finsPitch    Int
-  tubeDiameter Int?
-  tube         String
+// model Core {
+//   id           String @id @default(cuid())
+//   width        Int
+//   height       Int
+//   rows         Int
+//   fins         String
+//   finsPitch    Int
+//   tubeDiameter Int?
+//   tube         String
 
-  componentId String            @unique
-  Component   RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+//   componentId String            @unique
+//   Component   RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
 
-  @@map("cores")
-}
+//   @@map("cores")
+// }
 
-model Collector {
-  id                  String        @id @default(cuid())
-  type                CollectorType
-  width               Int
-  height              Int
-  thickness           Float?
-  componentId         String        @unique
-  collectorTemplateId String
+// model Collector {
+//   id                  String        @id @default(cuid())
+//   type                CollectorType
+//   width               Int
+//   height              Int
+//   thickness           Float?
+//   componentId         String        @unique
+//   collectorTemplateId String
 
-  Template  CollectorTemplate @relation(fields: [collectorTemplateId], references: [id], onDelete: Cascade)
-  Component RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+//   Template  CollectorTemplate @relation(fields: [collectorTemplateId], references: [id], onDelete: Cascade)
+//   Component RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
 
-  @@map("collectors")
-}
+//   @@map("collectors")
+// }
 
-model CollectorTemplate {
-  id          String   @id @default(cuid())
-  position    String
-  tightening  String
-  perforation String?
-  isTinned    Boolean?
+// model CollectorTemplate {
+//   id          String   @id @default(cuid())
+//   position    String
+//   tightening  String
+//   perforation String?
+//   isTinned    Boolean?
 
-  Collectors Collector[]
+//   Collectors Collector[]
 
-  @@map("collector_templates")
-}
+//   @@map("collector_templates")
+// }
 
 // MATERIAL SYSTEM
 
-model RawMaterial {
-  id     String                   @id @default(cuid())
-  name   String                   @unique
-  Usages ComponentMaterialUsage[]
+model Material {
+  id     String          @id @default(cuid())
+  name   String          @unique
+  Usages MaterialUsage[]
+
+  @@map("materials")
 }
 
-model ComponentMaterialUsage {
+model MaterialUsage {
   id          String @id @default(cuid())
   componentId String
   materialId  String
   weight      Float
 
-  Component RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
-  Material  RawMaterial       @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  Component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  Material  Material  @relation(fields: [materialId], references: [id], onDelete: Cascade)
 
   @@unique([componentId, materialId])
+  @@map("material_usages")
 }
 
 // CAR SYSTEM

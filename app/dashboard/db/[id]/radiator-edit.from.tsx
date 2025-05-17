@@ -19,10 +19,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 
 // Custom Components
-import {
-  CarSelectionForm,
-  type CarSelection
-} from '@/components/car-selection.from'
+import { type CarSelection } from '@/components/car-selection.from'
 import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
 import { MdEditor } from '@/components/md-editor'
@@ -30,22 +27,10 @@ import { Switcher } from '@/components/switcher'
 
 // Utilities and Config
 import {
-  CLAMPING_TYPES,
   CLAMPING_TYPES_ARR,
-  COLLECTOR_MATERIALS_TYPES,
   COLLECTOR_MATERIALS_TYPES_ARR,
-  COLLECTOR_POSITION_TYPES,
   COLLECTOR_POSITION_TYPES_ARR,
-  COOLING_SYSTEMS_TYPES,
-  COOLING_SYSTEMS_TYPES_ARR,
-  FABRICATION_TYPES,
-  FABRICATION_TYPES_ARR,
   FINS_TYPES,
-  ORDER_TYPES,
-  ORDER_TYPES_ARR,
-  PACKAGING_TYPES,
-  PACKAGING_TYPES_ARR,
-  PERFORATION_TYPES,
   PERFORATION_TYPES_ARR,
   TUBE_TYPES
 } from '@/config/global'
@@ -63,18 +48,6 @@ interface RadiatorEditFormProps {
 export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
   // State management
   const [isLoading, setIsLoading] = useState(false)
-
-  const [carSelection, setCarSelection] = useState<CarSelection | undefined>(
-    () => {
-      if (data.car) {
-        return {
-          brand: { id: '', name: data.car.brand || '' },
-          model: { id: data.car.id || '', name: data.car.model || '' }
-        }
-      }
-      return undefined
-    }
-  )
 
   // Form initialization with data from props
   const form = useForm<RadiatorValidationType>({
@@ -94,19 +67,12 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
 
       // Default implementation - make a fetch request
       const response = await fetch(`/api/radiators/${data.id || ''}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...formData,
-          car: carSelection
-            ? {
-                id: carSelection.model?.id,
-                model: carSelection.model?.name,
-                brand: carSelection.brand?.name
-              }
-            : undefined
+          ...formData
         })
       })
 
@@ -156,38 +122,13 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="car.brand"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Famille</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <FormField
               control={form.control}
               name="car.model"
               render={({ field }) => (
                 <FormItem className="group">
-                  <FormLabel className="capitalize">Model</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="car.model"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Type</FormLabel>
+                  <FormLabel className="capitalize">Modèle</FormLabel>
                   <FormControl>
                     <Input {...field} disabled />
                   </FormControl>

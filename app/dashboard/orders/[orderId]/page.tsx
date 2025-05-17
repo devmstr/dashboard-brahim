@@ -126,8 +126,6 @@ const Page: React.FC<PageProps> = async ({
               },
               Components: {
                 include: {
-                  Collector: true,
-                  Core: true,
                   Materials: true
                 }
               }

@@ -35,12 +35,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         },
         Components: {
           include: {
-            Collector: {
-              include: {
-                Template: true
-              }
-            },
-            Core: true,
             Materials: {
               include: {
                 Material: true
@@ -138,46 +132,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             id: usage.materialId,
             name: usage.Material.name,
             weight: usage.weight
-          }))
+          })),
+          meta: component.MetaDate || null
         }
-
-        // Add type-specific data
-        if (component.type === 'CORE' && component.Core) {
-          return {
-            ...componentData,
-            Core: {
-              id: component.Core.id,
-              width: component.Core.width,
-              height: component.Core.height,
-              rows: component.Core.rows,
-              fins: component.Core.fins,
-              pitch: component.Core.finsPitch,
-              tube: component.Core.tube
-            }
-          }
-        } else if (component.type === 'COLLECTOR' && component.Collector) {
-          return {
-            ...componentData,
-            Collector: {
-              id: component.Collector.id,
-              type: component.Collector.type,
-              width: component.Collector.width,
-              height: component.Collector.height,
-              thickness: component.Collector.thickness,
-              Template: component.Collector.Template
-                ? {
-                    id: component.Collector.Template.id,
-                    position: component.Collector.Template.position,
-                    tightening: component.Collector.Template.tightening,
-                    perforation: component.Collector.Template.perforation,
-                    isTinned: component.Collector.Template.isTinned
-                  }
-                : null
-            }
-          }
-        }
-
-        // Return base component data if no specific type data is available
         return componentData
       }),
       createdAt: radiator.createdAt,
@@ -229,37 +186,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       // Delete all components first
       if (existingProduct.Components.length > 0) {
         for (const component of existingProduct.Components) {
-          // Delete component-specific data first
-          if (component.type === 'CORE') {
-            await tx.core
-              .delete({
-                where: { componentId: component.id }
-              })
-              .catch(() => {
-                /* Ignore if not found */
-              })
-          } else if (component.type === 'COLLECTOR') {
-            await tx.collector
-              .delete({
-                where: { componentId: component.id }
-              })
-              .catch(() => {
-                /* Ignore if not found */
-              })
-          }
-
           // Delete material usages
-          await tx.componentMaterialUsage.deleteMany({
+          await tx.materialUsage.deleteMany({
             where: { componentId: component.id }
           })
-
           // Delete the component
-          await tx.radiatorComponent.delete({
+          await tx.component.delete({
             where: { id: component.id }
           })
         }
       }
-
       // Finally delete the radiator
       await tx.radiator.delete({
         where: { id }
@@ -275,6 +211,136 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(
       {
         error: 'Failed to delete product',
+        details: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    )
+  }
+}
+
+// PATCH - Update a radiator
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = params
+    const body = await request.json()
+
+    // Destructure fields from body
+    const {
+      reference,
+      label,
+      category,
+      cooling,
+      barcode,
+      isActive,
+      directoryId,
+      Inventory,
+      Price,
+      Components
+    } = body
+
+    // Prepare update data for radiator
+    const updateData: any = {
+      reference,
+      label,
+      category,
+      cooling,
+      barcode,
+      isActive,
+      directoryId
+    }
+
+    // Remove undefined fields
+    Object.keys(updateData).forEach(
+      (key) => updateData[key] === undefined && delete updateData[key]
+    )
+
+    // Start transaction for atomic update
+    const updated = await prisma.$transaction(async (tx) => {
+      // Update main radiator fields
+      const radiator = await tx.radiator.update({
+        where: { id },
+        data: updateData
+      })
+
+      // Update Components if provided
+      let updatedComponents: any[] = []
+      if (Array.isArray(Components)) {
+        // Remove existing components not in the new list
+        const existingComponents = await tx.component.findMany({
+          where: { radiatorId: id },
+          select: { id: true }
+        })
+        const newIds = Components.filter((c: any) => c.id).map((c: any) => c.id)
+        const toDelete = existingComponents.filter(
+          (c) => !newIds.includes(c.id)
+        )
+        if (toDelete.length > 0) {
+          await tx.materialUsage.deleteMany({
+            where: { componentId: { in: toDelete.map((c) => c.id) } }
+          })
+          await tx.component.deleteMany({
+            where: { id: { in: toDelete.map((c) => c.id) } }
+          })
+        }
+        // Upsert each component
+        updatedComponents = await Promise.all(
+          Components.map(async (component: any) => {
+            let comp
+            if (component.id) {
+              comp = await tx.component.update({
+                where: { id: component.id },
+                data: {
+                  name: component.name,
+                  type: component.type,
+                  MetaDate: component.meta || undefined
+                }
+              })
+            } else {
+              comp = await tx.component.create({
+                data: {
+                  name: component.name,
+                  type: component.type,
+                  radiatorId: id,
+                  MetaDate: component.meta || undefined
+                }
+              })
+            }
+            // Update MaterialUsage if provided
+            if (Array.isArray(component.materials)) {
+              // Remove old usages
+              await tx.materialUsage.deleteMany({
+                where: { componentId: comp.id }
+              })
+              // Add new usages
+              await Promise.all(
+                component.materials.map((usage: any) =>
+                  tx.materialUsage.create({
+                    data: {
+                      componentId: comp.id,
+                      materialId: usage.id,
+                      weight: usage.weight
+                    }
+                  })
+                )
+              )
+            }
+            return comp
+          })
+        )
+      }
+
+      return { radiator, components: updatedComponents }
+    })
+
+    return NextResponse.json({
+      message: 'Radiator updated',
+      data: updated
+    })
+  } catch (error) {
+    console.error('Error updating radiator:', error)
+    return NextResponse.json(
+      {
+        error: 'Failed to update radiator',
         details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }

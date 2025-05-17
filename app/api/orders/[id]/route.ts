@@ -24,11 +24,11 @@ export async function GET(
               include: {
                 Components: {
                   include: {
-                    Collector: true,
-                    Core: true,
                     Materials: true
                   }
-                }
+                },
+                Price: true,
+                Models: true
               }
             },
             Attachments: true
@@ -99,7 +99,21 @@ export async function PUT(
       include: {
         Client: true,
         Payment: true,
-        OrdersItems: true,
+        OrdersItems: {
+          include: {
+            Radiator: {
+              include: {
+                Components: {
+                  include: {
+                    Materials: true
+                  }
+                },
+                Price: true,
+                Models: true
+              }
+            }
+          }
+        },
         Attachments: true
       }
     })
@@ -255,10 +269,11 @@ export async function PATCH(
           include: {
             Components: {
               include: {
-                Collector: true,
-                Core: true
+                Materials: true
               }
-            }
+            },
+            Price: true,
+            Models: true
           }
         }
       }
@@ -321,7 +336,6 @@ export async function PATCH(
             label: Radiator.label,
             cooling: Radiator.cooling,
             category: Radiator.category,
-            // Update model if it exists
             ...(Radiator.Car?.id
               ? {
                   Models: {
@@ -334,119 +348,71 @@ export async function PATCH(
           }
         })
 
-        // Update Core component if provided
+        // Update Core component if provided (now as Component with type 'CORE')
         if (Radiator.Core) {
-          // Find the core component
-          const coreComponent = await tx.radiatorComponent.findFirst({
+          const coreComponent = await tx.component.findFirst({
             where: {
               radiatorId,
               type: 'CORE'
-            },
-            include: {
-              Core: true
             }
           })
-
-          if (coreComponent && coreComponent.Core) {
-            // Update the core
-            await tx.core.update({
-              where: { id: coreComponent.Core.id },
+          if (coreComponent) {
+            await tx.component.update({
+              where: { id: coreComponent.id },
               data: {
-                height: Radiator.Core.dimensions?.height as number,
-                width: Radiator.Core.dimensions?.width as number,
-                rows: Radiator.Core.rows as number,
-                fins: Radiator.Core.fins as string,
-                finsPitch: Number(Radiator.Core.finsPitch),
-                tube: Radiator.Core.tube as string
+                MetaDate: Radiator.Core
               }
             })
           }
         }
 
-        // Update Collector components if provided
+        // Update Collector components if provided (now as Component with type 'COLLECTOR')
         if (Radiator.Collector) {
-          // Find collector template
-          const collectorComponent = await tx.radiatorComponent.findFirst({
+          // TOP collector
+          const topCollector = await tx.component.findFirst({
             where: {
               radiatorId,
-              type: 'COLLECTOR'
-            },
-            include: {
-              Collector: {
-                include: {
-                  Template: true
+              type: 'COLLECTOR',
+              MetaDate: {
+                path: ['type'],
+                equals: 'TOP'
+              }
+            }
+          })
+          if (topCollector) {
+            await tx.component.update({
+              where: { id: topCollector.id },
+              data: {
+                MetaDate: {
+                  ...Radiator.Collector,
+                  type: 'TOP',
+                  dimensions: Radiator.Collector.dimensions1
                 }
               }
-            }
-          })
-
-          if (collectorComponent?.Collector?.Template) {
-            const templateId = collectorComponent.Collector.Template.id
-
-            // Update collector template
-            await tx.collectorTemplate.update({
-              where: { id: templateId },
-              data: {
-                position: Radiator.Collector.position,
-                tightening: Radiator.Collector.tightening,
-                perforation: Radiator.Collector.perforation,
-                isTinned: Radiator.Collector.isTinned
-              }
             })
           }
-
-          // Update top collector
-          const topCollector = await tx.radiatorComponent.findFirst({
+          // BOTTOM collector
+          const bottomCollector = await tx.component.findFirst({
             where: {
               radiatorId,
               type: 'COLLECTOR',
-              Collector: {
-                type: 'TOP'
+              MetaDate: {
+                path: ['type'],
+                equals: 'BOTTOM'
               }
-            },
-            include: {
-              Collector: true
             }
           })
-
-          if (topCollector && topCollector.Collector) {
-            await tx.collector.update({
-              where: { id: topCollector.Collector.id },
+          if (bottomCollector) {
+            await tx.component.update({
+              where: { id: bottomCollector.id },
               data: {
-                width: Radiator.Collector.dimensions1?.width,
-                height: Radiator.Collector.dimensions1?.height,
-                thickness: Radiator.Collector.dimensions1?.thickness
-              }
-            })
-          }
-
-          // Update bottom collector
-          const bottomCollector = await tx.radiatorComponent.findFirst({
-            where: {
-              radiatorId,
-              type: 'COLLECTOR',
-              Collector: {
-                type: 'BOTTOM'
-              }
-            },
-            include: {
-              Collector: true
-            }
-          })
-
-          if (bottomCollector && bottomCollector.Collector) {
-            await tx.collector.update({
-              where: { id: bottomCollector.Collector.id },
-              data: {
-                width:
-                  Radiator.Collector.dimensions2?.width ||
-                  Radiator.Collector.dimensions1?.width,
-                height:
-                  Radiator.Collector.dimensions2?.height ||
-                  Radiator.Collector.dimensions1?.height,
-                thickness:
-                  Radiator.Collector.dimensions2?.thickness ||
-                  Radiator.Collector.dimensions1?.thickness
+                MetaDate: {
+                  ...Radiator.Collector,
+                  type: 'BOTTOM',
+                  dimensions:
+                    Radiator.Collector.dimensions2 ||
+                    Radiator.Collector.dimensions1
+                }
               }
             })
           }
@@ -461,8 +427,7 @@ export async function PATCH(
             include: {
               Components: {
                 include: {
-                  Collector: true,
-                  Core: true
+                  Materials: true
                 }
               },
               Price: true,

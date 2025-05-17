@@ -43,13 +43,15 @@ interface ProductSearchInputProps {
   onSelectChange: (product?: RadiatorResp) => void
   children?: React.ReactNode
   placeholder?: string
+  usePortal?: boolean
 }
 
 export default function ProductSearchInput({
   selected,
   onSelectChange,
   children,
-  placeholder = 'Rechercher par description, modèle, marque, type ou client'
+  placeholder = 'Rechercher par description, modèle, marque, type ou client',
+  usePortal = false
 }: ProductSearchInputProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
@@ -213,6 +215,7 @@ export default function ProductSearchInput({
           align="start"
           style={{ width: triggerWidth > 0 ? `${triggerWidth}px` : 'auto' }}
           onMouseDown={(e) => e.preventDefault()}
+          usePortal={usePortal}
         >
           <Command>
             <CommandList>

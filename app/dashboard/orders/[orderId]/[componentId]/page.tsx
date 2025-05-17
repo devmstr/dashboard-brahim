@@ -40,68 +40,43 @@ const Page: React.FC<Props> = async ({
             include: {
               Components: {
                 include: {
-                  Collector: {
-                    include: {
-                      Template: true,
-                      Component: {
-                        include: {
-                          Materials: true
-                        }
-                      }
-                    }
-                  },
-                  Core: true
+                  Materials: true
                 }
               }
             }
           }
         }
       })
-    const coreComponent = Radiator?.Components.find(
+
+    // Helper to safely parse MetaDate JSON
+    function parseMetaDate(meta: any) {
+      if (!meta) return undefined
+      if (typeof meta === 'object') return meta
+      try {
+        return JSON.parse(meta)
+      } catch {
+        return undefined
+      }
+    }
+
+    // Find core component (type === 'CORE')
+    const coreComponentRaw = Radiator?.Components.find(
       ({ type }) => type === 'CORE'
-    )?.Core
+    )?.MetaDate
+    const coreComponent = parseMetaDate(coreComponentRaw)
 
     // Find collector components and separate them into top and bottom
-    const collectorsData = Radiator?.Components.filter(
+    const collectors = Radiator?.Components.filter(
       ({ type }) => type === 'COLLECTOR'
-    ).reduce(
-      (acc, component) => {
-        acc.template = component.Collector?.Template
-        if (component.Collector?.type === 'TOP') {
-          // Map top collector dimensions to dimensions1
-          acc.dimensions1 = {
-            width: component.Collector.width,
-            height: component.Collector.height,
-            thickness: component.Collector.thickness
-          }
-        } else if (component.Collector?.type === 'BOTTOM') {
-          // Map bottom collector dimensions to dimensions2
-          acc.dimensions2 = {
-            width: component.Collector.width,
-            height: component.Collector.height,
-            thickness: component.Collector.thickness
-          }
-        }
-        return acc
-      },
-      {
-        template: undefined as
-          | {
-              id: string
-              position: string
-              tightening: string
-              perforation: string | null
-              isTinned: boolean | null
-            }
-          | undefined,
-        dimensions1: undefined as
-          | { width: number; height: number; thickness: number | null }
-          | undefined,
-        dimensions2: undefined as
-          | { width: number; height: number; thickness: number | null }
-          | undefined
-      }
     )
+    const topCollectorRaw = collectors?.find(
+      (c) => parseMetaDate(c.MetaDate)?.type === 'TOP'
+    )?.MetaDate
+    const bottomCollectorRaw = collectors?.find(
+      (c) => parseMetaDate(c.MetaDate)?.type === 'BOTTOM'
+    )?.MetaDate
+    const topCollector = parseMetaDate(topCollectorRaw)
+    const bottomCollector = parseMetaDate(bottomCollectorRaw)
 
     orderItem = {
       ...orderItemData,
@@ -115,39 +90,41 @@ const Page: React.FC<Props> = async ({
       category: Radiator.category as OrderItem['category'],
       cooling: Radiator.cooling as OrderItem['cooling'],
       label: Radiator.label as string,
-      Core: {
-        ...coreComponent,
-        rows: coreComponent?.rows as number,
-        fins: coreComponent?.fins as Core['fins'],
-        finsPitch: coreComponent?.finsPitch.toString() as Core['finsPitch'],
-        tube: coreComponent?.tube as Core['tube'],
-        dimensions: {
-          width: coreComponent?.width as number,
-          height: coreComponent?.height as number
-        }
-      },
+      Core: coreComponent
+        ? {
+            ...coreComponent,
+            rows: coreComponent?.rows as number,
+            fins: coreComponent?.fins as Core['fins'],
+            finsPitch:
+              coreComponent?.finsPitch?.toString() as Core['finsPitch'],
+            tube: coreComponent?.tube as Core['tube'],
+            dimensions: coreComponent?.dimensions || {
+              width: coreComponent?.width as number,
+              height: coreComponent?.height as number
+            }
+          }
+        : undefined,
       Collector: {
         dimensions1: {
-          width: collectorsData.dimensions1?.width as number,
-          height: collectorsData.dimensions1?.height as number,
-          thickness: collectorsData.dimensions1?.thickness as number
+          width: topCollector?.width as number,
+          height: topCollector?.height as number,
+          thickness: topCollector?.thickness as number
         },
-        dimensions2: {
-          width: collectorsData.dimensions2?.width as number,
-          height: collectorsData.dimensions2?.height as number,
-          thickness: collectorsData.dimensions2?.thickness as number
+        dimensions2: bottomCollector?.dimensions || {
+          width: bottomCollector?.width as number,
+          height: bottomCollector?.height as number,
+          thickness: bottomCollector?.thickness as number
         },
-        position: collectorsData.template?.position as Collector['position'],
-        perforation: collectorsData.template
-          ?.perforation as Collector['perforation'],
-        tightening: collectorsData.template
-          ?.tightening as Collector['tightening'],
-        isTinned: collectorsData.template?.isTinned as boolean,
+        position: topCollector?.position as Collector['position'],
+        perforation: topCollector?.perforation as Collector['perforation'],
+        tightening: topCollector?.tightening as Collector['tightening'],
+        isTinned: topCollector?.isTinned as boolean,
         material: 'Laiton'
       },
       Attachments: Attachments,
       Radiator: Radiator
     }
+    console.log('orderItem', orderItem.Core)
   } catch (error) {
     console.log(error)
     return notFound()
