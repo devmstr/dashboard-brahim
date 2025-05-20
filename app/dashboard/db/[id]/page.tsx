@@ -1,6 +1,7 @@
 import { Card } from '@/components/card'
 import { RadiatorEditForm } from './radiator-edit.from'
 import prisma from '@/lib/db'
+import { parseMetadata } from '@/lib/utils'
 
 interface Props {
   params: { id: string }
@@ -35,24 +36,17 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
   // Find core and collector components
   const coreComponent = radiator.Components.find(
     (c) => c.type === 'CORE'
-  )?.MetaDate
+  )?.Metadata
   const collectors = radiator.Components.filter((c) => c.type === 'COLLECTOR')
-  const parseMeta = (meta: any) => {
-    if (!meta) return undefined
-    if (typeof meta === 'object') return meta
-    try {
-      return JSON.parse(meta)
-    } catch {
-      return undefined
-    }
-  }
-  const topCollector = parseMeta(
-    collectors.find((c) => parseMeta(c.MetaDate)?.type === 'TOP')?.MetaDate
+
+  const topCollector = parseMetadata(
+    collectors.find((c) => parseMetadata(c.Metadata)?.type === 'TOP')?.Metadata
   )
-  const bottomCollector = parseMeta(
-    collectors.find((c) => parseMeta(c.MetaDate)?.type === 'BOTTOM')?.MetaDate
+  const bottomCollector = parseMetadata(
+    collectors.find((c) => parseMetadata(c.Metadata)?.type === 'BOTTOM')
+      ?.Metadata
   )
-  const core = parseMeta(coreComponent)
+  const core = parseMetadata(coreComponent)
 
   // Map to form data structure
   const formData = {
@@ -111,8 +105,8 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
     },
     radiatorAttachment: [] // Map attachments if you have them
   }
-  console.log('formData', formData)
 
+  console.log('formData', formData)
   return (
     <Card>
       <RadiatorEditForm data={formData} />

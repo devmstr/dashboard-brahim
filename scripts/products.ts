@@ -153,7 +153,7 @@ async function main() {
         name: `Core ${faker.string.alphanumeric(4).toUpperCase()}`,
         type: 'CORE',
         radiatorId: radiator.id,
-        MetaDate: {
+        Metadata: {
           width: coreWidth,
           height: coreHeight,
           rows,
@@ -172,7 +172,7 @@ async function main() {
         name: `Collector TOP ${faker.string.alphanumeric(4).toUpperCase()}`,
         type: 'COLLECTOR',
         radiatorId: radiator.id,
-        MetaDate: {
+        Metadata: {
           width: collectorWidth,
           height: collectorHeight,
           thickness: faker.number.int({ min: 5, max: 15 }),
@@ -195,7 +195,7 @@ async function main() {
         name: `Collector BOTTOM ${faker.string.alphanumeric(4).toUpperCase()}`,
         type: 'COLLECTOR',
         radiatorId: radiator.id,
-        MetaDate: {
+        Metadata: {
           width: collectorWidth,
           height: collectorHeight,
           thickness: faker.number.int({ min: 5, max: 15 }),

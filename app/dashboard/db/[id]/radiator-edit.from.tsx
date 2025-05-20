@@ -40,6 +40,7 @@ import {
   type RadiatorValidationType
 } from '@/lib/validations/db-item'
 import { useState } from 'react'
+import { isContentEmpty } from '@/lib/utils'
 
 interface RadiatorEditFormProps {
   data: RadiatorValidationType
@@ -54,11 +55,6 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
     defaultValues: data,
     resolver: zodResolver(radiatorValidationSchema)
   })
-  const [hasModification, setHasModification] = useState(!!data.modification)
-  const [hasNote, setHasNote] = useState(!!data.note)
-  const [hasVehicle, setHasVehicle] = useState(!!data.car?.model)
-
-  const modifications = form.watch('modification')
 
   // Handle form submission
   const handleSubmit = async (formData: RadiatorValidationType) => {
@@ -83,7 +79,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
       toast({
         title: 'Radiateur mis à jour',
         description: 'Le radiateur a été mis à jour avec succès.',
-        variant: 'default'
+        variant: 'success'
       })
     } catch (error) {
       console.error('Error updating radiator:', error)
@@ -139,10 +135,8 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
           </CardGrid>
         </div>
 
-        {/* Car Selection Form - Always visible */}
-
         {/* Order Details Section */}
-        {hasModification && (
+        {!isContentEmpty(data.modification) && (
           <div className="relative border rounded-md px-3 py-3">
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               commande
@@ -220,8 +214,8 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   </FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
                       {...field}
+                      type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('core.dimensions.width', Number(value))
                       }

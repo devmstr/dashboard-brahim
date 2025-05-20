@@ -1,0 +1,842 @@
+[
+  {
+    "reference": "JOINR",
+    "name": "Joint Rondelle",
+    "description": "Matière première: joint rondelle."
+  },
+
+  {
+    "reference": "META28S",
+    "name": "Etain Sardiniere 28% Plombe 72%",
+    "description": "Matière première: etain sardiniere 28%plombe 72%."
+  },
+  {
+    "reference": "META30T",
+    "name": "Etain Targette 30% Plombe 70%",
+    "description": "Matière première: etain targette 30% plombe 70%."
+  },
+
+  {
+    "reference": "PEINT A/R",
+    "name": "Peinture Anti Rouille Midy",
+    "description": "Matière première: peinture anti rouille midy."
+  },
+  {
+    "reference": "PEINT B/B",
+    "name": "Peinture Bombe Couleur  Blanc",
+    "description": "Matière première: peinture bombe couleur  blanc."
+  },
+  {
+    "reference": "PEINT B/G",
+    "name": "Peinture Bombe Couleur Gris",
+    "description": "Matière première: peinture bombe couleur gris."
+  },
+  {
+    "reference": "PEINT B/J",
+    "name": "Peinture Bombe Couleur Jaune",
+    "description": "Matière première: peinture bombe couleur jaune."
+  },
+  {
+    "reference": "PEINT B/N",
+    "name": "Peinture Bombe Couleur Noir",
+    "description": "Matière première: peinture bombe couleur noir."
+  },
+  {
+    "reference": "PEINT C/N",
+    "name": "Peinture Cellulosique Couleur Noir",
+    "description": "Matière première: peinture cellulosique couleur noir."
+  },
+  {
+    "reference": "PEINT GRIS",
+    "name": "Peinture Couleur Gris Bidon 15 Kgs",
+    "description": "Matière première: peinture couleur gris bidon 15 kgs."
+  },
+  {
+    "reference": "PEINT J/C",
+    "name": "Peinture Couleur Jaune Caterpilar",
+    "description": "Matière première: peinture couleur jaune caterpilar."
+  },
+  {
+    "reference": "PEINT NOIR",
+    "name": "Peinture Couleur Noir",
+    "description": "Matière première: peinture couleur noir."
+  },
+  {
+    "reference": "PEINT P/G-F",
+    "name": "Peinture  Poudre Gris Fenetre Ral",
+    "description": "Matière première: peinture  poudre gris fenetre ral."
+  },
+  {
+    "reference": "PEINT S/R",
+    "name": "Peintute Synthetique Rouge",
+    "description": "Matière première: peintute synthetique rouge."
+  },
+  {
+    "reference": "PEINT V/L",
+    "name": "Peinture Couleur Vernis Laque Brillante",
+    "description": "Matière première: peinture couleur vernis laque brillante."
+  },
+  {
+    "reference": "PEINT VERT",
+    "name": "Peinture Couleur Vert",
+    "description": "Matière première: peinture couleur vert."
+  },
+
+  {
+    "reference": "R17/30",
+    "name": "Rondelle Ø17/30",
+    "description": "Matière première: rondelle ø17/30."
+  },
+
+  {
+    "reference": "TOA10",
+    "name": "Tole En Acier 1.0  Alumine",
+    "description": "Matière première: tole en acier 1.0  alumine."
+  },
+  {
+    "reference": "TOA12",
+    "name": "Tole En Acier 1.2  Almmine",
+    "description": "Matière première: tole en acier 1.2  almmine."
+  },
+  {
+    "reference": "TOA15",
+    "name": "Tole En Acier 1.5 Alumine",
+    "description": "Matière première: tole en acier 1.5 alumine."
+  },
+  {
+    "reference": "TOA20",
+    "name": "Tole En Acier 2 Alumine",
+    "description": "Matière première: tole en acier 2 alumine."
+  },
+  {
+    "reference": "TOA6",
+    "name": "Tole En Acier 0.6 Alumine",
+    "description": "Matière première: tole en acier 0.6 alumine."
+  },
+  {
+    "reference": "TOGAL10",
+    "name": "Tole En Acier 1.0 Galvanise",
+    "description": "Matière première: tole en acier 1.0 galvanise."
+  },
+  {
+    "reference": "TOGAL12",
+    "name": "Tole En Acier 1.2 Galvanise",
+    "description": "Matière première: tole en acier 1.2 galvanise."
+  },
+  {
+    "reference": "TOGAL15",
+    "name": "Tole En Acier 1.5 Galvanise",
+    "description": "Matière première: tole en acier 1.5 galvanise."
+  },
+  {
+    "reference": "TOG8",
+    "name": "Tole En Acier 0.8 Galvanise",
+    "description": "Matière première: tole en acier 0.8 galvanise."
+  },
+  {
+    "reference": "TOIN10",
+    "name": "Tol En Inox 10/10",
+    "description": "Matière première: tol en inox 10/10."
+  },
+  {
+    "reference": "TOIN10-1.25",
+    "name": "Tole En Inox 10/1.25 2.5",
+    "description": "Matière première: tole en inox 10/1.25 2.5."
+  },
+  {
+    "reference": "TOIN30",
+    "name": "Tole En Inox 30/10",
+    "description": "Matière première: tole en inox 30/10."
+  },
+  {
+    "reference": "TOLE NOIR 15/10",
+    "name": "Nan",
+    "description": "Matière première: nan."
+  },
+  {
+    "reference": "TOLE NOIR 30/10",
+    "name": "Nan",
+    "description": "Matière première: nan."
+  },
+  {
+    "reference": "TON10",
+    "name": "Tole En Acier 1.0 Noir",
+    "description": "Matière première: tole en acier 1.0 noir."
+  },
+  {
+    "reference": "TON12",
+    "name": "Tole En Acier 1.2 Noir",
+    "description": "Matière première: tole en acier 1.2 noir."
+  },
+  {
+    "reference": "TON15",
+    "name": "Tole En Acier 1.5 Noir",
+    "description": "Matière première: tole en acier 1.5 noir."
+  },
+  {
+    "reference": "TON18",
+    "name": "Tole  En Acier 1.8 Noir",
+    "description": "Matière première: tole  en acier 1.8 noir."
+  },
+  {
+    "reference": "TON20",
+    "name": "Tole En Acier 2.0 Noir",
+    "description": "Matière première: tole en acier 2.0 noir."
+  },
+  {
+    "reference": "TON25",
+    "name": "Tole En Acier 2.5 Noir",
+    "description": "Matière première: tole en acier 2.5 noir."
+  },
+  {
+    "reference": "TON30",
+    "name": "Tole En Acier 3.0 Noir",
+    "description": "Matière première: tole en acier 3.0 noir."
+  },
+  {
+    "reference": "TON32",
+    "name": "Tole En Acier 3.2 Noir",
+    "description": "Matière première: tole en acier 3.2 noir."
+  },
+  {
+    "reference": "TON40",
+    "name": "Tole En Acier 40 Noir",
+    "description": "Matière première: tole en acier 40 noir."
+  },
+  {
+    "reference": "TON8",
+    "name": "Tole En Acier 0.8 Noir",
+    "description": "Matière première: tole en acier 0.8 noir."
+  },
+  {
+    "reference": "TPO",
+    "name": "Topox",
+    "description": "Matière première: topox."
+  },
+  {
+    "reference": "TUB9Y6006",
+    "name": "Tube Pour Radiateur  De Moteur Cat 3512",
+    "description": "Matière première: tube pour radiateur  de moteur cat 3512."
+  },
+  {
+    "reference": "TUBA32",
+    "name": "Tube En Acier Noir Ø 32",
+    "description": "Matière première: tube en acier noir ø 32."
+  },
+  {
+    "reference": "TUBA35",
+    "name": "Tube En Acier Noir Ø 35",
+    "description": "Matière première: tube en acier noir ø 35."
+  },
+  {
+    "reference": "TUBA38",
+    "name": "Tube En Acier Noir Ø 38",
+    "description": "Matière première: tube en acier noir ø 38."
+  },
+  {
+    "reference": "TUBA40",
+    "name": "Tube En Acier Noir Ø 40",
+    "description": "Matière première: tube en acier noir ø 40."
+  },
+  {
+    "reference": "TUBA42",
+    "name": "Tube En Acier Noir Ø 42",
+    "description": "Matière première: tube en acier noir ø 42."
+  },
+  {
+    "reference": "TUBA45",
+    "name": "Tube En Acier Noir Ø 45",
+    "description": "Matière première: tube en acier noir ø 45."
+  },
+  {
+    "reference": "TUBA48",
+    "name": "Tube En Acier Noir Ø 48",
+    "description": "Matière première: tube en acier noir ø 48."
+  },
+  {
+    "reference": "TUBA50",
+    "name": "Tube En Acier Noir Ø 50",
+    "description": "Matière première: tube en acier noir ø 50."
+  },
+  {
+    "reference": "TUBA60",
+    "name": "Tube En Acier Noir Ø 60",
+    "description": "Matière première: tube en acier noir ø 60."
+  },
+  {
+    "reference": "TUBAC20X1.2",
+    "name": "Tube En Acier Carre 20X1.2",
+    "description": "Matière première: tube en acier carre 20x1.2."
+  },
+  {
+    "reference": "TUBAC25X1.2",
+    "name": "Tube En Acier Carre 25X1.2",
+    "description": "Matière première: tube en acier carre 25x1.2."
+  },
+  {
+    "reference": "TUBAC25X1.5",
+    "name": "Tube En Acier Carre 25X1.5",
+    "description": "Matière première: tube en acier carre 25x1.5."
+  },
+  {
+    "reference": "TUBAC30X1.5",
+    "name": "Tube En Acier Carre  30X1.5",
+    "description": "Matière première: tube en acier carre  30x1.5."
+  },
+  {
+    "reference": "TUBC06X1 D",
+    "name": "Tube En Cuivre Ø 06 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 06 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC08X1 D",
+    "name": "Tube En Cuivre Ø 08 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 08 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC10",
+    "name": "Tube En Cuivre Ø 10 Recuit",
+    "description": "Matière première: tube en cuivre ø 10 recuit."
+  },
+  {
+    "reference": "TUBC10X1 D",
+    "name": "Tube En Cuivre Ø 10 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 10 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC12X1 D",
+    "name": "Tube En Cuivre Ø 12 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 12 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC14X1 D",
+    "name": "Tube En Cuivre Ø 14 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 14 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC16X1 D",
+    "name": "Tube En Cuivre Ø 16 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 16 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC18X1 D",
+    "name": "Tube En Cuivre Ø 18 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 18 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC22X1 D",
+    "name": "Tube En Cuivre Ø 22 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 22 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC28X1 D",
+    "name": "Tube En Cuivre Ø 28 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 28 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC32X1 D",
+    "name": "Tube En Cuivre Ø 32 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 32 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC40X1 D",
+    "name": "Tube En Cuivre Ø 40 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 40 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC42X1 D",
+    "name": "Tube En Cuivre Ø 42 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 42 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC55X1 D",
+    "name": "Tube En Cuivre Ø 55 X 1 Mm Dure",
+    "description": "Matière première: tube en cuivre ø 55 x 1 mm dure."
+  },
+  {
+    "reference": "TUBC8",
+    "name": "Tube En Cuivre Ø 08 Recuit",
+    "description": "Matière première: tube en cuivre ø 08 recuit."
+  },
+  {
+    "reference": "TUBCAT3508",
+    "name": "Tube Pour Radiateur De Moteur Cat3508(13)Elements",
+    "description": "Matière première: tube pour radiateur de moteur cat3508(13)elements."
+  },
+  {
+    "reference": "TUBCAT3508II",
+    "name": "Tube Pour  Radiateur De Moteur Cat 3508(11)Elements",
+    "description": "Matière première: tube pour  radiateur de moteur cat 3508(11)elements."
+  },
+  {
+    "reference": "TUBCAT3512",
+    "name": "Tube Pour Radiateur De Moteur Cat 3512",
+    "description": "Matière première: tube pour radiateur de moteur cat 3512."
+  },
+  {
+    "reference": "TUBCAT3512B",
+    "name": "Tube Pour Radiateur De Moteur Cat 3512 B",
+    "description": "Matière première: tube pour radiateur de moteur cat 3512 b."
+  },
+  {
+    "reference": "TUBE NOIR 50/60 18",
+    "name": "Nan",
+    "description": "Matière première: nan."
+  },
+  {
+    "reference": "TUBI60X10",
+    "name": "Tube En Inox Ø 60X10Mm",
+    "description": "Matière première: tube en inox ø 60x10mm."
+  },
+  {
+    "reference": "TUBL30",
+    "name": "Tube En Laiton Ø 30",
+    "description": "Matière première: tube en laiton ø 30."
+  },
+  {
+    "reference": "TUBL32",
+    "name": "Tube En Laiton Ø 32",
+    "description": "Matière première: tube en laiton ø 32."
+  },
+  {
+    "reference": "TUBL35",
+    "name": "Tube En Laiton Ø 35",
+    "description": "Matière première: tube en laiton ø 35."
+  },
+  {
+    "reference": "TUBL36",
+    "name": "Tube En Laiton Ø 36",
+    "description": "Matière première: tube en laiton ø 36."
+  },
+  {
+    "reference": "TUBL38",
+    "name": "Tube En Laiton Ø 38",
+    "description": "Matière première: tube en laiton ø 38."
+  },
+  {
+    "reference": "TUBL45",
+    "name": "Tube En Laiton Ø 45",
+    "description": "Matière première: tube en laiton ø 45."
+  },
+  {
+    "reference": "TUBL55",
+    "name": "Tube En Laiton Ø 55",
+    "description": "Matière première: tube en laiton ø 55."
+  },
+  {
+    "reference": "TUBLS015",
+    "name": "Tube En Laiton Soude 13.5X2 6X2 45X0.150",
+    "description": "Matière première: tube en laiton soude 13.5x2 6x2 45x0.150."
+  },
+  {
+    "reference": "TUBLS030",
+    "name": "Tube En Laiton Soude 13.5X2 6X2 45X0.300",
+    "description": "Matière première: tube en laiton soude 13.5x2 6x2 45x0.300."
+  },
+  {
+    "reference": "VABE04000",
+    "name": "Vase D'Expansion Glm 12",
+    "description": "Matière première: vase d'expansion glm 12."
+  },
+  {
+    "reference": "VCC6P10/60 N",
+    "name": "Vis Cylindrique Creux  A 06 Pans  Pas 1.5 Noir",
+    "description": "Matière première: vis cylindrique creux  a 06 pans  pas 1.5 noir."
+  },
+  {
+    "reference": "VH04/16 N",
+    "name": "Vis Exagonale M04/16 1 Noir",
+    "description": "Matière première: vis exagonale m04/16 1 noir."
+  },
+  {
+    "reference": "VH06/15 Z",
+    "name": "Vis Hexagonale M06/15 Pas 1 Zingue",
+    "description": "Matière première: vis hexagonale m06/15 pas 1 zingue."
+  },
+  {
+    "reference": "VH06/16 N",
+    "name": "Vis Hexagonale M06/16 Pas 1 Noir",
+    "description": "Matière première: vis hexagonale m06/16 pas 1 noir."
+  },
+  {
+    "reference": "VH06/30 Z",
+    "name": "Vis Hexagonale M06/30 Pas 1 Zingue",
+    "description": "Matière première: vis hexagonale m06/30 pas 1 zingue."
+  },
+  {
+    "reference": "VH06/35 Z",
+    "name": "Vis Hexagonale M06/35 Pas 1 Zingue",
+    "description": "Matière première: vis hexagonale m06/35 pas 1 zingue."
+  },
+  {
+    "reference": "VH06/40 N",
+    "name": "Vis Hexagonale M06/40 Pas 1 Noir",
+    "description": "Matière première: vis hexagonale m06/40 pas 1 noir."
+  },
+  {
+    "reference": "VH06/40 Z",
+    "name": "Vis Hexagonale M06/40 Pas 1 Zingue",
+    "description": "Matière première: vis hexagonale m06/40 pas 1 zingue."
+  },
+  {
+    "reference": "VH08/16",
+    "name": "Vis Hexagonale M08/16   Pas 1.25",
+    "description": "Matière première: vis hexagonale m08/16   pas 1.25."
+  },
+  {
+    "reference": "VH08/16 N",
+    "name": "Vis Hexagonale M08/16 Pas 1.25 Noir",
+    "description": "Matière première: vis hexagonale m08/16 pas 1.25 noir."
+  },
+  {
+    "reference": "VH08/20 Z",
+    "name": "Vis Hexagonale M08/20 Pas 1.25 Zingue",
+    "description": "Matière première: vis hexagonale m08/20 pas 1.25 zingue."
+  },
+  {
+    "reference": "VH08/25 N",
+    "name": "Vis Hexagonale M08/25 Pas 1.25 Noir",
+    "description": "Matière première: vis hexagonale m08/25 pas 1.25 noir."
+  },
+  {
+    "reference": "VH08/30 N",
+    "name": "Vis Hexagonale M08/30 Pas 1.25 Noir",
+    "description": "Matière première: vis hexagonale m08/30 pas 1.25 noir."
+  },
+  {
+    "reference": "VH08/35",
+    "name": "Vis Hexagonale M08/35   Pas 1.25",
+    "description": "Matière première: vis hexagonale m08/35   pas 1.25."
+  },
+  {
+    "reference": "VH08/50 Z",
+    "name": "Vis Hexagonale M08/50 Pas 1.25 Zingue",
+    "description": "Matière première: vis hexagonale m08/50 pas 1.25 zingue."
+  },
+  {
+    "reference": "VH08/60",
+    "name": "Vis Hexagonale M08/60   Pas 1.25",
+    "description": "Matière première: vis hexagonale m08/60   pas 1.25."
+  },
+  {
+    "reference": "VH08/60 N",
+    "name": "Vis Hexagonale M08/60 Pas 1.25 Noir",
+    "description": "Matière première: vis hexagonale m08/60 pas 1.25 noir."
+  },
+  {
+    "reference": "VH08/60 Z",
+    "name": "Vis Hexagonale M08/60 Pas 1.25 Zingue",
+    "description": "Matière première: vis hexagonale m08/60 pas 1.25 zingue."
+  },
+  {
+    "reference": "VH08/70 N",
+    "name": "Vis Hexagonale M08/70 Pas 1.25 Noir",
+    "description": "Matière première: vis hexagonale m08/70 pas 1.25 noir."
+  },
+  {
+    "reference": "VH08/70 N-PF",
+    "name": "Vis Hexagonale M08/70 Pas 1.25 Noir Partiel/Filtage",
+    "description": "Matière première: vis hexagonale m08/70 pas 1.25 noir partiel/filtage."
+  },
+  {
+    "reference": "VH08/80 I-PF",
+    "name": "Vis Hexagonale M08/80  Pas 1.25 Inox Partiel Filte",
+    "description": "Matière première: vis hexagonale m08/80  pas 1.25 inox partiel filte."
+  },
+  {
+    "reference": "VH08/80 Z",
+    "name": "Vis Hexagonale M08/80 Pas 1.25 Zingue",
+    "description": "Matière première: vis hexagonale m08/80 pas 1.25 zingue."
+  },
+  {
+    "reference": "VH10/20 N",
+    "name": "Vis Hexagonale M10/20 Pas 1.5 Noir",
+    "description": "Matière première: vis hexagonale m10/20 pas 1.5 noir."
+  },
+  {
+    "reference": "VH10/20 Z",
+    "name": "Vis Hexagonale M10/10 Pas 1.5 Zingue",
+    "description": "Matière première: vis hexagonale m10/10 pas 1.5 zingue."
+  },
+  {
+    "reference": "VH10/25 Z",
+    "name": "Vis Hexagonale M10/25 Pas 1.5 Zingue",
+    "description": "Matière première: vis hexagonale m10/25 pas 1.5 zingue."
+  },
+  {
+    "reference": "VH10/35 Z",
+    "name": "Vis Hexagonale M10/35 Pas 1.5 Zingue",
+    "description": "Matière première: vis hexagonale m10/35 pas 1.5 zingue."
+  },
+  {
+    "reference": "VH10/40 N",
+    "name": "Vis Hexagonale M10/40 Pas 1.5 Noir",
+    "description": "Matière première: vis hexagonale m10/40 pas 1.5 noir."
+  },
+  {
+    "reference": "VH10/40 Z",
+    "name": "Vis Hexagonale M10/40 Pas 1.5 Zingue",
+    "description": "Matière première: vis hexagonale m10/40 pas 1.5 zingue."
+  },
+  {
+    "reference": "VH10/50 Z",
+    "name": "Vis Hexagonale M10/50 Pas 1.5  Zingue",
+    "description": "Matière première: vis hexagonale m10/50 pas 1.5  zingue."
+  },
+  {
+    "reference": "VH10/60 Z",
+    "name": "Vis Hexagonale M10/60 Pas 1.5 Zingue",
+    "description": "Matière première: vis hexagonale m10/60 pas 1.5 zingue."
+  },
+  {
+    "reference": "VH10/70 Z",
+    "name": "Vis Hexagonale M10/70 Pas 1.5 Zingue",
+    "description": "Matière première: vis hexagonale m10/70 pas 1.5 zingue."
+  },
+  {
+    "reference": "VH12/30 N",
+    "name": "Vis Hexagonale M12/30 Pas 1.75 Noir",
+    "description": "Matière première: vis hexagonale m12/30 pas 1.75 noir."
+  },
+  {
+    "reference": "VH12/50 N",
+    "name": "Vis Hexagonale M12/50 Pas 1.75 Noir",
+    "description": "Matière première: vis hexagonale m12/50 pas 1.75 noir."
+  },
+  {
+    "reference": "VH12/60 Z",
+    "name": "Vis Hexagonale M12/60 Pas 1.75 Zingue",
+    "description": "Matière première: vis hexagonale m12/60 pas 1.75 zingue."
+  },
+  {
+    "reference": "VH14/60 N",
+    "name": "Vis Hexagonale M14/60 Pas 2 Noir",
+    "description": "Matière première: vis hexagonale m14/60 pas 2 noir."
+  },
+  {
+    "reference": "VH14/70 Z",
+    "name": "Vis Hexagonale M14/70 Pas 2 Zingue",
+    "description": "Matière première: vis hexagonale m14/70 pas 2 zingue."
+  },
+  {
+    "reference": "VH16/70 Z",
+    "name": "Vis Hexagonale M16/70 Pas 2 Zingue",
+    "description": "Matière première: vis hexagonale m16/70 pas 2 zingue."
+  },
+  {
+    "reference": "VH16/80 I",
+    "name": "Vis Hexagonale M16/80 Pas 2 Inox",
+    "description": "Matière première: vis hexagonale m16/80 pas 2 inox."
+  },
+  {
+    "reference": "VH17/100 N",
+    "name": "Vis Hexagonale M17/100 Pas        Noir",
+    "description": "Matière première: vis hexagonale m17/100 pas        noir."
+  },
+  {
+    "reference": "VH20/120 N P-F",
+    "name": "Vis Hexagonale M20/120 Pas        Noir Partiel Filte",
+    "description": "Matière première: vis hexagonale m20/120 pas        noir partiel filte."
+  },
+  {
+    "reference": "VH24/140 N-PF",
+    "name": "Vis Hexagonale M24/140 Pas         Noir Partiel Filte",
+    "description": "Matière première: vis hexagonale m24/140 pas         noir partiel filte."
+  },
+  {
+    "reference": "VIM6",
+    "name": "Vis M6 L=16",
+    "description": "Matière première: vis m6 l=16."
+  },
+  {
+    "reference": "VIM620",
+    "name": "Vis M6 L=20",
+    "description": "Matière première: vis m6 l=20."
+  },
+  {
+    "reference": "VM10/40",
+    "name": "Vis Tete Fraise Ø10 Longeur 40",
+    "description": "Matière première: vis tete fraise ø10 longeur 40."
+  },
+  {
+    "reference": "VM1016",
+    "name": "Vis M10 L=16",
+    "description": "Matière première: vis m10 l=16."
+  },
+  {
+    "reference": "VM1020",
+    "name": "Vis M10 L=20",
+    "description": "Matière première: vis m10 l=20."
+  },
+  {
+    "reference": "VM1025",
+    "name": "Vis M10 L=25",
+    "description": "Matière première: vis m10 l=25."
+  },
+  {
+    "reference": "VM1030",
+    "name": "Vis M10 L=30",
+    "description": "Matière première: vis m10 l=30."
+  },
+  {
+    "reference": "VM1035",
+    "name": "Vis M10 L=35",
+    "description": "Matière première: vis m10 l=35."
+  },
+  {
+    "reference": "VM1040",
+    "name": "Vis M10 L=40",
+    "description": "Matière première: vis m10 l=40."
+  },
+  {
+    "reference": "VM1060",
+    "name": "Vis M10 L=60",
+    "description": "Matière première: vis m10 l=60."
+  },
+  {
+    "reference": "VM1080",
+    "name": "Vis M10 L=80",
+    "description": "Matière première: vis m10 l=80."
+  },
+  {
+    "reference": "VM6/20",
+    "name": "Vis A Tete Fraise Ø6 Longeur 20",
+    "description": "Matière première: vis a tete fraise ø6 longeur 20."
+  },
+  {
+    "reference": "VM625",
+    "name": "Vis M6 L=25",
+    "description": "Matière première: vis m6 l=25."
+  },
+  {
+    "reference": "VM630",
+    "name": "Vis M6 L=30",
+    "description": "Matière première: vis m6 l=30."
+  },
+  {
+    "reference": "VM635",
+    "name": "Vis M6 L=35",
+    "description": "Matière première: vis m6 l=35."
+  },
+  {
+    "reference": "VM640",
+    "name": "Vis M6 L=40",
+    "description": "Matière première: vis m6 l=40."
+  },
+  {
+    "reference": "VM660",
+    "name": "Vis M6 L=60",
+    "description": "Matière première: vis m6 l=60."
+  },
+  {
+    "reference": "VM680",
+    "name": "Vis M6 L=80",
+    "description": "Matière première: vis m6 l=80."
+  },
+  {
+    "reference": "VM816",
+    "name": "Vis M8 L=16",
+    "description": "Matière première: vis m8 l=16."
+  },
+  {
+    "reference": "VM820",
+    "name": "Vis M8 L=20",
+    "description": "Matière première: vis m8 l=20."
+  },
+  {
+    "reference": "VM825",
+    "name": "Vis M8 L=25",
+    "description": "Matière première: vis m8 l=25."
+  },
+  {
+    "reference": "VM830",
+    "name": "Vis M8 L=30",
+    "description": "Matière première: vis m8 l=30."
+  },
+  {
+    "reference": "VM835",
+    "name": "Vis M8 L=35",
+    "description": "Matière première: vis m8 l=35."
+  },
+  {
+    "reference": "VM840",
+    "name": "Vis M8 L=40",
+    "description": "Matière première: vis m8 l=40."
+  },
+  {
+    "reference": "VM860",
+    "name": "Vis M8 L=60",
+    "description": "Matière première: vis m8 l=60."
+  },
+  {
+    "reference": "VM880",
+    "name": "Vis M8 L=80",
+    "description": "Matière première: vis m8 l=80."
+  },
+  {
+    "reference": "VP4.2/38",
+    "name": "Vis Parker 4.2 Longeur 38Mm",
+    "description": "Matière première: vis parker 4.2 longeur 38mm."
+  },
+  {
+    "reference": "VP4.2/50",
+    "name": "Vis Parker 4.2 Longeur 50Mm",
+    "description": "Matière première: vis parker 4.2 longeur 50mm."
+  },
+  {
+    "reference": "VP4.8",
+    "name": "Vis Parker 4.8",
+    "description": "Matière première: vis parker 4.8."
+  },
+  {
+    "reference": "VT63/25",
+    "name": "Vis Tirefond Ø 63/25Mm Tete 6 Pans",
+    "description": "Matière première: vis tirefond ø 63/25mm tete 6 pans."
+  },
+  {
+    "reference": "ZnCL2",
+    "name": "Chlorure De Zinc (Sac 25 Kgs)",
+    "description": "Matière première: chlorure de zinc (sac 25 kgs)."
+  },
+
+  {
+    "reference": "ROND06/10",
+    "name": "Rondelle N° 06/10",
+    "description": "Matière première: rondelle n° 06/10."
+  },
+  {
+    "reference": "ROND06/20",
+    "name": "Rondelle N° 06/20",
+    "description": "Matière première: rondelle n° 06/20."
+  },
+  {
+    "reference": "ROND08/20",
+    "name": "Rondelle  N°08/20",
+    "description": "Matière première: rondelle  n°08/20."
+  },
+  {
+    "reference": "ROND10/50",
+    "name": "Rondelle N°10/50",
+    "description": "Matière première: rondelle n°10/50."
+  },
+  {
+    "reference": "RONDGR",
+    "name": "Rondelle Grower 12 Znp",
+    "description": "Matière première: rondelle grower 12 znp."
+  },
+  {
+    "reference": "RONDM10",
+    "name": "Rondelle M10",
+    "description": "Matière première: rondelle m10."
+  },
+  {
+    "reference": "RONDM16",
+    "name": "Rondelle N°M16 Znp",
+    "description": "Matière première: rondelle n°m16 znp."
+  },
+  {
+    "reference": "RONDM8",
+    "name": "Rondelle M08 Znp",
+    "description": "Matière première: rondelle m08 znp."
+  }
+]

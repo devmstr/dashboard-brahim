@@ -169,15 +169,20 @@ model Radiator {
   @@map("radiators")
 }
 
+enum ComponentType {
+  COLLECTOR
+  CORE
+}
+
 model Component {
-  id         String @id @default(cuid())
+  id         String        @id @default(cuid())
   name       String
-  type       String
-  radiatorId String
+  type       ComponentType
+  radiatorId String        @unique
 
   Radiator  Radiator        @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
   Materials MaterialUsage[]
-  MetaDate  Json?
+  Metadata  Json?
 
   @@map("components")
 }

@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
             name: material.Material?.name || '',
             weight: material.weight
           })),
-          meta: component.MetaDate || null
+          meta: component.Metadata || null
         }
       })
 
