@@ -182,55 +182,15 @@ model Component {
   @@map("components")
 }
 
-// model Core {
-//   id           String @id @default(cuid())
-//   width        Int
-//   height       Int
-//   rows         Int
-//   fins         String
-//   finsPitch    Int
-//   tubeDiameter Int?
-//   tube         String
-
-//   componentId String            @unique
-//   Component   RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
-
-//   @@map("cores")
-// }
-
-// model Collector {
-//   id                  String        @id @default(cuid())
-//   type                CollectorType
-//   width               Int
-//   height              Int
-//   thickness           Float?
-//   componentId         String        @unique
-//   collectorTemplateId String
-
-//   Template  CollectorTemplate @relation(fields: [collectorTemplateId], references: [id], onDelete: Cascade)
-//   Component RadiatorComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
-
-//   @@map("collectors")
-// }
-
-// model CollectorTemplate {
-//   id          String   @id @default(cuid())
-//   position    String
-//   tightening  String
-//   perforation String?
-//   isTinned    Boolean?
-
-//   Collectors Collector[]
-
-//   @@map("collector_templates")
-// }
-
 // MATERIAL SYSTEM
 
 model Material {
-  id     String          @id @default(cuid())
-  name   String          @unique
-  Usages MaterialUsage[]
+  id          String          @id @default(cuid())
+  reference   String?         @unique
+  name        String          @unique
+  description String?
+  unit        String // e.g., "grams", "pieces", "meters", "cm²"
+  Usages      MaterialUsage[]
 
   @@map("materials")
 }
@@ -239,7 +199,7 @@ model MaterialUsage {
   id          String @id @default(cuid())
   componentId String
   materialId  String
-  weight      Float
+  quantity    Float
 
   Component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
   Material  Material  @relation(fields: [materialId], references: [id], onDelete: Cascade)
