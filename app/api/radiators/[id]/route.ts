@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
+import { orderItemSchema } from '@/lib/validations/order'
+import {
+  radiatorValidationSchema,
+  RadiatorValidationType
+} from '@/lib/validations/db-item'
 
 interface RouteParams {
   params: {
@@ -133,7 +138,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             name: usage.Material.name,
             weight: usage.weight
           })),
-          meta: component.MetaDate || null
+          meta: component.Metadata || null
         }
         return componentData
       }),
@@ -218,13 +223,18 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   }
 }
 
+type Metadata = {
+  type: 'TOP' | 'BOTTOM'
+}
+
 // PATCH - Update a radiator
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
     const body = await request.json()
 
-    // Destructure fields from body
+    // Destructure Components from the body, validate the rest
+    const validatedBody = radiatorValidationSchema.parse(body)
     const {
       reference,
       label,
@@ -232,104 +242,103 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       cooling,
       barcode,
       isActive,
-      directoryId,
-      Inventory,
-      Price,
-      Components
-    } = body
+      dirId,
+      core,
+      collector
+    } = validatedBody
 
-    // Prepare update data for radiator
-    const updateData: any = {
-      reference,
-      label,
-      category,
-      cooling,
-      barcode,
-      isActive,
-      directoryId
-    }
+    console.log('validatedBody', validatedBody)
 
-    // Remove undefined fields
-    Object.keys(updateData).forEach(
-      (key) => updateData[key] === undefined && delete updateData[key]
-    )
+    const { Components } = await prisma.radiator.findFirstOrThrow({
+      where: { id },
+      include: {
+        Components: true
+      }
+    })
+
+    // extract coreId, topCollectorId, bottomCollectorId from Components
+    const coreId = Components.find((component) => component.type === 'CORE')?.id
+    const topCollectorId = Components.find(
+      (component) =>
+        component.type === 'COLLECTOR' &&
+        (component.Metadata as Metadata)?.type === 'TOP'
+    )?.id
+    const bottomCollectorId = Components.find(
+      (component) =>
+        component.type === 'COLLECTOR' &&
+        (component.Metadata as Metadata)?.type === 'BOTTOM'
+    )?.id
 
     // Start transaction for atomic update
     const updated = await prisma.$transaction(async (tx) => {
       // Update main radiator fields
       const radiator = await tx.radiator.update({
         where: { id },
-        data: updateData
+        data: {
+          reference,
+          label,
+          category,
+          cooling,
+          barcode,
+          isActive,
+          dir: dirId
+        }
       })
 
-      // Update Components if provided
-      let updatedComponents: any[] = []
-      if (Array.isArray(Components)) {
-        // Remove existing components not in the new list
-        const existingComponents = await tx.component.findMany({
-          where: { radiatorId: id },
-          select: { id: true }
+      if (coreId) {
+        // update core
+        await tx.component.update({
+          where: { id: coreId },
+          data: {
+            Metadata: {
+              width: core.dimensions.width,
+              height: core.dimensions.height,
+              fins: core.fins,
+              finsPitch: core.finsPitch,
+              rows: core.rows,
+              tube: core.tube
+            }
+          }
         })
-        const newIds = Components.filter((c: any) => c.id).map((c: any) => c.id)
-        const toDelete = existingComponents.filter(
-          (c) => !newIds.includes(c.id)
-        )
-        if (toDelete.length > 0) {
-          await tx.materialUsage.deleteMany({
-            where: { componentId: { in: toDelete.map((c) => c.id) } }
-          })
-          await tx.component.deleteMany({
-            where: { id: { in: toDelete.map((c) => c.id) } }
-          })
-        }
-        // Upsert each component
-        updatedComponents = await Promise.all(
-          Components.map(async (component: any) => {
-            let comp
-            if (component.id) {
-              comp = await tx.component.update({
-                where: { id: component.id },
-                data: {
-                  name: component.name,
-                  type: component.type,
-                  MetaDate: component.meta || undefined
-                }
-              })
-            } else {
-              comp = await tx.component.create({
-                data: {
-                  name: component.name,
-                  type: component.type,
-                  radiatorId: id,
-                  MetaDate: component.meta || undefined
-                }
-              })
+      }
+      if (topCollectorId) {
+        // update top collector
+        await tx.component.update({
+          where: { id: topCollectorId },
+          data: {
+            Metadata: {
+              width: collector.upperDimensions.width,
+              height: collector.upperDimensions.height,
+              thickness: collector.upperDimensions.thickness,
+              isTinned: collector.isTinned,
+              perforation: collector.perforation,
+              tightening: collector.tightening,
+              position: collector.position,
+              material: collector.material
             }
-            // Update MaterialUsage if provided
-            if (Array.isArray(component.materials)) {
-              // Remove old usages
-              await tx.materialUsage.deleteMany({
-                where: { componentId: comp.id }
-              })
-              // Add new usages
-              await Promise.all(
-                component.materials.map((usage: any) =>
-                  tx.materialUsage.create({
-                    data: {
-                      componentId: comp.id,
-                      materialId: usage.id,
-                      weight: usage.weight
-                    }
-                  })
-                )
-              )
+          }
+        })
+      }
+      if (bottomCollectorId) {
+        // update bottom collector
+        await tx.component.update({
+          where: { id: bottomCollectorId },
+          data: {
+            Metadata: {
+              width: collector.lowerDimensions?.width,
+              height: collector.lowerDimensions?.height,
+              thickness: collector.lowerDimensions?.thickness,
+              isTinned: collector.isTinned,
+              perforation: collector.perforation,
+              tightening: collector.tightening,
+              position: collector.position,
+              material: collector.material
             }
-            return comp
-          })
-        )
+          }
+        })
       }
 
-      return { radiator, components: updatedComponents }
+      return { radiator }
     })
 
     return NextResponse.json({

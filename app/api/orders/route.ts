@@ -101,7 +101,7 @@ export async function POST(request: Request) {
                   name: 'Faisceau',
                   type: 'CORE',
                   radiatorId,
-                  MetaDate: item.Radiator.Core // Store all core data in MetaDate JSON
+                  Metadata: item.Radiator.Core // Store all core data in Metadata JSON
                 }
               })
             }
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
                   name: 'Collecteur Haut',
                   type: 'COLLECTOR',
                   radiatorId,
-                  MetaDate: {
+                  Metadata: {
                     ...item.Radiator.Collector,
                     type: 'TOP',
                     dimensions: item.Radiator.Collector.dimensions1
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
                   name: 'Collecteur Bas',
                   type: 'COLLECTOR',
                   radiatorId,
-                  MetaDate: {
+                  Metadata: {
                     ...item.Radiator.Collector,
                     type: 'BOTTOM',
                     dimensions:

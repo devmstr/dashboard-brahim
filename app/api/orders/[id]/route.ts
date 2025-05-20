@@ -360,7 +360,7 @@ export async function PATCH(
             await tx.component.update({
               where: { id: coreComponent.id },
               data: {
-                MetaDate: Radiator.Core
+                Metadata: Radiator.Core
               }
             })
           }
@@ -373,7 +373,7 @@ export async function PATCH(
             where: {
               radiatorId,
               type: 'COLLECTOR',
-              MetaDate: {
+              Metadata: {
                 path: ['type'],
                 equals: 'TOP'
               }
@@ -383,7 +383,7 @@ export async function PATCH(
             await tx.component.update({
               where: { id: topCollector.id },
               data: {
-                MetaDate: {
+                Metadata: {
                   ...Radiator.Collector,
                   type: 'TOP',
                   dimensions: Radiator.Collector.dimensions1
@@ -396,7 +396,7 @@ export async function PATCH(
             where: {
               radiatorId,
               type: 'COLLECTOR',
-              MetaDate: {
+              Metadata: {
                 path: ['type'],
                 equals: 'BOTTOM'
               }
@@ -406,7 +406,7 @@ export async function PATCH(
             await tx.component.update({
               where: { id: bottomCollector.id },
               data: {
-                MetaDate: {
+                Metadata: {
                   ...Radiator.Collector,
                   type: 'BOTTOM',
                   dimensions:

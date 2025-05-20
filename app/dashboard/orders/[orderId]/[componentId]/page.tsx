@@ -48,8 +48,8 @@ const Page: React.FC<Props> = async ({
         }
       })
 
-    // Helper to safely parse MetaDate JSON
-    function parseMetaDate(meta: any) {
+    // Helper to safely parse Metadata JSON
+    function parseMetadata(meta: any) {
       if (!meta) return undefined
       if (typeof meta === 'object') return meta
       try {
@@ -62,21 +62,21 @@ const Page: React.FC<Props> = async ({
     // Find core component (type === 'CORE')
     const coreComponentRaw = Radiator?.Components.find(
       ({ type }) => type === 'CORE'
-    )?.MetaDate
-    const coreComponent = parseMetaDate(coreComponentRaw)
+    )?.Metadata
+    const coreComponent = parseMetadata(coreComponentRaw)
 
     // Find collector components and separate them into top and bottom
     const collectors = Radiator?.Components.filter(
       ({ type }) => type === 'COLLECTOR'
     )
     const topCollectorRaw = collectors?.find(
-      (c) => parseMetaDate(c.MetaDate)?.type === 'TOP'
-    )?.MetaDate
+      (c) => parseMetadata(c.Metadata)?.type === 'TOP'
+    )?.Metadata
     const bottomCollectorRaw = collectors?.find(
-      (c) => parseMetaDate(c.MetaDate)?.type === 'BOTTOM'
-    )?.MetaDate
-    const topCollector = parseMetaDate(topCollectorRaw)
-    const bottomCollector = parseMetaDate(bottomCollectorRaw)
+      (c) => parseMetadata(c.Metadata)?.type === 'BOTTOM'
+    )?.Metadata
+    const topCollector = parseMetadata(topCollectorRaw)
+    const bottomCollector = parseMetadata(bottomCollectorRaw)
 
     orderItem = {
       ...orderItemData,

@@ -170,6 +170,16 @@ export function toScreamingSnakeCase(str: string): string {
     .toUpperCase()
 }
 
+export const parseMetadata = (meta: any) => {
+  if (!meta) return undefined
+  if (typeof meta === 'object') return meta
+  try {
+    return JSON.parse(meta)
+  } catch {
+    return undefined
+  }
+}
+
 export const dateDiff = (startDate: string, endDate: string) => {
   const start = new Date(startDate).getTime()
   const end = new Date(endDate).getTime()
