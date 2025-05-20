@@ -5,6 +5,7 @@ import prisma from '@/lib/db'
 import { SalesEditOrderItemForm } from './sales-edit-orderitem.form'
 import { Collector, Core, OrderItem } from '@/lib/validations'
 import { notFound } from 'next/navigation'
+import { parseMetadata } from '@/lib/utils'
 
 interface Props {
   params: {
@@ -40,7 +41,11 @@ const Page: React.FC<Props> = async ({
             include: {
               Components: {
                 include: {
-                  Materials: true
+                  MaterialUsages: {
+                    include: {
+                      Material: true
+                    }
+                  }
                 }
               }
             }
@@ -48,35 +53,25 @@ const Page: React.FC<Props> = async ({
         }
       })
 
-    // Helper to safely parse Metadata JSON
-    function parseMetadata(meta: any) {
-      if (!meta) return undefined
-      if (typeof meta === 'object') return meta
-      try {
-        return JSON.parse(meta)
-      } catch {
-        return undefined
-      }
-    }
-
     // Find core component (type === 'CORE')
-    const coreComponentRaw = Radiator?.Components.find(
-      ({ type }) => type === 'CORE'
-    )?.Metadata
-    const coreComponent = parseMetadata(coreComponentRaw)
-
-    // Find collector components and separate them into top and bottom
-    const collectors = Radiator?.Components.filter(
-      ({ type }) => type === 'COLLECTOR'
+    const coreComponent = parseMetadata(
+      Radiator?.Components.find(({ type }) => type === 'CORE')?.Metadata
     )
-    const topCollectorRaw = collectors?.find(
+
+    const collectors = Radiator.Components.filter((c) => c.type === 'COLLECTOR')
+    // find collector material name
+    const collectorMaterialName = collectors.map((c) => {
+      const material = c.MaterialUsages[0]?.Material.name
+      return material
+    })[0]
+
+    const collectorTop = collectors.find(
       (c) => parseMetadata(c.Metadata)?.type === 'TOP'
-    )?.Metadata
-    const bottomCollectorRaw = collectors?.find(
+    )?.Metadata as any
+
+    const collectorBottom = collectors.find(
       (c) => parseMetadata(c.Metadata)?.type === 'BOTTOM'
-    )?.Metadata
-    const topCollector = parseMetadata(topCollectorRaw)
-    const bottomCollector = parseMetadata(bottomCollectorRaw)
+    )?.Metadata as any
 
     orderItem = {
       ...orderItemData,
@@ -90,50 +85,34 @@ const Page: React.FC<Props> = async ({
       category: Radiator.category as OrderItem['category'],
       cooling: Radiator.cooling as OrderItem['cooling'],
       label: Radiator.label as string,
-      Core: coreComponent
-        ? {
-            ...coreComponent,
-            rows: coreComponent?.rows as number,
-            fins: coreComponent?.fins as Core['fins'],
-            finsPitch:
-              coreComponent?.finsPitch?.toString() as Core['finsPitch'],
-            tube: coreComponent?.tube as Core['tube'],
-            dimensions: coreComponent?.dimensions || {
-              width: coreComponent?.width as number,
-              height: coreComponent?.height as number
-            }
+      ...(coreComponent && {
+        Core: {
+          ...coreComponent,
+          rows: coreComponent.rows as number,
+          fins: coreComponent.fins as Core['fins'],
+          finsPitch: coreComponent.finsPitch?.toString() as Core['finsPitch'],
+          tube: coreComponent.tube as Core['tube'],
+          width: coreComponent.width as number,
+          height: coreComponent.height as number
+        }
+      }),
+      ...(collectorTop &&
+        collectorBottom && {
+          Collectors: {
+            top: { ...collectorTop, material: collectorMaterialName },
+            bottom: { ...collectorBottom, material: collectorMaterialName }
           }
-        : undefined,
-      Collector: {
-        dimensions1: {
-          width: topCollector?.width as number,
-          height: topCollector?.height as number,
-          thickness: topCollector?.thickness as number
-        },
-        dimensions2: bottomCollector?.dimensions || {
-          width: bottomCollector?.width as number,
-          height: bottomCollector?.height as number,
-          thickness: bottomCollector?.thickness as number
-        },
-        position: topCollector?.position as Collector['position'],
-        perforation: topCollector?.perforation as Collector['perforation'],
-        tightening: topCollector?.tightening as Collector['tightening'],
-        isTinned: topCollector?.isTinned as boolean,
-        material: 'Laiton'
-      },
+        }),
       Attachments: Attachments,
       Radiator: Radiator
     }
-    console.log('orderItem', orderItem.Core)
   } catch (error) {
     console.log(error)
     return notFound()
   }
   return (
     <div className="space-y-4">
-      <Card>
-        {isSalesUser && <SalesEditOrderItemForm orderItem={orderItem} />}
-      </Card>
+      <Card>{isSalesUser && <SalesEditOrderItemForm data={orderItem} />}</Card>
     </div>
   )
 }

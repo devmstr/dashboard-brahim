@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "postinstall": "npx prisma generate",
-    "setup": "npm run script scripts/setup-uploads.ts ",
+    "setup": "npm run script seed/setup-uploads.ts ",
     "dev": "next dev",
     "build": "npm run setup && next build",
     "start": "next start",
@@ -12,10 +12,11 @@
     "dev:local": "next dev -H 0.0.0.0",
     "studio": "npx prisma studio",
     "script": "ts-node -P tsconfig.seed.json",
-    "seed:clients": "npm run script scripts/clients.ts",
-    "seed:cars": "npm run script scripts/cars.ts",
-    "seed:locations": "npm run script scripts/locations.ts",
-    "seed:radiators": "npm run script scripts/products.ts"
+    "seed:clients": "npm run script seed/clients.ts",
+    "seed:cars": "npm run script seed/cars.ts",
+    "seed:materials": "npm run script seed/materials.ts",
+    "seed:locations": "npm run script seed/locations.ts",
+    "seed:radiators": "npm run script seed/radiators.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",

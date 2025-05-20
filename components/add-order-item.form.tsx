@@ -30,7 +30,7 @@ import { toast } from '@/hooks/use-toast'
 import {
   FinsPitch,
   FinsType,
-  generateProductTitle,
+  generateRadiatorLabel,
   PositionType,
   TighteningType,
   TubeType
@@ -208,8 +208,8 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       return
     }
 
-    const label = generateProductTitle({
-      coreDimensions: {
+    const label = generateRadiatorLabel({
+      core: {
         width: Number(formData.Core?.dimensions?.width),
         height: Number(formData.Core?.dimensions?.height)
       },

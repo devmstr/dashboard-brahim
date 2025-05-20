@@ -1,10 +1,8 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { radiatorEditFormSchema } from '@/lib/validations/radiator'
 import prisma from '@/lib/db'
-import { orderItemSchema } from '@/lib/validations/order'
-import {
-  radiatorValidationSchema,
-  RadiatorValidationType
-} from '@/lib/validations/db-item'
+import { type NextRequest, NextResponse } from 'next/server'
+import { generateRadiatorLabel } from '@/lib/utils'
+import { revalidatePath } from 'next/cache'
 
 interface RouteParams {
   params: {
@@ -40,7 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         },
         Components: {
           include: {
-            Materials: {
+            MaterialUsages: {
               include: {
                 Material: true
               }
@@ -133,10 +131,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           name: component.name,
           type: component.type,
           radiatorId: component.radiatorId,
-          materials: component.Materials.map((usage) => ({
+          materials: component.MaterialUsages.map((usage) => ({
             id: usage.materialId,
             name: usage.Material.name,
-            weight: usage.weight
+            quantity: usage.quantity,
+            unit: usage.Material.unit
           })),
           meta: component.Metadata || null
         }
@@ -233,110 +232,149 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { id } = params
     const body = await request.json()
 
-    // Destructure Components from the body, validate the rest
-    const validatedBody = radiatorValidationSchema.parse(body)
-    const {
-      reference,
-      label,
-      category,
-      cooling,
-      barcode,
-      isActive,
-      dirId,
-      core,
-      collector
-    } = validatedBody
+    // Validate the body using the new schema
+    const validatedBody = radiatorEditFormSchema.parse(body)
+    const { isActive, dirId, core, collectors } = validatedBody
 
-    console.log('validatedBody', validatedBody)
-
+    // Fetch current components for mapping
     const { Components } = await prisma.radiator.findFirstOrThrow({
       where: { id },
-      include: {
-        Components: true
-      }
+      include: { Components: true }
     })
 
-    // extract coreId, topCollectorId, bottomCollectorId from Components
-    const coreId = Components.find((component) => component.type === 'CORE')?.id
-    const topCollectorId = Components.find(
-      (component) =>
-        component.type === 'COLLECTOR' &&
-        (component.Metadata as Metadata)?.type === 'TOP'
-    )?.id
-    const bottomCollectorId = Components.find(
-      (component) =>
-        component.type === 'COLLECTOR' &&
-        (component.Metadata as Metadata)?.type === 'BOTTOM'
-    )?.id
+    // Find component IDs for core, top collector, bottom collector
+    const coreId = Components.find((c) => c.type === 'CORE')?.id
+    const topCollectorId = Components.find((c) => {
+      if (c.type !== 'COLLECTOR') return false
+      let meta: any = c.Metadata
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch {
+          meta = {}
+        }
+      }
+      return meta?.type === 'TOP'
+    })?.id
+    const bottomCollectorId = Components.find((c) => {
+      if (c.type !== 'COLLECTOR') return false
+      let meta: any = c.Metadata
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch {
+          meta = {}
+        }
+      }
+      return meta?.type === 'BOTTOM'
+    })?.id
+
+    // generate radiator first
 
     // Start transaction for atomic update
     const updated = await prisma.$transaction(async (tx) => {
+      // Generate the radiator label
+      const label = generateRadiatorLabel({
+        core: {
+          dimensions: {
+            width: core?.width || 0,
+            height: core?.height || 0
+          },
+          fins: core?.fins as any,
+          tube: core?.tube as any,
+          pitch: core?.finsPitch as any,
+          rows: core?.rows
+        },
+        collectorTop: {
+          dimensions: {
+            width: collectors?.top?.width || 0,
+            height: collectors?.top?.height || 0
+          },
+          tightening: collectors?.top?.tightening as any,
+          position: collectors?.top?.position as any
+        },
+        collectorBottom: {
+          dimensions: {
+            width: collectors?.bottom?.width || 0,
+            height: collectors?.bottom?.height || 0
+          },
+          // TODO: add bottom collector properties later when available
+          tightening: collectors?.top?.tightening as any,
+          position: collectors?.top?.position as any
+        }
+      })
+
       // Update main radiator fields
       const radiator = await tx.radiator.update({
         where: { id },
         data: {
-          reference,
-          label,
-          category,
-          cooling,
-          barcode,
           isActive,
-          dir: dirId
+          dir: dirId,
+          label
         }
       })
 
-      if (coreId) {
-        // update core
+      // Update core component metadata
+      if (coreId && core) {
         await tx.component.update({
           where: { id: coreId },
           data: {
             Metadata: {
-              width: core.dimensions.width,
-              height: core.dimensions.height,
+              height: core.height,
+              width: core.width,
+              rows: core.rows,
               fins: core.fins,
               finsPitch: core.finsPitch,
-              rows: core.rows,
               tube: core.tube
             }
           }
         })
       }
-      if (topCollectorId) {
-        // update top collector
+
+      // Update top collector metadata
+      if (topCollectorId && collectors?.top) {
         await tx.component.update({
           where: { id: topCollectorId },
           data: {
             Metadata: {
-              width: collector.upperDimensions.width,
-              height: collector.upperDimensions.height,
-              thickness: collector.upperDimensions.thickness,
-              isTinned: collector.isTinned,
-              perforation: collector.perforation,
-              tightening: collector.tightening,
-              position: collector.position,
-              material: collector.material
+              width: collectors.top.width,
+              height: collectors.top.height,
+              thickness: collectors.top.thickness,
+              type: 'TOP',
+              position: collectors.top.position,
+              tightening: collectors.top.tightening,
+              isTinned: collectors.top.isTinned,
+              material: collectors.top.material,
+              perforation: collectors.top.perforation
             }
           }
         })
       }
-      if (bottomCollectorId) {
-        // update bottom collector
+
+      // Update bottom collector metadata
+      if (bottomCollectorId && collectors?.bottom) {
         await tx.component.update({
           where: { id: bottomCollectorId },
           data: {
             Metadata: {
-              width: collector.lowerDimensions?.width,
-              height: collector.lowerDimensions?.height,
-              thickness: collector.lowerDimensions?.thickness,
-              isTinned: collector.isTinned,
-              perforation: collector.perforation,
-              tightening: collector.tightening,
-              position: collector.position,
-              material: collector.material
+              width: collectors.bottom.width,
+              height: collectors.bottom.height,
+              thickness: collectors.bottom.thickness,
+              type: 'BOTTOM',
+              position: collectors.bottom.position,
+              tightening: collectors.bottom.tightening,
+              isTinned: collectors.bottom.isTinned,
+              material: collectors.bottom.material,
+              perforation: collectors.bottom.perforation
             }
           }
         })
       }
+
+      // Optionally update modification or other fields if needed
+      // ...
+      // refetch /db route
+      revalidatePath('/dashboard/db')
 
       return { radiator }
     })

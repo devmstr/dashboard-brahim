@@ -40,12 +40,14 @@ interface CustomerSectionProps {
   selected: ProductSearchInput | null
   onSelectChange: (selected: ProductSearchInput | null) => void
   children?: React.ReactNode
+  usePortal?: boolean
 }
 
 export default function ProductSearchInput({
   selected,
   onSelectChange,
-  children
+  children,
+  usePortal = false
 }: CustomerSectionProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [products, setProducts] = useState<ProductSearchInput[]>([])
@@ -73,7 +75,7 @@ export default function ProductSearchInput({
       setIsLoading(true)
       try {
         const response = await fetch(
-          `/api/products?search=${encodeURIComponent(searchTerm)}`
+          `/api/radiators?search=${encodeURIComponent(searchTerm)}`
         )
 
         if (!response.ok) {
@@ -143,6 +145,7 @@ export default function ProductSearchInput({
             align="start"
             style={{ width: triggerWidth > 0 ? `${triggerWidth}px` : 'auto' }}
             onMouseDown={(e) => e.preventDefault()}
+            usePortal={usePortal}
           >
             <Command>
               <CommandList>

@@ -126,7 +126,11 @@ const Page: React.FC<PageProps> = async ({
               },
               Components: {
                 include: {
-                  Materials: true
+                  MaterialUsages: {
+                    include: {
+                      Material: true
+                    }
+                  }
                 }
               }
             }

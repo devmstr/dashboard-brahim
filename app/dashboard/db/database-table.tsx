@@ -210,6 +210,20 @@ export function DatabaseTable({
         </div>
       )
     },
+    model: {
+      cell: ({ row }) => (
+        <div className="flex  items-center font-medium max-w-[100px] truncate">
+          {row.original.model}
+        </div>
+      )
+    },
+    brand: {
+      cell: ({ row }) => (
+        <div className="flex  items-center font-medium max-w-[100px] truncate">
+          {row.original.brand}
+        </div>
+      )
+    },
     designation: {
       cell: ({ row }) => (
         <div className="flex items-center font-medium max-w-[300px] truncate">

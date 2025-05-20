@@ -24,7 +24,11 @@ export async function GET(
               include: {
                 Components: {
                   include: {
-                    Materials: true
+                    MaterialUsages: {
+                      include: {
+                        Material: true
+                      }
+                    }
                   }
                 },
                 Price: true,
@@ -105,7 +109,11 @@ export async function PUT(
               include: {
                 Components: {
                   include: {
-                    Materials: true
+                    MaterialUsages: {
+                      include: {
+                        Material: true
+                      }
+                    }
                   }
                 },
                 Price: true,
@@ -269,7 +277,11 @@ export async function PATCH(
           include: {
             Components: {
               include: {
-                Materials: true
+                MaterialUsages: {
+                  include: {
+                    Material: true
+                  }
+                }
               }
             },
             Price: true,
@@ -427,7 +439,11 @@ export async function PATCH(
             include: {
               Components: {
                 include: {
-                  Materials: true
+                  MaterialUsages: {
+                    include: {
+                      Material: true
+                    }
+                  }
                 }
               },
               Price: true,

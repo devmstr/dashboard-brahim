@@ -151,7 +151,7 @@ model Radiator {
   dir         String?
   cooling     String?
   barcode     String?  @unique
-  label       String?  @unique
+  label       String?
   isActive    Boolean? @default(false)
   inventoryId String?
   priceId     String?
@@ -178,11 +178,11 @@ model Component {
   id         String        @id @default(cuid())
   name       String
   type       ComponentType
-  radiatorId String        @unique
+  radiatorId String
 
-  Radiator  Radiator        @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
-  Materials MaterialUsage[]
-  Metadata  Json?
+  Radiator       Radiator        @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
+  MaterialUsages MaterialUsage[]
+  Metadata       Json?
 
   @@map("components")
 }
@@ -190,12 +190,11 @@ model Component {
 // MATERIAL SYSTEM
 
 model Material {
-  id          String          @id @default(cuid())
-  reference   String?         @unique
-  name        String          @unique
-  description String?
-  unit        String // e.g., "grams", "pieces", "meters", "cm²"
-  Usages      MaterialUsage[]
+  id        String          @id @default(cuid())
+  reference String?         @unique
+  name      String
+  unit      String // e.g., "grams", "pieces", "meters", "cm²"
+  Usages    MaterialUsage[]
 
   @@map("materials")
 }

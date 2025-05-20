@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
       include: {
         Components: {
           include: {
-            Materials: {
+            MaterialUsages: {
               include: {
                 Material: true
               }
@@ -152,10 +152,11 @@ export async function GET(request: NextRequest) {
           name: component.name,
           type: component.type,
           radiatorId: component.radiatorId,
-          Materials: component.Materials?.map((material) => ({
-            id: material.materialId,
-            name: material.Material?.name || '',
-            weight: material.weight
+          Materials: component.MaterialUsages?.map((usage) => ({
+            id: usage.materialId,
+            name: usage.Material?.name,
+            quantity: usage.quantity,
+            unit: usage.Material?.unit
           })),
           meta: component.Metadata || null
         }

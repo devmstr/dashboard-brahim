@@ -7,35 +7,21 @@ interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
   const radiators = await prisma.radiator.findMany({
-    select: {
-      id: true,
-      dir: true,
-      barcode: true,
-      label: true,
-      createdAt: true,
+    include: {
       OrderItems: {
-        select: {
+        include: {
           Order: {
-            select: {
-              Client: {
-                select: {
-                  name: true
-                }
-              }
+            include: {
+              Client: true
             }
           }
         }
       },
       Models: {
-        select: {
-          name: true,
+        include: {
           Family: {
-            select: {
-              Brand: {
-                select: {
-                  name: true
-                }
-              }
+            include: {
+              Brand: true
             }
           }
         }
@@ -45,15 +31,8 @@ const Page: React.FC<Props> = async ({}: Props) => {
   const data = radiators.map((radiator) => {
     const { OrderItems, Models, ...rest } = radiator
     const company = OrderItems[0]?.Order?.Client.name || '_'
-    const model = Models.map(({ name }) => name).join(', ') || '_'
-    const brand =
-      Models.map(
-        ({
-          Family: {
-            Brand: { name }
-          }
-        }) => name
-      ).join(', ') || '_'
+    const model = Models[0]?.name || '_'
+    const brand = Models[0]?.Family?.Brand.name || '_'
     return {
       ...rest,
       dirId: rest.dir || '_',
@@ -65,7 +44,6 @@ const Page: React.FC<Props> = async ({}: Props) => {
       createdAt: rest.createdAt.toLocaleString()
     }
   })
-
   return (
     <Card>
       <DatabaseTable data={data} />

@@ -79,21 +79,48 @@ export type PositionType = keyof typeof POSITION_T
 interface ProductConfig {
   type?: OrderItem['type']
   fabrication?: OrderItem['fabrication']
-  coreDimensions: Dimensions
-  rows?: number
-  fins?: Core['fins']
-  tube?: Core['tube']
-  pitch?: Core['finsPitch']
-  collector1Dimensions: Dimensions
-  collector2Dimensions: Dimensions
-  tightening?: Collector['tightening']
-  position?: Collector['position']
+  core: {
+    fins?: Core['fins']
+    tube?: Core['tube']
+    pitch?: Core['finsPitch']
+    dimensions: Dimensions
+    rows?: number
+  }
+  collectorTop: {
+    tightening?: Collector['tightening']
+    position?: Collector['position']
+    dimensions: Dimensions
+  }
+  collectorBottom: {
+    tightening?: Collector['tightening']
+    position?: Collector['position']
+    dimensions: Dimensions
+  }
 }
 
 const pad = (n: number): string => n.toString().padStart(4, '0')
 
 const formatDimension = (main: number, lower?: number): string =>
   lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
+const formatPositionAndTightening = (
+  position1: PositionType,
+  position2: PositionType,
+
+  tightening1: TighteningType,
+
+  tightening2: TighteningType
+): string => {
+  const tightening =
+    tightening1 === tightening2
+      ? TIGHTENING_T[tightening1]
+      : `${TIGHTENING_T[tightening1]}/${TIGHTENING_T[tightening2]}`
+
+  const position =
+    position1 === position2
+      ? POSITION_T[position1]
+      : `${POSITION_T[position1]}/${POSITION_T[position2]}`
+  return `${tightening} ${position}`
+}
 
 const getPrefix = (
   type: OrderItem['type'] = 'Radiateur',
@@ -105,18 +132,26 @@ const getPrefix = (
       : 'REN'
     : type.slice(0, 3).toUpperCase()
 
-export function generateProductTitle({
+export function generateRadiatorLabel({
   type,
   fabrication,
-  coreDimensions,
-  collector1Dimensions,
-  collector2Dimensions,
-  rows = 1,
-  fins = 'Normale',
-  tube = 'ET7',
-  pitch = '10',
-  tightening = 'Plié',
-  position = 'Centrer'
+  core: {
+    dimensions: coreDimensions,
+    fins = 'Normale',
+    tube = 'ET7',
+    pitch = '10',
+    rows = 1
+  },
+  collectorBottom: {
+    dimensions: collector1Dimensions,
+    tightening = 'Plié',
+    position = 'Centrer'
+  },
+  collectorTop: {
+    dimensions: collector2Dimensions,
+    tightening: collector2Tightening = 'Plié',
+    position: collector2Position = 'Centrer'
+  }
 }: ProductConfig): string {
   const prefix = getPrefix(type, fabrication)
 
@@ -128,7 +163,13 @@ export function generateProductTitle({
     collector1Dimensions.height,
     collector2Dimensions.height
   )}X${formatDimension(collector1Dimensions.width, collector2Dimensions.width)}`
-  return `${prefix} ${core4DigitsDimensions} ${rows}${FINS_T[fins]}${TUBE_T[tube]} ${pitch} ${collector4DigitsDimensions} ${TIGHTENING_T[tightening]}${POSITION_T[position]}`
+  const positionAndTightening = formatPositionAndTightening(
+    position,
+    collector2Position,
+    tightening,
+    collector2Tightening
+  )
+  return `${prefix} ${core4DigitsDimensions} ${rows}${FINS_T[fins]}${TUBE_T[tube]} ${pitch} ${collector4DigitsDimensions} ${positionAndTightening}`
 }
 
 export function cn(...inputs: ClassValue[]) {

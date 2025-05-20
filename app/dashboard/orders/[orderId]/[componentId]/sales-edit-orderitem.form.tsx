@@ -29,7 +29,7 @@ import { toast } from '@/hooks/use-toast'
 import {
   type FinsPitch,
   type FinsType,
-  generateProductTitle,
+  generateRadiatorLabel,
   isContentEmpty,
   type TubeType
 } from '@/lib/utils'
@@ -56,23 +56,24 @@ import { Content } from '@tiptap/react'
 import { useSession } from 'next-auth/react'
 
 interface EditOrderItemFormProps {
-  orderItem: OrderItem
+  data: any
 }
 
 export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
-  orderItem
+  data
 }) => {
+  // console.log('data : ', data)
   const { data: session } = useSession()
   // if (!session) return notFound()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   // State management
   const [isModificationIncluded, setIsModificationIncluded] = useState(
-    !isContentEmpty(orderItem.modification as Content)
+    !isContentEmpty(data.modification as Content)
   )
 
   const [isNoteIncluded, setIsNoteIncluded] = useState(
-    !isContentEmpty(orderItem.note as Content)
+    !isContentEmpty(data.note as Content)
   )
   const router = useRouter()
   // console.log('input data : ', orderItem)
@@ -80,7 +81,23 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   // Form initialization with values from the existing orderItem
   const form = useForm<OrderItem>({
     defaultValues: {
-      ...orderItem
+      ...data,
+      Core: {
+        ...data.Core
+      },
+      Collector: {
+        ...data.Collectors.top,
+        dimensions1: {
+          width: data.Collectors.top.dimensions.width,
+          height: data.Collectors.top.dimensions.height,
+          thickness: data.Collectors.top.dimensions.thickness
+        },
+        dimensions2: {
+          width: data.Collectors.bottom.dimensions.width,
+          height: data.Collectors.bottom.dimensions.height,
+          thickness: data.Collectors.bottom.dimensions.thickness
+        }
+      }
     },
     resolver: zodResolver(orderItemSchema)
   })
@@ -144,27 +161,35 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   const onSubmitHandler = async (formData: OrderItem) => {
     try {
       setIsLoading(true)
-      const label = generateProductTitle({
-        coreDimensions: {
-          width: Number(formData.Core?.dimensions?.width),
-          height: Number(formData.Core?.dimensions?.height)
-        },
-        collector1Dimensions: {
-          width: Number(formData.Collector?.dimensions1?.width),
-          height: Number(formData.Collector?.dimensions1?.height)
-        },
-        collector2Dimensions: {
-          height: Number(formData.Collector?.dimensions2?.height),
-          width: Number(formData.Collector?.dimensions2?.width)
-        },
-        rows: formData.Core?.rows,
+      const label = generateRadiatorLabel({
         type: formData.type,
         fabrication: formData.fabrication,
-        fins: formData.Core?.fins,
-        pitch: formData.Core?.finsPitch,
-        position: formData.Collector?.position,
-        tightening: formData.Collector?.tightening,
-        tube: formData.Core?.tube
+        core: {
+          dimensions: {
+            width: Number(formData.Core?.dimensions.width),
+            height: Number(formData.Core?.dimensions.height)
+          },
+          rows: formData.Core?.rows,
+          fins: formData.Core?.fins,
+          pitch: formData.Core?.finsPitch,
+          tube: formData.Core?.tube
+        },
+        collectorTop: {
+          dimensions: {
+            width: Number(formData.Collector?.dimensions1?.width),
+            height: Number(formData.Collector?.dimensions1?.height)
+          },
+          position: formData.Collector?.position,
+          tightening: formData.Collector?.tightening
+        },
+        collectorBottom: {
+          dimensions: {
+            width: Number(formData.Collector?.dimensions2?.width),
+            height: Number(formData.Collector?.dimensions2?.height)
+          },
+          position: formData.Collector?.position,
+          tightening: formData.Collector?.tightening
+        }
       })
 
       const updatedOrderItem: OrderItem = {
@@ -177,7 +202,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
           category: formData.category
         },
         // Preserve the original ID
-        id: orderItem.id
+        id: data.id
         // validate if the user role equal to Engineering Manager
       }
 
@@ -185,7 +210,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       delete updatedOrderItem.Core
 
       // fetch Patch route under orders/{id}
-      const response = await fetch(`/api/orders/${orderItem.id}`, {
+      const response = await fetch(`/api/orders/${data.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
@@ -676,7 +701,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                       onSelect={(v) =>
                         form.setValue('Core.finsPitch', v as FinsPitch)
                       }
-                      selected={field.value?.toString()}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -984,7 +1009,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                               Number(value)
                             )
                           }
-                          disabled={tightening === 'Boulonné'}
                         />
                       </FormControl>
                       <FormMessage />

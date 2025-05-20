@@ -11,11 +11,9 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
   const radiator = await prisma.radiator.findUniqueOrThrow({
     where: { id },
     include: {
-      Directory: true,
-      Inventory: true,
-      Price: true,
       Models: {
         include: {
+          Types: true,
           Family: {
             include: {
               Brand: true
@@ -25,11 +23,13 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
       },
       Components: {
         include: {
-          Materials: true
+          MaterialUsages: {
+            include: {
+              Material: true
+            }
+          }
         }
-      },
-      OrderItems: true
-      // Attachments if you have them
+      }
     }
   })
 
@@ -37,79 +37,50 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
   const coreComponent = radiator.Components.find(
     (c) => c.type === 'CORE'
   )?.Metadata
-  const collectors = radiator.Components.filter((c) => c.type === 'COLLECTOR')
 
-  const topCollector = parseMetadata(
-    collectors.find((c) => parseMetadata(c.Metadata)?.type === 'TOP')?.Metadata
-  )
-  const bottomCollector = parseMetadata(
-    collectors.find((c) => parseMetadata(c.Metadata)?.type === 'BOTTOM')
-      ?.Metadata
-  )
+  const collectors = radiator.Components.filter((c) => c.type === 'COLLECTOR')
+  // find collector material name
+  const collectorMaterialName = collectors.map((c) => {
+    const material = c.MaterialUsages[0]?.Material.name
+    return material
+  })[0]
+
+  const collectorTop = collectors.find(
+    (c) => parseMetadata(c.Metadata)?.type === 'TOP'
+  )?.Metadata as any
+
+  const collectorBottom = collectors.find(
+    (c) => parseMetadata(c.Metadata)?.type === 'BOTTOM'
+  )?.Metadata as any
   const core = parseMetadata(coreComponent)
+  const car = {
+    id: radiator.Models[0]?.id || '',
+    brand: radiator.Models[0]?.Family?.Brand.name || '',
+    family: radiator.Models[0]?.Family.name || '',
+    model: radiator.Models[0]?.name || '',
+    type: radiator.Models[0]?.Types[0]?.name || ''
+  }
 
   // Map to form data structure
-  const formData = {
+  const data = {
     id: radiator.id,
     isActive: Boolean(radiator.isActive),
-    type: 'Radiateur', // or from your data
-    fabrication: 'Confection', // or from your data
-    cooling: radiator.cooling || '',
-    packaging: '', // fill as needed
-    quantity: 1, // fill as needed
     dirId: radiator.dir || '',
-    description: '', // fill as needed
-    note: '', // fill as needed
-    modification: '', // fill as needed
-    car: radiator.Models[0]
-      ? {
-          id: radiator.Models[0].id,
-          model: radiator.Models[0].name,
-          brand: radiator.Models[0].Family?.Brand?.name
+    ...(car && { car }),
+    ...(core && { core }),
+    ...(collectorTop &&
+      collectorBottom && {
+        collectors: {
+          top: { ...collectorTop, material: collectorMaterialName },
+          bottom: { ...collectorBottom, material: collectorMaterialName }
         }
-      : undefined,
-    core: core
-      ? {
-          fins: core.fins || '',
-          finsPitch: core.finsPitch || 0,
-          tube: core.tube || '',
-          rows: core.rows || 0,
-          dimensions: core.dimensions || {
-            height: core.height || 0,
-            width: core.width || 0
-          }
-        }
-      : {
-          fins: '',
-          finsPitch: 0,
-          tube: '',
-          rows: 0,
-          dimensions: { height: 0, width: 0 }
-        },
-    collector: {
-      isTinned: topCollector?.isTinned || false,
-      perforation: topCollector?.perforation,
-      tightening: topCollector?.tightening,
-      position: topCollector?.position,
-      material: 'Laiton', // or from your data
-      upperDimensions: topCollector?.dimensions || {
-        height: topCollector?.height || 0,
-        width: topCollector?.width || 0,
-        thickness: topCollector?.thickness || 0
-      },
-      lowerDimensions: bottomCollector?.dimensions || {
-        height: bottomCollector?.height || 0,
-        width: bottomCollector?.width || 0,
-        thickness: bottomCollector?.thickness || 0
-      }
-    },
+      }),
     radiatorAttachment: [] // Map attachments if you have them
   }
 
-  console.log('formData', formData)
   return (
     <Card>
-      <RadiatorEditForm data={formData} />
+      <RadiatorEditForm data={data} />
     </Card>
   )
 }
