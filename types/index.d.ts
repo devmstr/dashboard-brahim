@@ -112,6 +112,30 @@ export type Dictionary = Record<string, string>
 
 declare type UserRole = Uppercase<(typeof userRoles)[number]>
 
+declare type RadiatorResponse = {
+  id: string
+  reference: string
+  label: string
+  category: OrderItem['category']
+  cooling: OrderItem['cooling']
+  barcode: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  Clients: {
+    id: string
+    name: string
+  }[]
+  Brands: {
+    id: string
+    name: string
+    Models: {
+      id: string
+      name: string
+    }[]
+  }[]
+}
+
 declare type InvoiceItem = {
   id: number
   designation: string

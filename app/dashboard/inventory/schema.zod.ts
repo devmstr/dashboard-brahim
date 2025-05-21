@@ -2,16 +2,14 @@ import { z } from 'zod'
 
 export const inventorySchema = z.object({
   // Inventory information
-  reference: z.string(),
-  designation: z.string().optional(),
-  location: z
-    .string()
-    .min(1, { message: 'Veuillez sélectionner un emplacement' }),
+  id: z.string(),
+  label: z.string().optional(),
+  location: z.string().optional(),
 
   // Inventory levels
-  minStockLevel: z.coerce.number().int().nonnegative(),
-  stockLevel: z.coerce.number().int().nonnegative(),
-  maxStockLevel: z.coerce.number().int().positive(),
+  minStockLevel: z.number().int().nonnegative().optional(),
+  stockLevel: z.number().int().nonnegative().optional(),
+  maxStockLevel: z.number().int().nonnegative().optional(),
 
   // pricing
   price: z.number().optional(),

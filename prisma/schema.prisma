@@ -130,16 +130,18 @@ model Inventory {
   id        String     @id @default(cuid())
   level     Int        @default(0)
   alertAt   Int        @default(0)
+  maxLevel  Int        @default(0)
   Radiators Radiator[]
 
   @@map("inventories")
 }
 
 model Price {
-  id        String     @id @default(cuid())
-  unit      Float      @default(0)
-  bulk      Float      @default(0)
-  Radiators Radiator[]
+  id            String     @id @default(cuid())
+  unit          Float      @default(0)
+  bulk          Float      @default(0)
+  bulkThreshold Int        @default(0)
+  Radiators     Radiator[]
 
   @@map("prices")
 }

@@ -21,7 +21,7 @@ export async function getInventoryTableData() {
       quantity: inv.level,
       price: rad.Price?.unit ?? undefined,
       bulkPrice: rad.Price?.bulk ?? undefined,
-      bulkPriceThreshold: undefined // Add if you have this field
+      bulkPriceThreshold: rad.Price?.bulkThreshold // Add if you have this field
     }))
   )
 }

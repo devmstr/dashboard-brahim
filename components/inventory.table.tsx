@@ -157,13 +157,17 @@ export function InventoryTable({
   // Define column overrides for specific columns
   const columnOverrides: Record<string, ColumnOverride> = {
     id: {
-      cell: ({ row }) => (
+      cell: ({
+        row: {
+          original: { id }
+        }
+      }) => (
         <div className="flex items-center">
           <Link
             className="hover:text-primary hover:underline"
-            href={'partials/' + row.original.id}
+            href={`/dashboard/inventory/${id}`}
           >
-            {row.original.id}
+            {id}
           </Link>
         </div>
       )
@@ -229,24 +233,24 @@ export function InventoryTable({
         'ENGINEER',
         'ENGINEERING_MANAGER'
       ],
-      order: 2
+      order: 3
     },
     {
       id: 'quantity',
       roles: ['SALES_AGENT', 'SALES_MANAGER', 'INVENTORY_AGENT'],
-      order: 3
+      order: 4
     },
     {
       id: 'bulkPriceThreshold',
       roles: ['SALES_AGENT', 'SALES_MANAGER'],
-      order: 4
+      order: 5
     },
-    { id: 'bulkPrice', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 5 },
-    { id: 'price', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 6 },
+    { id: 'bulkPrice', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 6 },
+    { id: 'price', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 7 },
     {
       id: 'barcode',
       roles: ['INVENTORY_AGENT', 'ENGINEER', 'ENGINEERING_MANAGER'],
-      order: 7
+      order: 2
     },
     {
       id: 'actions',
@@ -478,7 +482,7 @@ function Actions({ row }: { row: InventoryTableEntry }) {
   const router = useRouter()
   const onDelete = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/partials/${orderId}`, {
+      const res = await fetch(`/api/stock/${orderId}`, {
         method: 'DELETE'
       })
       refresh()
@@ -496,7 +500,7 @@ function Actions({ row }: { row: InventoryTableEntry }) {
         <DropdownMenuItem asChild>
           <Button
             variant={'ghost'}
-            onClick={() => router.push('/dashboard/inventory/${row.id}/edit')}
+            onClick={() => router.push(`/dashboard/inventory/${row.id}`)}
             className={cn('flex gap-3 items-center justify-center w-12')}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />

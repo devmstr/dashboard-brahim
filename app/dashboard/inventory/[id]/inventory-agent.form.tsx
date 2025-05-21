@@ -1,5 +1,6 @@
 'use client'
 
+import { CardGrid } from '@/components/card'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -18,53 +19,76 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import React, { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
-import { CardGrid } from '../../../../../components/card'
-import { Label } from '../../../../../components/ui/label'
 import { renderDesignation } from './render-designation'
-import { inventorySchema, InventoryType } from '../../schema.zod'
+import { inventorySchema, InventoryType } from '../schema.zod'
 
-interface InventorySalesFormProps {
-  data?: Partial<InventoryType>
+interface InventoryAgentFormProps {
+  data?: InventoryType
 }
 
-export function InventorySalesForm({ data }: InventorySalesFormProps) {
+export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
   const [isSubmitting, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
   // Initialize the form with react-hook-form
-  const form = useForm<Partial<InventoryType>>({
+  const form = useForm<InventoryType>({
     resolver: zodResolver(inventorySchema),
-    defaultValues: data || {
-      reference: 'RAX5H7MNT',
-      designation: 'RA 0530X0540 4D7 10 0545X085 PC KOMATSU FD60',
-      location: 'Dépôt SONERAS',
-      price: undefined,
-      bulkPrice: undefined,
-      bulkPriceThreshold: 10,
-      isActive: true
+    defaultValues: {
+      ...data,
+      // isActive: true
+      location: 'Dépôt SONERAS'
     }
   })
 
-  const onSubmit = (items: Partial<InventoryType>): Promise<void> => {
-    throw new Error('Function not implemented.')
+  const onSubmit = async (items: InventoryType) => {
+    setError(null)
+    try {
+      // PATCH inventory for this radiator
+      const response = await fetch(`/api/stock/${items.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          ...items,
+          // Ensure numeric fields are numbers
+          stockLevel: Number(items.stockLevel),
+          minStockLevel: Number(items.minStockLevel),
+          maxStockLevel: Number(items.maxStockLevel),
+          isActive: Boolean(items.isActive)
+        })
+      })
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(
+          errorData?.message || 'Erreur lors de la mise à jour du stock'
+        )
+      }
+      return true
+    } catch (error: any) {
+      setError(error.message || 'Une erreur est survenue')
+      throw error
+    }
   }
 
-  const handleSubmit = (data: Partial<InventoryType>) => {
+  const handleSubmit = (data: InventoryType) => {
     startTransition(async () => {
       try {
         await onSubmit(data)
         toast({
           title: 'Succès',
           description: (
-            <p>Les informations de vente ont été mises à jour avec succès</p>
-          )
+            <p>Les informations de stock ont été mises à jour avec succès</p>
+          ),
+          variant: 'success'
         })
         router.refresh()
       } catch (error: any) {
@@ -109,7 +133,7 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
               />
               <FormField
                 control={form.control}
-                name="reference"
+                name="id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Référence</FormLabel>
@@ -136,60 +160,22 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
               <div className="cursor-not-allowed md:col-span-2 lg:col-span-3">
                 <Label>Désignation</Label>
                 <div className="py-2 border border-muted px-3 bg-muted/50 rounded-md">
-                  {renderDesignation(form.getValues('designation'))}
+                  {renderDesignation(form.getValues('label'))}
                 </div>
               </div>
             </CardGrid>
 
-            {/* Prix */}
-
+            {/* Inventory Levels */}
             <CardGrid className="">
-              <h3 className="text-lg font-semibold col-span-3">Tarification</h3>
+              <h3 className="text-lg font-semibold col-span-3">
+                Niveaux de stock
+              </h3>
               <FormField
                 control={form.control}
-                name="bulkPrice"
+                name="minStockLevel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prix en gros</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix unitaire</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="+7% par défaut"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="bulkPriceThreshold"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Seuil quantité en gros</FormLabel>
+                    <FormLabel>Niveau minimum</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -198,15 +184,52 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                       />
                     </FormControl>
                     <FormDescription className="text-xs md:text-sm">
-                      Quantité minimale pour appliquer le prix en gros
+                      Niveau de stock minimum avant réapprovisionnement
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="stockLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Niveau actuel</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="maxStockLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Niveau maximum</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-xs md:text-sm">
+                      Capacité maximale de stockage
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </CardGrid>
-
-            {error && <div className="text-red-500 text-sm">{error}</div>}
           </form>
         </Form>
       </CardContent>

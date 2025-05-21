@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -32,6 +32,8 @@ import { Icons } from '@/components/icons'
 import ProductSearchInput from '@/components/search-product.input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { inventorySchema, InventoryType } from './schema.zod'
+import { RadiatorResponse } from '@/types'
+import { RadiatorSearchCard } from '@/components/radiator-search.card'
 
 type AddInventoryItemProps = {}
 
@@ -45,11 +47,14 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
       }
     | undefined
   >(undefined)
-  const [isCoreExists, setIsCoreExists] = useState(false)
-  const [isCollectorExists, setIsCollectorExists] = useState(false)
+
+  const [isLoading, setIsLoading] = useState(false)
   const [isAdding, setAddingTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const [fetchedProduct, setFetchedProduct] = useState<
+    RadiatorResponse | undefined
+  >(undefined)
 
   // Initialize the form with react-hook-form
   const form = useForm<Partial<InventoryType>>({
@@ -62,29 +67,98 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
     }
   })
 
+  const fetchProduct = useCallback(async (id: string) => {
+    if (!id) return
+
+    setIsLoading(true)
+    setFetchedProduct(undefined)
+
+    try {
+      console.log(`Fetching product with ID: ${id}`)
+      const response = await fetch(`/api/radiators/${id}`)
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch product: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // Check if the data has the expected structure
+      if (!data || typeof data !== 'object') {
+        console.error('Invalid data format received:', data)
+        throw new Error('Invalid data format received from API')
+      }
+
+      setFetchedProduct(data)
+      console.log('Product fetched successfully:', data)
+    } catch (error) {
+      console.error('Error fetching product:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch product details',
+        variant: 'success'
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Fetch product details when selectedProduct changes
+  useEffect(() => {
+    if (selectedProduct?.id) {
+      fetchProduct(selectedProduct.id)
+    }
+  }, [selectedProduct, fetchProduct])
+
   const onSubmit = (data: Partial<InventoryType>) => {
     setAddingTransition(async () => {
+      setError(null)
+      if (!selectedProduct?.id) {
+        setError('Veuillez sélectionner un produit.')
+        return
+      }
       try {
-        // Convert form data to FormData
-        const formData = new FormData()
-        Object.entries(data).forEach(([key, value]) => {
-          if (value !== undefined) {
-            formData.append(key, value.toString())
-          }
+        setIsLoading(true)
+        // Prepare payload for PATCH /api/stock/[id]
+        const payload = {
+          ...data,
+          radiatorId: selectedProduct.id,
+          // Ensure numeric fields are numbers
+          stockLevel: Number(data.stockLevel),
+          minStockLevel: Number(data.minStockLevel),
+          maxStockLevel: Number(data.maxStockLevel),
+          isActive: Boolean(data.isActive)
+        }
+        const response = await fetch(`/api/stock/${selectedProduct.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
         })
-
-        // await addNewRadiator(formData)
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(
+            errorData?.message || 'Erreur lors de la mise à jour du stock'
+          )
+        }
         router.refresh()
         toast({
           title: 'Succès',
-          description: (
-            <p>Vous avez ajouté avec succès un nouvel article à l'inventaire</p>
-          )
+          description:
+            "Vous avez ajouté avec succès un nouvel article à l'inventaire"
         })
         setOpen(false)
         form.reset()
       } catch (error: any) {
         setError(error.message || 'Une erreur est survenue')
+        toast({
+          title: 'Erreur',
+          description: error.message || 'Une erreur est survenue',
+          variant: 'destructive'
+        })
+      } finally {
+        setIsLoading(false)
       }
     })
   }
@@ -111,11 +185,15 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
               onSubmit={form.handleSubmit(onSubmit)}
               className="px-3 py-4 space-y-6"
             >
-              <div className="border rounded-md p-2">
+              <div className="border rounded-md p-2 flex flex-col gap-4">
                 <ProductSearchInput
                   selected={selectedProduct}
                   onSelectChange={setSelectedProduct}
                 />
+                {/* Display fetched product details */}
+                {fetchedProduct && !isLoading && (
+                  <RadiatorSearchCard product={fetchedProduct} />
+                )}
               </div>
 
               {/* Inventaire */}
@@ -215,7 +293,6 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
             <Button onClick={form.handleSubmit(onSubmit)} disabled={isAdding}>
               Ajouter
             </Button>
-            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
           </div>
         </DialogFooter>
       </DialogContent>

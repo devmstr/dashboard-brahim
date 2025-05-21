@@ -20,32 +20,9 @@ import { AddOrderItemForm } from '@/components/add-order-item.form'
 import type { OrderItem } from '@/lib/validations'
 import { AddOrderItemFromDbFrom } from './add-order-item-from-db.form'
 import { RadiatorSearchCard } from '@/components/radiator-search.card'
+import { RadiatorResponse } from '@/types'
 
 type Props = {}
-
-type Response = {
-  id: string
-  reference: string
-  label: string
-  category: OrderItem['category']
-  cooling: OrderItem['cooling']
-  barcode: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-  Clients: {
-    id: string
-    name: string
-  }[]
-  Brands: {
-    id: string
-    name: string
-    Models: {
-      id: string
-      name: string
-    }[]
-  }[]
-}
 
 export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   const router = useRouter()
@@ -55,9 +32,9 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   const [selectedProduct, setSelectedProduct] = useState<
     RadiatorResp | undefined
   >(undefined)
-  const [fetchedProduct, setFetchedProduct] = useState<Response | undefined>(
-    undefined
-  )
+  const [fetchedProduct, setFetchedProduct] = useState<
+    RadiatorResponse | undefined
+  >(undefined)
   const [isProductFormOpen, setIsProductFormOpen] = useState(false)
 
   // Function to handle product selection from the search input

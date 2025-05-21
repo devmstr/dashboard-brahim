@@ -24,15 +24,15 @@ export const RadiatorSearchCard: React.FC<Props> = ({ product, children }) => {
   const getCategoryIcon = () => {
     switch (product.category) {
       case 'Automobile':
-        return <Car className="h-6 w-6 text-blue-600" />
+        return <Car className="h-auto w-36 opacity-5 text-blue-600" />
       case 'Industriel':
-        return <Factory className="h-6 w-6 text-orange-600" />
+        return <Factory className="h-auto w-36 opacity-5 text-orange-600" />
       case 'Générateurs':
-        return <Zap className="h-6 w-6 text-yellow-600" />
+        return <Zap className="h-auto w-36 opacity-5 text-yellow-600" />
       case 'Agricole':
-        return <Tractor className="h-6 w-6 text-green-600" />
+        return <Tractor className="h-auto w-36 opacity-5 text-green-600" />
       default:
-        return <Info className="h-6 w-6 text-gray-600" />
+        return <Info className="h-auto w-36 opacity-5 text-gray-600" />
     }
   }
 
@@ -70,21 +70,15 @@ export const RadiatorSearchCard: React.FC<Props> = ({ product, children }) => {
       )}
     >
       {/* Category icon in top left */}
-      <div className="absolute top-4 left-4">{getCategoryIcon()}</div>
+      <div className="absolute -top-4 -left-4 ">{getCategoryIcon()}</div>
 
       {/* Main content - vertically centered */}
       <div className="flex justify-between items-center min-h-[80px] pl-10">
         <div className="flex-1 text-center">
-          <h3 className="text-lg font-semibold mb-1">{product.label}</h3>
-          <div className="text-sm text-gray-500">{product.id}</div>
+          <h3 className="text-2xl font-semibold mb-1">{product.label}</h3>
+          <div className="text-md text-gray-500">{product.id}</div>
         </div>
-        {children ? (
-          <div className="max-w-36">{children}</div>
-        ) : (
-          <Button variant="outline" size="sm" className="rounded-full px-4">
-            Action Button
-          </Button>
-        )}
+        {children ? <div className="max-w-36">{children}</div> : null}
       </div>
 
       {/* Bottom section with brands and clients */}
