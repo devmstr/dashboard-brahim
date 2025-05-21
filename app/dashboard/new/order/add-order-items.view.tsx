@@ -19,6 +19,7 @@ import { toast } from '@/hooks/use-toast'
 import { AddOrderItemForm } from '@/components/add-order-item.form'
 import type { OrderItem } from '@/lib/validations'
 import { AddOrderItemFromDbFrom } from './add-order-item-from-db.form'
+import { RadiatorSearchCard } from '@/components/radiator-search.card'
 
 type Props = {}
 
@@ -212,73 +213,17 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
 
       {/* Display fetched product details */}
       {fetchedProduct && !isLoading && (
-        <div className="p-4 border rounded-md">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-lg font-semibold">{fetchedProduct.label}</h3>
-              <p className="text-sm text-muted-foreground">
-                {fetchedProduct.id}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={openProductForm}
-              className="flex items-center gap-1"
-            >
-              <Icons.plus className="w-4 h-4" />
-              <span className="capitalize">ajouter à la commande</span>
-            </Button>
-          </div>
-
-          <div className="mt-4 space-y-3">
-            {/* Brands with nested Models */}
-            {fetchedProduct.Brands?.length > 0 && (
-              <div className="flex items-start gap-2">
-                <span className="text-sm font-medium min-w-20">Brands:</span>
-                <div className="flex flex-col gap-2 w-full">
-                  {fetchedProduct.Brands.map((brand) => (
-                    <div key={brand.id} className="flex flex-col">
-                      <span className="text-sm font-medium bg-muted px-2 py-0.5 rounded-full inline-block mb-1 w-fit">
-                        {brand.name}
-                      </span>
-
-                      {brand.Models?.length > 0 && (
-                        <div className="flex flex-wrap gap-1 ml-3">
-                          {brand.Models.map((model) => (
-                            <span
-                              key={model.id}
-                              className="text-xs px-2 py-0.5 bg-muted/50 rounded-full"
-                            >
-                              {model.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Clients */}
-            {fetchedProduct.Clients?.length > 0 && (
-              <div className="flex items-start gap-2">
-                <span className="text-sm font-medium min-w-20">Clients:</span>
-                <div className="flex flex-wrap gap-1">
-                  {fetchedProduct.Clients.map((client) => (
-                    <span
-                      key={client.id}
-                      className="text-sm px-2 py-0.5 bg-muted rounded-full"
-                    >
-                      {client.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <RadiatorSearchCard product={fetchedProduct}>
+          {/* action button */}
+          <Button
+            variant="outline"
+            className="w-full mt-2"
+            onClick={openProductForm}
+          >
+            <Icons.packagePlus className="w-auto h-5 mr-1" />
+            Ajouter
+          </Button>
+        </RadiatorSearchCard>
       )}
 
       {/* Product Details Form Dialog */}

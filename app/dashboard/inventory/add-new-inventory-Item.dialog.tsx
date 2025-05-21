@@ -99,10 +99,10 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
       </DialogTrigger>
       <DialogContent className="max-w-6xl pt-5 pb-2">
         <DialogHeader className="px-3 pt-4">
-          <DialogTitle>Ajouter un nouvel article à l'inventaire</DialogTitle>
+          <DialogTitle>Ajouter un nouvel article au stock"</DialogTitle>
           <DialogDescription>
             Aucun article correspondant n&apos;a été trouvé. Souhaitez-vous
-            l&apos;ajouter comme un nouvel article dans l'inventaire ?
+            l&apos;ajouter comme un nouvel article au stock ?
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh]">
@@ -111,7 +111,7 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
               onSubmit={form.handleSubmit(onSubmit)}
               className="px-3 py-4 space-y-6"
             >
-              <div className="border rounded-md">
+              <div className="border rounded-md p-2">
                 <ProductSearchInput
                   selected={selectedProduct}
                   onSelectChange={setSelectedProduct}
@@ -121,7 +121,7 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
               {/* Inventaire */}
               <div className="grid gap-4 p-4 border rounded-lg mb-4">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Inventaire</h3>
+                  <h3 className="text-lg font-semibold">Stock</h3>
                   <FormField
                     control={form.control}
                     name="isActive"
