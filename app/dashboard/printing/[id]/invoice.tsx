@@ -37,12 +37,12 @@ import { Textarea } from '@/components/ui/textarea'
 interface InvoiceProps {
   invoiceId: string
   qrAddress: string
-  bc: string
-  bl: string[]
+  // bc: string
+  // bl: string[]
   paymentMode: string
   client: {
     name: string
-    address: string
+    address?: string
     rc: string
     nif: string
     ai: string
@@ -57,8 +57,6 @@ export default function Invoice({
   invoiceId,
   qrAddress,
   paymentMode,
-  bc,
-  bl,
   client,
   items = [],
   className
@@ -73,6 +71,8 @@ export default function Invoice({
   const [stampTaxRate, setStampTaxRate] = useState<number>(
     paymentMode == 'Versement (Banque)' ? 0 : 0.01
   )
+  const [purchaseOrder, setPurchaseOrder] = useState<string>()
+  const [deliverySlip, setDeliverySlip] = useState<string>()
   const [editingItemId, setEditingItemId] = useState<number | null>(null)
   const [paymentType, setPaymentType] =
     useState<(typeof PAYMENT_TYPES)[number]>('Versement')
@@ -190,11 +190,11 @@ export default function Invoice({
             <span>Email: info@okindustrie.com</span>
           </div>
         </div>
-        <div className="space-y-1 text-left">
-          <div className="flex items-center justify-end gap-2">
-            <span>Tel | Fax: 029 27 22 06</span>
+        <div className="space-y-1 ">
+          <div className="flex items-center justify-start gap-2">
+            <span className="tracking-[0.017em]">Tel | Fax: 029 27 22 06</span>
           </div>
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-start gap-2">
             <span className="translate-x-[1px]">Mobile: 07 70 49 72 90</span>
           </div>
         </div>
@@ -203,48 +203,77 @@ export default function Invoice({
         style={{ backgroundColor: '#000' }}
         className="separator my-2 h-[1.8px] rounded text-black"
       />
-      <div className="flex justify-between">
-        <div className="space-y-1 text-sm font-geist-sans">
-          <p>
-            <strong className="font-medium">{'BC: '}</strong>
-            {bc}
-          </p>
-          <p>
-            <strong className="font-medium">{'BL: '} </strong>
-            <span className="ml-[2px]">{`${bl[0].split('/')[0]}-${
-              bl[bl.length - 1].split('/')[0]
-            }/${bl[0].split('/')[1]}`}</span>
-          </p>
+      <div className="w-full flex justify-between items-start">
+        <div className="w-1/4 flex flex-col gap-1  text-sm font-geist-sans">
+          {/* BC: always render input (screen) and value (print, if not empty) */}
+          <div className="flex gap-[.2rem] items-center print:hidden">
+            <strong className="font-medium">{'BC: '} </strong>
+            <Input
+              placeholder="002171"
+              className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
+              value={purchaseOrder || ''}
+              onChange={(e) => {
+                setPurchaseOrder(e.target.value)
+              }}
+            />
+          </div>
+          {purchaseOrder && (
+            <div className="hidden print:flex gap-[.2rem] items-center">
+              <strong className="font-medium">{'BC: '} </strong>
+              <span>{purchaseOrder}</span>
+            </div>
+          )}
+          {/* BL: always render input (screen) and value (print, if not empty) */}
+          <div className="flex gap-[.2rem] items-center print:hidden">
+            <strong className="font-medium tracking-wider">{'BL: '} </strong>
+            <Input
+              placeholder="23-26/2025"
+              className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
+              value={deliverySlip || ''}
+              onChange={(e) => {
+                setDeliverySlip(e.target.value)
+              }}
+            />
+          </div>
+          {deliverySlip && (
+            <div className="hidden print:flex gap-[.2rem] items-center">
+              <strong className="font-medium tracking-widest">{'BL: '} </strong>
+              <span>{deliverySlip}</span>
+            </div>
+          )}
         </div>
-        <div className="text-center ">
+        <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
             FACTURE: {invoiceId}
           </h2>
         </div>
-        <div className="text-right text-sm font-geist-sans">
+        <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
           <p>Du: {format(new Date(), 'dd/MM/yyyy')}</p>
         </div>
       </div>
       <div className="text-base mt-4 ">
-        <h3 className="font-semibold">Client</h3>
         <Separator
           style={{ backgroundColor: '#000' }}
           className="separator my-2 h-[1.4px] rounded "
         />
+        <h3 className="font-semibold">Client</h3>
         <div className="flex w-full justify-between ">
           <div>
             <p className="font-medium uppercase">{client.name}</p>
-            <p className="capitalize font-normal">{client.address}</p>
+            {/* client address only appear if it exist  */}
+            {client.address && (
+              <p className="capitalize font-normal">{client.address}</p>
+            )}
           </div>
           <div className="text-sm font-geist-sans">
-            <p>
-              <strong>{'R.C: '}</strong> {client.rc}
+            <p className="flex">
+              <strong className="w-10">{'R.C: '}</strong> {client.rc}
             </p>
-            <p>
-              <strong>{'N.I.F: '}</strong> {client.nif}
+            <p className="flex">
+              <strong className="w-10">{'N.I.F: '}</strong> {client.nif}
             </p>
-            <p>
-              <strong>{'A.I: '}</strong> {client.ai}
+            <p className="flex">
+              <strong className="w-10">{'A.I: '}</strong> {client.ai}
             </p>
           </div>
         </div>
@@ -477,22 +506,24 @@ export default function Invoice({
               </SelectContent>
             </Select>
           </div>
-          <div className={cn('space-y-1', note == '' && 'print:hidden')}>
+          {/* REMARQUE: show textarea on screen, show value in print only if not empty */}
+          <div className={cn('space-y-1 print:hidden')}>
             <h3 className="font-semibold">REMARQUE</h3>
-            <div className="print:hidden">
-              <Textarea
-                className="w-full min-h-20 group"
-                placeholder="Remarque..."
-                value={note}
-                onChange={(e) => {
-                  setNote(e.target.value)
-                }}
-              />
-            </div>
-            <div className="hidden print:block">
-              {note ? <p className="">{note}</p> : null}
-            </div>
+            <Textarea
+              className="w-full min-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
+              placeholder="Saisissez des remarques pour cette facture..."
+              value={note}
+              onChange={(e) => {
+                setNote(e.target.value)
+              }}
+            />
           </div>
+          {note && (
+            <div className="hidden print:block space-y-1">
+              <h3 className="font-semibold">REMARQUE</h3>
+              <p className="">{note}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

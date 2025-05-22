@@ -136,6 +136,30 @@ model Inventory {
   @@map("inventories")
 }
 
+model Invoice {
+  id           String     @id @default(cuid())
+  number       String     @unique
+  date         DateTime   @default(now())
+  customerName String?
+  total        Float?
+  subtotal     Float?
+  tax          Float?
+  items        Radiator[]
+  metadata     Json?
+
+  Order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId String?
+
+  clientId String
+  Client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+  updatedAt DateTime  @updatedAt
+
+  @@map("invoices")
+}
+
 model Price {
   id            String     @id @default(cuid())
   unit          Float      @default(0)
@@ -167,6 +191,8 @@ model Radiator {
   Models     CarModel[]
   Components Component[]
   OrderItems OrderItem[]
+  Invoice    Invoice?    @relation(fields: [invoiceId], references: [id])
+  invoiceId  String?
 
   @@map("radiators")
 }
@@ -280,8 +306,9 @@ model Client {
   Address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
 
   Orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Invoice   Invoice[]
 
   @@map("clients")
 }
@@ -313,8 +340,9 @@ model Order {
   Client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   Attachments Attachment[]
 
-  createdAt DateTime @default(now()) // Added for consistency
-  updatedAt DateTime @updatedAt // Added for consistency
+  createdAt DateTime  @default(now()) // Added for consistency
+  updatedAt DateTime  @updatedAt // Added for consistency
+  Invoice   Invoice[]
 
   @@map("order_batches") // Added map directive for consistency
 }

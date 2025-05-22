@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/hooks/use-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import React, { useState, useTransition } from 'react'
@@ -28,6 +27,7 @@ import { CardGrid } from '@/components/card'
 import { Label } from '@/components/ui/label'
 import { renderDesignation } from './render-designation'
 import { inventorySchema, InventoryType } from '../schema.zod'
+import { toast } from '@/hooks/use-toast'
 
 interface InventorySalesFormProps {
   data?: Partial<InventoryType>
@@ -71,14 +71,6 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
       if (!data) {
         throw new Error('Une erreur est survenue')
       }
-      // toast success
-      toast({
-        title: 'Succès',
-        description: (
-          <p>Les informations de vente ont été mises à jour avec succès</p>
-        ),
-        variant: 'success'
-      })
 
       return true
     } catch (error: any) {
@@ -91,11 +83,13 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
     startTransition(async () => {
       try {
         await onSubmit(data)
+        // toast success
         toast({
           title: 'Succès',
           description: (
             <p>Les informations de vente ont été mises à jour avec succès</p>
-          )
+          ),
+          variant: 'success'
         })
         router.refresh()
       } catch (error: any) {
@@ -241,7 +235,7 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
       </CardContent>
       <CardFooter className="flex justify-end gap-4">
         <Button variant="outline" onClick={() => router.back()}>
-          Annuler
+          Retour
         </Button>
         <Button
           onClick={form.handleSubmit(handleSubmit)}

@@ -56,6 +56,18 @@ import {
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog'
+import { toast } from '@/hooks/use-toast'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -113,7 +125,7 @@ export function LedgerTable({
     id: 'Matricule',
     placeholder: 'Rechercher dans le grand livre...',
     columns: 'Colonnes',
-    billId: 'ID de facture',
+    billId: 'N° de facture',
     total: 'Total',
     items: 'Articles',
     createdAt: 'Date de création',
@@ -241,7 +253,7 @@ export function LedgerTable({
       header: () => (
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
-      cell: ({ row }) => <Actions id={row.original.billId} />
+      cell: ({ row }) => <Actions id={row.original.id} />
     }
   }
 
@@ -703,9 +715,34 @@ export function LedgerTable({
 
 function Actions({ id }: { id: string }) {
   const { refresh } = useRouter()
+  const [open, setOpen] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
 
   const handlePrint = () => {
     window.open(`/dashboard/ledger/${id}/print`, '_blank')
+  }
+
+  const handleDelete = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/invoice/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Erreur lors de la suppression.')
+      toast({
+        title: 'Facture supprimée',
+        description: 'La facture a été marquée comme supprimée.',
+        variant: 'success'
+      })
+      setOpen(false)
+      refresh()
+    } catch (e: any) {
+      toast({
+        title: 'Erreur',
+        description: e.message || 'Erreur inconnue',
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -716,18 +753,6 @@ function Actions({ id }: { id: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Link
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0'
-            )}
-            href={`/dashboard/ledger/${id}`}
-          >
-            <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
           <Button
             variant="ghost"
             className="flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0"
@@ -735,6 +760,44 @@ function Actions({ id }: { id: string }) {
           >
             <Icons.printer className="w-4 h-4 group-hover:text-primary" />
           </Button>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant={'ghost'}
+                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
+              >
+                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Êtes-vous sûr de vouloir supprimer cette facture ?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Attention, cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button
+                    className={cn(
+                      buttonVariants({ variant: 'outline' }),
+                      ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                    )}
+                    onClick={() => handleDelete()}
+                  >
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

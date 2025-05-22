@@ -25,7 +25,7 @@ export enum SKU_PREFIX {
 export type PREFIX = keyof typeof SKU_PREFIX
 
 export function skuId(prefix: PREFIX): string {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWYZ0123456789'
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWYZ123456789'
   const generateId = customAlphabet(alphabet, 6)
   const uniqueId = generateId()
   return `${prefix}X${uniqueId}`
@@ -131,6 +131,34 @@ const getPrefix = (
       ? 'RAD'
       : 'REN'
     : type.slice(0, 3).toUpperCase()
+
+export const formatPhoneNumber = (phone: string | null | undefined) => {
+  if (!phone) return ''
+  // remove the country code
+  let cleanedPhone = phone.replace(/[^0-9]/g, '')
+  // add the leading zero if it doesn't exist
+  const hasLeadingZero = cleanedPhone.startsWith('0')
+  const hasCountryCode = cleanedPhone.startsWith('213')
+  const hasPlus = cleanedPhone.startsWith('+')
+  const hasValidLength = cleanedPhone.length === 9 || cleanedPhone.length === 10
+  if (!hasLeadingZero && !hasCountryCode && !hasPlus && hasValidLength) {
+    cleanedPhone = '0' + cleanedPhone
+  } else if (hasCountryCode) {
+    cleanedPhone = cleanedPhone.replace('213', '0')
+  } else if (hasPlus) {
+    cleanedPhone = cleanedPhone.replace('+213', '0')
+  }
+
+  // if phone number is 10 digits, format it as 0X XX XX XX XX
+  if (cleanedPhone.length === 10) {
+    return cleanedPhone.replace(
+      /(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/,
+      '$1 $2 $3 $4 $5'
+    )
+  }
+  // if phone number is 9 digits, format it as 0X XX XX XX
+  return cleanedPhone.replace(/(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
+}
 
 export function generateRadiatorLabel({
   type,

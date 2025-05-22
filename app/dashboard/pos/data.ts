@@ -8,7 +8,6 @@ export const sampleProducts: (Product & { createdAt: string })[] = [
     stock: 1,
     price: 75000,
     bulkPrice: 67500,
-    image: '/placeholder.svg?height=80&width=80',
     createdAt: '2024-03-24T10:15:00Z'
   },
   {

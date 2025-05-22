@@ -23,21 +23,7 @@ export default function ProductsSection({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 overflow-auto py-1">
-        <ProductPosTable
-          data={products}
-          addToCart={addToCart}
-          t={{
-            columns: 'colonnes',
-            limit: 'limite',
-            placeholder:
-              'Des parties de la désignation, séparées par un espace',
-            id: 'Matricule',
-            description: 'Désignation',
-            stock: 'Stock',
-            price: 'Prix (Unit)',
-            bulkPrice: 'Prix (Gros)'
-          }}
-        />
+        <ProductPosTable data={products} addToCart={addToCart} />
       </CardContent>
     </Card>
   )

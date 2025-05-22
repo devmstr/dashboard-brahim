@@ -1,86 +1,69 @@
 import Invoice from './invoice'
+import prisma from '@/lib/db'
 
-export default async function Page({
-  params
-}: {
-  params: Promise<{ id: string }>
-}) {
-  // Sample data
-  const items = [
-    {
-      id: 1,
-      designation: 'Renovation radiateur bus 100L6',
-      quantity: 2,
-      priceHT: 1000,
-      amount: 2 * 1000 // 22000
-    },
-    {
-      id: 2,
-      designation: 'Renovation radiateur bus 100L7',
-      quantity: 3,
-      priceHT: 1000,
-      amount: 3 * 1000 // 51000
-    },
-    {
-      id: 3,
-      designation: 'Changement moteur camion T420',
-      quantity: 1,
-      priceHT: 2000,
-      amount: 1 * 2000 // 25000
-    },
-    {
-      id: 4,
-      designation:
-        'Réparation boîte de vitesse bus 200X & Entretien complet camion R340',
-      quantity: 2,
-      priceHT: 3000,
-      amount: 2 * 3000 // 76000
-    },
-    {
-      id: 5,
-      designation: 'Entretien complet camion R340',
-      quantity: 1,
-      priceHT: 5000,
-      amount: 1 * 5000 // 51000
-    },
-    {
-      id: 6,
-      designation: 'Remplacement embrayage bus 150K3',
-      quantity: 3,
-      priceHT: 7000,
-      amount: 3 * 7000 // 216000
-    },
-    {
-      id: 7,
-      designation: 'Réparation circuit hydraulique camion 320D',
-      quantity: 2,
-      priceHT: 9000,
-      amount: 2 * 9000 // 180000
-    },
-    {
-      id: 8,
-      designation: 'Réparation circuit hydraulique camion 320D',
-      quantity: 2,
-      priceHT: 9000,
-      amount: 2 * 9000 // 180000
+type Metadata = {
+  items: {
+    id: string
+    name: string
+    price: number
+    quantity: number
+  }[]
+}
+
+export default async function Page({ params }: { params: { id: string } }) {
+  const { id } = params
+  // Fetch invoice data directly from the database
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    include: {
+      Client: {
+        include: {
+          Address: true
+        }
+      },
+      items: {
+        include: {
+          Price: true
+        }
+      }
     }
-  ]
-  const { id } = await params
+  })
+  if (!invoice) {
+    return (
+      <div className="text-red-500">
+        Erreur lors du chargement de la facture.
+      </div>
+    )
+  }
+  // Prepare items for Invoice component
+  let items: any[] = []
+  if (invoice.items) {
+    items = invoice.items.map((item) => {
+      const quantity =
+        (invoice.metadata as Metadata)?.items.find((i: any) => i.id === item.id)
+          ?.quantity || 0
+      return {
+        id: item.id,
+        designation: item.label || item.reference || '',
+        quantity,
+        priceHT: item.Price?.unit || 0,
+        amount: Number(item.Price?.unit) * quantity
+      }
+    })
+  }
   return (
     <div className="flex w-fit  justify-center items-start  min-h-screen  justify mx-auto">
       <Invoice
         items={items}
-        invoiceId={id}
+        invoiceId={invoice.number}
         paymentMode="Versement (Banque)"
-        bc="002171"
-        bl={['20/2025', '21/2025', '22/2025', '23/2025', '25/2025', '26/2025']}
-        qrAddress="FACX3DS343"
+        qrAddress={invoice.id}
         client={{
-          name: 'etp etus souk ahras',
-          address: 'park des travaux publiques w.souk hras',
-          rc: '97/B/0862043',
-          nif: '99747086204393',
-          ai: '471006003'
+          name: invoice.Client?.name || invoice.customerName || '',
+          address: invoice.Client?.Address?.street || '',
+          rc: invoice.Client?.tradeRegisterNumber || '',
+          nif: invoice.Client?.fiscalNumber || '',
+          ai: invoice.Client?.statisticalIdNumber || ''
         }}
       />
     </div>

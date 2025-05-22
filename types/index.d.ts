@@ -75,8 +75,8 @@ export type ClientTableEntry = {
 }
 export type ProductPosTableEntry = {
   id: string
-  description: string
-  stock: number
+  label: string
+  stockLevel: number
   price: number
   bulkPrice: number
 }
@@ -153,8 +153,8 @@ declare type BillingConfig = {
 
 export interface Product {
   id: string
-  description: string
-  stock: number
+  label: string
+  stockLevel: number
   price: number
   bulkPrice: number
   image?: string

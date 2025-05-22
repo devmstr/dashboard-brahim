@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
-import { sampleProducts, sampleCustomers } from './data'
-import { CartItem, Customer, Product } from '@/types'
+import { useState, useEffect } from 'react'
+import { CartItem, Product } from '@/types'
 import CustomerSearchInput from '@/components/customer-search.input'
 import ProductsSection from './product-section'
 import CartSection from './cart-selection'
 import { useRouter } from 'next/navigation'
 import { Client } from '@/lib/validations'
+import { toast } from '@/hooks/use-toast'
 
 export default function PosDashboard() {
   const [cart, setCart] = useState<CartItem[]>([])
@@ -17,6 +17,14 @@ export default function PosDashboard() {
   const [selectedCustomer, setSelectedCustomer] = useState<Client | undefined>(
     undefined
   )
+  const [products, setProducts] = useState<Product[]>([])
+
+  useEffect(() => {
+    fetch('/api/pos')
+      .then((res) => res.json())
+      .then((data) => setProducts(data))
+      .catch(() => setProducts([]))
+  }, [])
 
   // Toggle item expansion in cart
   const toggleItemExpansion = (itemId: string) => {
@@ -30,19 +38,31 @@ export default function PosDashboard() {
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id)
-
+      const availableStock = product.stockLevel ?? Infinity
       if (existingItem) {
+        if (existingItem.quantity >= availableStock) {
+          // inform the user that they can't add more than available stock
+          toast({
+            title: 'Limite de stock atteinte',
+            description: `Vous ne pouvez pas ajouter plus de ${availableStock} exemplaire(s) de cet article.`,
+            variant: 'warning'
+          })
+          return prevCart // Do not add more than available stock
+        }
         return prevCart.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
       } else {
+        if (availableStock < 1) {
+          return prevCart // No stock available
+        }
         return [
           ...prevCart,
           {
             id: product.id,
-            name: product.description,
+            name: product.label,
             price: product.price,
             quantity: 1
           }
@@ -59,6 +79,18 @@ export default function PosDashboard() {
   // Update item quantity
   const updateQuantity = (id: string, quantity: number) => {
     if (quantity < 1) return
+    // Check if quantity exceeds available stock
+    const product = products.find((p) => p.id === id)
+    const availableStock = product?.stockLevel ?? Infinity
+    if (quantity > availableStock) {
+      // inform the user that they can't add more than available stock
+      toast({
+        title: 'Limite de stock atteinte',
+        description: `Vous ne pouvez pas ajouter plus de ${availableStock} exemplaire(s) de cet article.`,
+        variant: 'warning'
+      })
+      return
+    }
 
     setCart((prevCart) =>
       prevCart.map((item) => (item.id === id ? { ...item, quantity } : item))
@@ -75,8 +107,50 @@ export default function PosDashboard() {
   const total = subtotal + tax
   const router = useRouter()
   // Print receipt
-  const printReceipt = () => {
-    router.push('printing/24-2025')
+  const printReceipt = async () => {
+    // call the invoice API to create the invoice
+    const response = await fetch('/api/invoice', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        customer: selectedCustomer,
+        items: cart,
+        subtotal,
+        tax,
+        total
+      })
+    })
+    if (!response.ok) {
+      const error = await response.json()
+      toast({
+        title: 'Erreur',
+        description:
+          error.message ||
+          'Une erreur est survenue lors de la création de la facture.',
+        variant: 'destructive'
+      })
+      return
+    }
+    const data = await response.json()
+
+    if (!data) {
+      toast({
+        title: 'Erreur',
+        description:
+          'Une erreur est survenue lors de la création de la facture.',
+        variant: 'destructive'
+      })
+      return
+    }
+    // Redirect to the printing page with the invoice ID
+    toast({
+      title: 'Succès',
+      description: 'La facture a été créée avec succès.',
+      variant: 'success'
+    })
+    router.push(`/dashboard/printing/${data.id}`)
   }
 
   return (
@@ -87,7 +161,7 @@ export default function PosDashboard() {
             selected={selectedCustomer}
             onSelectChange={setSelectedCustomer}
           />
-          <ProductsSection products={sampleProducts} addToCart={addToCart} />
+          <ProductsSection products={products} addToCart={addToCart} />
         </div>
         <CartSection
           cart={cart}

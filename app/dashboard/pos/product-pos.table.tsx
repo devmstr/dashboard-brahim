@@ -55,19 +55,32 @@ import { useRouter } from 'next/navigation'
 interface Props {
   data: ProductPosTableEntry[]
   addToCart: (product: any) => void
-  t: {
+  t?: {
     columns: string
     limit: string
     placeholder: string
     id: string
-    description: string
+    label: string
     stock: string
     price: string
     bulkPrice: string
   }
 }
 
-export function ProductPosTable({ data, t, addToCart }: Props) {
+export function ProductPosTable({
+  data,
+  addToCart,
+  t = {
+    columns: 'colonnes',
+    limit: 'limite',
+    placeholder: 'Des parties de la désignation, séparées par un espace',
+    id: 'Matricule',
+    label: 'Désignation',
+    stock: 'Stock',
+    price: 'Prix (Unit)',
+    bulkPrice: 'Prix (Gros)'
+  }
+}: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(8)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -112,7 +125,7 @@ export function ProductPosTable({ data, t, addToCart }: Props) {
       )
     },
     {
-      accessorKey: 'description',
+      accessorKey: 'label',
       header: ({ column }) => {
         return (
           <div
@@ -126,12 +139,12 @@ export function ProductPosTable({ data, t, addToCart }: Props) {
       },
       cell: ({
         row: {
-          original: { description }
+          original: { label }
         }
       }) => {
         const regex = /(?<=x)\d+|\d+(?=x)/gi
-        const parts = description.split(regex)
-        const matches = description.match(regex)
+        const parts = label.split(regex)
+        const matches = label.match(regex)
 
         return (
           <p className="text-muted-foreground  truncate  overflow-hidden whitespace-nowrap">
@@ -164,9 +177,9 @@ export function ProductPosTable({ data, t, addToCart }: Props) {
       },
       cell: ({
         row: {
-          original: { stock }
+          original: { stockLevel }
         }
-      }) => <div className="flex items-center">{stock}</div>
+      }) => <div className="flex items-center">{stockLevel}</div>
     },
     {
       accessorKey: 'bulkPrice',

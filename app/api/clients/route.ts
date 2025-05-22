@@ -2,25 +2,32 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { clientSchema } from '@/app/dashboard/timeline/add-order.dialog'
 import { z } from 'zod'
-import { skuId } from '@/lib/utils'
+import { formatPhoneNumber, skuId } from '@/lib/utils'
 
 // Update the GET function to handle empty searchTerm terms and improve search matching
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const searchTerm = searchParams.get('search') || ''
+    // if the search is phone number remove the first 0
+    const isPhone = /^\d+$/.test(searchTerm)
+    const formattedSearchTerm = isPhone
+      ? searchTerm.replace(/^0/, '')
+      : searchTerm
+    // if the search is not a phone number, use the original search term
+    const search = isPhone ? formattedSearchTerm : searchTerm
 
     // Always perform a search, even with empty search term
     const clients = await prisma.client.findMany({
       where: {
         OR: [
-          { name: { contains: searchTerm, mode: 'insensitive' } },
-          { phone: { contains: searchTerm, mode: 'insensitive' } },
-          { email: { contains: searchTerm, mode: 'insensitive' } },
-          { label: { contains: searchTerm, mode: 'insensitive' } },
+          { name: { contains: search, mode: 'insensitive' } },
+          { phone: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { label: { contains: search, mode: 'insensitive' } },
           {
             Address: {
-              Province: { name: { contains: searchTerm, mode: 'insensitive' } }
+              Province: { name: { contains: search, mode: 'insensitive' } }
             }
           }
         ]
@@ -32,8 +39,15 @@ export async function GET(request: Request) {
         _count: { select: { Orders: true } }
       }
     })
-
-    return NextResponse.json(clients)
+    // format the clients phone number
+    const phoneFormattedClients = clients.map((client) => {
+      const { phone, ...rest } = client
+      return {
+        ...rest,
+        phone: formatPhoneNumber(phone)
+      }
+    })
+    return NextResponse.json(phoneFormattedClients)
   } catch (error) {
     console.error('Error fetching clients:', error)
     return NextResponse.json(

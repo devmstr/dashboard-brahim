@@ -161,15 +161,8 @@ const Page: React.FC<PageProps> = async ({
         fabrication,
         quantity,
         isModified,
-        model: Models.map(({ name }) => name).join(', ') || '_',
-        brand:
-          Models.map(
-            ({
-              Family: {
-                Brand: { name }
-              }
-            }) => name
-          ).join(', ') || '_'
+        model: Models[0]?.name || '_',
+        brand: Models[0]?.Family?.Brand?.name || '_'
       }
     }
   ) as ComponentsTableEntry[]

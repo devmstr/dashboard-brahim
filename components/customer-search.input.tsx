@@ -40,6 +40,7 @@ import { AddNewClientDialogButton } from '@/components/add-new-client.button'
 import type { Client } from '@/lib/validations'
 import type { Address } from '@prisma/client'
 import { toast } from '@/hooks/use-toast'
+import { formatPhoneNumber } from '@/lib/utils'
 
 interface CustomerSectionProps {
   selected?: Client
@@ -80,27 +81,61 @@ export default function CustomerSearchInput({
   // Combine loading states
   const isLoading = externalLoading || isSearchLoading || isAddressLoading
 
-  // Highlight function to highlight matched text (case insensitive, no diacritic support)
+  // Highlight function to highlight matched text (case insensitive, ignores spaces in search)
   const highlightMatch = useCallback(
     (text: string | null | undefined) => {
       if (!searchTerm || !text) return text || ''
 
+      // Remove all spaces from both searchTerm and text for matching
+      const searchNoSpaces = searchTerm.replace(/\s+/g, '')
+      const textNoSpaces = text.replace(/\s+/g, '')
+
       // The "i" flag makes it case insensitive
       const regex = new RegExp(
-        `(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
+        `(${searchNoSpaces.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
         'gi'
       )
-      const parts = text.split(regex)
+      // Find all matches in the text without spaces
+      let matchIndices: [number, number][] = []
+      let match
+      while ((match = regex.exec(textNoSpaces)) !== null) {
+        matchIndices.push([match.index, match.index + match[0].length])
+      }
+      if (matchIndices.length === 0) return text
 
-      return parts.map((part, i) =>
-        regex.test(part) ? (
+      // Map indices back to the original text (with spaces)
+      let result: (string | JSX.Element)[] = []
+      let pointer = 0
+      let textPointer = 0
+      for (let i = 0; i < matchIndices.length; i++) {
+        const [start, end] = matchIndices[i]
+        // Find the corresponding indices in the original text
+        let origStart = textPointer
+        let chars = 0
+        while (chars < start && origStart < text.length) {
+          if (text[origStart] !== ' ') chars++
+          origStart++
+        }
+        let origEnd = origStart
+        while (chars < end && origEnd < text.length) {
+          if (text[origEnd] !== ' ') chars++
+          origEnd++
+        }
+        if (pointer < origStart) {
+          result.push(text.slice(pointer, origStart))
+        }
+        result.push(
           <mark key={i} className="bg-yellow-200 rounded-sm px-0.5">
-            {part}
+            {text.slice(origStart, origEnd)}
           </mark>
-        ) : (
-          part
         )
-      )
+        pointer = origEnd
+        textPointer = origEnd
+      }
+      if (pointer < text.length) {
+        result.push(text.slice(pointer))
+      }
+      return result
     },
     [searchTerm]
   )
@@ -228,26 +263,6 @@ export default function CustomerSearchInput({
   }
 
   // Format phone for display
-  const formatPhone = (phone: string | null | undefined) => {
-    if (!phone) return ''
-    // remove the country code
-    const cleanedPhone = phone.replace(/^\+213/, '')
-
-    // check if it a mobile number
-    const isMobile =
-      cleanedPhone.startsWith('7') ||
-      cleanedPhone.startsWith('6') ||
-      cleanedPhone.startsWith('5')
-
-    if (isMobile) {
-      return `0${cleanedPhone.replace(
-        /(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/,
-        '$1 $2 $3 $4 $5'
-      )}`
-    }
-
-    return cleanedPhone.replace(/(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
-  }
 
   return (
     <Card className="h-fit">
@@ -274,8 +289,13 @@ export default function CustomerSearchInput({
                   setIsPopoverOpen(true) // Always open popover on any input
                 }}
                 className="pl-8 h-12 focus-visible:ring-0 focus-visible:ring-offset-0"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation() // Prevents closing the popover when clicking inside the input
                   setIsPopoverOpen(true) // Always open popover on click
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
                 }}
               />
             </div>
@@ -284,7 +304,10 @@ export default function CustomerSearchInput({
             className="p-0"
             align="start"
             style={{ width: triggerWidth > 0 ? `${triggerWidth}px` : 'auto' }}
-            onMouseDown={(e) => e.preventDefault()}
+            onMouseDown={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+            }}
           >
             <Command>
               <CommandList>
@@ -301,7 +324,6 @@ export default function CustomerSearchInput({
                     <CommandGroup heading="Acheteurs">
                       {clients.map((client) => {
                         const addressText = formatAddress(client)
-                        const phoneFormatted = formatPhone(client.phone)
 
                         return (
                           <CommandItem
@@ -330,7 +352,7 @@ export default function CustomerSearchInput({
                                   {client.phone && (
                                     <div className="text-sm text-muted-foreground flex gap-1 items-center">
                                       <Phone className="w-4 h-4" />
-                                      {highlightMatch(phoneFormatted)}
+                                      {highlightMatch(client.phone)}
                                     </div>
                                   )}
                                   {addressText && (
@@ -394,7 +416,13 @@ export default function CustomerSearchInput({
               >
                 <X className="h-4 w-4" />
               </Button>
-              <div className="grid gap-1">
+              <div className="flex gap-3">
+                {selected.label && (
+                  <div className="flex items-center text-sm">
+                    <Tag className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <span>{selected.label}</span>
+                  </div>
+                )}
                 <div className="flex items-center text-sm">
                   {selected.isCompany ? (
                     <Building className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -403,33 +431,26 @@ export default function CustomerSearchInput({
                   )}
                   <span className="font-medium">{selected.name}</span>
                 </div>
-                {selected.phone && (
-                  <div className="flex gap-1 items-center">
-                    <Phone className="w-4 h-4  text-muted-foreground" />
-                    <span className="text-foreground ">
-                      {selected.phone.replace(
-                        /(\d{4})(\d{2})(\d{2})(\d{2})$/,
-                        '$1 $2 $3 $4'
-                      )}
-                    </span>
-                  </div>
-                )}
+
                 {selected.email && (
                   <div className="flex items-center text-sm">
                     <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>{selected.email}</span>
                   </div>
                 )}
-                {selected.label && (
-                  <div className="flex items-center text-sm">
-                    <Tag className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{selected.label}</span>
-                  </div>
-                )}
+
                 {address && address.Province && (
                   <div className="flex items-center text-sm">
                     <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>{address.Province?.name}</span>
+                  </div>
+                )}
+                {selected.phone && (
+                  <div className="flex gap-2 items-center">
+                    <Phone className="w-4 h-4  text-muted-foreground" />
+                    <span className="text-foreground ">
+                      {formatPhoneNumber(selected.phone)}
+                    </span>
                   </div>
                 )}
               </div>
