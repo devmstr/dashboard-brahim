@@ -1,6 +1,7 @@
 'use client'
 
 import type React from 'react'
+import { findAll } from 'highlight-words-core'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import {
@@ -79,7 +80,7 @@ export default function CustomerSearchInput({
   // Combine loading states
   const isLoading = externalLoading || isSearchLoading || isAddressLoading
 
-  // Highlight function to highlight matched text (case insensitive)
+  // Highlight function to highlight matched text (case insensitive, no diacritic support)
   const highlightMatch = useCallback(
     (text: string | null | undefined) => {
       if (!searchTerm || !text) return text || ''
@@ -229,7 +230,23 @@ export default function CustomerSearchInput({
   // Format phone for display
   const formatPhone = (phone: string | null | undefined) => {
     if (!phone) return ''
-    return phone.replace(/(\d{4})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
+    // remove the country code
+    const cleanedPhone = phone.replace(/^\+213/, '')
+
+    // check if it a mobile number
+    const isMobile =
+      cleanedPhone.startsWith('7') ||
+      cleanedPhone.startsWith('6') ||
+      cleanedPhone.startsWith('5')
+
+    if (isMobile) {
+      return `0${cleanedPhone.replace(
+        /(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/,
+        '$1 $2 $3 $4 $5'
+      )}`
+    }
+
+    return cleanedPhone.replace(/(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
   }
 
   return (
@@ -309,41 +326,36 @@ export default function CustomerSearchInput({
                                     </div>
                                   </div>
                                 </div>
-                                <div className="flex gap-2 justify-between items-center">
-                                  {/* Second row: Address and Label */}
-                                  <div className="flex justify-between items-center mt-1">
-                                    <div className="flex flex-col">
-                                      {client.phone && (
-                                        <div className="text-sm text-muted-foreground flex gap-1 items-center">
-                                          <Phone className="w-4 h-4" />
-                                          {highlightMatch(phoneFormatted)}
-                                        </div>
-                                      )}
-                                      {addressText && (
-                                        <div className="flex items-center text-xs text-muted-foreground">
-                                          <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                                          <span className="truncate ">
-                                            {highlightMatch(addressText)}
-                                          </span>
-                                        </div>
-                                      )}
+                                <div className="flex gap-3">
+                                  {client.phone && (
+                                    <div className="text-sm text-muted-foreground flex gap-1 items-center">
+                                      <Phone className="w-4 h-4" />
+                                      {highlightMatch(phoneFormatted)}
                                     </div>
-                                  </div>
-                                  <div className="flex flex-col gap-2 items-center">
+                                  )}
+                                  {addressText && (
+                                    <div className="flex items-center text-xs text-muted-foreground">
+                                      <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                                      <span className="truncate ">
+                                        {highlightMatch(addressText)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="flex gap-4 items-center justify-start">
                                     {client.label && (
                                       <div className="flex items-center text-xs text-muted-foreground mt-0.5">
                                         <Tag className="w-3 h-3 mr-1 flex-shrink-0" />
                                         <span className="truncate ">
-                                          {client.label}
+                                          {highlightMatch(client.label)}
                                         </span>
                                       </div>
                                     )}
                                     {/* Email on the right */}
                                     {client.email && (
-                                      <div className="flex  text-xs text-muted-foreground ml-auto">
+                                      <div className="flex  text-xs text-muted-foreground ">
                                         <Mail className="w-3 h-3 mr-1 flex-shrink-0" />
                                         <span className="truncate ">
-                                          {client.email}
+                                          {highlightMatch(client.email)}
                                         </span>
                                       </div>
                                     )}
