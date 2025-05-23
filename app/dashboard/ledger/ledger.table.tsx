@@ -45,17 +45,8 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
+import Invoice from '@/app/dashboard/printing/[id]/invoice'
+import { toast } from '@/hooks/use-toast'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,7 +58,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
-import { toast } from '@/hooks/use-toast'
+import { Separator } from '@/components/ui/separator'
+import { Label } from '@/components/ui/label'
+import { Calendar } from '@/components/ui/calendar'
+import { Metadata } from '../printing/[id]/page'
+import { ScrollArea } from '@/components/scroll-area'
+import { useReactToPrint } from 'react-to-print'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger
+} from '@/components/ui/dialog'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -206,18 +208,6 @@ export function LedgerTable({
 
   // Define column overrides for specific columns
   const columnOverrides: Record<string, ColumnOverride> = {
-    id: {
-      cell: ({ row }) => (
-        <div className="flex items-center">
-          <Link
-            className="hover:text-primary hover:font-semibold hover:underline"
-            href={`/dashboard/printing/${row.original.id}`}
-          >
-            {row.original.id}
-          </Link>
-        </div>
-      )
-    },
     total: {
       cell: ({ row }) => (
         <div className="flex items-center font-medium">
@@ -524,10 +514,10 @@ export function LedgerTable({
                       <Calendar
                         mode="single"
                         selected={dateRange.from}
-                        onSelect={(date) =>
+                        onSelect={(date: any) =>
                           setDateRange((prev) => ({ ...prev, from: date }))
                         }
-                        disabled={(date) =>
+                        disabled={(date: any) =>
                           dateRange.to ? date > dateRange.to : false
                         }
                         className="rounded-md border"
@@ -538,10 +528,10 @@ export function LedgerTable({
                       <Calendar
                         mode="single"
                         selected={dateRange.to}
-                        onSelect={(date) =>
+                        onSelect={(date: any) =>
                           setDateRange((prev) => ({ ...prev, to: date }))
                         }
-                        disabled={(date) =>
+                        disabled={(date: any) =>
                           dateRange.from ? date < dateRange.from : false
                         }
                         className="rounded-md border"
@@ -717,9 +707,49 @@ function Actions({ id }: { id: string }) {
   const { refresh } = useRouter()
   const [open, setOpen] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [showInvoice, setShowInvoice] = React.useState(false)
+  const [invoiceData, setInvoiceData] = React.useState<any>(null)
 
-  const handlePrint = () => {
-    window.open(`/dashboard/ledger/${id}/print`, '_blank')
+  const openPrintDialog = async () => {
+    setShowInvoice(true)
+    if (!invoiceData) {
+      // Fetch invoice data from API
+      const res = await fetch(`/api/invoice/${id}`)
+      if (res.ok) {
+        const data = await res.json()
+
+        let items: any[] = []
+        if (data.items) {
+          items = data.items.map((item: any) => {
+            const quantity =
+              (data.metadata as Metadata)?.items.find(
+                (i: any) => i.id === item.id
+              )?.quantity || 0
+            return {
+              id: item.id,
+              designation: item.label || item.reference || '',
+              quantity,
+              priceHT: item.Price?.unit || 0,
+              amount: Number(item.Price?.unit || 0) * quantity
+            }
+          })
+        }
+        setInvoiceData({
+          id: data.id,
+          invoiceId: data.number,
+          qrAddress: data.id,
+          paymentMode: 'Versement (Banque)',
+          client: {
+            name: data.Client?.name || data.customerName || '',
+            address: data.Client?.Address?.street || '',
+            rc: data.Client?.tradeRegisterNumber || '',
+            nif: data.Client?.fiscalNumber || '',
+            ai: data.Client?.statisticalIdNumber || ''
+          },
+          items
+        })
+      }
+    }
   }
 
   const handleDelete = async () => {
@@ -744,6 +774,23 @@ function Actions({ id }: { id: string }) {
       setLoading(false)
     }
   }
+  const printRef = React.useRef<HTMLDivElement>(null)
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Facture-${invoiceData?.invoiceId}`,
+    pageStyle: `
+          @page { 
+            size: A4;
+            margin: 0;
+          }
+          @media print {
+            body { 
+              -webkit-print-color-adjust: exact; 
+            }
+          }
+        `
+  })
 
   return (
     <DropdownMenu>
@@ -753,13 +800,50 @@ function Actions({ id }: { id: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
-          <Button
-            variant="ghost"
-            className="flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0"
-            onClick={handlePrint}
-          >
-            <Icons.printer className="w-4 h-4 group-hover:text-primary" />
-          </Button>
+          <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0"
+                onClick={openPrintDialog}
+              >
+                <Icons.printer className="w-4 h-4 group-hover:text-primary" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="p-0 max-w-[50rem]">
+              {invoiceData ? (
+                <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
+                  <div ref={printRef}>
+                    <Invoice
+                      className="max-w-[50rem] w-full"
+                      invoiceId={invoiceData.invoiceId || ''}
+                      qrAddress={invoiceData.qrAddress || ''}
+                      paymentMode={invoiceData.paymentMode || ''}
+                      client={invoiceData.client}
+                      items={invoiceData.items}
+                      readonly={true}
+                    />
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="p-8 flex gap-2 items-center justify-center">
+                  <Icons.spinner className="w-4 h-4 animate-spin" /> Loading...
+                </div>
+              )}
+              <DialogFooter className="flex w-full gap-3">
+                <Button
+                  className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    'w-full text-foreground rounded-t-none '
+                  )}
+                  onClick={() => handlePrint()}
+                >
+                  <Icons.printer className="mr-2 h-4 w-4" />
+                  Imprimer
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
@@ -802,4 +886,36 @@ function Actions({ id }: { id: string }) {
       </DropdownMenuContent>
     </DropdownMenu>
   )
+}
+
+// Add this utility function at the top or near the LedgerTable export
+export function mapInvoicesToLedgerData(invoices: any[]) {
+  return invoices.map((inv) => {
+    let itemsCount = 0
+    let meta = inv.metadata
+    if (typeof meta === 'string') {
+      try {
+        meta = JSON.parse(meta)
+      } catch {}
+    }
+    if (
+      meta &&
+      typeof meta === 'object' &&
+      !Array.isArray(meta) &&
+      'items' in meta
+    ) {
+      const itemsArr = (meta as any).items
+      if (Array.isArray(itemsArr)) itemsCount = itemsArr.length
+    }
+    return {
+      billId: inv.number,
+      id: inv.id,
+      total: inv.total || 0,
+      items: itemsCount,
+      createdAt: inv.createdAt.toISOString(),
+      company: inv.Client?.name || inv.customerName || '',
+      phone: inv.Client?.phone || '',
+      location: inv.Client?.Address?.street || ''
+    }
+  })
 }

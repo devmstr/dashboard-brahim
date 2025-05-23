@@ -27,8 +27,28 @@ import { Pencil } from 'lucide-react'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useReactToPrint } from 'react-to-print'
 import './print.css'
+
+const printPreviewStyles = `
+  .print-preview .print\\:hidden {
+    display: none !important;
+  }
+  
+  .print-preview .hidden.print\\:block,
+  .print-preview .hidden.print\\:flex {
+    display: block !important;
+  }
+  
+  .print-preview .hidden.print\\:flex {
+    display: flex !important;
+  }
+  
+  .print-preview .hidden.print\\:table-header-group {
+    display: table-header-group !important;
+  }
+`
+
+const ITEMS_PER_PRINT_PAGE = 4 // Declare the ITEMS_PER_PRINT_PAGE variable
 
 interface InvoiceProps {
   invoiceId: string
@@ -45,9 +65,8 @@ interface InvoiceProps {
   }
   items: InvoiceItem[]
   className?: string
+  readonly?: boolean
 }
-
-const ITEMS_PER_PRINT_PAGE = 13
 
 export default function Invoice({
   invoiceId,
@@ -55,8 +74,22 @@ export default function Invoice({
   paymentMode,
   client,
   items = [],
-  className
+  className,
+  readonly = false
 }: InvoiceProps) {
+  useEffect(() => {
+    if (readonly) {
+      // Add the style to the document head when in readonly mode
+      const styleElement = document.createElement('style')
+      styleElement.innerHTML = printPreviewStyles
+      document.head.appendChild(styleElement)
+
+      return () => {
+        // Clean up when component unmounts
+        document.head.removeChild(styleElement)
+      }
+    }
+  }, [readonly])
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollYProgress = useScrollProgress(scrollRef)
   const [showScrollIndicator, setShowScrollIndicator] = useState(true)
@@ -193,8 +226,9 @@ export default function Invoice({
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
               value={purchaseOrder || ''}
               onChange={(e) => {
-                setPurchaseOrder(e.target.value)
+                if (!readonly) setPurchaseOrder(e.target.value)
               }}
+              readOnly={readonly}
             />
           </div>
           {purchaseOrder && (
@@ -211,8 +245,9 @@ export default function Invoice({
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
               value={deliverySlip || ''}
               onChange={(e) => {
-                setDeliverySlip(e.target.value)
+                if (!readonly) setDeliverySlip(e.target.value)
               }}
+              readOnly={readonly}
             />
           </div>
           {deliverySlip && (
@@ -353,9 +388,10 @@ export default function Invoice({
                   name="discount-percentage"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (Number(v) < 25 && Number(v) >= 0)
+                    if (!readonly && Number(v) < 25 && Number(v) >= 0)
                       setDiscountRate(Number(v) / 100)
                   }}
+                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -383,9 +419,10 @@ export default function Invoice({
                   name="guarantee-refund"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (Number(v) < 100 && Number(v) >= 0)
+                    if (!readonly && Number(v) < 100 && Number(v) >= 0)
                       setRefundRate(Number(v) / 100)
                   }}
+                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -431,10 +468,11 @@ export default function Invoice({
                   name="stamp-tax"
                   placeholder="0"
                   onChange={({ target: { value } }) => {
-                    if (Number(value) >= 0 && Number(value) < 2) {
+                    if (!readonly && Number(value) >= 0 && Number(value) < 2) {
                       setStampTaxRate(Number(value) / 100)
                     }
                   }}
+                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end  h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -473,8 +511,12 @@ export default function Invoice({
         <div className="space-y-2 text-sm mt-2">
           <div className="space-y-1">
             <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
-            <Select value={paymentType} onValueChange={handlePaymentTypeChange}>
-              <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0">
+            <Select
+              value={paymentType}
+              onValueChange={handlePaymentTypeChange}
+              disabled={readonly}
+            >
+              <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
                 <SelectValue placeholder="Sélectionner le mode de paiement" />
               </SelectTrigger>
               <SelectContent>
@@ -494,8 +536,9 @@ export default function Invoice({
               placeholder="Saisissez des remarques pour cette facture..."
               value={note}
               onChange={(e) => {
-                setNote(e.target.value)
+                if (!readonly) setNote(e.target.value)
               }}
+              readOnly={readonly}
             />
           </div>
           {note && (
@@ -536,7 +579,7 @@ export default function Invoice({
             <TableRow key={item.id}>
               <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
               <TableCell className="py-[3px] px-2 h-8 relative">
-                {editingItemId === item.id ? (
+                {!readonly && editingItemId === item.id ? (
                   <Input
                     value={editedDescriptions[item.id] || item.designation}
                     onChange={(e) => {
@@ -556,23 +599,25 @@ export default function Invoice({
                   />
                 ) : (
                   <div className="flex items-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
-                      onClick={() => {
-                        setEditingItemId(item.id)
-                        if (!editedDescriptions[item.id]) {
-                          setEditedDescriptions({
-                            ...editedDescriptions,
-                            [item.id]: item.designation
-                          })
-                        }
-                      }}
-                    >
-                      <Pencil className="h-3 w-3" />
-                      <span className="sr-only">Edit description</span>
-                    </Button>
+                    {!readonly && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
+                        onClick={() => {
+                          setEditingItemId(item.id)
+                          if (!editedDescriptions[item.id]) {
+                            setEditedDescriptions({
+                              ...editedDescriptions,
+                              [item.id]: item.designation
+                            })
+                          }
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                        <span className="sr-only">Edit description</span>
+                      </Button>
+                    )}
                     {editedDescriptions[item.id] || item.designation}
                   </div>
                 )}
@@ -599,7 +644,8 @@ export default function Invoice({
     <>
       <div
         className={cn(
-          'flex flex-col w-[210mm] gap-8  font-poppins ',
+          'flex flex-col w-[210mm] gap-8 font-poppins',
+          readonly && 'print-preview',
           className
         )}
       >

@@ -2,7 +2,7 @@ import { InvoicePrinterWrapper } from '@/app/dashboard/printing/[id]/invoice-cli
 import Invoice from './invoice'
 import prisma from '@/lib/db'
 
-type Metadata = {
+export type Metadata = {
   items: {
     id: string
     name: string
@@ -56,6 +56,7 @@ export default async function Page({ params }: { params: { id: string } }) {
   return (
     <InvoicePrinterWrapper metadata={{ fileName: invoice.number }}>
       <Invoice
+        readonly
         items={items}
         invoiceId={invoice.number}
         paymentMode="Versement (Banque)"
