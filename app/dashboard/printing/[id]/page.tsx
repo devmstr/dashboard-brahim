@@ -1,3 +1,4 @@
+import { InvoicePrinterWrapper } from '@/app/dashboard/printing/[id]/invoice-client-wrapper'
 import Invoice from './invoice'
 import prisma from '@/lib/db'
 
@@ -51,8 +52,9 @@ export default async function Page({ params }: { params: { id: string } }) {
       }
     })
   }
+
   return (
-    <div className="flex w-fit  justify-center items-start  min-h-screen  justify mx-auto">
+    <InvoicePrinterWrapper metadata={{ fileName: invoice.number }}>
       <Invoice
         items={items}
         invoiceId={invoice.number}
@@ -66,6 +68,6 @@ export default async function Page({ params }: { params: { id: string } }) {
           ai: invoice.Client?.statisticalIdNumber || ''
         }}
       />
-    </div>
+    </InvoicePrinterWrapper>
   )
 }

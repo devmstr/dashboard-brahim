@@ -206,14 +206,14 @@ export function LedgerTable({
 
   // Define column overrides for specific columns
   const columnOverrides: Record<string, ColumnOverride> = {
-    billId: {
+    id: {
       cell: ({ row }) => (
         <div className="flex items-center">
           <Link
             className="hover:text-primary hover:font-semibold hover:underline"
-            href={`/dashboard/ledger/${row.original.billId}`}
+            href={`/dashboard/printing/${row.original.id}`}
           >
-            {row.original.billId}
+            {row.original.id}
           </Link>
         </div>
       )

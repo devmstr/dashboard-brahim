@@ -1,9 +1,14 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { Pencil, Printer } from 'lucide-react'
-import { QRCodeSVG } from 'qrcode.react'
-import Image from 'next/image'
-import { useReactToPrint } from 'react-to-print'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -12,27 +17,18 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { format } from 'date-fns'
-import { Separator } from '@/components/ui/separator'
-import { amountToWords, calculateBillingSummary, cn } from '@/lib/utils'
-import { useRef, useState, useEffect, useMemo } from 'react'
-import { useScrollProgress } from '@/hooks/use-scroll'
-import { Input } from '@/components/ui/input'
-import type { InvoiceItem } from '@/types'
-import './print.css'
-import { Icons } from '@/components/icons'
-import { useRouter } from 'next/navigation'
-import { PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem
-} from '@/components/ui/select'
-import { Content } from '@tiptap/react'
-import { MdEditor } from '@/components/md-editor'
 import { Textarea } from '@/components/ui/textarea'
+import { PAYMENT_TYPES } from '@/config/global'
+import { useScrollProgress } from '@/hooks/use-scroll'
+import { amountToWords, calculateBillingSummary, cn } from '@/lib/utils'
+import type { InvoiceItem } from '@/types'
+import { format } from 'date-fns'
+import { Pencil } from 'lucide-react'
+import Image from 'next/image'
+import { QRCodeSVG } from 'qrcode.react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useReactToPrint } from 'react-to-print'
+import './print.css'
 
 interface InvoiceProps {
   invoiceId: string
@@ -121,22 +117,6 @@ export default function Invoice({
       designation: editedDescriptions[item.id] || item.designation
     }))
   }, [items, editedDescriptions])
-
-  const handlePrint = useReactToPrint({
-    contentRef: componentRef,
-    documentTitle: `Facture-${invoiceId}`,
-    pageStyle: `
-      @page { 
-        size: A4;
-        margin: 0;
-      }
-      @media print {
-        body { 
-          -webkit-print-color-adjust: exact; 
-        }
-      }
-    `
-  })
 
   const renderBillHeader = () => (
     <div className="print-header">
@@ -531,7 +511,7 @@ export default function Invoice({
 
   const renderTable = (pageItems: InvoiceItem[]) => {
     return (
-      <Table className="text-sm w-full font-light hide-scrollbar-print ">
+      <Table className="font-geist-sans text-sm w-full font-light hide-scrollbar-print ">
         <TableHeader className="print:table-header-group bg-gray-100  border-y">
           <TableRow className="">
             <TableHead className="px-2 py-2 h-8 w-8 text-left text-black font-medium border-r-[3px] border-white ">
@@ -615,7 +595,6 @@ export default function Invoice({
       </Table>
     )
   }
-  const router = useRouter()
   return (
     <>
       <div
@@ -624,17 +603,6 @@ export default function Invoice({
           className
         )}
       >
-        {/* printing button */}
-        <div className="z-20 w-full justify-center items-center  ">
-          <Button
-            onClick={() => router.back()}
-            className="w-full flex gap-2 rounded-xl h-12 print:hidden shadow-lg group hover:text-secondary"
-            variant="outline"
-          >
-            <Icons.arrowRight className="mr-2 w-4 rotate-180" />
-            Back
-          </Button>
-        </div>
         {/* Print-only content */}
         {(() => {
           const pages: InvoiceItem[][] = []
@@ -715,17 +683,6 @@ export default function Invoice({
             </div>
           )
         })()}
-        {/* printing button */}
-        <div className="z-20 w-full justify-center items-center  ">
-          <Button
-            onClick={() => handlePrint()}
-            className="w-full flex gap-2 rounded-xl h-12 print:hidden shadow-lg group hover:text-secondary"
-            variant="outline"
-          >
-            <Printer className="w-4 h-4" />
-            Print
-          </Button>
-        </div>
       </div>
     </>
   )
