@@ -92,9 +92,10 @@ export async function POST(req: NextRequest) {
         metadata: {
           items: items.map((item) => ({
             id: item.id,
-            name: item.name,
+            label: item.name,
             price: item.price,
-            quantity: item.quantity
+            quantity: item.quantity,
+            amount: item.price * item.quantity
           }))
         }
       }

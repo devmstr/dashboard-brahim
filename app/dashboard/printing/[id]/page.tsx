@@ -1,15 +1,6 @@
 import { InvoicePrinterWrapper } from '@/app/dashboard/printing/[id]/invoice-client-wrapper'
-import Invoice from './invoice'
+import Invoice, { InvoiceMetadata } from './invoice'
 import prisma from '@/lib/db'
-
-export type Metadata = {
-  items: {
-    id: string
-    name: string
-    price: number
-    quantity: number
-  }[]
-}
 
 export default async function Page({ params }: { params: { id: string } }) {
   const { id } = params
@@ -36,30 +27,16 @@ export default async function Page({ params }: { params: { id: string } }) {
       </div>
     )
   }
-  // Prepare items for Invoice component
-  let items: any[] = []
-  if (invoice.items) {
-    items = invoice.items.map((item) => {
-      const quantity =
-        (invoice.metadata as Metadata)?.items.find((i: any) => i.id === item.id)
-          ?.quantity || 0
-      return {
-        id: item.id,
-        designation: item.label || item.reference || '',
-        quantity,
-        priceHT: item.Price?.unit || 0,
-        amount: Number(item.Price?.unit) * quantity
-      }
-    })
-  }
-
   return (
     <InvoicePrinterWrapper metadata={{ fileName: invoice.number }}>
       <Invoice
-        readonly
-        items={items}
-        invoiceId={invoice.number}
-        paymentMode="Versement (Banque)"
+        id={invoice.id}
+        items={(invoice.metadata as InvoiceMetadata)?.items}
+        invoiceNumber={invoice.number}
+        paymentMode={
+          (invoice.metadata as InvoiceMetadata)?.paymentType ||
+          'Versement (Banque)'
+        }
         qrAddress={invoice.id}
         client={{
           name: invoice.Client?.name || invoice.customerName || '',
@@ -68,6 +45,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           nif: invoice.Client?.fiscalNumber || '',
           ai: invoice.Client?.statisticalIdNumber || ''
         }}
+        metadata={invoice.metadata as InvoiceMetadata}
       />
     </InvoicePrinterWrapper>
   )

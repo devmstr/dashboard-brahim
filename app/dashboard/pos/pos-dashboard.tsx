@@ -8,6 +8,7 @@ import CartSection from './cart-selection'
 import { useRouter } from 'next/navigation'
 import { Client } from '@/lib/validations'
 import { toast } from '@/hooks/use-toast'
+import { rest } from 'lodash'
 
 export default function PosDashboard() {
   const [cart, setCart] = useState<CartItem[]>([])

@@ -28,6 +28,7 @@ import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './print.css'
+import { toast } from '@/hooks/use-toast'
 
 const printPreviewStyles = `
   .print-preview .print\\:hidden {
@@ -50,8 +51,20 @@ const printPreviewStyles = `
 
 const ITEMS_PER_PRINT_PAGE = 4 // Declare the ITEMS_PER_PRINT_PAGE variable
 
-interface InvoiceProps {
-  invoiceId: string
+export type InvoiceMetadata = {
+  items: InvoiceItem[]
+  purchaseOrder?: string
+  deliverySlip?: string
+  note?: string
+  discountRate?: number
+  refundRate?: number
+  stampTaxRate?: number
+  paymentType?: string
+}
+
+export interface InvoiceProps {
+  id: string
+  invoiceNumber: string
   qrAddress: string
   // bc: string
   // bl: string[]
@@ -64,17 +77,20 @@ interface InvoiceProps {
     ai: string
   }
   items: InvoiceItem[]
+  metadata?: InvoiceMetadata
   className?: string
   readonly?: boolean
 }
 
 export default function Invoice({
-  invoiceId,
+  id,
+  invoiceNumber,
   qrAddress,
   paymentMode,
   client,
   items = [],
   className,
+  metadata,
   readonly = false
 }: InvoiceProps) {
   useEffect(() => {
@@ -92,34 +108,59 @@ export default function Invoice({
   }, [readonly])
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollYProgress = useScrollProgress(scrollRef)
-  const [showScrollIndicator, setShowScrollIndicator] = useState(true)
-  const [note, setNote] = useState<string>()
+  // const [showScrollIndicator, setShowScrollIndicator] = useState(true)
+  const [note, setNote] = useState<string>(metadata?.note as string)
   const [data, setData] = useState<InvoiceItem[]>(items)
-  const [refundRate, setRefundRate] = useState<number>()
-  const [discountRate, setDiscountRate] = useState<number>()
-  const [stampTaxRate, setStampTaxRate] = useState<number>(
-    paymentMode == 'Versement (Banque)' ? 0 : 0.01
+  const [refundRate, setRefundRate] = useState<number>(
+    metadata?.refundRate as number
   )
-  const [purchaseOrder, setPurchaseOrder] = useState<string>()
-  const [deliverySlip, setDeliverySlip] = useState<string>()
+  const [discountRate, setDiscountRate] = useState<number>(
+    metadata?.discountRate as number
+  )
+  const [stampTaxRate, setStampTaxRate] = useState<number>(
+    ['Espèces', 'Espèces + Versement'].includes(metadata?.paymentType as string)
+      ? 0.01
+      : 0
+  )
+  const [purchaseOrder, setPurchaseOrder] = useState<string>(
+    metadata?.purchaseOrder as string
+  )
+  const [deliverySlip, setDeliverySlip] = useState<string>(
+    metadata?.deliverySlip as string
+  )
   const [editingItemId, setEditingItemId] = useState<number | null>(null)
-  const [paymentType, setPaymentType] =
-    useState<(typeof PAYMENT_TYPES)[number]>('Versement')
-
-  const [editedDescriptions, setEditedDescriptions] = useState<
-    Record<string, string>
-  >({})
+  const [paymentType, setPaymentType] = useState<
+    (typeof PAYMENT_TYPES)[number]
+  >(metadata?.paymentType as (typeof PAYMENT_TYPES)[number])
+  const [editedItems, setEditedItems] = useState<InvoiceItem[]>(
+    metadata?.items as InvoiceItem[]
+  )
   const componentRef = useRef<HTMLDivElement>(null)
   const billingSummary = useMemo(
     () =>
-      calculateBillingSummary(items, {
+      calculateBillingSummary(editedItems, {
         discountRate: discountRate,
         refundRate: refundRate,
         stampTaxRate: stampTaxRate,
         vatRate: 0.19
       }),
-    [items, discountRate, refundRate, stampTaxRate]
+    [editedItems, discountRate, refundRate, stampTaxRate]
   )
+
+  useEffect(() => {
+    if (metadata && Array.isArray(metadata.items)) {
+      setEditedItems(
+        metadata.items.map((metaItem, idx) => ({
+          ...items[idx],
+          ...metaItem,
+          label: metaItem.label || items[idx]?.label || ''
+        }))
+      )
+    } else {
+      setEditedItems(items)
+    }
+    // ...existing code for other fields...
+  }, [metadata, items])
 
   // Handle payment type change
   const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
@@ -136,20 +177,12 @@ export default function Invoice({
   const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
     billingSummary
 
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on('change', (value) => {
-      setShowScrollIndicator(value < 1)
-    })
-    return () => unsubscribe()
-  }, [scrollYProgress])
-
-  // Create a modified items array that includes any edited descriptions
-  useMemo(() => {
-    return items.map((item) => ({
-      ...item,
-      designation: editedDescriptions[item.id] || item.designation
-    }))
-  }, [items, editedDescriptions])
+  // useEffect(() => {
+  //   const unsubscribe = scrollYProgress.on('change', (value) => {
+  //     setShowScrollIndicator(value < 1)
+  //   })
+  //   return () => unsubscribe()
+  // }, [scrollYProgress])
 
   const renderBillHeader = () => (
     <div className="print-header">
@@ -175,7 +208,7 @@ export default function Invoice({
             </p>
             <p className="text-xl font-poppins ">Capital: 104 002 000.00</p>
           </div>
-          <div className="w-20 h-20 pl-[8px] -mt-[5px] scale-95">
+          <div className="w-20 h-20 pl-[8px] -mt-[5px]  scale-95">
             {/* <QRCodeSVG value={qrAddress} className="w-[4.57rem] h-auto" /> */}
             <QRCodeSVG
               imageSettings={{
@@ -190,7 +223,9 @@ export default function Invoice({
               value={qrAddress}
               className="w-[4.57rem] h-auto"
             />
-            <span className="text-[0.745rem] -ml-[1px]">{qrAddress}</span>
+            <span className="text-[0.745rem] w-20 text-center ">
+              {qrAddress}
+            </span>
           </div>
         </div>
       </div>
@@ -259,7 +294,7 @@ export default function Invoice({
         </div>
         <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {invoiceId}
+            FACTURE: {invoiceNumber}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
@@ -354,7 +389,7 @@ export default function Invoice({
   )
 
   const renderTotals = () => (
-    <div className="totals-section mt-3 ">
+    <div className="totals-section mt-3  font-geist-sans">
       <div className="flex justify-end text-sm">
         <div className="flex flex-col space-y-2">
           <div className="w-[15.4rem] pl-2 space-y-2 font-geist-sans ">
@@ -581,12 +616,14 @@ export default function Invoice({
               <TableCell className="py-[3px] px-2 h-8 relative">
                 {!readonly && editingItemId === item.id ? (
                   <Input
-                    value={editedDescriptions[item.id] || item.designation}
+                    value={item.label}
                     onChange={(e) => {
-                      setEditedDescriptions({
-                        ...editedDescriptions,
-                        [item.id]: e.target.value
-                      })
+                      const newValue = e.target.value
+                      setEditedItems((prev) =>
+                        prev.map((i) =>
+                          i.id === item.id ? { ...i, label: newValue } : i
+                        )
+                      )
                     }}
                     onBlur={() => setEditingItemId(null)}
                     onKeyDown={(e) => {
@@ -606,19 +643,13 @@ export default function Invoice({
                         className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
                         onClick={() => {
                           setEditingItemId(item.id)
-                          if (!editedDescriptions[item.id]) {
-                            setEditedDescriptions({
-                              ...editedDescriptions,
-                              [item.id]: item.designation
-                            })
-                          }
                         }}
                       >
                         <Pencil className="h-3 w-3" />
                         <span className="sr-only">Edit description</span>
                       </Button>
                     )}
-                    {editedDescriptions[item.id] || item.designation}
+                    {item.label}
                   </div>
                 )}
               </TableCell>
@@ -626,7 +657,7 @@ export default function Invoice({
                 {item.quantity}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
-                {item.priceHT}
+                {item.price}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h- font-geist-sans">
                 {Number(item.amount.toFixed(2)).toLocaleString('fr-FR', {
@@ -640,11 +671,79 @@ export default function Invoice({
       </Table>
     )
   }
+  // Local function to update invoice metadata via PATCH
+  const handleMetadataChange = async () => {
+    const metadata = {
+      purchaseOrder,
+      deliverySlip,
+      note,
+      discountRate,
+      refundRate,
+      stampTaxRate,
+      paymentType,
+      items: editedItems
+    }
+    try {
+      const invoice = await fetch(`/api/invoice/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ metadata })
+      })
+      if (!invoice.ok) {
+        const errorData = await invoice.json().catch(() => ({}))
+        throw new Error(
+          errorData?.message || 'Erreur lors de la mise à jour de la facture'
+        )
+      }
+    } catch (e) {
+      // Optionally handle error (e.g., show toast)
+      toast({
+        title: 'Erreur',
+        description:
+          'Une erreur est survenue lors de la mise à jour des données',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  // On first mount, update state variables from props.metadata if present
+  useEffect(() => {
+    if (metadata) {
+      if ('purchaseOrder' in metadata)
+        setPurchaseOrder(metadata?.purchaseOrder as string)
+      if ('deliverySlip' in metadata)
+        setDeliverySlip(metadata?.deliverySlip as string)
+      if ('note' in metadata) setNote(metadata?.note as string)
+      if ('discountRate' in metadata)
+        setDiscountRate(metadata?.discountRate as number)
+      if ('refundRate' in metadata)
+        setRefundRate(metadata?.refundRate as number)
+      if ('stampTaxRate' in metadata)
+        setStampTaxRate(metadata.stampTaxRate || 0)
+      if ('paymentType' in metadata)
+        setPaymentType(metadata?.paymentType as (typeof PAYMENT_TYPES)[number])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metadata])
+
+  useEffect(() => {
+    handleMetadataChange()
+  }, [
+    purchaseOrder,
+    deliverySlip,
+    note,
+    discountRate,
+    refundRate,
+    stampTaxRate,
+    paymentType,
+    editedItems
+  ])
+
   return (
     <>
       <div
         className={cn(
-          'flex flex-col w-[210mm] gap-8 font-poppins',
+          'flex flex-col w-[210mm] gap-8 font-geist-sans',
           readonly && 'print-preview',
           className
         )}
@@ -652,15 +751,15 @@ export default function Invoice({
         {/* Print-only content */}
         {(() => {
           const pages: InvoiceItem[][] = []
-          const totalItems = items.length
+          const totalItems = editedItems.length
 
           // If there are 2 or fewer items, simply push all on one page.
           if (totalItems <= 4) {
-            pages.push(items)
+            pages.push(editedItems)
           } else {
             // Reserve the last 2 items for the final page.
-            const mainSection = items.slice(0, totalItems - 2)
-            const lastPage = items.slice(totalItems - 2)
+            const mainSection = editedItems.slice(0, totalItems - 2)
+            const lastPage = editedItems.slice(totalItems - 2)
 
             // Determine the number of main pages.
             // We want each main page to have at most ITEMS_PER_PRINT_PAGE items.
@@ -715,7 +814,7 @@ export default function Invoice({
               {pages.map((pageItems, pageIndex) => (
                 <div
                   key={pageIndex}
-                  className="h-[297mm] w-[210] font-poppins shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8  bg-white flex flex-col"
+                  className="h-[297mm] w-[210] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8  bg-white flex flex-col"
                 >
                   {renderBillHeader()}
                   {renderTable(pageItems)}

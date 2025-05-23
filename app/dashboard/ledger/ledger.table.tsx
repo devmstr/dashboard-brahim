@@ -45,7 +45,10 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import Invoice from '@/app/dashboard/printing/[id]/invoice'
+import Invoice, {
+  InvoiceMetadata,
+  InvoiceProps
+} from '@/app/dashboard/printing/[id]/invoice'
 import { toast } from '@/hooks/use-toast'
 import {
   AlertDialog,
@@ -61,7 +64,6 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { Metadata } from '../printing/[id]/page'
 import { ScrollArea } from '@/components/scroll-area'
 import { useReactToPrint } from 'react-to-print'
 import {
@@ -708,7 +710,9 @@ function Actions({ id }: { id: string }) {
   const [open, setOpen] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [showInvoice, setShowInvoice] = React.useState(false)
-  const [invoiceData, setInvoiceData] = React.useState<any>(null)
+  const [invoiceData, setInvoiceData] = React.useState<InvoiceProps | null>(
+    null
+  )
 
   const openPrintDialog = async () => {
     setShowInvoice(true)
@@ -716,37 +720,21 @@ function Actions({ id }: { id: string }) {
       // Fetch invoice data from API
       const res = await fetch(`/api/invoice/${id}`)
       if (res.ok) {
-        const data = await res.json()
-
-        let items: any[] = []
-        if (data.items) {
-          items = data.items.map((item: any) => {
-            const quantity =
-              (data.metadata as Metadata)?.items.find(
-                (i: any) => i.id === item.id
-              )?.quantity || 0
-            return {
-              id: item.id,
-              designation: item.label || item.reference || '',
-              quantity,
-              priceHT: item.Price?.unit || 0,
-              amount: Number(item.Price?.unit || 0) * quantity
-            }
-          })
-        }
+        const invoice = await res.json()
         setInvoiceData({
-          id: data.id,
-          invoiceId: data.number,
-          qrAddress: data.id,
-          paymentMode: 'Versement (Banque)',
+          id: invoice.id,
+          invoiceNumber: invoice.number,
+          qrAddress: invoice.id,
+          paymentMode: invoice.metadata.paymentType as string,
           client: {
-            name: data.Client?.name || data.customerName || '',
-            address: data.Client?.Address?.street || '',
-            rc: data.Client?.tradeRegisterNumber || '',
-            nif: data.Client?.fiscalNumber || '',
-            ai: data.Client?.statisticalIdNumber || ''
+            name: invoice.Client?.name || invoice.customerName || '',
+            address: invoice.Client?.Address?.street || '',
+            rc: invoice.Client?.tradeRegisterNumber || '',
+            nif: invoice.Client?.fiscalNumber || '',
+            ai: invoice.Client?.statisticalIdNumber || ''
           },
-          items
+          items: invoice.metadata.items,
+          metadata: invoice.metadata
         })
       }
     }
@@ -778,7 +766,7 @@ function Actions({ id }: { id: string }) {
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: `Facture-${invoiceData?.invoiceId}`,
+    documentTitle: `Facture-${invoiceData?.invoiceNumber}`,
     pageStyle: `
           @page { 
             size: A4;
@@ -800,6 +788,18 @@ function Actions({ id }: { id: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem asChild>
+          <Link
+            href={`/dashboard/printing/${id}`}
+            className={cn(
+              buttonVariants({ variant: 'ghost' }),
+              'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0 focus-visible:ring-0 focus-visible:ring-offset-0'
+            )}
+          >
+            <Icons.edit className="w-4 h-4" />
+            <span className="sr-only">edit</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
             <DialogTrigger asChild>
               <Button
@@ -816,11 +816,13 @@ function Actions({ id }: { id: string }) {
                   <div ref={printRef}>
                     <Invoice
                       className="max-w-[50rem] w-full"
-                      invoiceId={invoiceData.invoiceId || ''}
+                      id={invoiceData.id}
+                      invoiceNumber={invoiceData.invoiceNumber || ''}
                       qrAddress={invoiceData.qrAddress || ''}
                       paymentMode={invoiceData.paymentMode || ''}
                       client={invoiceData.client}
                       items={invoiceData.items}
+                      metadata={invoiceData.metadata}
                       readonly={true}
                     />
                   </div>
@@ -870,7 +872,7 @@ function Actions({ id }: { id: string }) {
                 <AlertDialogAction asChild>
                   <Button
                     className={cn(
-                      buttonVariants({ variant: 'outline' }),
+                      buttonVariants({ variant: 'ghost' }),
                       ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
                     )}
                     onClick={() => handleDelete()}
@@ -886,36 +888,4 @@ function Actions({ id }: { id: string }) {
       </DropdownMenuContent>
     </DropdownMenu>
   )
-}
-
-// Add this utility function at the top or near the LedgerTable export
-export function mapInvoicesToLedgerData(invoices: any[]) {
-  return invoices.map((inv) => {
-    let itemsCount = 0
-    let meta = inv.metadata
-    if (typeof meta === 'string') {
-      try {
-        meta = JSON.parse(meta)
-      } catch {}
-    }
-    if (
-      meta &&
-      typeof meta === 'object' &&
-      !Array.isArray(meta) &&
-      'items' in meta
-    ) {
-      const itemsArr = (meta as any).items
-      if (Array.isArray(itemsArr)) itemsCount = itemsArr.length
-    }
-    return {
-      billId: inv.number,
-      id: inv.id,
-      total: inv.total || 0,
-      items: itemsCount,
-      createdAt: inv.createdAt.toISOString(),
-      company: inv.Client?.name || inv.customerName || '',
-      phone: inv.Client?.phone || '',
-      location: inv.Client?.Address?.street || ''
-    }
-  })
 }
