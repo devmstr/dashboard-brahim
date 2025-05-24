@@ -44,7 +44,7 @@ async function main() {
   for (const material of materials) {
     try {
       const createdMaterial = await prisma.material.upsert({
-        where: { name: material.name },
+        where: { reference: material.reference },
         update: material,
         create: material
       })

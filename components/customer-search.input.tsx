@@ -1,7 +1,6 @@
 'use client'
 
 import type React from 'react'
-import { findAll } from 'highlight-words-core'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import {

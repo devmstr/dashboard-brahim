@@ -62,7 +62,7 @@ interface EditOrderItemFormProps {
 export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   data
 }) => {
-  // console.log('data : ', data)
+  console.log('data : ', data)
   const { data: session } = useSession()
   // if (!session) return notFound()
 
@@ -88,14 +88,14 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       Collector: {
         ...data.Collectors.top,
         dimensions1: {
-          width: data.Collectors.top.dimensions.width,
-          height: data.Collectors.top.dimensions.height,
-          thickness: data.Collectors.top.dimensions.thickness
+          width: data.Collectors.top.width,
+          height: data.Collectors.top.height,
+          thickness: data.Collectors.top.thickness
         },
         dimensions2: {
-          width: data.Collectors.bottom.dimensions.width,
-          height: data.Collectors.bottom.dimensions.height,
-          thickness: data.Collectors.bottom.dimensions.thickness
+          width: data.Collectors.bottom.width,
+          height: data.Collectors.bottom.height,
+          thickness: data.Collectors.bottom.thickness
         }
       }
     },

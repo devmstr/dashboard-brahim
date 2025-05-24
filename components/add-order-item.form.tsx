@@ -210,25 +210,33 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
 
     const label = generateRadiatorLabel({
       core: {
-        width: Number(formData.Core?.dimensions?.width),
-        height: Number(formData.Core?.dimensions?.height)
+        dimensions: {
+          width: Number(formData.Core?.dimensions?.width),
+          height: Number(formData.Core?.dimensions?.height)
+        },
+        rows: formData.Core?.rows,
+        fins: formData.Core?.fins,
+        pitch: formData.Core?.finsPitch,
+        tube: formData.Core?.tube
       },
-      collector1Dimensions: {
-        width: Number(formData.Collector?.dimensions1?.width),
-        height: Number(formData.Collector?.dimensions1?.height)
+      collectorTop: {
+        dimensions: {
+          width: Number(formData.Collector?.dimensions1?.width),
+          height: Number(formData.Collector?.dimensions1?.height)
+        },
+        position: formData.Collector?.position,
+        tightening: formData.Collector?.tightening
       },
-      collector2Dimensions: {
-        height: Number(formData.Collector?.dimensions2?.height),
-        width: Number(formData.Collector?.dimensions2?.width)
+      collectorBottom: {
+        dimensions: {
+          height: Number(formData.Collector?.dimensions1.height),
+          width: Number(formData.Collector?.dimensions1?.width)
+        },
+        position: formData.Collector?.position,
+        tightening: formData.Collector?.tightening
       },
-      rows: formData.Core?.rows,
       type: formData.type,
-      fabrication: formData.fabrication,
-      fins: formData.Core?.fins,
-      pitch: formData.Core?.finsPitch,
-      position: formData.Collector?.position,
-      tightening: formData.Collector?.tightening,
-      tube: formData.Core?.tube
+      fabrication: formData.fabrication
     })
 
     const orderItem: OrderItem = {

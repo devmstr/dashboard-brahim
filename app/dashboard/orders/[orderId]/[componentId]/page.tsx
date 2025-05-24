@@ -6,6 +6,7 @@ import { SalesEditOrderItemForm } from './sales-edit-orderitem.form'
 import { Collector, Core, OrderItem } from '@/lib/validations'
 import { notFound } from 'next/navigation'
 import { parseMetadata } from '@/lib/utils'
+import { Ordering } from '@tanstack/react-table'
 
 interface Props {
   params: {
@@ -92,8 +93,10 @@ const Page: React.FC<Props> = async ({
           fins: coreComponent.fins as Core['fins'],
           finsPitch: coreComponent.finsPitch?.toString() as Core['finsPitch'],
           tube: coreComponent.tube as Core['tube'],
-          width: coreComponent.width as number,
-          height: coreComponent.height as number
+          dimensions: {
+            width: coreComponent.width as number,
+            height: coreComponent.height as number
+          }
         }
       }),
       ...(collectorTop &&
@@ -110,6 +113,7 @@ const Page: React.FC<Props> = async ({
     console.log(error)
     return notFound()
   }
+  console.log('orderItem', orderItem.Components)
   return (
     <div className="space-y-4">
       <Card>{isSalesUser && <SalesEditOrderItemForm data={orderItem} />}</Card>
