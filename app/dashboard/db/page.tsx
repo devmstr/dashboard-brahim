@@ -2,10 +2,13 @@ import { Card } from '@/components/card'
 import { DatabaseTable } from './database-table'
 import { useEffect } from 'react'
 import prisma from '@/lib/db'
+import { getUserRole } from '@/lib/session'
+import { UserRole } from '@/types'
 
 interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
+  const role = await getUserRole()
   const radiators = await prisma.radiator.findMany({
     include: {
       OrderItems: {
@@ -46,7 +49,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
   })
   return (
     <Card>
-      <DatabaseTable data={data} />
+      <DatabaseTable userRole={role as UserRole} data={data} />
     </Card>
   )
 }
