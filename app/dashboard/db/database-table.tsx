@@ -56,6 +56,18 @@ import {
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
 
 export interface DatabaseTableEntry {
   id: string
@@ -144,6 +156,7 @@ export function DatabaseTable({
   }, [limit])
 
   const router = useRouter()
+  const { toast } = useToast()
 
   // Define a custom filter function for date ranges
   const filterFns = {
@@ -210,16 +223,23 @@ export function DatabaseTable({
         </div>
       )
     },
+    barcode: {
+      cell: ({ row }) => (
+        <div className="flex items-center font-medium  truncate">
+          {row.original.barcode || '_'}
+        </div>
+      )
+    },
     model: {
       cell: ({ row }) => (
-        <div className="flex  items-center font-medium max-w-[100px] truncate">
+        <div className="flex items-center font-medium max-w-36 truncate overflow-hidden whitespace-nowrap">
           {row.original.model}
         </div>
       )
     },
     brand: {
       cell: ({ row }) => (
-        <div className="flex  items-center font-medium max-w-[100px] truncate">
+        <div className="flex items-center font-medium max-w-36 truncate overflow-hidden whitespace-nowrap">
           {row.original.brand}
         </div>
       )
@@ -254,17 +274,7 @@ export function DatabaseTable({
         row: {
           original: { id }
         }
-      }) => (
-        <Link
-          className={cn(
-            buttonVariants({ variant: 'ghost' }),
-            'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0'
-          )}
-          href={`/dashboard/db/${id}`}
-        >
-          <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-        </Link>
-      )
+      }) => <Actions id={id} onDelete={(id) => handleDelete(id)} />
     }
   }
 
@@ -296,7 +306,14 @@ export function DatabaseTable({
     },
     {
       id: 'barcode',
-      roles: ['INVENTORY_AGENT', 'SALES_MANAGER'],
+      roles: [
+        'INVENTORY_AGENT',
+        'SALES_MANAGER',
+        'SALES_AGENT',
+        'CONSULTANT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
       order: 3
     },
     {
@@ -373,6 +390,37 @@ export function DatabaseTable({
       order: 8
     }
   ]
+
+  async function handleDelete(id: string): Promise<void> {
+    try {
+      const res = await fetch(`/api/radiators/${id}`, {
+        method: 'DELETE'
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        toast({
+          title: 'Erreur',
+          description: data.error || 'Erreur lors de la suppression',
+          variant: 'destructive'
+        })
+        throw new Error(data.error || 'Erreur lors de la suppression')
+      }
+      toast({
+        title: 'Suppression réussie',
+        description: 'Le radiateur a été supprimé avec succès.',
+        variant: 'success'
+      })
+      if (router.refresh) router.refresh()
+      else window.location.reload()
+    } catch (err: any) {
+      console.error('Delete failed:', err)
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Erreur lors de la suppression',
+        variant: 'destructive'
+      })
+    }
+  }
 
   // Generate columns based on user role and maintain order
   const generateColumns = (
@@ -729,9 +777,13 @@ export function DatabaseTable({
   )
 }
 
-function Actions({ id }: { id: string }) {
-  const router = useRouter()
-
+function Actions({
+  id,
+  onDelete
+}: {
+  id: string
+  onDelete: (id: string) => void
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
@@ -743,24 +795,50 @@ function Actions({ id }: { id: string }) {
           <Link
             className={cn(
               buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0'
+              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={`dashboard/db/${id}`}
+            href={`/dashboard/db/${id}`}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0'
-            )}
-            href={`/dashboard/db/${id}`}
-          >
-            <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-          </Link>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant={'ghost'}
+                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
+              >
+                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Êtes-vous sûr de vouloir supprimer cette commande ?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Attention, cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button
+                    className={cn(
+                      buttonVariants({ variant: 'outline' }),
+                      ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                    )}
+                    onClick={() => onDelete(id)}
+                  >
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

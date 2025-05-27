@@ -222,10 +222,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-type Metadata = {
-  type: 'TOP' | 'BOTTOM'
-}
-
 // PATCH - Update a radiator
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
@@ -372,7 +368,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
 
       // Optionally update modification or other fields if needed
-      // ...
+
       // refetch /db route
       revalidatePath('/dashboard/db')
 

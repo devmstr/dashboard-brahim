@@ -242,7 +242,9 @@ export function OrderTable({
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
       enableHiding: false,
-      cell: ({ row }) => <Actions id={'24-2025'} onDelete={handleDelete} />
+      cell: ({ row }) => (
+        <Actions id={row.original.id} onDelete={handleDelete} />
+      )
     }
   }
 
@@ -608,21 +610,9 @@ function Actions({
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={'/dashboard/orders/' + id}
+            href={`/dashboard/orders/${id}`}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
-            )}
-            href={'/dashboard/printing/' + id}
-          >
-            <Icons.printer className="w-4 h-4 group-hover:text-primary" />
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
