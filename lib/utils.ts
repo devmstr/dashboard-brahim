@@ -102,25 +102,6 @@ const pad = (n: number): string => n.toString().padStart(4, '0')
 
 const formatDimension = (main: number, lower?: number): string =>
   lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
-const formatPositionAndTightening = (
-  position1: PositionType,
-  position2: PositionType,
-
-  tightening1: TighteningType,
-
-  tightening2: TighteningType
-): string => {
-  const tightening =
-    tightening1 === tightening2
-      ? TIGHTENING_T[tightening1]
-      : `${TIGHTENING_T[tightening1]}/${TIGHTENING_T[tightening2]}`
-
-  const position =
-    position1 === position2
-      ? POSITION_T[position1]
-      : `${POSITION_T[position1]}/${POSITION_T[position2]}`
-  return `${tightening} ${position}`
-}
 
 const getPrefix = (
   type: OrderItem['type'] = 'Radiateur',
@@ -172,13 +153,13 @@ export function generateRadiatorLabel({
   },
   collectorBottom: {
     dimensions: collector1Dimensions,
-    tightening = 'Plié',
-    position = 'Centrer'
+    tightening: tighteningBottom = 'Plié',
+    position: positionBottom = 'Centrer'
   },
   collectorTop: {
     dimensions: collector2Dimensions,
-    tightening: collector2Tightening = 'Plié',
-    position: collector2Position = 'Centrer'
+    tightening: tighteningTop = 'Plié',
+    position: positionTop = 'Centrer'
   }
 }: ProductConfig): string {
   const prefix = getPrefix(type, fabrication)
@@ -191,13 +172,17 @@ export function generateRadiatorLabel({
     collector1Dimensions.height,
     collector2Dimensions.height
   )}X${formatDimension(collector1Dimensions.width, collector2Dimensions.width)}`
-  const positionAndTightening = formatPositionAndTightening(
-    position,
-    collector2Position,
-    tightening,
-    collector2Tightening
-  )
-  return `${prefix} ${core4DigitsDimensions} ${rows}${FINS_T[fins]}${TUBE_T[tube]} ${pitch} ${collector4DigitsDimensions} ${positionAndTightening}`
+
+  // Position code logic: always two chars (e.g. CC, CP, etc.), unless both are the same, then one char (e.g. C, P, D)
+  const pos1 = POSITION_T[positionBottom]
+  const pos2 = POSITION_T[positionTop]
+  const positionCode = pos1 === pos2 ? pos1 : `${pos1}/${pos2}`
+  const tighteningB = TIGHTENING_T[tighteningBottom]
+  const tighteningT = TIGHTENING_T[tighteningTop]
+  const tighteningCode =
+    tighteningB === tighteningT ? tighteningB : `${tighteningB}/${tighteningT}`
+
+  return `${prefix} ${core4DigitsDimensions} ${rows}${FINS_T[fins]}${TUBE_T[tube]} ${pitch} ${collector4DigitsDimensions} ${positionCode} ${tighteningCode} `
 }
 
 export function cn(...inputs: ClassValue[]) {
