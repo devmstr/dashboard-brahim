@@ -173,7 +173,7 @@ export function generateRadiatorLabel({
     collector2Dimensions.height
   )}X${formatDimension(collector1Dimensions.width, collector2Dimensions.width)}`
 
-  // Position code logic: always two chars (e.g. CC, CP, etc.), unless both are the same, then one char (e.g. C, P, D)
+  // Position code logic: always two chars (e.g. C/C, C/P, etc.), unless both are the same, then one char (e.g. C, P, D)
   const pos1 = POSITION_T[positionBottom]
   const pos2 = POSITION_T[positionTop]
   const positionCode = pos1 === pos2 ? pos1 : `${pos1}/${pos2}`
