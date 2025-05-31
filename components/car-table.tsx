@@ -60,7 +60,7 @@ import { usePersistedState } from '@/hooks/use-persisted-state'
 
 interface Props {
   data: CarsTableEntry[]
-  t: {
+  t?: {
     id: string
     manufacture: string
     car: string
@@ -73,7 +73,20 @@ interface Props {
   }
 }
 
-export function CarTable({ data, t }: Props) {
+export function CarTable({
+  data,
+  t = {
+    id: 'Matricule',
+    manufacture: 'Marque',
+    car: 'Véhicule',
+    model: 'model',
+    fuel: 'Énergie',
+    year: 'Années',
+    placeholder: 'Rechercher...',
+    columns: 'Colonnes',
+    limit: 'Limite'
+  }
+}: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(

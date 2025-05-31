@@ -25,17 +25,6 @@ const Page: React.FC<Props> = async ({}: Props) => {
             fuel: 'Diesel'
           }
         ]}
-        t={{
-          id: 'Matricule',
-          manufacture: 'Marque',
-          car: 'Véhicule',
-          model: 'model',
-          fuel: 'Énergie',
-          year: 'Années',
-          placeholder: 'Rechercher...',
-          columns: 'Colonnes',
-          limit: 'Limite'
-        }}
       />
     </Card>
   )

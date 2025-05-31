@@ -1,63 +1,41 @@
 import { DashboardNav } from '@/components/dashboard-nav'
 import { DashboardSidebar } from '@/components/dashboard-sidebar'
-import { Loading } from '@/components/loading'
 import { SidebarStateProvider } from '@/components/open-sidebar-provider'
-import { NewOrderProvider } from '@/components/new-order.provider'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LAYOUT_LINKS } from '@/config/dashboard'
-import { useServerUser } from '@/hooks/useServerUser'
-import { SidebarNavItem } from '@/types'
-import { ReactNode } from 'react'
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
+import { ROUTE_ROLE_MAP } from '@/middleware'
+import { ReactNode } from 'react'
 
 interface LayoutProps {
   children: ReactNode
 }
 
 const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
-  const isUserRoleAdmin = await useServerCheckRoles('ADMIN')
-  const isUserRoleSales = await useServerCheckRoles([
-    'SALES_MANAGER',
-    'SALES_AGENT'
-  ])
-  const isUserRoleProduction = await useServerCheckRoles([
-    'PRODUCTION_WORKER',
-    'PRODUCTION_MANAGER'
-  ])
-  const isUserRoleEngineer = await useServerCheckRoles([
-    'ENGINEER',
-    'ENGINEERING_MANAGER'
-  ])
+  const userRoles: string[] = []
+  if (await useServerCheckRoles('ADMIN')) userRoles.push('ADMIN')
+  if (await useServerCheckRoles('SALES_MANAGER'))
+    userRoles.push('SALES_MANAGER')
+  if (await useServerCheckRoles('SALES_AGENT')) userRoles.push('SALES_AGENT')
+  if (await useServerCheckRoles('PRODUCTION_WORKER'))
+    userRoles.push('PRODUCTION_WORKER')
+  if (await useServerCheckRoles('PRODUCTION_MANAGER'))
+    userRoles.push('PRODUCTION_MANAGER')
+  if (await useServerCheckRoles('ENGINEER')) userRoles.push('ENGINEER')
+  if (await useServerCheckRoles('ENGINEERING_MANAGER'))
+    userRoles.push('ENGINEERING_MANAGER')
+  if (await useServerCheckRoles('ACCOUNTANT')) userRoles.push('ACCOUNTANT')
+  if (await useServerCheckRoles('CONSULTANT')) userRoles.push('CONSULTANT')
 
-  let linkedList = LAYOUT_LINKS
-
-  if (!isUserRoleAdmin)
-    linkedList = linkedList.filter(
-      (i) => i.href?.replaceAll('/', '') != 'dashboard'
-    )
-  if (isUserRoleProduction || isUserRoleEngineer)
-    linkedList = linkedList.filter(({ key }) =>
-      ['orders', 'settings'].includes(key as string)
-    )
-  if (isUserRoleSales)
-    // linkedList = linkedList.filter(({ key }) =>
-    //   ['new', 'timeline', 'orders', 'clients', 'cars', 'settings'].includes(
-    //     key as string
-    //   )
-    // )
-    linkedList = linkedList.filter(({ key }) =>
-      [
-        'new',
-        'pos',
-        'orders',
-        'clients',
-        'ledger',
-        'inventory',
-        'db',
-        'cars',
-        'settings'
-      ].includes(key as string)
-    )
+  // Filter links based on ROUTE_ROLE_MAP and userRoles
+  let linkedList = LAYOUT_LINKS.filter((link) => {
+    if (!link.href) return true
+    const allowedRoles = Object.entries(ROUTE_ROLE_MAP).find(([route]) =>
+      link.href?.startsWith(route)
+    )?.[1]
+    if (!allowedRoles) return true // If not protected, show to all
+    return allowedRoles.some((role) => userRoles.includes(role))
+  })
 
   return (
     <SidebarStateProvider>
