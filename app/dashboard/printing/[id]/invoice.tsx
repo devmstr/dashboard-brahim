@@ -177,13 +177,6 @@ export default function Invoice({
   const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
     billingSummary
 
-  // useEffect(() => {
-  //   const unsubscribe = scrollYProgress.on('change', (value) => {
-  //     setShowScrollIndicator(value < 1)
-  //   })
-  //   return () => unsubscribe()
-  // }, [scrollYProgress])
-
   const renderBillHeader = () => (
     <div className="print-header">
       <div className="flex justify-between items-start">
