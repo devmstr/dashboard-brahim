@@ -54,6 +54,8 @@ const Page: React.FC<Props> = async ({
         }
       })
 
+    console.log('orderItemDatabase: ', orderItemData)
+
     // Find core component (type === 'CORE')
     const coreComponent = parseMetadata(
       Radiator?.Components.find(({ type }) => type === 'CORE')?.Metadata
@@ -113,7 +115,7 @@ const Page: React.FC<Props> = async ({
     console.log(error)
     return notFound()
   }
-  console.log('orderItem', orderItem.Components)
+  console.log('orderItem', orderItem)
   return (
     <div className="space-y-4">
       <Card>{isSalesUser && <SalesEditOrderItemForm data={orderItem} />}</Card>

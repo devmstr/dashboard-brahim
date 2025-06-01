@@ -206,9 +206,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
         // validate if the user role equal to Engineering Manager
       }
 
-      delete updatedOrderItem.Collector
-      delete updatedOrderItem.Core
-
       // fetch Patch route under orders/{id}
       const response = await fetch(`/api/orders/${data.id}`, {
         method: 'PATCH',

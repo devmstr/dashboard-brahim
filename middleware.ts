@@ -1,5 +1,4 @@
 import { withAuth } from 'next-auth/middleware'
-import { ROLES } from './config/accounts'
 import { UserRole } from './types'
 
 // Define protected routes and their required roles

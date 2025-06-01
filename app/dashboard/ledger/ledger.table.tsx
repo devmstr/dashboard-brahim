@@ -825,10 +825,12 @@ export function LedgerTable({
 
 function Actions({
   id,
-  openPrintDialog
+  openPrintDialog,
+  userRole = 'GUEST'
 }: {
   id: string
   openPrintDialog: (id: string) => void
+  userRole?: UserRole
 }) {
   const { refresh } = useRouter()
   const [open, setOpen] = React.useState(false)
@@ -884,44 +886,48 @@ function Actions({
             <Icons.printer className="w-4 h-4 group-hover:text-primary" />
           </Button>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant={'ghost'}
-                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
-              >
-                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Êtes-vous sûr de vouloir supprimer cette facture ?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Attention, cette action est irréversible.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction asChild>
+        {userRole == 'ACCOUNTANT' && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
                   <Button
-                    className={cn(
-                      buttonVariants({ variant: 'ghost' }),
-                      ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                    )}
-                    onClick={() => handleDelete()}
+                    variant={'ghost'}
+                    className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
                   >
-                    <Icons.trash className="mr-2 h-4 w-4" />
-                    Supprimer
+                    <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
                   </Button>
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Êtes-vous sûr de vouloir supprimer cette facture ?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Attention, cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button
+                        className={cn(
+                          buttonVariants({ variant: 'ghost' }),
+                          ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                        )}
+                        onClick={() => handleDelete()}
+                      >
+                        <Icons.trash className="mr-2 h-4 w-4" />
+                        Supprimer
+                      </Button>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

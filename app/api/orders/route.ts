@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import type { Attachment, OrderItem } from '@/lib/validations'
-import { Item } from 'react-stately'
 import { skuId } from '@/lib/utils'
 
 const prisma = new PrismaClient()
@@ -9,7 +8,6 @@ const prisma = new PrismaClient()
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-
     // Extract data from the request body
     const {
       id,
@@ -78,8 +76,8 @@ export async function POST(request: Request) {
             const newRadiator = await tx.radiator.create({
               data: {
                 id: radiatorId,
-                label: item.Radiator.label || 'Custom Radiator',
-                cooling: item.Radiator.cooling || 'water',
+                label: item.Radiator.label,
+                cooling: item.Radiator.cooling,
                 category: item.Radiator.category || 'automotive',
                 ...(item.Radiator.Car?.id
                   ? {

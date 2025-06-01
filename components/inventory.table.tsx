@@ -205,7 +205,7 @@ export function InventoryTable({
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
       accessorFn: (row) => row.id,
-      cell: ({ row }) => <Actions row={row.original} />
+      cell: ({ row }) => <Actions userRole={userRole} row={row.original} />
     }
   }
 
@@ -477,7 +477,13 @@ export function InventoryTable({
   )
 }
 
-function Actions({ row }: { row: InventoryTableEntry }) {
+function Actions({
+  row,
+  userRole = 'GUEST'
+}: {
+  userRole?: UserRole
+  row: InventoryTableEntry
+}) {
   const { refresh } = useRouter()
   const router = useRouter()
   const onDelete = async (orderId: string) => {
@@ -490,6 +496,7 @@ function Actions({ row }: { row: InventoryTableEntry }) {
       console.log(error)
     }
   }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
@@ -529,44 +536,48 @@ function Actions({ row }: { row: InventoryTableEntry }) {
             </DialogContent>
           </Dialog>
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant={'ghost'}
-                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
-              >
-                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Are you sure you want to delete this IDP?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Be careful this action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction asChild>
+        {userRole == 'INVENTORY_AGENT' && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
                   <Button
-                    className={cn(
-                      buttonVariants({ variant: 'outline' }),
-                      ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                    )}
-                    onClick={() => onDelete(row.id)}
+                    variant={'ghost'}
+                    className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
                   >
-                    <Icons.trash className="mr-2 h-4 w-4" />
-                    Delete
+                    <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
                   </Button>
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Are you sure you want to delete this Pricing Item?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Be careful this action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button
+                        className={cn(
+                          buttonVariants({ variant: 'outline' }),
+                          ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                        )}
+                        onClick={() => onDelete(row.id)}
+                      >
+                        <Icons.trash className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
