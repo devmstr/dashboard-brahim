@@ -2,7 +2,7 @@
 
 import type React from 'react'
 import { useState, useEffect } from 'react'
-import { notFound, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 
@@ -62,7 +62,6 @@ interface EditOrderItemFormProps {
 export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   data
 }) => {
-  console.log('data : ', data)
   const { data: session } = useSession()
   // if (!session) return notFound()
 
@@ -77,6 +76,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   )
   const router = useRouter()
   // console.log('input data : ', orderItem)
+  console.log('data.Core.dimensions', data.Core.dimensions)
 
   // Form initialization with values from the existing orderItem
   const form = useForm<OrderItem>({
@@ -84,18 +84,23 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       ...data,
       Core: {
         ...data.Core
+        // dimensions: {
+        //   height: data.Core.height,
+        //   width: data.Core.width,
+        //   thickness: data.Core.thickness
+        // }
       },
       Collector: {
         ...data.Collectors.top,
         dimensions1: {
-          width: data.Collectors.top.width,
-          height: data.Collectors.top.height,
-          thickness: data.Collectors.top.thickness
+          width: data.Collectors.top.dimensions.width,
+          height: data.Collectors.top.dimensions.height,
+          thickness: data.Collectors.top.dimensions.thickness
         },
         dimensions2: {
-          width: data.Collectors.bottom.width,
-          height: data.Collectors.bottom.height,
-          thickness: data.Collectors.bottom.thickness
+          width: data.Collectors.bottom.dimensions.width,
+          height: data.Collectors.bottom.dimensions.height,
+          thickness: data.Collectors.bottom.dimensions.thickness
         }
       }
     },

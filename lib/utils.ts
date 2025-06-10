@@ -19,6 +19,7 @@ export enum SKU_PREFIX {
   CL = 'CL', // client
   VE = 'VE', // model
   PA = 'PA',
+  FP = 'FP', // facture proforma
   FL = 'FL' // file
 }
 
