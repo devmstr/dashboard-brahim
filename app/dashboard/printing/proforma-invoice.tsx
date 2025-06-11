@@ -26,11 +26,10 @@ import { format } from 'date-fns'
 import { Pencil } from 'lucide-react'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import './print.css'
 import { toast } from '@/hooks/use-toast'
-
-const ITEMS_PER_PRINT_PAGE = 4 // Declare the ITEMS_PER_PRINT_PAGE variable
+import { Icons } from '@/components/icons'
 
 export type InvoiceMetadata = {
   items: InvoiceItem[]
@@ -46,11 +45,17 @@ export interface InvoiceProps {
   className?: string
 }
 
-export default function Invoice({ className }: InvoiceProps) {
+export default function ProformaInvoice({ className }: InvoiceProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollYProgress = useScrollProgress(scrollRef)
-  const [invoiceId, setInvoiceId] = useState<string>(skuId('FP'))
-  // const [showScrollIndicator, setShowScrollIndicator] = useState(true)
+  const [mounted, setMounted] = useState(false)
+  const [invoiceId, setInvoiceId] = useState<string>('')
+
+  useEffect(() => {
+    setMounted(true)
+    setInvoiceId(skuId('FP'))
+  }, [])
+
   const [note, setNote] = useState<string | undefined>(undefined)
   const [refundRate, setRefundRate] = useState<number>(0)
   const [discountRate, setDiscountRate] = useState<number>(0)
@@ -58,7 +63,15 @@ export default function Invoice({ className }: InvoiceProps) {
   const [purchaseOrder, setPurchaseOrder] = useState<string>('')
   const [deliverySlip, setDeliverySlip] = useState<string>('')
   const [editingItemId, setEditingItemId] = useState<number | null>(null)
-  const [editedItems, setEditedItems] = useState<InvoiceItem[]>([])
+  const [editedItems, setEditedItems] = useState<InvoiceItem[]>([
+    {
+      id: 1,
+      label: 'Designation...',
+      quantity: 1,
+      price: 0,
+      amount: 0
+    }
+  ])
   const [client, setClient] = useState({
     name: '',
     address: '',
@@ -108,22 +121,26 @@ export default function Invoice({ className }: InvoiceProps) {
           </div>
           <div className="w-20 h-20 pl-[8px] -mt-[5px]  scale-95">
             {/* <QRCodeSVG value={qrAddress} className="w-[4.57rem] h-auto" /> */}
-            <QRCodeSVG
-              imageSettings={{
-                crossOrigin: 'anonymous',
-                src: '/images/logo.svg',
-                height: 40,
-                width: 40,
-                x: 45,
-                y: 45,
-                excavate: true
-              }}
-              value={invoiceId}
-              className="w-[4.57rem] h-auto"
-            />
-            <span className="text-[0.745rem] w-20 text-center ">
-              {invoiceId}
-            </span>
+            {mounted && (
+              <>
+                <QRCodeSVG
+                  imageSettings={{
+                    crossOrigin: 'anonymous',
+                    src: '/images/logo.svg',
+                    height: 40,
+                    width: 40,
+                    x: 45,
+                    y: 45,
+                    excavate: true
+                  }}
+                  value={invoiceId}
+                  className="w-[4.57rem] h-auto"
+                />
+                <span className="text-[0.745rem] w-20 text-center ">
+                  {invoiceId}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -159,7 +176,7 @@ export default function Invoice({ className }: InvoiceProps) {
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
-          <p>Du: {format(new Date(), 'dd/MM/yyyy')}</p>
+          <p>Du: {mounted ? format(new Date(), 'dd/MM/yyyy') : ''}</p>
         </div>
       </div>
       <div className="text-base mt-4 ">
@@ -486,64 +503,95 @@ export default function Invoice({ className }: InvoiceProps) {
             <TableHead className="px-2 py-2 h-8 w-24 text-left text-black font-medium border-r-[3px] border-white ">
               Prix U/H.T
             </TableHead>
-            <TableHead className="px-2 py-2 h-8 w-[6.5rem] text-left text-black font-medium border-r-[3px] border-white ">
+            <TableHead className="px-2 py-2 h-8 w-[6.5rem] text-left text-black font-medium border-r-[3px] border-white relative">
               Montant
+            </TableHead>
+            <TableHead className="h-8 px-0  w-10 text-center text-black font-medium border-white print:hidden ">
+              <Button
+                className="w-fit"
+                style={{ zIndex: 10 }}
+                onClick={handleAddItem}
+                type="button"
+                variant="ghost"
+              >
+                <Icons.packagePlus className="text-foreground h-[1.15rem] w-auto" />
+              </Button>
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pageItems.map((item) => (
-            <TableRow key={item.id}>
+          {pageItems.map((item: InvoiceItem, idx: number) => (
+            <TableRow key={item.id} className="relative">
               <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
               <TableCell className="py-[3px] px-2 h-8 relative">
-                {editingItemId === item.id ? (
-                  <Input
-                    value={item.label}
-                    onChange={(e) => {
-                      const newValue = e.target.value
-                      setEditedItems((prev) =>
-                        prev.map((i) =>
-                          i.id === item.id ? { ...i, label: newValue } : i
-                        )
+                <Input
+                  value={item.label}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const newValue = e.target.value
+                    setEditedItems((prev: InvoiceItem[]) =>
+                      prev.map((i: InvoiceItem) =>
+                        i.id === item.id ? { ...i, label: newValue } : i
                       )
-                    }}
-                    onBlur={() => setEditingItemId(null)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        setEditingItemId(null)
-                      }
-                    }}
-                    autoFocus
-                    className="h-6 py-1 focus-visible:ring-0 ring-0 border-none rounded-none "
-                  />
-                ) : (
-                  <div className="flex items-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
-                      onClick={() => {
-                        setEditingItemId(item.id)
-                      }}
-                    >
-                      <Pencil className="h-3 w-3" />
-                      <span className="sr-only">Edit description</span>
-                    </Button>
-                    {item.label}
-                  </div>
-                )}
+                    )
+                  }}
+                  className="h-6 py-1 focus-visible:ring-0 ring-0 border-none rounded-none "
+                />
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
-                {item.quantity}
+                <Input
+                  type="number"
+                  min={1}
+                  value={item.quantity}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const quantity = Number(e.target.value)
+                    setEditedItems((prev: InvoiceItem[]) =>
+                      prev.map((i: InvoiceItem) =>
+                        i.id === item.id
+                          ? { ...i, quantity, amount: quantity * i.price }
+                          : i
+                      )
+                    )
+                  }}
+                  className="h-6 py-1 w-16 text-xs focus-visible:ring-0 border-none rounded-none"
+                />
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
-                {item.price}
+                <Input
+                  type="number"
+                  min={0}
+                  value={item.price}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const price = Number(e.target.value)
+                    setEditedItems((prev: InvoiceItem[]) =>
+                      prev.map((i: InvoiceItem) =>
+                        i.id === item.id
+                          ? { ...i, price, amount: price * i.quantity }
+                          : i
+                      )
+                    )
+                  }}
+                  className="h-6 py-1 w-20 text-xs focus-visible:ring-0 border-none rounded-none"
+                />
               </TableCell>
-              <TableCell className="text-left py-[3px] px-2 h- font-geist-sans">
-                {Number(item.amount.toFixed(2)).toLocaleString('fr-FR', {
+              <TableCell className="text-left py-[3px] px-2  font-geist-sans">
+                {Number(item.amount).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
+              </TableCell>
+              <TableCell className="text-center py-[3px] px-1 print:hidden">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5"
+                  onClick={() => {
+                    setEditedItems((prev: InvoiceItem[]) =>
+                      prev.filter((i) => i.id !== item.id)
+                    )
+                  }}
+                >
+                  <Icons.trash className="h-4 w-4 text-destructive" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}
@@ -551,6 +599,17 @@ export default function Invoice({ className }: InvoiceProps) {
       </Table>
     )
   }
+  // Add Item handler (must be in scope for renderTable)
+  const handleAddItem = () => {
+    setEditedItems((prev: InvoiceItem[]) => {
+      const newId = prev.length > 0 ? Math.max(...prev.map((i) => i.id)) + 1 : 1
+      return [
+        ...prev,
+        { id: newId, label: 'Designation...', quantity: 1, price: 0, amount: 0 }
+      ]
+    })
+  }
+
   // Local function to update invoice metadata via PATCH
   const handleMetadataChange = async () => {
     const metadata = {
@@ -585,17 +644,17 @@ export default function Invoice({ className }: InvoiceProps) {
     }
   }
 
-  useEffect(() => {
-    handleMetadataChange()
-  }, [
-    purchaseOrder,
-    deliverySlip,
-    note,
-    discountRate,
-    refundRate,
-    stampTaxRate,
-    editedItems
-  ])
+  // useEffect(() => {
+  //   handleMetadataChange()
+  // }, [
+  //   purchaseOrder,
+  //   deliverySlip,
+  //   note,
+  //   discountRate,
+  //   refundRate,
+  //   stampTaxRate,
+  //   editedItems
+  // ])
 
   return (
     <>
@@ -607,60 +666,25 @@ export default function Invoice({ className }: InvoiceProps) {
       >
         {/* Print-only content */}
         {(() => {
-          const pages: InvoiceItem[][] = []
+          // Pagination constants
+          const ITEMS_PER_PAGE = 17
+          const ITEMS_ON_TOTALS_PAGE = 4
           const totalItems = editedItems.length
+          const pages: InvoiceItem[][] = []
 
-          // If there are 2 or fewer items, simply push all on one page.
-          if (totalItems <= 4) {
+          if (totalItems <= ITEMS_ON_TOTALS_PAGE) {
+            // All items fit on one page with totals
             pages.push(editedItems)
           } else {
-            // Reserve the last 2 items for the final page.
-            const mainSection = editedItems.slice(0, totalItems - 2)
-            const lastPage = editedItems.slice(totalItems - 2)
-
-            // Determine the number of main pages.
-            // We want each main page to have at most ITEMS_PER_PRINT_PAGE items.
-            // Using the ideal even split:
-            const numMainPages = Math.ceil(
-              mainSection.length / ITEMS_PER_PRINT_PAGE
-            )
-
-            // Helper function to split an array evenly into n chunks.
-            function chunkEvenly<T>(array: T[], n: number): T[][] {
-              const result: T[][] = []
-              const len = array.length
-              const base = Math.floor(len / n)
-              let remainder = len % n
-              let start = 0
-              for (let i = 0; i < n; i++) {
-                // Distribute the extra items (if any) among the first 'remainder' chunks.
-                const extra = remainder > 0 ? 1 : 0
-                result.push(array.slice(start, start + base + extra))
-                start += base + extra
-                if (remainder > 0) remainder--
-              }
-              return result
+            // Split all except the last 4 items into 17-item pages
+            const mainItems = editedItems.slice(0, -ITEMS_ON_TOTALS_PAGE)
+            const lastItems = editedItems.slice(-ITEMS_ON_TOTALS_PAGE)
+            let i = 0
+            while (i < mainItems.length) {
+              pages.push(mainItems.slice(i, i + ITEMS_PER_PAGE))
+              i += ITEMS_PER_PAGE
             }
-
-            let mainPages = chunkEvenly(mainSection, numMainPages)
-
-            // As a safety check, if any chunk exceeds ITEMS_PER_PRINT_PAGE,
-            // fall back to simple chunking.
-            const refinedMainPages: InvoiceItem[][] = []
-            mainPages.forEach((page) => {
-              if (page.length > ITEMS_PER_PRINT_PAGE) {
-                for (let i = 0; i < page.length; i += ITEMS_PER_PRINT_PAGE) {
-                  refinedMainPages.push(page.slice(i, i + ITEMS_PER_PRINT_PAGE))
-                }
-              } else {
-                refinedMainPages.push(page)
-              }
-            })
-            mainPages = refinedMainPages
-
-            // Add the main pages and then the final page (with 2 items).
-            pages.push(...mainPages)
-            pages.push(lastPage)
+            pages.push(lastItems)
           }
 
           return (
