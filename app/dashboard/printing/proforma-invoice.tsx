@@ -189,7 +189,10 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
           <div className="flex flex-col gap-1">
             <Input
               placeholder="Nom du client"
-              className="h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md  "
+              className={cn(
+                'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md',
+                !client.name && 'print:hidden'
+              )}
               value={client.name}
               onChange={(e) => {
                 setClient((prev) => ({
@@ -201,7 +204,10 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
             {/* client address only appear if it exist  */}
             <Input
               placeholder="Adresse du client"
-              className="h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md  "
+              className={cn(
+                'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md',
+                !client.address && 'print:hidden'
+              )}
               value={client.address}
               onChange={(e) => {
                 setClient((prev) => ({
@@ -212,11 +218,15 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
             />
           </div>
           <div className="text-sm font-geist-sans">
-            <div className="flex items-center">
+            <div
+              className={cn('flex items-center', !client.rc && 'print:hidden')}
+            >
               <strong className="w-10">{'R.C: '}</strong>
               <Input
                 placeholder="97/B/0862043"
-                className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
+                className={cn(
+                  'h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0'
+                )}
                 value={client.rc}
                 onChange={(e) => {
                   setClient((prev) => ({
@@ -226,11 +236,15 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
                 }}
               />
             </div>
-            <div className="flex items-center">
+            <div
+              className={cn('flex items-center', !client.nif && 'print:hidden')}
+            >
               <strong className="w-10">{'N.I.F: '}</strong>{' '}
               <Input
                 placeholder="99747086204393"
-                className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
+                className={cn(
+                  'h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0'
+                )}
                 value={client.nif}
                 onChange={(e) => {
                   setClient((prev) => ({
@@ -240,11 +254,15 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
                 }}
               />
             </div>
-            <div className="flex items-center">
+            <div
+              className={cn('flex items-center', !client.ai && 'print:hidden')}
+            >
               <strong className="w-10">{'A.I: '}</strong>
               <Input
                 placeholder="471006003"
-                className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
+                className={cn(
+                  'h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0'
+                )}
                 value={client.ai}
                 onChange={(e) => {
                   setClient((prev) => ({
@@ -468,12 +486,12 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
           <p className="capitalize">{amountToWords(totalTTC)}</p>
         </div>
       </div>
-      <div className="payment-details">
+      <div className={cn('payment-details', !note && 'print:hidden')}>
         <div className="space-y-2 text-sm mt-2">
           <div className="space-y-1">
             <h3 className="font-semibold">REMARQUE</h3>
             <Textarea
-              className="w-full h-20 max-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
+              className="w-full h-20 max-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 print:border-none print:px-0 print:py-0"
               placeholder="Saisissez des remarques pour cette facture..."
               value={note}
               onChange={(e) => {
@@ -552,7 +570,7 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
                       )
                     )
                   }}
-                  className="h-6 py-1 w-16 text-xs focus-visible:ring-0 border-none rounded-none"
+                  className="h-6 py-1 w-8 max-w-10 text-xs focus-visible:ring-0 border-none rounded-none"
                 />
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
@@ -570,10 +588,10 @@ export default function ProformaInvoice({ className }: InvoiceProps) {
                       )
                     )
                   }}
-                  className="h-6 py-1 w-20 text-xs focus-visible:ring-0 border-none rounded-none"
+                  className="h-6 py-1 w-16 max-w-20 text-xs focus-visible:ring-0 border-none rounded-none"
                 />
               </TableCell>
-              <TableCell className="text-left py-[3px] px-2  font-geist-sans">
+              <TableCell className="text-left py-[3px] px-2  font-geist-sans max-w-20">
                 {Number(item.amount).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2

@@ -75,7 +75,7 @@ import { TbTruckDelivery } from 'react-icons/tb'
 import { BiCar } from 'react-icons/bi'
 import { FaChartGantt } from 'react-icons/fa6'
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia'
-import { TbDeviceIpadDollar } from 'react-icons/tb'
+import { TbDeviceIpadDollar, TbFileInvoice } from 'react-icons/tb'
 
 import { cn } from '@/lib/utils'
 
@@ -142,6 +142,7 @@ export const Icons = {
   planned: Clock,
   done: CheckCircle,
   ongoing: RotateCw,
+  bill: TbFileInvoice,
 
   eye: (
     props: LucideProps & {

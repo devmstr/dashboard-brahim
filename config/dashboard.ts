@@ -20,6 +20,12 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     key: 'pos'
   },
   {
+    title: 'Facture',
+    href: '/dashboard/printing',
+    icon: 'bill',
+    key: 'printing'
+  },
+  {
     title: 'Planning',
     href: '/dashboard/timeline',
     icon: 'gantt',
