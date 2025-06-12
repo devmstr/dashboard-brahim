@@ -94,8 +94,8 @@ const Page: React.FC<Props> = async ({
           finsPitch: coreComponent.finsPitch?.toString() as Core['finsPitch'],
           tube: coreComponent.tube as Core['tube'],
           dimensions: {
-            width: coreComponent.dimensions.width as number,
-            height: coreComponent.dimensions.height as number
+            width: coreComponent?.dimensions?.width as number,
+            height: coreComponent?.dimensions?.height as number
           }
         }
       }),
@@ -113,6 +113,7 @@ const Page: React.FC<Props> = async ({
     console.log(error)
     return notFound()
   }
+  console.log('orderItem', orderItem)
   return (
     <div className="space-y-4">
       <Card>{isSalesUser && <SalesEditOrderItemForm data={orderItem} />}</Card>

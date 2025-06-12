@@ -83,24 +83,29 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
     defaultValues: {
       ...data,
       Core: {
-        ...data.Core
-        // dimensions: {
-        //   height: data.Core.height,
-        //   width: data.Core.width,
-        //   thickness: data.Core.thickness
-        // }
+        ...data.Core,
+        dimensions: {
+          height: data.Core.height || data.Core.dimensions?.height,
+          width: data.Core.width || data.Core.dimensions?.width
+        }
       },
       Collector: {
         ...data.Collectors.top,
         dimensions1: {
-          width: data.Collectors.top.dimensions.width,
-          height: data.Collectors.top.dimensions.height,
-          thickness: data.Collectors.top.dimensions.thickness
+          width:
+            data.Collectors?.top?.dimensions?.width ||
+            data.Collectors?.top?.width,
+          height:
+            data.Collectors?.top?.dimensions?.height ||
+            data.Collectors?.top?.height,
+          thickness:
+            data.Collectors?.top?.dimensions?.thickness ||
+            data.Collectors?.top?.thickness
         },
         dimensions2: {
-          width: data.Collectors.bottom.dimensions.width,
-          height: data.Collectors.bottom.dimensions.height,
-          thickness: data.Collectors.bottom.dimensions.thickness
+          width: data.Collectors?.bottom?.dimensions?.width,
+          height: data.Collectors?.bottom?.dimensions?.height,
+          thickness: data.Collectors?.bottom?.dimensions?.thickness
         }
       }
     },
