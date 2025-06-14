@@ -329,16 +329,18 @@ model Attachment {
 }
 
 model Order {
-  id          String       @id @default(cuid())
-  deadline    DateTime     @default(now())
-  state       String?
-  progress    Int          @default(0)
-  OrdersItems OrderItem[]
-  Payment     Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
-  paymentId   String       @unique
-  clientId    String
-  Client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  Attachments Attachment[]
+  id             String       @id @default(cuid())
+  deadline       DateTime     @default(now())
+  state          String?
+  progress       Int          @default(0)
+  OrdersItems    OrderItem[]
+  itemsCount     Int          @default(0)
+  deliveredItems Int          @default(0)
+  Payment        Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
+  paymentId      String       @unique
+  clientId       String
+  Client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  Attachments    Attachment[]
 
   createdAt DateTime  @default(now()) // Added for consistency
   updatedAt DateTime  @updatedAt // Added for consistency
@@ -356,6 +358,7 @@ model OrderItem {
   type         String?
   fabrication  String?
   isModified   Boolean?
+  state        String? // e.g., "pending", "in_progress", "delivered"
   quantity     Int?
   validatedAt  DateTime?
   canceledAt   DateTime?

@@ -78,28 +78,95 @@ export async function PUT(
     }
 
     // Extract data from the request body
-    const { deadline, state, progress, payment, orderItems, attachments } = body
+    const {
+      deadline,
+      state,
+      progress,
+      payment,
+      orderItems,
+      attachments,
+      deliveredItems
+    } = body
 
     // Update payment if provided
     if (payment) {
       await prisma.payment.update({
         where: { id: existingOrder.paymentId },
         data: {
-          amount: payment.amount,
+          amount: payment.price, // Fix: use payment.price instead of payment.amount
           deposit: payment.deposit,
-          remaining: payment.remaining || payment.amount - payment.deposit
+          remaining: payment.remaining || payment.price - payment.deposit
         }
       })
     }
 
+    // Update order items delivery state if deliveredItems is provided
+    if (typeof deliveredItems === 'number') {
+      // Fetch all order items for this order, sorted by creation (or id)
+      const items = await prisma.orderItem.findMany({
+        where: { orderId: id },
+        orderBy: { id: 'asc' } // or use createdAt if available
+      })
+      let toDeliver = deliveredItems
+      let deliveredSum = 0
+      let totalSum = 0
+      for (const item of items) {
+        totalSum += item.quantity || 1
+        // If there are still items to deliver, set state to 'delivered'
+        if (toDeliver > 0) {
+          await prisma.orderItem.update({
+            where: { id: item.id },
+            data: { state: 'delivered' }
+          })
+          deliveredSum += item.quantity || 1
+          toDeliver -= item.quantity || 1
+        } else {
+          // Mark as not delivered (pending or previous state)
+          await prisma.orderItem.update({
+            where: { id: item.id },
+            data: { state: 'pending' }
+          })
+        }
+      }
+      // Update the Order's itemsCount and deliveredItems fields
+      await prisma.order.update({
+        where: { id },
+        data: {
+          itemsCount: totalSum,
+          deliveredItems: deliveredSum
+        }
+      })
+    }
+
+    // Prepare update data for the order
+    const updateData: any = {
+      deadline: deadline ? new Date(deadline) : undefined,
+      state,
+      progress
+    }
+    // If deliveredItems is provided, update itemsCount and deliveredItems
+    if (typeof deliveredItems === 'number') {
+      // Fetch all order items for this order
+      const items = await prisma.orderItem.findMany({
+        where: { orderId: id }
+      })
+      let totalSum = 0
+      let deliveredSum = 0
+      let toDeliver = deliveredItems
+      for (const item of items) {
+        totalSum += item.quantity || 1
+        if (toDeliver > 0) {
+          deliveredSum += item.quantity || 1
+          toDeliver -= item.quantity || 1
+        }
+      }
+      updateData.itemsCount = totalSum
+      updateData.deliveredItems = deliveredSum
+    }
     // Update order
     const updatedOrder = await prisma.order.update({
       where: { id },
-      data: {
-        deadline: deadline ? new Date(deadline) : undefined,
-        state,
-        progress
-      },
+      data: updateData,
       include: {
         Client: true,
         Payment: true,

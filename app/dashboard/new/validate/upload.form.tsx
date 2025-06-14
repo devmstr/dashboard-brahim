@@ -108,6 +108,8 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
         state: 'PENDING',
         progress: 0,
         Payment: order.Payment || null,
+        itemsCount: order.OrderItems?.length || 0, // Add total items
+        deliveredItems: 0, // New orders start with 0 delivered
         OrderItems: order.OrderItems.map((item: OrderItem) => ({
           id: item.id,
           note: item.note,

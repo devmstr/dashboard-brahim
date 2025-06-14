@@ -8,6 +8,8 @@ import { useServerUser } from '@/hooks/useServerUser'
 import { Task } from '@/types/gantt'
 import { signIn } from 'next-auth/react'
 import prisma from '@/lib/db'
+import { OrderMetaForm } from './_components/order-meta.form'
+import { Payment } from '@prisma/client'
 
 interface PageProps {
   params: {
@@ -69,6 +71,30 @@ const Page: React.FC<PageProps> = async ({
     }
   })
 
+  // Use the new fields from the Order model directly
+  const totalItems = order?.itemsCount || 0
+  const deliveredItems = order?.deliveredItems || 0
+
+  // Prepare payment data with correct types for mode and bank
+  const payment = order?.Payment as Payment | null
+  const paymentData = {
+    ...payment,
+    mode:
+      (payment?.mode as
+        | 'Espèces'
+        | 'Versement'
+        | 'Espèces + Versement'
+        | 'Virement'
+        | 'Cheque'
+        | 'À terme') || 'Espèces',
+    bank: (payment?.bank as 'BEA' | 'BNA' | 'SGA' | 'AGB') || null,
+    iban: payment?.iban || null,
+    depositor: payment?.depositor || null,
+    price: payment?.amount || 0,
+    deposit: payment?.deposit || 0,
+    remaining: payment?.remaining || 0
+  }
+
   const data = order?.OrdersItems.map(
     ({
       id,
@@ -96,11 +122,13 @@ const Page: React.FC<PageProps> = async ({
 
   return (
     <div className="space-y-4">
-      {/* {isUserRoleSales && (
+      {isUserRoleSales && (
         <Card className="">
-          <OrderMetaForm data={{ id: orderId }} />
+          <OrderMetaForm
+            data={{ id: orderId, ...paymentData, totalItems, deliveredItems }}
+          />
         </Card>
-      )} */}
+      )}
       {true && (
         <Card className="">
           <OrderComponentsTable data={data} />

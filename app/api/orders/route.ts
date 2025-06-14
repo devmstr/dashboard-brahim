@@ -173,6 +173,8 @@ export async function POST(request: Request) {
           state: state || 'PENDING',
           progress: progress || 0,
           paymentId: createdPayment.id,
+          itemsCount: OrderItems?.length || 0, // Set total items
+          deliveredItems: body.deliveredItems ?? 0, // Set delivered items (default 0)
 
           // Create order items with processed radiator IDs
           OrdersItems: {

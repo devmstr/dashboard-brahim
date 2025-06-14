@@ -25,11 +25,11 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 
 interface Props {
-  data: PaymentType & { id: string }
+  data: PaymentType & { id: string; totalItems: number; deliveredItems: number }
 }
 
 export const OrderMetaForm: React.FC<Props> = ({
-  data: { id, ...input }
+  data: { id, totalItems = 0, deliveredItems = 0, ...input }
 }: Props) => {
   const [isLoading, updateOrderMetadata] = React.useTransition()
   const router = useRouter()
@@ -40,13 +40,49 @@ export const OrderMetaForm: React.FC<Props> = ({
   const price = form.watch('price')
   const deposit = form.watch('deposit')
   const mode = form.watch('mode')
+  const [delivered, setDelivered] = React.useState<number>(deliveredItems)
 
-  const onSubmit = (formData: PaymentType) => {
-    // update data using react query
+  const onSubmit = async (formData: PaymentType) => {
+    // Ensure deposit is not greater than price
+    const safePrice = Number(formData.price) || 0
+    let safeDeposit = Number(formData.deposit) || 0
+    if (safeDeposit > safePrice) safeDeposit = safePrice
+    const safePayment = {
+      ...formData,
+      price: safePrice,
+      deposit: safeDeposit,
+      mode: (formData.mode || PAYMENT_TYPES_ARR[0]) as PaymentType['mode']
+    }
     updateOrderMetadata(async () => {
-      await delay(1500)
+      try {
+        const res = await fetch(`/api/orders/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            payment: safePayment,
+            deliveredItems: delivered
+          })
+        })
+        if (!res.ok)
+          throw new Error('Erreur lors de la mise à jour de la commande')
+        // Optionally, you can refresh the page or show a toast here
+        router.refresh()
+      } catch (err) {
+        // Optionally, handle error (show toast, etc.)
+        // eslint-disable-next-line no-console
+        console.error(err)
+      }
     })
   }
+
+  // Auto-update remaining when price or deposit changes
+  React.useEffect(() => {
+    const safePrice = Number(price) || 0
+    let safeDeposit = Number(deposit) || 0
+    if (safeDeposit > safePrice) safeDeposit = safePrice
+    form.setValue('remaining', safePrice - safeDeposit)
+  }, [price, deposit, form])
+
   return (
     <Form {...form}>
       <form className="pt-2 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
@@ -55,12 +91,6 @@ export const OrderMetaForm: React.FC<Props> = ({
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               paiement
             </span>
-            <Link
-              href={`/dashboard/payments/${id}`}
-              className="absolute -top-[0.65rem] right-5 text-base font-light text-muted-foreground/40 uppercase -mt-[2px] bg-background px-3 rounded-md  hover:font-bold hover:text-secondary"
-            >
-              {id.toUpperCase()}
-            </Link>
           </div>
           <CardGrid>
             <FormField
@@ -70,8 +100,8 @@ export const OrderMetaForm: React.FC<Props> = ({
                 <FormItem className=" ">
                   <FormLabel className="capitalize">
                     {'Prix estimé'}
-                    <span className="ml-1 text-xs text-muted-foreground/50">
-                      {'(susceptible de changer)'}
+                    <span className="text-xs text-muted-foreground/50">
+                      {' (susceptible de changer)'}
                     </span>
                   </FormLabel>
                   <FormControl>
@@ -98,9 +128,13 @@ export const OrderMetaForm: React.FC<Props> = ({
                     <Input
                       {...field}
                       type="number"
-                      onChange={({ target: { value } }) =>
-                        form.setValue('deposit', Number(value))
-                      }
+                      min={0}
+                      max={price || 0}
+                      onChange={({ target: { value } }) => {
+                        let val = Number(value)
+                        if (val > (price || 0)) val = price || 0
+                        form.setValue('deposit', val)
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -118,19 +152,7 @@ export const OrderMetaForm: React.FC<Props> = ({
                     <Input
                       {...field}
                       type="number"
-                      value={
-                        price && deposit && price > deposit
-                          ? price - deposit
-                          : 0
-                      }
-                      onChange={() => {
-                        form.setValue(
-                          'remaining',
-                          price && deposit && price > deposit
-                            ? price - deposit
-                            : 0
-                        )
-                      }}
+                      value={field.value || 0}
                       disabled={true}
                     />
                   </FormControl>
@@ -152,6 +174,7 @@ export const OrderMetaForm: React.FC<Props> = ({
                     <Combobox
                       id="mode"
                       options={PAYMENT_TYPES_ARR}
+                      selected={field.value as string}
                       onSelect={(v: string) => {
                         form.setValue(
                           'mode',
@@ -187,38 +210,29 @@ export const OrderMetaForm: React.FC<Props> = ({
             )}
           </CardGrid>
         </div>
-        {/* <div className="relative border rounded-md px-3 py-3">
-          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase ">
-            délais
-          </span>
-          <CardGrid className="pt-2">
-            <FormField
-              control={form.control}
-              name="endDate"
-              render={({ field }) => (
-                <FormItem className="group flex flex-col gap-1 ">
-                  <FormLabel className="capitalize ">
-                    {'Délais estimé'}
-                    <span className="ml-1 text-xs text-muted-foreground/50">
-                      {'(susceptible de changer)'}
-                    </span>
-                  </FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      {...field}
-                      date={field.value}
-                      onDateChange={(v) => form.setValue('de', v)}
-                      locale={fr}
-                      placeholder="Choisir une date"
-                      formatStr="PPP"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {/* Livraison section */}
+        <div className="relative space-y-3 border rounded-md px-3 py-3 mt-6">
+          <div className="flex items-center justify-between select-none">
+            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+              livraison
+            </span>
+          </div>
+          <CardGrid>
+            <div className="flex flex-col gap-2">
+              <FormLabel className="capitalize">Articles livrés</FormLabel>
+              <Input
+                type="number"
+                min={0}
+                max={totalItems}
+                value={delivered}
+                onChange={(e) => setDelivered(Number(e.target.value))}
+              />
+              <span className="text-xs text-muted-foreground">
+                {`Livrés: ${delivered} / ${totalItems}`}
+              </span>
+            </div>
           </CardGrid>
-        </div> */}
+        </div>
         <div className="flex flex-col items-end gap-4">
           <Separator />
           <Button className="w-fit flex gap-1" type="submit">
