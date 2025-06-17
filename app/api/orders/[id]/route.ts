@@ -95,7 +95,11 @@ export async function PUT(
         data: {
           amount: payment.price, // Fix: use payment.price instead of payment.amount
           deposit: payment.deposit,
-          remaining: payment.remaining || payment.price - payment.deposit
+          remaining: payment.remaining || payment.price - payment.deposit,
+          mode: payment.mode || null,
+          bank: payment.bank || null,
+          iban: payment.iban || null,
+          depositor: payment.depositor || null
         }
       })
     }

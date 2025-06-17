@@ -25,11 +25,11 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 
 interface Props {
-  data: PaymentType & { id: string; totalItems: number; deliveredItems: number }
+  data: PaymentType & { orderId: string; totalItems: number; deliveredItems: number }
 }
 
 export const OrderMetaForm: React.FC<Props> = ({
-  data: { id, totalItems = 0, deliveredItems = 0, ...input }
+  data: { orderId, totalItems = 0, deliveredItems = 0, ...input }
 }: Props) => {
   const [isLoading, updateOrderMetadata] = React.useTransition()
   const router = useRouter()
@@ -55,7 +55,7 @@ export const OrderMetaForm: React.FC<Props> = ({
     }
     updateOrderMetadata(async () => {
       try {
-        const res = await fetch(`/api/orders/${id}`, {
+        const res = await fetch(`/api/orders/${orderId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

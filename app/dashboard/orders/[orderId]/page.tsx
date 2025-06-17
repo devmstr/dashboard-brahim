@@ -125,7 +125,7 @@ const Page: React.FC<PageProps> = async ({
       {isUserRoleSales && (
         <Card className="">
           <OrderMetaForm
-            data={{ id: orderId, ...paymentData, totalItems, deliveredItems }}
+            data={{ orderId, ...paymentData, totalItems, deliveredItems }}
           />
         </Card>
       )}
