@@ -40,24 +40,23 @@ const Page = async () => {
       items: itemsCount,
       status: inv.status || '',
       dueDate: inv.dueDate ? inv.dueDate.toISOString() : '',
+      type: inv.type || '',
       paymentMode: inv.paymentMode || '',
-      paymentStatus: inv.paymentStatus || '',
-      paymentDate: inv.paymentDate ? inv.paymentDate.toISOString() : '',
       createdAt: inv.createdAt.toISOString(),
-      company: inv.Client?.name || inv.customerName || '',
+      company: inv.Client?.name || inv.clientName || '',
       phone: inv.Client?.phone || '',
-      location: inv.Client?.Address?.street || ''
+      location: inv.Client?.Address?.street || inv.clientAddress || ''
     }
   })
 
   // Separate draft and normal invoices based on your business logic
   // You might have a status field or another way to distinguish them
   const draftInvoices = allInvoicesData.filter(
-    (invoice) => invoice.status === 'DRAFT' // Replace with your actual condition for draft invoices
+    (invoice) => invoice.type === 'PROFORMA' // Replace with your actual condition for draft invoices
   )
 
   const normalInvoices = allInvoicesData.filter(
-    (invoice) => invoice.status !== 'DRAFT' // Replace with your actual condition for normal invoices
+    (invoice) => invoice.type === 'FINAL' // Replace with your actual condition for normal invoices
   )
 
   return (

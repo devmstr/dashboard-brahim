@@ -4,17 +4,28 @@ import { z } from 'zod'
 import { skuId } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 
-// Define the expected request body schema
 const InvoiceSchema = z.object({
-  customer: z.any().optional(), // Accept any client object for now
-  items: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      price: z.number(),
-      quantity: z.number()
+  customer: z
+    .object({
+      id: z.string().nullable().optional(),
+      name: z.string().optional(),
+      address: z.string().optional(),
+      rc: z.string().optional(),
+      nif: z.string().optional(),
+      ai: z.string().optional()
     })
-  ),
+    .optional(),
+  items: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        price: z.number(),
+        quantity: z.number()
+      })
+    )
+    .min(1, 'At least one item is required'),
+  type: z.enum(['PROFORMA', 'FINAL']).optional(),
   subtotal: z.number(),
   tax: z.number(),
   total: z.number()
@@ -22,51 +33,46 @@ const InvoiceSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url)
+    const isDraft = searchParams.get('isDraft') === 'true'
+
     const body = await req.json()
     const parsed = InvoiceSchema.safeParse(body)
+
     if (!parsed.success) {
       return NextResponse.json(
         { message: 'Invalid request', errors: parsed.error.errors },
         { status: 400 }
       )
     }
+
     const { customer, items, subtotal, tax, total } = parsed.data
 
-    // Generate a unique invoice number in the format YY-XXXX (e.g., 25-0023)
+    // Final or Proforma?
+    const type = parsed.data.type || (isDraft ? 'PROFORMA' : 'FINAL')
+
     const now = new Date()
-    const year = now.getFullYear()
-    const yearShort = year.toString().slice(-2)
-    // Find the highest invoice number for this year
+    const yearShort = now.getFullYear().toString().slice(-2)
+    const prefix = (type === 'FINAL' ? 'FF' : 'FP') + yearShort + '-'
+
     const lastInvoice = await prisma.invoice.findFirst({
       where: {
-        number: {
-          startsWith: `${yearShort}-`
-        }
+        number: { startsWith: prefix },
+        type
       },
       orderBy: { createdAt: 'desc' }
     })
+
     let nextSeq = 1
-    if (lastInvoice && lastInvoice.number) {
-      const match = lastInvoice.number.match(/^(\d{2})-(\d{4})$/)
+    if (lastInvoice?.number) {
+      const match = lastInvoice.number.match(/^(FF|FP)(\d{2})-(\d{4})$/)
       if (match) {
-        nextSeq = parseInt(match[2], 10) + 1
+        nextSeq = parseInt(match[3], 10) + 1
       }
     }
-    const invoiceNumber = `${yearShort}-${nextSeq.toString().padStart(4, '0')}`
 
-    // Find or use clientId if customer is present
-    let clientId: string | null = null
-    if (customer?.id) {
-      clientId = customer.id
-    }
-
-    if (!clientId) {
-      return NextResponse.json(
-        { message: 'A valid client is required to create an invoice.' },
-        { status: 400 }
-      )
-    }
-    const id = skuId('FA')
+    const invoiceNumber = `${prefix}${nextSeq.toString().padStart(4, '0')}`
+    const id = skuId(type === 'FINAL' ? 'FF' : 'FP')
     if (!id) {
       return NextResponse.json(
         { message: 'Failed to generate invoice ID.' },
@@ -74,22 +80,35 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Store items and cart details in metadata (since Radiator[] is a relation, not a nested create)
+    const hasValidClient = !!customer?.id
+
+    if (!hasValidClient && type === 'FINAL') {
+      return NextResponse.json(
+        { message: 'A valid client is required to create a FINAL invoice.' },
+        { status: 400 }
+      )
+    }
+
     const invoice = await prisma.invoice.create({
       data: {
         id,
         number: invoiceNumber,
-        customerName: customer?.name || null,
-        clientId,
+        type,
+        clientName: customer?.name,
+        clientAddress: customer?.address,
+        clientId: hasValidClient ? customer.id! : undefined,
         subtotal,
         tax,
         total,
-        items: {
-          connect: items.map((item) => ({
-            id: item.id
-          }))
-        },
+        ...(type === 'FINAL'
+          ? {
+              items: {
+                connect: items.map((item) => ({ id: item.id }))
+              }
+            }
+          : {}),
         metadata: {
+          ...(hasValidClient ? {} : { client: customer }),
           items: items.map((item) => ({
             id: item.id,
             label: item.name,
@@ -100,6 +119,7 @@ export async function POST(req: NextRequest) {
         }
       }
     })
+
     revalidatePath('/dashboard/ledger')
     return NextResponse.json({ id: invoice.id })
   } catch (error: any) {

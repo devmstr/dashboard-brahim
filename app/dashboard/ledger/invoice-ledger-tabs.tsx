@@ -48,13 +48,13 @@ export default function InvoiceLedgerTabs({
                 value="normal"
                 className="flex items-center gap-2 text-sm font-medium"
               >
-                Factures Final
+                Final
               </TabsTrigger>
               <TabsTrigger
                 value="draft"
                 className="flex items-center gap-2 text-sm font-medium"
               >
-                Factures Proforma
+                Proforma
               </TabsTrigger>
             </TabsList>
           </div>

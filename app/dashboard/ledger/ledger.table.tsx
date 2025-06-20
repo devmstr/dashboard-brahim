@@ -224,15 +224,29 @@ export function LedgerTable({
             const invoice = await res.json()
             setInvoiceData({
               id: invoice.id,
-              invoiceNumber: invoice.number,
+              invoiceNumber:
+                invoice.type === 'PROFORMA' ? 'PROFORMA' : invoice.number,
               qrAddress: invoice.id,
-              paymentMode: invoice.metadata.paymentType as string,
+              paymentMode:
+                (invoice.metadata.paymentType as string) || 'À terme',
               client: {
-                name: invoice.Client?.name || invoice.customerName || '',
-                address: invoice.Client?.Address?.street || '',
-                rc: invoice.Client?.tradeRegisterNumber || '',
-                nif: invoice.Client?.fiscalNumber || '',
-                ai: invoice.Client?.statisticalIdNumber || ''
+                name: invoice.Client?.name || invoice.clientName || '',
+                address:
+                  invoice.Client?.Address?.street ||
+                  invoice.clientAddress ||
+                  '',
+                rc:
+                  invoice.Client?.tradeRegisterNumber ||
+                  invoice.metadata.client.rc ||
+                  '',
+                nif:
+                  invoice.Client?.fiscalNumber ||
+                  invoice.metadata.client.nif ||
+                  '',
+                ai:
+                  invoice.Client?.statisticalIdNumber ||
+                  invoice.metadata.client.ai ||
+                  ''
               },
               items: invoice.metadata.items,
               metadata: invoice.metadata

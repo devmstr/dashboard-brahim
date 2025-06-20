@@ -1,4 +1,4 @@
-import { InvoicePrinterWrapper } from '@/app/dashboard/printing/[id]/invoice-client-wrapper'
+import { InvoicePrinterWrapper } from './invoice-client-wrapper'
 import ProformaInvoice from './proforma-invoice'
 import prisma from '@/lib/db'
 
