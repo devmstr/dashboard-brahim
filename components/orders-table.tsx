@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown } from 'lucide-react'
+import { ArrowUpDown, ChevronDown, Download, Loader2 } from 'lucide-react'
 import * as React from 'react'
 import { format } from 'date-fns'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -53,6 +53,9 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { usePersistedState } from '@/hooks/use-persisted-state'
+import { Checkbox } from './ui/checkbox'
+import { toast } from '@/hooks/use-toast'
+import * as XLSX from 'xlsx'
 
 interface OrderTableProps {
   data: OrderTableEntry[]
@@ -85,6 +88,36 @@ type ColumnAccess = {
 // Define column override options
 type ColumnOverride = Partial<ColumnDef<OrderTableEntry>>
 
+// XLSX Export Types
+interface OrderItemExportData {
+  index: number
+  label: string
+  quantity: number
+  deadline: string
+  clientName: string
+}
+
+interface DetailedOrder {
+  id: string
+  deadline: string
+  Client: {
+    name: string
+  }
+  OrdersItems: Array<{
+    id: string
+    quantity: number
+    Radiator: {
+      label: string
+      Models: {
+        name: string
+        Family: {
+          Brand: { name: string }
+        }
+      }[]
+    }
+  }>
+}
+
 export function OrderTable({
   data,
   userRole = 'GUEST',
@@ -111,6 +144,9 @@ export function OrderTable({
   )
   const [columnVisibility, setColumnVisibility] =
     usePersistedState<VisibilityState>('order-table-columns-visibility', {})
+
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [isExporting, setIsExporting] = React.useState(false)
 
   React.useEffect(() => {
     table.setPageSize(limit)
@@ -142,6 +178,144 @@ export function OrderTable({
     )
   }
 
+  // XLSX Export Functions
+  const fetchOrderDetails = async (
+    orderIds: string[]
+  ): Promise<DetailedOrder[]> => {
+    try {
+      const orderPromises = orderIds.map(async (id) => {
+        const response = await fetch(`/api/orders/${id}`)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch order ${id}`)
+        }
+        return response.json()
+      })
+
+      const orders = await Promise.all(orderPromises)
+      return orders
+    } catch (error) {
+      console.error('Error fetching order details:', error)
+      throw error
+    }
+  }
+
+  const generateXLSXData = (orders: DetailedOrder[]): OrderItemExportData[] => {
+    const exportData: OrderItemExportData[] = []
+    let index = 1
+
+    orders.forEach((order) => {
+      order.OrdersItems.forEach((item) => {
+        const designation = item.Radiator?.Models?.[0]?.Family?.Brand?.name
+          ? `${item.Radiator.Models[0].Family.Brand.name} – ${item.Radiator.Models[0].name}`
+          : item.Radiator?.Models?.[0]?.name ?? item.Radiator?.label
+
+        exportData.push({
+          index: index++,
+          label: designation || 'N/A',
+          quantity: item.quantity,
+          deadline: order.deadline
+            ? format(new Date(order.deadline), 'dd/MM/yyyy')
+            : 'Non Déterminé',
+          clientName: order.Client?.name || 'N/A'
+        })
+      })
+    })
+
+    return exportData
+  }
+
+  const exportToXLSX = async () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+
+    if (selectedRows.length === 0) {
+      toast({
+        title: 'Aucune sélection',
+        description: 'Veuillez sélectionner au moins une commande à exporter.',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    setIsExporting(true)
+
+    try {
+      // Get selected order IDs
+      const selectedOrderIds = selectedRows.map((row) => row.original.id)
+
+      // Fetch detailed order data
+      const detailedOrders = await fetchOrderDetails(selectedOrderIds)
+
+      // Generate export data
+      const exportData = generateXLSXData(detailedOrders)
+
+      if (exportData.length === 0) {
+        toast({
+          title: 'Aucune donnée',
+          description: 'Aucun article trouvé dans les commandes sélectionnées.',
+          variant: 'destructive'
+        })
+        return
+      }
+
+      // Create workbook and worksheet
+      const workbook = XLSX.utils.book_new()
+      const worksheet = XLSX.utils.json_to_sheet(exportData, {
+        header: ['index', 'label', 'quantity', 'deadline', 'clientName']
+      })
+
+      // Set column headers in French
+      const headers = {
+        A1: 'N°',
+        B1: 'Désignation',
+        C1: 'Qté',
+        D1: 'Délai',
+        E1: 'Client'
+      }
+
+      Object.keys(headers).forEach((cell) => {
+        if (worksheet[cell]) {
+          worksheet[cell].v = headers[cell as keyof typeof headers]
+        }
+      })
+
+      // Set column widths
+      worksheet['!cols'] = [
+        { width: 10 }, // Index
+        { width: 30 }, // Label
+        { width: 15 }, // Deadline
+        { width: 25 } // Client Name
+      ]
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Articles Commandes')
+
+      // Generate filename with timestamp
+      const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss')
+      const filename = `commandes_articles_${timestamp}.xlsx`
+
+      // Save file
+      XLSX.writeFile(workbook, filename)
+
+      toast({
+        title: 'Export réussi',
+        description: `${exportData.length} articles exportés dans ${filename}`
+      })
+
+      // Clear selection after successful export
+      setRowSelection({})
+    } catch (error) {
+      console.error('Export error:', error)
+      toast({
+        title: "Erreur d'export",
+        description:
+          "Une erreur s'est produite lors de l'export. Veuillez réessayer.",
+        variant: 'destructive'
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   // Create default column definition
   const createDefaultColumnDef = (
     columnId: string
@@ -161,6 +335,28 @@ export function OrderTable({
 
   // Define column overrides for specific columns
   const columnOverrides: Record<string, ColumnOverride> = {
+    select: {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false
+    },
     id: {
       cell: ({ row }) => (
         <div className="flex items-center">
@@ -250,6 +446,18 @@ export function OrderTable({
 
   // Define all possible columns with their access rules
   const columnAccessRules: ColumnAccess[] = [
+    {
+      id: 'select',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
+      order: 0
+    },
     {
       id: 'id',
       roles: [
@@ -435,6 +643,7 @@ export function OrderTable({
             onChange={(event) => table.setGlobalFilter(event.target.value)}
             className="w-80"
           />
+
           <div className="hidden md:flex gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -500,6 +709,93 @@ export function OrderTable({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        </div>
+        <div className="hidden md:flex gap-3">
+          <Button
+            onClick={exportToXLSX}
+            disabled={
+              isExporting ||
+              table.getFilteredSelectedRowModel().rows.length === 0
+            }
+            variant="outline"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Export en cours...
+              </>
+            ) : (
+              <>
+                <Download className="mr-2 h-4 w-4" />
+                Exporter XLSX ({table.getFilteredSelectedRowModel().rows.length}
+                )
+              </>
+            )}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="ml-auto text-muted-foreground hover:text-foreground"
+              >
+                {t['columns'] || 'Columns'}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize text-muted-foreground hover:text-foreground "
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {t[column.id as keyof typeof t] || column.id}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="
+                text-muted-foreground hover:text-foreground
+              "
+              >
+                {t['limit'] || 'Limit'} ({limit}){' '}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="">
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={limit.toString()}
+                onValueChange={(value) => setLimit(Number.parseInt(value))}
+              >
+                {['10', '25', '50', '100'].map((value) => (
+                  <DropdownMenuRadioItem
+                    className={cn(
+                      'text-muted-foreground font-medium hover:text-primary',
+                      limit === Number.parseInt(value) && 'text-primary'
+                    )}
+                    key={value}
+                    value={value}
+                  >
+                    {value}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="rounded-md border">

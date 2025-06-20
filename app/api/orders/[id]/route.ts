@@ -32,7 +32,9 @@ export async function GET(
                   }
                 },
                 Price: true,
-                Models: true
+                Models: {
+                  include: { Family: { include: { Brand: true } } }
+                }
               }
             },
             Attachments: true

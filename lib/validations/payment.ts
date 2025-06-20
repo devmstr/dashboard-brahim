@@ -17,7 +17,7 @@ export const paymentSchema = z.object({
     .optional()
     .nullable()
     .default(null),
-  iban: z.string().optional().nullable().default(null),
+  iban: z.number().optional().nullable().default(null),
   depositor: z.string().optional().nullable().default(null)
 })
 
