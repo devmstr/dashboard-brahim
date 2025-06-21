@@ -153,9 +153,9 @@ model Invoice {
   date          DateTime       @default(now())
   clientName    String?
   clientAddress String?
-  type          InvoiceType? // e.g., "proforma", "final"
-  status        InvoiceStatus? // e.g., "paid", "unpaid", "overdue"
-  paymentMode   String? // e.g., "cash", "bank_transfer"
+  type          InvoiceType? //e.g., "proforma", "final"
+  status        InvoiceStatus? //e.g., "paid", "unpaid", "overdue"
+  paymentMode   String? //e.g., "cash", "bank_transfer"
   dueDate       DateTime?
   total         Float?
   subtotal      Float?
@@ -177,11 +177,12 @@ model Invoice {
 }
 
 model Price {
-  id            String     @id @default(cuid())
-  unit          Float      @default(0)
-  bulk          Float      @default(0)
-  bulkThreshold Int        @default(0)
-  Radiators     Radiator[]
+  id            String @id @default(cuid())
+  unit          Float  @default(0)
+  bulk          Float  @default(0)
+  bulkThreshold Int    @default(0)
+
+  Radiators Radiator[]
 
   @@map("prices")
 }
