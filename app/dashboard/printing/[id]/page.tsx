@@ -39,7 +39,7 @@ export default async function Page({ params }: { params: { id: string } }) {
         }
         qrAddress={invoice.id}
         client={{
-          name: invoice.Client?.name || invoice.customerName || '',
+          name: invoice.Client?.name || invoice.clientName || '',
           address: invoice.Client?.Address?.street || '',
           rc: invoice.Client?.tradeRegisterNumber || '',
           nif: invoice.Client?.fiscalNumber || '',

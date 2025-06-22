@@ -215,7 +215,11 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
                           R.I.B DU CLIENT
                         </FormLabel>
                         <FormControl>
-                          <Input {...field} value={field.value as string} />
+                          <Input
+                            {...field}
+                            type={'number'}
+                            value={Number(field.value)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

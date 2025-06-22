@@ -20,7 +20,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     key: 'pos'
   },
   {
-    title: 'Facture',
+    title: 'Facture Proforma',
     href: '/dashboard/printing',
     icon: 'bill',
     key: 'printing'
@@ -50,7 +50,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     key: 'db'
   },
   {
-    title: 'Registre des Factures',
+    title: 'Journal des Factures',
     href: '/dashboard/ledger',
     icon: 'ledger',
     key: 'ledger'

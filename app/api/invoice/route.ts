@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       data: {
         id,
         number: invoiceNumber,
-        customerName: customer?.name || null,
+        clientName: customer?.name || null,
         clientId,
         subtotal,
         tax,

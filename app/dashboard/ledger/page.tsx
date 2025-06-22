@@ -40,7 +40,7 @@ const Page = async () => {
       total: inv.total || 0,
       items: itemsCount,
       createdAt: inv.createdAt.toISOString(),
-      company: inv.Client?.name || inv.customerName || '',
+      company: inv.Client?.name || inv.clientName || '',
       phone: inv.Client?.phone || '',
       location: inv.Client?.Address?.street || ''
     }

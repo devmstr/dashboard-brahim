@@ -88,7 +88,7 @@ const Page: React.FC<PageProps> = async ({
         | 'Cheque'
         | 'À terme') || 'Espèces',
     bank: (payment?.bank as 'BEA' | 'BNA' | 'SGA' | 'AGB') || null,
-    iban: payment?.iban || null,
+    iban: Number(payment?.iban) || null,
     depositor: payment?.depositor || null,
     price: payment?.amount || 0,
     deposit: payment?.deposit || 0,

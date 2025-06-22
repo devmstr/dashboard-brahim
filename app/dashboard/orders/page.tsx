@@ -61,6 +61,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
 
   return (
     <Card className="">
+      {/* download all article button  */}
       <OrderTable data={data} userRole="SALES_AGENT" />
     </Card>
   )

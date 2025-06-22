@@ -72,6 +72,7 @@ import {
   DialogFooter,
   DialogTrigger
 } from '@/components/ui/dialog'
+import ReadOnlyInvoice from '@/components/readonly-invoice'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -787,7 +788,7 @@ export function LedgerTable({
           {invoiceData ? (
             <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
               <div ref={printRef}>
-                <Invoice
+                <ReadOnlyInvoice
                   className="max-w-[50rem] w-full"
                   id={invoiceData.id}
                   invoiceNumber={invoiceData.invoiceNumber}
@@ -796,7 +797,6 @@ export function LedgerTable({
                   client={invoiceData.client}
                   items={invoiceData.items}
                   metadata={invoiceData.metadata}
-                  readonly={true}
                 />
               </div>
             </ScrollArea>
