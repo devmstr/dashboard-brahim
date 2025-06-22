@@ -18,8 +18,9 @@ export enum SKU_PREFIX {
   CB = 'CB', // non confirmed order
   CL = 'CL', // client
   VE = 'VE', // model
-  PA = 'PA',
+  PA = 'PA', // payment
   FP = 'FP', // facture proforma
+  FF = 'FF', // facture final
   FL = 'FL' // file
 }
 
