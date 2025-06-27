@@ -781,9 +781,6 @@ export function LedgerTable({
 
       {/* Invoice Printing Dialog */}
       <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
-        <DialogTrigger asChild>
-          <div />
-        </DialogTrigger>
         <DialogContent className="p-0 max-w-[50rem]">
           {invoiceData ? (
             <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
@@ -877,6 +874,7 @@ function Actions({
             <span className="sr-only">edit</span>
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Button
             variant="ghost"

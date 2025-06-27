@@ -1,25 +1,43 @@
+'use client'
+import { EditClientForm } from '@/app/api/clients/[id]/edit-client.form'
 import { Card } from '@/components/card'
-// import { OneClientForm } from './one-client.form'
-import db from '@/lib/db'
-import { notFound } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
-interface Props {
+// Example of how to use the EditClientForm component
+export default function EditClientPage({
+  params: { id }
+}: {
   params: { id: string }
-}
+}) {
+  const [isEditing, setIsEditing] = useState(false)
+  const clientId = id
+  const router = useRouter()
 
-const Page: React.FC<Props> = async ({ params }: Props) => {
-  const client = await db.client.findUnique({
-    where: {
-      id: params.id
-    },
-    include: {
-      _count: {
-        select: { Orders: true }
-      }
-    }
-  })
-  if (!client) return notFound()
-  return <Card>{/* <OneClientForm data={client} /> */}</Card>
-}
+  const handleSuccess = (updatedClient: any) => {
+    console.log('Client updated successfully:', updatedClient)
+    setIsEditing(false)
+  }
 
-export default Page
+  const handleCancel = () => {
+    router.push('/dashboard/clients')
+    setIsEditing(false)
+  }
+
+  return (
+    <Card className="space-y-6">
+      <div className="">
+        <h1 className="text-2xl font-bold">Modifier le client</h1>
+        <p className="text-muted-foreground">
+          Modifiez les informations du client ci-dessous.
+        </p>
+      </div>
+
+      <EditClientForm
+        clientId={clientId}
+        onSuccess={handleSuccess}
+        onCancel={handleCancel}
+      />
+    </Card>
+  )
+}

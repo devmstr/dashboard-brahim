@@ -94,15 +94,11 @@ interface OrderItemExportData {
   label: string
   quantity: number
   deadline: string
-  clientName: string
 }
 
 interface DetailedOrder {
   id: string
   deadline: string
-  Client: {
-    name: string
-  }
   OrdersItems: Array<{
     id: string
     quantity: number
@@ -206,17 +202,18 @@ export function OrderTable({
     orders.forEach((order) => {
       order.OrdersItems.forEach((item) => {
         const designation = item.Radiator?.Models?.[0]?.Family?.Brand?.name
-          ? `${item.Radiator.Models[0].Family.Brand.name} – ${item.Radiator.Models[0].name}`
-          : item.Radiator?.Models?.[0]?.name ?? item.Radiator?.label
+          ? `${item.Radiator?.label} ,${item.Radiator.Models[0].Family.Brand.name} – ${item.Radiator.Models[0].name}`
+          : item.Radiator?.label
 
         exportData.push({
           index: index++,
-          label: designation || 'N/A',
+          label: designation.includes('0000X0000')
+            ? `${designation} --non confirmé--`
+            : designation || 'N/A',
           quantity: item.quantity,
           deadline: order.deadline
             ? format(new Date(order.deadline), 'dd/MM/yyyy')
-            : 'Non Déterminé',
-          clientName: order.Client?.name || 'N/A'
+            : 'Non Déterminé'
         })
       })
     })
@@ -260,7 +257,7 @@ export function OrderTable({
       // Create workbook and worksheet
       const workbook = XLSX.utils.book_new()
       const worksheet = XLSX.utils.json_to_sheet(exportData, {
-        header: ['index', 'label', 'quantity', 'deadline', 'clientName']
+        header: ['index', 'label', 'quantity', 'deadline']
       })
 
       // Set column headers in French
@@ -268,8 +265,7 @@ export function OrderTable({
         A1: 'N°',
         B1: 'Désignation',
         C1: 'Qté',
-        D1: 'Délai',
-        E1: 'Client'
+        D1: 'Délai'
       }
 
       Object.keys(headers).forEach((cell) => {
@@ -280,10 +276,10 @@ export function OrderTable({
 
       // Set column widths
       worksheet['!cols'] = [
-        { width: 10 }, // Index
-        { width: 30 }, // Label
-        { width: 15 }, // Deadline
-        { width: 25 } // Client Name
+        { width: 3 }, // Index
+        { width: 40 }, // Label
+        { width: 4 }, // Quantity
+        { width: 10 } // Deadline
       ]
 
       // Add worksheet to workbook

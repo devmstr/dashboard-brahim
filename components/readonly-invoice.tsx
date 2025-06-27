@@ -34,6 +34,7 @@ export interface ReadOnlyInvoiceProps {
   invoiceNumber: string
   qrAddress: string
   paymentMode: string
+  note?: string
   client: {
     name: string
     address?: string
@@ -65,6 +66,7 @@ export default function ReadOnlyInvoice({
   invoiceNumber,
   qrAddress,
   paymentMode,
+  note,
   client,
   items = [],
   className,
@@ -390,12 +392,13 @@ export default function ReadOnlyInvoice({
                 <p>{metadata?.paymentType || paymentMode}</p>
               </div>
             ))}
-          {metadata?.note && (
-            <div className="space-y-1">
-              <h3 className="font-semibold">REMARQUE</h3>
-              <p>{metadata.note}</p>
-            </div>
-          )}
+          {metadata?.note ||
+            (note && (
+              <div className="space-y-1">
+                <h3 className="font-semibold">REMARQUE</h3>
+                <p>{metadata?.note || note}</p>
+              </div>
+            ))}
         </div>
       </div>
     </div>

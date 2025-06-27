@@ -49,36 +49,89 @@ export async function PUT(
 
     // Check if client exists
     const existingClient = await prisma.client.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        Address: true
+      }
     })
 
     if (!existingClient) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    // Update client
-    const updatedClient = await prisma.client.update({
+    // Start a transaction to update both client and address
+    const updatedClient = await prisma.$transaction(async (tx) => {
+      // Update client information
+      const client = await tx.client.update({
+        where: { id },
+        data: {
+          name: body.name,
+          phone: body.phone,
+          email: body.email,
+          isCompany:
+            body.isCompany !== undefined
+              ? body.isCompany
+              : existingClient.isCompany,
+          label: body.label,
+          website: body.website,
+          tradeRegisterNumber: body.tradeRegisterNumber,
+          fiscalNumber: body.fiscalNumber,
+          taxIdNumber: body.taxIdNumber,
+          statisticalIdNumber: body.statisticalIdNumber,
+          registrationArticle: body.registrationArticle,
+          approvalNumber: body.approvalNumber
+        }
+      })
+
+      // Update address if provided
+      if (body.address && existingClient.Address) {
+        await tx.address.update({
+          where: { id: existingClient.Address.id },
+          data: {
+            street: body.address.street,
+            cityId: body.address.cityId,
+            provinceId: body.address.provinceId,
+            countryId: body.address.countryId // must be a valid Country.id
+          }
+        })
+      } else if (body.address && !existingClient.Address) {
+        // Create new address if client doesn't have one
+        const newAddress = await tx.address.create({
+          data: {
+            street: body.address.street,
+            cityId: body.address.cityId,
+            provinceId: body.address.provinceId,
+            countryId: body.address.countryId // must be a valid Country.id
+          }
+        })
+
+        // Link the new address to the client
+        await tx.client.update({
+          where: { id },
+          data: {
+            addressId: newAddress.id
+          }
+        })
+      }
+
+      return client
+    })
+
+    // Fetch the updated client with all relations
+    const clientWithRelations = await prisma.client.findUnique({
       where: { id },
-      data: {
-        name: body.name,
-        phone: body.phone,
-        email: body.email,
-        isCompany:
-          body.isCompany !== undefined
-            ? body.isCompany
-            : existingClient.isCompany,
-        website: body.website,
-        tradeRegisterNumber: body.tradeRegisterNumber,
-        fiscalNumber: body.fiscalNumber,
-        taxIdNumber: body.taxIdNumber,
-        statisticalIdNumber: body.statisticalIdNumber,
-        registrationArticle: body.registrationArticle,
-        approvalNumber: body.approvalNumber
-        // add the address informations
+      include: {
+        Address: {
+          include: {
+            City: true,
+            Province: true,
+            Country: true
+          }
+        }
       }
     })
 
-    return NextResponse.json(updatedClient)
+    return NextResponse.json(clientWithRelations)
   } catch (error) {
     console.error('Error updating client:', error)
     return NextResponse.json(
@@ -98,16 +151,36 @@ export async function DELETE(
 
     // Check if client exists
     const existingClient = await prisma.client.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        Address: true
+      }
     })
 
     if (!existingClient) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    // Delete client
-    await prisma.client.delete({
-      where: { id }
+    // Delete client and address in a transaction
+    await prisma.$transaction(async (tx) => {
+      // Delete client (this will also remove the reference to address)
+      await tx.client.delete({
+        where: { id }
+      })
+
+      // Delete address if it exists and is not referenced by other clients
+      if (existingClient.Address) {
+        const addressUsageCount = await tx.client.count({
+          where: { addressId: existingClient.Address.id }
+        })
+
+        // If no other clients use this address, delete it
+        if (addressUsageCount === 0) {
+          await tx.address.delete({
+            where: { id: existingClient.Address.id }
+          })
+        }
+      }
     })
 
     return NextResponse.json(
