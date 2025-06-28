@@ -46,7 +46,8 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 import Invoice, {
-  type InvoiceProps
+  InvoiceMetadata,
+  InvoiceProps
 } from '@/app/dashboard/printing/[id]/invoice'
 import { toast } from '@/hooks/use-toast'
 import {
@@ -69,7 +70,6 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogTitle,
   DialogTrigger
 } from '@/components/ui/dialog'
 import ReadOnlyInvoice from '@/components/readonly-invoice'
@@ -210,6 +210,46 @@ export function LedgerTable({
   }
 
   // Remove the broken React.useCallback and define openPrintDialog as a stable function
+  const [showInvoice, setShowInvoice] = React.useState(false)
+  const [invoiceData, setInvoiceData] = React.useState<InvoiceProps | null>(
+    null
+  )
+
+  const openPrintDialog = React.useCallback(
+    async (id: string) => {
+      setShowInvoice(true)
+      if (!invoiceData) {
+        try {
+          const res = await fetch(`/api/invoice/${id}`)
+          if (res.ok) {
+            const invoice = await res.json()
+            setInvoiceData({
+              id: invoice.id,
+              invoiceNumber: invoice.number,
+              qrAddress: invoice.id,
+              paymentMode: invoice.metadata.paymentType as string,
+              client: {
+                name: invoice.Client?.name || invoice.customerName || '',
+                address: invoice.Client?.Address?.street || '',
+                rc: invoice.Client?.tradeRegisterNumber || '',
+                nif: invoice.Client?.fiscalNumber || '',
+                ai: invoice.Client?.statisticalIdNumber || ''
+              },
+              items: invoice.metadata.items,
+              metadata: invoice.metadata
+            })
+          }
+        } catch (e) {
+          toast({
+            title: 'Erreur',
+            description: 'Impossible de charger la facture.',
+            variant: 'destructive'
+          })
+        }
+      }
+    },
+    [invoiceData]
+  )
 
   // Define column overrides for specific columns
   const columnOverrides: Record<string, ColumnOverride> = {
@@ -219,9 +259,12 @@ export function LedgerTable({
           original: { id }
         }
       }) => (
-        <div className="hover:text-secondary hover:font-bold hover:underline hover:cursor-pointer">
+        <button
+          onClick={() => openPrintDialog(id)}
+          className="hover:text-secondary hover:font-bold hover:underline hover:cursor-pointer"
+        >
           {id}
-        </div>
+        </button>
       )
     },
     total: {
@@ -259,7 +302,9 @@ export function LedgerTable({
       header: () => (
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
-      cell: ({ row }) => <Actions id={row.original.id} userRole={userRole} />
+      cell: ({ row }) => (
+        <Actions openPrintDialog={openPrintDialog} id={row.original.id} />
+      )
     }
   }
 
@@ -481,6 +526,24 @@ export function LedgerTable({
     link.click()
     document.body.removeChild(link)
   }
+
+  const printRef = React.useRef<HTMLDivElement>(null)
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Facture-${invoiceData?.invoiceNumber}`,
+    pageStyle: `
+          @page { 
+            size: A4;
+            margin: 0;
+          }
+          @media print {
+            body { 
+              -webkit-print-color-adjust: exact; 
+            }
+          }
+        `
+  })
 
   return (
     <div className="w-full space-y-4">
@@ -717,32 +780,64 @@ export function LedgerTable({
       </div>
 
       {/* Invoice Printing Dialog */}
+      <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
+        <DialogContent className="p-0 max-w-[50rem]">
+          {invoiceData ? (
+            <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
+              <div ref={printRef}>
+                <ReadOnlyInvoice
+                  className="max-w-[50rem] w-full"
+                  id={invoiceData.id}
+                  invoiceNumber={invoiceData.invoiceNumber}
+                  qrAddress={invoiceData.qrAddress}
+                  paymentMode={invoiceData.paymentMode}
+                  client={invoiceData.client}
+                  items={invoiceData.items}
+                  metadata={invoiceData.metadata}
+                />
+              </div>
+            </ScrollArea>
+          ) : (
+            <div className="p-8 flex gap-2 items-center justify-center">
+              <Icons.spinner className="w-4 h-4 animate-spin" /> Loading...
+            </div>
+          )}
+          <DialogFooter className="flex w-full gap-3">
+            <Button
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'w-full text-foreground rounded-t-none '
+              )}
+              onClick={() => handlePrint()}
+            >
+              <Icons.printer className="mr-2 h-4 w-4" />
+              Imprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
 function Actions({
   id,
+  openPrintDialog,
   userRole = 'GUEST'
 }: {
   id: string
+  openPrintDialog: (id: string) => void
   userRole?: UserRole
 }) {
   const { refresh } = useRouter()
   const [open, setOpen] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
-  const [showInvoice, setShowInvoice] = React.useState(false)
-  const [invoiceData, setInvoiceData] = React.useState<InvoiceProps | null>(
-    null
-  )
-  const printRef = React.useRef<HTMLDivElement>(null)
 
   const handleDelete = async () => {
     setLoading(true)
     try {
       const res = await fetch(`/api/invoice/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Erreur lors de la suppression.')
-
       toast({
         title: 'Facture supprimée',
         description: 'La facture a été marquée comme supprimée.',
@@ -760,58 +855,6 @@ function Actions({
       setLoading(false)
     }
   }
-
-  const formatInvoiceData = (invoice: any): InvoiceProps => ({
-    id: invoice.id,
-    invoiceNumber: invoice.type === 'PROFORMA' ? 'PROFORMA' : invoice.number,
-    qrAddress: invoice.id,
-    paymentMode:
-      invoice.type === 'PROFORMA' ? 'À terme' : invoice.metadata.paymentType,
-    client:
-      invoice.type === 'PROFORMA'
-        ? {
-            name: invoice.metadata?.client?.name || '',
-            address: invoice.metadata?.client?.address || '',
-            rc: invoice.metadata?.client?.rc || '',
-            nif: invoice.metadata?.client?.nif || '',
-            ai: invoice.metadata?.client?.ai || ''
-          }
-        : {
-            name: invoice.Client?.name || '',
-            address: invoice.Client?.Address?.street || '',
-            rc: invoice.Client?.tradeRegisterNumber || '',
-            nif: invoice.Client?.fiscalNumber || '',
-            ai: invoice.Client?.statisticalIdNumber || ''
-          },
-    items: invoice.metadata.items,
-    metadata: invoice.metadata
-  })
-
-  const openPrintDialog = React.useCallback(async (id: string) => {
-    setShowInvoice(true)
-    try {
-      const res = await fetch(`/api/invoice/${id}`)
-      if (!res.ok) throw new Error('Fetch error')
-      const invoice = await res.json()
-      setInvoiceData(formatInvoiceData(invoice))
-    } catch (e) {
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de charger la facture.',
-        variant: 'destructive'
-      })
-    }
-  }, [])
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Facture-${invoiceData?.invoiceNumber}`,
-    pageStyle: `
-      @page { size: A4; margin: 0; }
-      @media print { body { -webkit-print-color-adjust: exact; } }
-    `
-  })
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
@@ -833,50 +876,13 @@ function Actions({
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0"
-              >
-                <Icons.printer className="w-4 h-4 group-hover:text-primary" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="p-0 max-w-[50rem]">
-              {invoiceData ? (
-                <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
-                  <div ref={printRef}>
-                    <ReadOnlyInvoice
-                      className="max-w-[50rem] w-full"
-                      id={invoiceData.id}
-                      invoiceNumber={invoiceData.invoiceNumber}
-                      qrAddress={invoiceData.qrAddress}
-                      paymentMode={invoiceData.paymentMode}
-                      client={invoiceData.client}
-                      items={invoiceData.items}
-                      metadata={invoiceData.metadata}
-                    />
-                  </div>
-                </ScrollArea>
-              ) : (
-                <div className="p-8 flex gap-2 items-center justify-center">
-                  <Icons.spinner className="w-4 h-4 animate-spin" /> Loading...
-                </div>
-              )}
-              <DialogFooter className="flex w-full gap-3">
-                <Button
-                  className={cn(
-                    buttonVariants({ variant: 'outline' }),
-                    'w-full text-foreground rounded-t-none '
-                  )}
-                  onClick={() => handlePrint()}
-                >
-                  <Icons.printer className="mr-2 h-4 w-4" />
-                  Imprimer
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="ghost"
+            className="flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0"
+            onClick={() => openPrintDialog(id)}
+          >
+            <Icons.printer className="w-4 h-4 group-hover:text-primary" />
+          </Button>
         </DropdownMenuItem>
         {userRole == 'ACCOUNTANT' && (
           <>
