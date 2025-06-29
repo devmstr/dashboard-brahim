@@ -10,9 +10,10 @@ import { Content } from '@tiptap/react'
 
 export enum SKU_PREFIX {
   RA = 'RA', // radiator
-  AR = 'AR', // order item
-  RE = 'RE', // renovation (typeof radiator)
-  FA = 'FA', // core (typeof radiator)
+  RE = 'RE', // Radiateur renovation (typeof radiator)
+  FA = 'FA', // Faisceau
+  FE = 'FE', // Faisceau Empalé
+  AR = 'AR', // order item (article)
   AU = 'AU', // Other (typeof order item)
   CO = 'CO', // order
   CB = 'CB', // non confirmed order

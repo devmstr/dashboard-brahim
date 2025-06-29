@@ -127,10 +127,12 @@ model Address {
 
 // RADIATOR, INVENTORY, COMPONENTS
 model Inventory {
-  id        String     @id @default(cuid())
-  level     Int        @default(0)
-  alertAt   Int        @default(0)
-  maxLevel  Int        @default(0)
+  id       String  @id @default(cuid())
+  level    Int     @default(0) // Current inventory level
+  alertAt  Int     @default(10) // Minimum level to trigger an alert
+  maxLevel Int     @default(500) // Maximum level for inventory
+  location String?
+
   Radiators Radiator[]
 
   @@map("inventories")
@@ -153,10 +155,14 @@ model Invoice {
   date          DateTime       @default(now())
   clientName    String?
   clientAddress String?
-  type          InvoiceType? //e.g., "proforma", "final"
+  clientRC      String? //e.g., "RC123456"
+  clientNif     String? //e.g., "NIF123456"
+  clientAi      String? //e.g., "AI123456"
+  type          InvoiceType    @default(FINAL) //e.g., "proforma", "final"
   status        InvoiceStatus? //e.g., "paid", "unpaid", "overdue"
   paymentMode   String? //e.g., "cash", "bank_transfer"
   dueDate       DateTime?
+  note          String? // Additional notes or comments
   total         Float?
   subtotal      Float?
   tax           Float?
@@ -177,10 +183,14 @@ model Invoice {
 }
 
 model Price {
-  id            String @id @default(cuid())
-  unit          Float  @default(0)
-  bulk          Float  @default(0)
-  bulkThreshold Int    @default(0)
+  id            String   @id @default(cuid())
+  unit          Float    @default(0)
+  unitTTC       Float    @default(0) // Including tax
+  bulk          Float    @default(0)
+  bulkTTC       Float    @default(0) // Including tax
+  bulkThreshold Int      @default(100) // Minimum quantity for bulk pricing
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   Radiators Radiator[]
 
@@ -194,7 +204,7 @@ model Radiator {
   dir         String?
   cooling     String?
   barcode     String?  @unique
-  label       String?
+  label       String?  @unique
   isActive    Boolean? @default(false)
   inventoryId String?
   priceId     String?
@@ -217,6 +227,7 @@ model Radiator {
 enum ComponentType {
   COLLECTOR
   CORE
+  TUBE
 }
 
 model Component {
@@ -235,11 +246,12 @@ model Component {
 // MATERIAL SYSTEM
 
 model Material {
-  id        String          @id @default(cuid())
-  reference String?         @unique
-  name      String
-  unit      String // e.g., "grams", "pieces", "meters", "cm²"
-  Usages    MaterialUsage[]
+  id          String          @id @default(cuid())
+  reference   String?         @unique
+  name        String
+  description String? // e.g., "High-quality steel for radiator cores"
+  unit        String // e.g., "grams", "pieces", "meters", "cm²"
+  Usages      MaterialUsage[]
 
   @@map("materials")
 }

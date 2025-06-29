@@ -33,7 +33,7 @@ export interface ReadOnlyInvoiceProps {
   id: string
   invoiceNumber: string
   qrAddress: string
-  paymentMode: string
+  paymentMode?: string
   note?: string
   client: {
     name: string
@@ -65,7 +65,7 @@ export default function ReadOnlyInvoice({
   id,
   invoiceNumber,
   qrAddress,
-  paymentMode,
+  paymentMode = 'Espèce',
   note,
   client,
   items = [],
@@ -197,7 +197,7 @@ export default function ReadOnlyInvoice({
         </div>
         <div className="w-2/4 flex justify-center text-center">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {invoiceNumber}
+            FACTURE: {invoiceNumber.replace(/FF|FP/g, '')}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end text-right text-sm font-geist-sans">

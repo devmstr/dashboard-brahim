@@ -223,20 +223,21 @@ export function LedgerTable({
           const res = await fetch(`/api/invoice/${id}`)
           if (res.ok) {
             const invoice = await res.json()
+            const client = {
+              name: invoice.clientName || '',
+              address: invoice.clientAddress || '',
+              rc: invoice.clientRC || '',
+              nif: invoice.clientNif || '',
+              ai: invoice.clientAi || ''
+            }
             setInvoiceData({
               id: invoice.id,
               invoiceNumber: invoice.number,
               qrAddress: invoice.id,
               paymentMode: invoice.metadata.paymentType as string,
-              client: {
-                name: invoice.Client?.name || invoice.customerName || '',
-                address: invoice.Client?.Address?.street || '',
-                rc: invoice.Client?.tradeRegisterNumber || '',
-                nif: invoice.Client?.fiscalNumber || '',
-                ai: invoice.Client?.statisticalIdNumber || ''
-              },
               items: invoice.metadata.items,
-              metadata: invoice.metadata
+              metadata: invoice.metadata,
+              client
             })
           }
         } catch (e) {

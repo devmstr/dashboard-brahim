@@ -10,6 +10,8 @@ const InvoiceSchema = z.object({
       id: z.string().nullable().optional(),
       name: z.string().optional(),
       address: z.string().optional(),
+      addressId: z.string().optional(),
+      label: z.string().optional(),
       rc: z.string().optional(),
       nif: z.string().optional(),
       ai: z.string().optional()
@@ -27,15 +29,27 @@ const InvoiceSchema = z.object({
     .min(1, 'At least one item is required'),
   type: z.enum(['PROFORMA', 'FINAL']).optional(),
   subtotal: z.number(),
+  paymentMode: z
+    .enum([
+      'Espèces',
+      'Versement',
+      'Espèces + Versement',
+      'Virement',
+      'Cheque',
+      'À terme'
+    ])
+    .optional(),
+  dueDate: z.string().optional(),
+  note: z.string().optional(),
+  status: z.enum(['PAID', 'UNPAID', 'OVERDUE']).optional(),
   tax: z.number(),
-  total: z.number()
+  total: z.number(),
+  metadata: z.any().optional()
 })
 
 export async function POST(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const isDraft = searchParams.get('isDraft') === 'true'
-
     const body = await req.json()
     const parsed = InvoiceSchema.safeParse(body)
 
@@ -46,15 +60,85 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { customer, items, subtotal, tax, total } = parsed.data
+    const {
+      customer,
+      items,
+      subtotal,
+      tax,
+      total,
+      type,
+      paymentMode,
+      dueDate,
+      note,
+      status,
+      metadata
+    } = parsed.data
 
-    // Final or Proforma?
-    const type = parsed.data.type || (isDraft ? 'PROFORMA' : 'FINAL')
+    // Complete customer object if not completed
+    let client = customer
 
+    const existedClient = await prisma.client.findUnique({
+      where: { id: customer?.id || undefined },
+      include: { Address: true }
+    })
+
+    if (existedClient) {
+      client = {
+        ...customer,
+        id: existedClient.id,
+        name: existedClient.name || customer?.name,
+        label: existedClient.label || customer?.label,
+        address: existedClient.Address?.street || customer?.address,
+        rc: existedClient.tradeRegisterNumber || customer?.rc,
+        nif: existedClient.fiscalNumber || customer?.nif,
+        ai: existedClient.statisticalIdNumber || customer?.ai
+      }
+    } else {
+      client = { ...customer, id: null }
+    }
+
+    // Validate required customer fields
+    if (client && !client.name) {
+      return NextResponse.json(
+        { message: 'Customer name is required.' },
+        { status: 400 }
+      )
+    }
+    if (client && !client.address) {
+      return NextResponse.json(
+        { message: 'Customer address is required.' },
+        { status: 400 }
+      )
+    }
+    if (client && !client.rc) {
+      return NextResponse.json(
+        { message: 'Customer trade register number (RC) is required.' },
+        { status: 400 }
+      )
+    }
+    if (client && !client.nif) {
+      return NextResponse.json(
+        { message: 'Customer fiscal number (NIF) is required.' },
+        { status: 400 }
+      )
+    }
+    if (client && !client.ai) {
+      return NextResponse.json(
+        { message: 'Customer statistical ID number (AI) is required.' },
+        { status: 400 }
+      )
+    }
+    if (!items || items.length === 0) {
+      return NextResponse.json(
+        { message: 'At least one item is required.' },
+        { status: 400 }
+      )
+    }
+
+    // Determine invoice type
     const now = new Date()
     const yearShort = now.getFullYear().toString().slice(-2)
     const prefix = (type === 'FINAL' ? 'FF' : 'FP') + yearShort + '-'
-
     const lastInvoice = await prisma.invoice.findFirst({
       where: {
         number: { startsWith: prefix },
@@ -62,7 +146,6 @@ export async function POST(req: NextRequest) {
       },
       orderBy: { createdAt: 'desc' }
     })
-
     let nextSeq = 1
     if (lastInvoice?.number) {
       const match = lastInvoice.number.match(/^(FF|FP)(\d{2})-(\d{4})$/)
@@ -70,7 +153,6 @@ export async function POST(req: NextRequest) {
         nextSeq = parseInt(match[3], 10) + 1
       }
     }
-
     const invoiceNumber = `${prefix}${nextSeq.toString().padStart(4, '0')}`
     const id = skuId(type === 'FINAL' ? 'FF' : 'FP')
     if (!id) {
@@ -79,27 +161,26 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       )
     }
-
-    const hasValidClient = !!customer?.id
-
-    if (!hasValidClient && type === 'FINAL') {
-      return NextResponse.json(
-        { message: 'A valid client is required to create a FINAL invoice.' },
-        { status: 400 }
-      )
-    }
-
+    const hasValidClient = !!client?.id
+    // Create invoice
     const invoice = await prisma.invoice.create({
       data: {
         id,
         number: invoiceNumber,
         type,
-        clientName: customer?.name,
-        clientAddress: customer?.address,
-        clientId: hasValidClient ? customer.id! : undefined,
+        clientName: client?.name,
+        clientAddress: client?.address,
+        clientNif: client?.nif,
+        clientRC: client?.rc,
+        clientAi: client?.ai,
+        clientId: client?.id,
         subtotal,
         tax,
         total,
+        paymentMode,
+        dueDate: dueDate ? new Date(dueDate) : undefined,
+        note,
+        status,
         ...(type === 'FINAL'
           ? {
               items: {
@@ -108,18 +189,18 @@ export async function POST(req: NextRequest) {
             }
           : {}),
         metadata: {
-          ...(hasValidClient ? {} : { client: customer }),
+          ...(hasValidClient ? {} : { client: client }),
           items: items.map((item) => ({
             id: item.id,
             label: item.name,
             price: item.price,
             quantity: item.quantity,
             amount: item.price * item.quantity
-          }))
+          })),
+          ...(metadata || {})
         }
       }
     })
-
     revalidatePath('/dashboard/ledger')
     return NextResponse.json({ id: invoice.id })
   } catch (error: any) {

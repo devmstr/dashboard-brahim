@@ -39,7 +39,8 @@ export default function PosDashboard() {
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id)
-      const availableStock = product.stockLevel ?? Infinity
+      // const availableStock = product.stockLevel ?? Infinity
+      const availableStock = Infinity
       if (existingItem) {
         if (existingItem.quantity >= availableStock) {
           // inform the user that they can't add more than available stock
@@ -117,6 +118,11 @@ export default function PosDashboard() {
       },
       body: JSON.stringify({
         customer: selectedCustomer,
+        type: 'FINAL',
+        paymentMode: 'Espèces',
+        dueDate: new Date().toISOString(),
+        // note: 'Paiement en espèces',
+        status: 'PAID',
         items: cart,
         subtotal,
         tax,

@@ -77,6 +77,10 @@ export interface InvoiceProps {
     ai: string
   }
   items: InvoiceItem[]
+  note?: string
+  status?: string
+  type?: string
+  dueDate?: Date
   metadata?: InvoiceMetadata
   className?: string
   readonly?: boolean
@@ -91,6 +95,11 @@ export default function Invoice({
   items = [],
   className,
   metadata,
+  type = 'FINAL',
+  dueDate = new Date(),
+  note: inputNote = '',
+  status = 'PAID',
+
   readonly = false
 }: InvoiceProps) {
   useEffect(() => {
@@ -109,7 +118,7 @@ export default function Invoice({
   const scrollRef = useRef<HTMLDivElement>(null)
   const scrollYProgress = useScrollProgress(scrollRef)
   // const [showScrollIndicator, setShowScrollIndicator] = useState(true)
-  const [note, setNote] = useState<string>(metadata?.note as string)
+  const [note, setNote] = useState<string>(metadata?.note || inputNote)
   const [data, setData] = useState<InvoiceItem[]>(items)
   const [refundRate, setRefundRate] = useState<number>(
     metadata?.refundRate as number
@@ -131,7 +140,7 @@ export default function Invoice({
   const [editingItemId, setEditingItemId] = useState<number | null>(null)
   const [paymentType, setPaymentType] = useState<
     (typeof PAYMENT_TYPES)[number]
-  >(metadata?.paymentType as (typeof PAYMENT_TYPES)[number])
+  >((metadata?.paymentType as (typeof PAYMENT_TYPES)[number]) || paymentMode)
   const [editedItems, setEditedItems] = useState<InvoiceItem[]>(
     metadata?.items as InvoiceItem[]
   )
@@ -287,7 +296,7 @@ export default function Invoice({
         </div>
         <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {invoiceNumber}
+            FACTURE: {invoiceNumber.replace(/FF|FP/g, '')}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">

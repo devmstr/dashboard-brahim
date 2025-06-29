@@ -75,8 +75,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
     !isContentEmpty(data.note as Content)
   )
   const router = useRouter()
-  // console.log('input data : ', orderItem)
-  console.log('data.Core.dimensions', data.Core.dimensions)
 
   // Form initialization with values from the existing orderItem
   const form = useForm<OrderItem>({
@@ -85,8 +83,8 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       Core: {
         ...data.Core,
         dimensions: {
-          height: data.Core.height || data.Core.dimensions?.height,
-          width: data.Core.width || data.Core.dimensions?.width
+          height: data.Core.height || data.Core.dimensions?.height || 0,
+          width: data.Core.width || data.Core.dimensions?.width || 0
         }
       },
       Collector: {
@@ -94,13 +92,16 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
         dimensions1: {
           width:
             data.Collectors?.top?.dimensions?.width ||
-            data.Collectors?.top?.width,
+            data.Collectors?.top?.width ||
+            0,
           height:
             data.Collectors?.top?.dimensions?.height ||
-            data.Collectors?.top?.height,
+            data.Collectors?.top?.height ||
+            0,
           thickness:
             data.Collectors?.top?.dimensions?.thickness ||
-            data.Collectors?.top?.thickness
+            data.Collectors?.top?.thickness ||
+            0
         },
         dimensions2: {
           width: data.Collectors?.bottom?.dimensions?.width,
@@ -123,35 +124,35 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   const width = form.watch('Collector.dimensions1.width')
 
   // Validate dimensions when type is "Faisceau"
-  useEffect(() => {
-    const isFaisceau = type === 'Faisceau'
+  // useEffect(() => {
+  //   const isFaisceau = type === 'Faisceau'
 
-    const Core = form.getValues('Core.dimensions')
-    const Collector = form.getValues('Collector.dimensions1')
+  //   const Core = form.getValues('Core.dimensions')
+  //   const Collector = form.getValues('Collector.dimensions1')
 
-    const missingCore = !Core?.width || !Core?.height
-    const missingCollector = !Collector?.width || !Collector?.height
+  //   const missingCore = !Core?.width || !Core?.height
+  //   const missingCollector = !Collector?.width || !Collector?.height
 
-    if (isFaisceau && missingCore) {
-      form.setError('Core.dimensions', {
-        type: 'required',
-        message:
-          'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
-      })
-    } else {
-      form.clearErrors('Core.dimensions')
-    }
+  //   if (isFaisceau && missingCore) {
+  //     form.setError('Core.dimensions', {
+  //       type: 'required',
+  //       message:
+  //         'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
+  //     })
+  //   } else {
+  //     form.clearErrors('Core.dimensions')
+  //   }
 
-    if (isFaisceau && missingCollector) {
-      form.setError('Collector.dimensions1', {
-        type: 'required',
-        message:
-          'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
-      })
-    } else {
-      form.clearErrors('Collector.dimensions1')
-    }
-  }, [type, form])
+  //   if (isFaisceau && missingCollector) {
+  //     form.setError('Collector.dimensions1', {
+  //       type: 'required',
+  //       message:
+  //         'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
+  //     })
+  //   } else {
+  //     form.clearErrors('Collector.dimensions1')
+  //   }
+  // }, [type, form])
 
   // Sync lower Collector dimensions with upper when identical
   // useEffect(() => {
@@ -254,35 +255,36 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const Core = form.getValues('Core.dimensions')
-    const Collector = form.getValues('Collector.dimensions1')
+    // const Core = form.getValues('Core.dimensions')
+    // const Collector = form.getValues('Collector.dimensions1')
 
-    let hasError = false
+    // let hasError = false
 
-    if (!Core?.width || !Core?.height) {
-      form.setError('Core.dimensions', {
-        type: 'required',
-        message: 'Les dimensions du faisceau sont obligatoires'
-      })
-      hasError = true
-    }
+    // if (!Core?.width || !Core?.height) {
+    //   form.setError('Core.dimensions', {
+    //     type: 'required',
+    //     message: 'Les dimensions du faisceau sont obligatoires'
+    //   })
+    //   hasError = true
+    // }
 
-    if (!Collector?.width || !Collector?.height) {
-      form.setError('Collector.dimensions1', {
-        type: 'required',
-        message: 'Les dimensions du collecteur sont obligatoires'
-      })
-      hasError = true
-    }
+    // if (!Collector?.width || !Collector?.height) {
+    //   form.setError('Collector.dimensions1', {
+    //     type: 'required',
+    //     message: 'Les dimensions du collecteur sont obligatoires'
+    //   })
+    //   hasError = true
+    // }
 
-    if (hasError) {
-      toast({
-        title: 'Erreur de validation',
-        description: 'Veuillez remplir toutes les dimensions requises.',
-        variant: 'destructive'
-      })
-      return
-    }
+    // if (hasError) {
+    //   console.log('Validation errors found:', form.formState.errors)
+    //   toast({
+    //     title: 'Erreur de validation',
+    //     description: 'Veuillez remplir toutes les dimensions requises.',
+    //     variant: 'destructive'
+    //   })
+    //   return
+    // }
 
     const isValid = await form.trigger()
 
@@ -746,28 +748,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                 />
                 <FormField
                   control={form.control}
-                  name="Collector.material"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">Matière</FormLabel>
-                      <FormControl>
-                        <Combobox
-                          options={COLLECTOR_MATERIALS_TYPES_ARR}
-                          onSelect={(v) =>
-                            form.setValue(
-                              'Collector.material',
-                              v as 'Acier' | 'Laiton'
-                            )
-                          }
-                          selected={field.value}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="Collector.tightening"
                   render={({ field }) => (
                     <FormItem className="group">
@@ -858,7 +838,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
-                        Longueur
+                        Longueur (Entre Collecteurs)
                         <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
                           (mm)
                         </span>
@@ -906,33 +886,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="Collector.dimensions1.thickness"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">
-                        Épaisseur
-                        <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
-                          (mm)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'Collector.dimensions1.thickness',
-                              Number(value)
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </CardGrid>
               {/* Lower Dimensions (if different) */}
               <div className="pt-2">
@@ -947,7 +900,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
-                        Longueur
+                        Longueur (Entre Collecteurs)
                         <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
                           (mm)
                         </span>
@@ -986,33 +939,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                           onChange={({ target: { value } }) =>
                             form.setValue(
                               'Collector.dimensions2.width',
-                              Number(value)
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="Collector.dimensions2.thickness"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">
-                        Épaisseur
-                        <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
-                          (mm)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'Collector.dimensions2.thickness',
                               Number(value)
                             )
                           }

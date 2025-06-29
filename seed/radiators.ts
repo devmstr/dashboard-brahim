@@ -63,7 +63,7 @@ export function generateProductTitle({
   return `${formatProductPrefix(
     type,
     fabrication
-  )} ${coreCode} ${rowFinsTubeCode} ${finsPitch} ${collectorCode} ${tightening}${position}`
+  )} ${coreCode} ${rowFinsTubeCode} ${finsPitch} ${collectorCode} ${tightening} ${position}`
 }
 
 // Constants for the seeding script
@@ -90,7 +90,7 @@ async function main() {
   console.log('🧹 Cleaned up existing data')
 
   // Create 10 products with components
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     const type = faker.helpers.arrayElement(TYPES)
     const id = mockSkuId(type === 'Faisceau' ? 'FA' : 'RA')
     const category = faker.helpers.arrayElement(CATEGORIES)
@@ -131,6 +131,22 @@ async function main() {
       position: position?.at(0) as any
     })
 
+    // Create inventory for the radiator
+    const inventory = await prisma.inventory.create({
+      data: {
+        level: faker.number.int({ min: 1, max: 100 }),
+        alertAt: faker.number.int({ min: 1, max: 10 }),
+        maxLevel: faker.number.int({ min: 100, max: 200 })
+      }
+    })
+    // Create price for the radiator
+    const price = await prisma.price.create({
+      data: {
+        unit: faker.number.int({ min: 10000, max: 50000 }),
+        bulk: faker.number.int({ min: 8000, max: 40000 }),
+        bulkThreshold: faker.number.int({ min: 5, max: 20 })
+      }
+    })
     // Create the product
     const radiator = await prisma.radiator.create({
       data: {
@@ -141,7 +157,9 @@ async function main() {
         dir: `C${faker.string.numeric(3)}`,
         cooling: faker.helpers.arrayElement(COOLING_TYPES),
         barcode: faker.string.numeric(13),
-        isActive: true
+        isActive: true,
+        inventoryId: inventory.id,
+        priceId: price.id
       }
     })
 
@@ -194,7 +212,8 @@ async function main() {
           type: 'TOP',
           width: collectorWidth,
           height: collectorHeight,
-          thickness: faker.number.int({ min: 5, max: 15 }),
+          thickness: faker.helpers.arrayElement([1.5, 1, 2, 2.5]),
+          // position and tightening
           position,
           tightening,
           perforation: faker.helpers.arrayElement(PERFORATION),
@@ -233,7 +252,7 @@ async function main() {
         Metadata: {
           width: collectorWidth,
           height: collectorHeight,
-          thickness: faker.number.int({ min: 5, max: 15 }),
+          thickness: faker.helpers.arrayElement([1.5, 1, 2, 2.5]),
           type: 'BOTTOM',
           position,
           tightening,

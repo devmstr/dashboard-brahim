@@ -6,8 +6,8 @@ export async function GET(req: NextRequest) {
     // Get all radiators that have both inventory and price
     const radiators = await prisma.radiator.findMany({
       where: {
-        inventoryId: { not: null },
-        priceId: { not: null },
+        // inventoryId: { not: null },
+        // priceId: { not: null },
         isActive: true
       },
       include: {

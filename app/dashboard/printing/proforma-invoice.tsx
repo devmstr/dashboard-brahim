@@ -39,6 +39,11 @@ import './print.css'
 import { toast } from '@/hooks/use-toast'
 import { Icons } from '@/components/icons'
 import { InvoiceData, InvoiceRef } from './invoice-client-wrapper'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover'
 
 export type InvoiceMetadata = {
   items: InvoiceItem[]
@@ -91,6 +96,16 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     })
     const componentRef = useRef<HTMLDivElement>(null)
 
+    const [offerValidity, setOfferValidity] = useState<string | undefined>(
+      undefined
+    )
+    const [deliveryTime, setDeliveryTime] = useState<string | undefined>(
+      undefined
+    )
+    const [guaranteeTime, setGuaranteeTime] = useState<string | undefined>(
+      undefined
+    )
+
     const billingSummary = useMemo(
       () =>
         calculateBillingSummary(editedItems, {
@@ -126,7 +141,10 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             refundRate,
             stampTaxRate,
             purchaseOrder,
-            deliverySlip
+            deliverySlip,
+            offerValidity,
+            deliveryTime,
+            guaranteeTime
           }
         })
       }),
@@ -144,7 +162,10 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
         refundRate,
         stampTaxRate,
         purchaseOrder,
-        deliverySlip
+        deliverySlip,
+        offerValidity,
+        deliveryTime,
+        guaranteeTime
       ]
     )
 
@@ -338,13 +359,229 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
               </div>
             </div>
           </div>
-          <Separator
-            style={{ backgroundColor: '#000' }}
-            className="separator my-2 h-[1px] rounded "
-          />
         </div>
       </div>
     )
+
+    const [showOfferValidity, setShowOfferValidity] = useState(false)
+    const [showDeliveryTime, setShowDeliveryTime] = useState(false)
+    const [showGuaranteeTime, setShowGuaranteeTime] = useState(false)
+    const [showNote, setShowNote] = useState(false)
+    const [addSelectorPopoverOpen, setAddSelectorPopoverOpen] = useState(false)
+
+    const renderSelectors = () => {
+      // Define a type for selector options
+      type SelectorType = {
+        key: string
+        label: string
+        onClick: () => void
+      }
+      // Only include valid selector objects
+      const availableSelectors: SelectorType[] = []
+      if (!showOfferValidity) {
+        availableSelectors.push({
+          key: 'offerValidity',
+          label: 'OFFRE DE PRIX VALABLE',
+          onClick: () => setShowOfferValidity(true)
+        })
+      }
+      if (!showDeliveryTime) {
+        availableSelectors.push({
+          key: 'deliveryTime',
+          label: 'DELAI DE LIVRAISON',
+          onClick: () => setShowDeliveryTime(true)
+        })
+      }
+      if (!showGuaranteeTime) {
+        availableSelectors.push({
+          key: 'guaranteeTime',
+          label: 'DELAI DE GARANTE',
+          onClick: () => setShowGuaranteeTime(true)
+        })
+      }
+      if (!showNote) {
+        availableSelectors.push({
+          key: 'note',
+          label: 'REMARQUE',
+          onClick: () => setShowNote(true)
+        })
+      }
+
+      return (
+        <div className="flex flex-col gap-1 my-1">
+          {/* Single Add button with popover menu */}
+          {availableSelectors.length > 0 && (
+            <Popover>
+              <PopoverTrigger className="w-48 relative flex items-end">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="absolute top-2.5 -left-7 h-6 w-6 p-0 border border-muted print:hidden"
+                >
+                  <Icons.plus className="h-4 w-4" />
+                  <span className="sr-only">Ajouter un champ</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-1 w-48" side="bottom">
+                <div className="flex flex-col gap-1">
+                  {availableSelectors.map((sel) => (
+                    <Button
+                      key={sel.key}
+                      variant="ghost"
+                      className="justify-start w-full h-8 px-2 text-xs"
+                      onClick={sel.onClick}
+                    >
+                      {sel.label}
+                    </Button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+          {/* Selectors UI - hidden in print mode */}
+          <div className="flex flex-col gap-1 print:hidden">
+            {showOfferValidity && (
+              <div className="relative flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="absolute -right-1 h-5 w-5 p-0 text-destructive z-10"
+                  onClick={() => setShowOfferValidity(false)}
+                  aria-label="Supprimer OFFRE DE PRIX VALABLE"
+                >
+                  <Icons.close className="w-3 h-3" />
+                </Button>
+                <label className="block text-xs font-semibold pr-6">
+                  OFFRE DE PRIX VALABLE
+                </label>
+                <Select value={offerValidity} onValueChange={setOfferValidity}>
+                  <SelectTrigger className="w-fit mb-0.5 border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15 jours">15 jours</SelectItem>
+                    <SelectItem value="30 jours">30 jours</SelectItem>
+                    <SelectItem value="60 jours">60 jours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {showDeliveryTime && (
+              <div className="relative flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="absolute -right-1 h-5 w-5 p-0 text-destructive z-10"
+                  onClick={() => setShowDeliveryTime(false)}
+                  aria-label="Supprimer DELAI DE LIVRAISON"
+                >
+                  <Icons.close className="w-3 h-3" />
+                </Button>
+                <label className="block text-xs font-semibold pr-6">
+                  DELAI DE LIVRAISON
+                </label>
+                <Select value={deliveryTime} onValueChange={setDeliveryTime}>
+                  <SelectTrigger className="w-fit mb-0.5 border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((week) => (
+                      <SelectItem key={week} value={`${week} semaines`}>
+                        {week} semaines
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {showGuaranteeTime && (
+              <div className="relative flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="absolute -right-1 h-5 w-5 p-0 text-destructive z-10"
+                  onClick={() => setShowGuaranteeTime(false)}
+                  aria-label="Supprimer DELAI DE GARANTE"
+                >
+                  <Icons.close className="w-3 h-3" />
+                </Button>
+                <label className="block text-xs font-semibold pr-6">
+                  DELAI DE GARANTE
+                </label>
+                <Select value={guaranteeTime} onValueChange={setGuaranteeTime}>
+                  <SelectTrigger className="w-fit mb-0.5 border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="6 mois">6 mois</SelectItem>
+                    <SelectItem value="12 mois">12 mois</SelectItem>
+                    <SelectItem value="24 mois">24 mois</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {showNote && (
+              <div className="relative flex  items-center gap-2 mt-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-destructive z-10"
+                  onClick={() => setShowNote(false)}
+                  aria-label="Supprimer REMARQUE"
+                >
+                  <Icons.close className="w-3 h-3" />
+                </Button>
+                <div className="flex-1 flex-col ">
+                  <h3 className="font-semibold text-xs w-full">REMARQUE</h3>
+                  <Textarea
+                    className="w-full h-12 min-h-12 max-h-14 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 print:border-none print:px-0 print:py-0"
+                    placeholder="Saisissez des remarques pour cette facture..."
+                    value={note}
+                    onChange={(e) => {
+                      setNote(e.target.value)
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Print-only content - only show in print mode, outside selector UI */}
+          <div className="hidden print:block mt-2  text-xs">
+            {showOfferValidity && offerValidity && (
+              <div className="flex gap-1 items-center my-1">
+                <h3 className="font-semibold text-xs ">
+                  OFFRE DE PRIX VALABLE:
+                </h3>
+                <p>{offerValidity}</p>
+              </div>
+            )}
+            {showDeliveryTime && deliveryTime && (
+              <div className="flex gap-1 items-center my-1">
+                <h3 className="font-semibold text-xs ">DELAI DE LIVRAISON:</h3>
+                <p>{deliveryTime}</p>
+              </div>
+            )}
+            {showGuaranteeTime && guaranteeTime && (
+              <div className="flex gap-1 items-center my-1">
+                <h3 className="font-semibold text-xs ">DELAI DE GARANTE:</h3>
+                <p>{guaranteeTime}</p>
+              </div>
+            )}
+            {showNote && note && (
+              <div className="space-y-1 mt-2">
+                <h3 className="font-semibold text-xs w-full">REMARQUE:</h3>
+                <p>{note}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    }
 
     const renderBillFooter = (props?: { page?: number; pages?: number }) => (
       <div className="print-footer  flex flex-col mt-auto font-poppins text-xs">
@@ -552,21 +789,8 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             <p className="capitalize">{amountToWords(totalTTC)}</p>
           </div>
         </div>
-        <div className={cn('payment-details', !note && 'print:hidden')}>
-          <div className="space-y-2 text-sm mt-2">
-            <div className="space-y-1">
-              <h3 className="font-semibold">REMARQUE</h3>
-              <Textarea
-                className="w-full h-20 max-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 print:border-none print:px-0 print:py-0"
-                placeholder="Saisissez des remarques pour cette facture..."
-                value={note}
-                onChange={(e) => {
-                  setNote(e.target.value)
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        {/* Remove the old note/remark textarea here */}
+        {renderSelectors()}
       </div>
     )
 
@@ -702,38 +926,38 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     }
 
     // Local function to update invoice metadata via PATCH
-    const handleMetadataChange = async () => {
-      const metadata = {
-        purchaseOrder,
-        deliverySlip,
-        note,
-        discountRate,
-        refundRate,
-        stampTaxRate,
-        items: editedItems
-      }
-      try {
-        const invoice = await fetch(`/api/invoice/7645443`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ metadata })
-        })
-        if (!invoice.ok) {
-          const errorData = await invoice.json().catch(() => ({}))
-          throw new Error(
-            errorData?.message || 'Erreur lors de la mise à jour de la facture'
-          )
-        }
-      } catch (e) {
-        // Optionally handle error (e.g., show toast)
-        toast({
-          title: 'Erreur',
-          description:
-            'Une erreur est survenue lors de la mise à jour des données',
-          variant: 'destructive'
-        })
-      }
-    }
+    // const handleMetadataChange = async () => {
+    //   const metadata = {
+    //     purchaseOrder,
+    //     deliverySlip,
+    //     note,
+    //     discountRate,
+    //     refundRate,
+    //     stampTaxRate,
+    //     items: editedItems
+    //   }
+    //   try {
+    //     const invoice = await fetch(`/api/invoice/7645443`, {
+    //       method: 'PATCH',
+    //       headers: { 'Content-Type': 'application/json' },
+    //       body: JSON.stringify({ metadata })
+    //     })
+    //     if (!invoice.ok) {
+    //       const errorData = await invoice.json().catch(() => ({}))
+    //       throw new Error(
+    //         errorData?.message || 'Erreur lors de la mise à jour de la facture'
+    //       )
+    //     }
+    //   } catch (e) {
+    //     // Optionally handle error (e.g., show toast)
+    //     toast({
+    //       title: 'Erreur',
+    //       description:
+    //         'Une erreur est survenue lors de la mise à jour des données',
+    //       variant: 'destructive'
+    //     })
+    //   }
+    // }
 
     // useEffect(() => {
     //   handleMetadataChange()

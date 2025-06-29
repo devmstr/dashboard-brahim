@@ -70,7 +70,6 @@ export async function POST(request: Request) {
           const isExist = await tx.radiator.findUnique({
             where: { id: radiatorId }
           })
-          // If we have radiator data but no existing radiator ID, or if we want to create a new radiator
           if (!isExist) {
             // Create the new radiator
             const newRadiator = await tx.radiator.create({
@@ -99,7 +98,22 @@ export async function POST(request: Request) {
                   name: 'Faisceau',
                   type: 'CORE',
                   radiatorId,
-                  Metadata: item.Radiator.Core // Store all core data in Metadata JSON
+                  Metadata: item.Radiator.Core
+                }
+              })
+            }
+
+            // Create tube component as a Component with type 'TUBE' if diameter exists
+            const tubeDiameter =
+              item.Core?.dimensions?.diameter ||
+              item.Radiator?.Core?.dimensions?.diameter
+            if (tubeDiameter) {
+              await tx.component.create({
+                data: {
+                  name: 'Tube',
+                  type: 'TUBE',
+                  radiatorId,
+                  Metadata: { diameter: tubeDiameter }
                 }
               })
             }
@@ -136,6 +150,21 @@ export async function POST(request: Request) {
               })
             }
             console.log('Created new radiator with ID:', radiatorId)
+          } else {
+            // If radiator exists, still add TUBE component if diameter exists
+            const tubeDiameter =
+              item.Core?.dimensions?.diameter ||
+              item.Radiator?.Core?.dimensions?.diameter
+            if (tubeDiameter) {
+              await tx.component.create({
+                data: {
+                  name: 'Tube',
+                  type: 'TUBE',
+                  radiatorId,
+                  Metadata: { diameter: tubeDiameter }
+                }
+              })
+            }
           }
           // Return the processed order item with the correct radiator ID
           return {

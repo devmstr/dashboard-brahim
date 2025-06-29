@@ -49,7 +49,8 @@ export type Car = z.infer<typeof carSchema>
 
 // Dimension schema for components
 const dimensionsSchema = z.object({
-  thickness: z.number().positive().optional(),
+  thickness: z.number().min(0).optional(),
+  diameter: z.number().min(0).optional(),
   width: z.number().min(0),
   height: z.number().min(0)
 })

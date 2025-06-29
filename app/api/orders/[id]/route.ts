@@ -340,8 +340,6 @@ export async function PATCH(
     const id = params.id
     const body = await request.json()
 
-    // console.log('body : ', body)
-
     // Validate that the order item exists
     const existingItem = await prisma.orderItem.findUnique({
       where: { id },

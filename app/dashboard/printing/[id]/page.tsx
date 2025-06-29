@@ -35,15 +35,20 @@ export default async function Page({ params }: { params: { id: string } }) {
         invoiceNumber={invoice.number}
         paymentMode={
           (invoice.metadata as InvoiceMetadata)?.paymentType ||
-          'Versement (Banque)'
+          invoice.paymentMode ||
+          'Espèces'
         }
+        type={invoice.type || 'FINAL'}
+        dueDate={invoice.dueDate || new Date()}
+        note={invoice.note || ''}
+        status={invoice.status || 'PAID'}
         qrAddress={invoice.id}
         client={{
-          name: invoice.Client?.name || invoice.clientName || '',
-          address: invoice.Client?.Address?.street || '',
-          rc: invoice.Client?.tradeRegisterNumber || '',
-          nif: invoice.Client?.fiscalNumber || '',
-          ai: invoice.Client?.statisticalIdNumber || ''
+          name: invoice.clientName || '',
+          address: invoice.clientAddress || '',
+          rc: invoice.clientRC || '',
+          nif: invoice.clientNif || '',
+          ai: invoice.clientAi || ''
         }}
         metadata={invoice.metadata as InvoiceMetadata}
       />

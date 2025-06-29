@@ -47,6 +47,9 @@ export interface InvoiceData {
     stampTaxRate?: number
     purchaseOrder?: string
     deliverySlip?: string
+    offerValidity?: string
+    deliveryTime?: string
+    guaranteeTime?: string
   }
 }
 
