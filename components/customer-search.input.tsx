@@ -46,6 +46,7 @@ interface CustomerSectionProps {
   onSelectChange: (client: Client | undefined) => void
   children?: React.ReactNode
   isLoading?: boolean // Add prop to allow parent to control loading state
+  onlyCompanies?: boolean // Optional prop to filter only companies
 }
 
 // Extended client type to include address information
@@ -61,7 +62,8 @@ export default function CustomerSearchInput({
   selected,
   onSelectChange,
   children,
-  isLoading: externalLoading = false // Default to false if not provided
+  isLoading: externalLoading = false, // Default to false if not provided
+  onlyCompanies = false // Optional prop to filter only companies
 }: CustomerSectionProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [clients, setClients] = useState<ClientWithAddress[]>([])

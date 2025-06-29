@@ -158,6 +158,11 @@ export function LedgerTable({
   const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
     {}
   )
+  const [showInvoice, setShowInvoice] = React.useState(false)
+  const [invoiceData, setInvoiceData] = React.useState<InvoiceProps | null>(
+    null
+  )
+  const printRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
     table.setPageSize(limit)
@@ -209,48 +214,53 @@ export function LedgerTable({
     }
   }
 
-  // Remove the broken React.useCallback and define openPrintDialog as a stable function
-  const [showInvoice, setShowInvoice] = React.useState(false)
-  const [invoiceData, setInvoiceData] = React.useState<InvoiceProps | null>(
-    null
-  )
-
-  const openPrintDialog = React.useCallback(
-    async (id: string) => {
-      setShowInvoice(true)
-      if (!invoiceData) {
-        try {
-          const res = await fetch(`/api/invoice/${id}`)
-          if (res.ok) {
-            const invoice = await res.json()
-            const client = {
-              name: invoice.clientName || '',
-              address: invoice.clientAddress || '',
-              rc: invoice.clientRC || '',
-              nif: invoice.clientNif || '',
-              ai: invoice.clientAi || ''
-            }
-            setInvoiceData({
-              id: invoice.id,
-              invoiceNumber: invoice.number,
-              qrAddress: invoice.id,
-              paymentMode: invoice.metadata.paymentType as string,
-              items: invoice.metadata.items,
-              metadata: invoice.metadata,
-              client
-            })
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Facture-${invoiceData?.invoiceNumber}`,
+    pageStyle: `
+          @page { 
+            size: A4;
+            margin: 0;
           }
-        } catch (e) {
-          toast({
-            title: 'Erreur',
-            description: 'Impossible de charger la facture.',
-            variant: 'destructive'
-          })
+          @media print {
+            body { 
+              -webkit-print-color-adjust: exact; 
+            }
+          }
+        `
+  })
+
+  const openPrintDialog = React.useCallback(async (id: string) => {
+    setShowInvoice(true)
+    try {
+      const res = await fetch(`/api/invoice/${id}`)
+      if (res.ok) {
+        const invoice = await res.json()
+        const client = {
+          name: invoice.clientName || '',
+          address: invoice.clientAddress || '',
+          rc: invoice.clientRC || '',
+          nif: invoice.clientNif || '',
+          ai: invoice.clientAi || ''
         }
+        setInvoiceData({
+          id: invoice.id,
+          invoiceNumber: invoice.number,
+          qrAddress: invoice.id,
+          paymentMode: invoice.metadata.paymentType as string,
+          items: invoice.metadata.items,
+          metadata: invoice.metadata,
+          client
+        })
       }
-    },
-    [invoiceData]
-  )
+    } catch (e) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger la facture.',
+        variant: 'destructive'
+      })
+    }
+  }, [])
 
   // Define column overrides for specific columns
   const columnOverrides: Record<string, ColumnOverride> = {
@@ -260,12 +270,12 @@ export function LedgerTable({
           original: { id }
         }
       }) => (
-        <button
-          onClick={() => openPrintDialog(id)}
+        <Link
+          href={`/dashboard/printing/${id}`}
           className="hover:text-secondary hover:font-bold hover:underline hover:cursor-pointer"
         >
           {id}
-        </button>
+        </Link>
       )
     },
     total: {
@@ -304,7 +314,11 @@ export function LedgerTable({
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
       cell: ({ row }) => (
-        <Actions openPrintDialog={openPrintDialog} id={row.original.id} />
+        <Actions
+          id={row.original.id}
+          userRole={userRole}
+          openPrintDialog={openPrintDialog}
+        />
       )
     }
   }
@@ -527,24 +541,6 @@ export function LedgerTable({
     link.click()
     document.body.removeChild(link)
   }
-
-  const printRef = React.useRef<HTMLDivElement>(null)
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Facture-${invoiceData?.invoiceNumber}`,
-    pageStyle: `
-          @page { 
-            size: A4;
-            margin: 0;
-          }
-          @media print {
-            body { 
-              -webkit-print-color-adjust: exact; 
-            }
-          }
-        `
-  })
 
   return (
     <div className="w-full space-y-4">
@@ -780,7 +776,7 @@ export function LedgerTable({
         </Button>
       </div>
 
-      {/* Invoice Printing Dialog */}
+      {/* Invoice Print Dialog rendered in parent */}
       <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
         <DialogContent className="p-0 max-w-[50rem]">
           {invoiceData ? (
@@ -800,14 +796,14 @@ export function LedgerTable({
             </ScrollArea>
           ) : (
             <div className="p-8 flex gap-2 items-center justify-center">
-              <Icons.spinner className="w-4 h-4 animate-spin" /> Loading...
+              <Icons.spinner className="w-4 h-4 animate-spin" /> Chargement...
             </div>
           )}
           <DialogFooter className="flex w-full gap-3">
             <Button
               className={cn(
                 buttonVariants({ variant: 'outline' }),
-                'w-full text-foreground rounded-t-none '
+                'w-full text-foreground rounded-t-none'
               )}
               onClick={() => handlePrint()}
             >
@@ -821,15 +817,17 @@ export function LedgerTable({
   )
 }
 
-function Actions({
-  id,
-  openPrintDialog,
-  userRole = 'GUEST'
-}: {
+type ActionsProps = {
   id: string
-  openPrintDialog: (id: string) => void
   userRole?: UserRole
-}) {
+  openPrintDialog: (id: string) => void
+}
+
+export function Actions({
+  id,
+  userRole = 'GUEST',
+  openPrintDialog
+}: ActionsProps) {
   const { refresh } = useRouter()
   const [open, setOpen] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
@@ -839,11 +837,13 @@ function Actions({
     try {
       const res = await fetch(`/api/invoice/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Erreur lors de la suppression.')
+
       toast({
         title: 'Facture supprimée',
         description: 'La facture a été marquée comme supprimée.',
         variant: 'success'
       })
+
       setOpen(false)
       refresh()
     } catch (e: any) {
@@ -856,78 +856,81 @@ function Actions({
       setLoading(false)
     }
   }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
-        <Icons.ellipsis className="h-4 w-4" />
-        <span className="sr-only">Open</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/dashboard/printing/${id}`}
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0 focus-visible:ring-0 focus-visible:ring-offset-0'
-            )}
-          >
-            <Icons.edit className="w-4 h-4" />
-            <span className="sr-only">edit</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Button
-            variant="ghost"
-            className="flex gap-3 items-center justify-center w-12 cursor-pointer group focus:text-primary ring-0"
-            onClick={() => openPrintDialog(id)}
-          >
-            <Icons.printer className="w-4 h-4 group-hover:text-primary" />
-          </Button>
-        </DropdownMenuItem>
-        {userRole == 'ACCOUNTANT' && (
-          <>
-            <DropdownMenuSeparator />
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
+          <Icons.ellipsis className="h-4 w-4" />
+          <span className="sr-only">Open</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link
+              href={`/dashboard/printing/${id}`}
+              className={cn(
+                buttonVariants({ variant: 'ghost' }),
+                'flex gap-3 items-center w-full cursor-pointer group focus:text-primary ring-0 focus-visible:ring-0 focus-visible:ring-offset-0'
+              )}
+            >
+              <Icons.edit className="w-4 h-4" />
+              <span className="sr-only">Modifier</span>
+            </Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem asChild>
+            <Button
+              variant={'ghost'}
+              onClick={() => openPrintDialog(id)}
+              className="flex gap-3 items-center w-full px-2 py-1.5 hover:bg-muted cursor-pointer group"
+            >
+              <Icons.printer className="w-4 h-4 group-hover:text-primary" />
+              <span className="sr-only">Imprimer</span>
+            </Button>
+          </DropdownMenuItem>
+
+          {userRole === 'ACCOUNTANT' && (
             <DropdownMenuItem asChild>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant={'ghost'}
-                    className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
-                  >
-                    <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Êtes-vous sûr de vouloir supprimer cette facture ?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Attention, cette action est irréversible.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction asChild>
-                      <Button
-                        className={cn(
-                          buttonVariants({ variant: 'ghost' }),
-                          ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                        )}
-                        onClick={() => handleDelete()}
-                      >
-                        <Icons.trash className="mr-2 h-4 w-4" />
-                        Supprimer
-                      </Button>
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                variant={'ghost'}
+                onClick={() => setOpen(true)}
+                className="flex gap-3 items-center w-full px-2 py-1.5 hover:bg-muted cursor-pointer group text-destructive"
+              >
+                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
+                <span className="sr-only">Supprimer</span>
+              </Button>
             </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Êtes-vous sûr de vouloir supprimer cette facture ?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Attention, cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Annuler</AlertDialogCancel>
+            <Button
+              onClick={handleDelete}
+              disabled={loading}
+              className={cn(
+                buttonVariants({ variant: 'ghost' }),
+                'text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+              )}
+            >
+              <Icons.trash className="mr-2 h-4 w-4" />
+              Supprimer
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

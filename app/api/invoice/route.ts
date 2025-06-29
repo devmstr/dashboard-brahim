@@ -77,21 +77,30 @@ export async function POST(req: NextRequest) {
     // Complete customer object if not completed
     let client = customer
 
-    const existedClient = await prisma.client.findUnique({
-      where: { id: customer?.id || undefined },
-      include: { Address: true }
-    })
+    if (!client) {
+      return NextResponse.json(
+        { message: 'Customer information is required.' },
+        { status: 400 }
+      )
+    }
 
-    if (existedClient) {
-      client = {
-        ...customer,
-        id: existedClient.id,
-        name: existedClient.name || customer?.name,
-        label: existedClient.label || customer?.label,
-        address: existedClient.Address?.street || customer?.address,
-        rc: existedClient.tradeRegisterNumber || customer?.rc,
-        nif: existedClient.fiscalNumber || customer?.nif,
-        ai: existedClient.statisticalIdNumber || customer?.ai
+    if (client && client.id) {
+      const existedClient = await prisma.client.findUnique({
+        where: { id: customer?.id || undefined },
+        include: { Address: true }
+      })
+
+      if (existedClient) {
+        client = {
+          ...customer,
+          id: existedClient.id,
+          name: existedClient.name || customer?.name,
+          label: existedClient.label || customer?.label,
+          address: existedClient.Address?.street || customer?.address,
+          rc: existedClient.tradeRegisterNumber || customer?.rc,
+          nif: existedClient.fiscalNumber || customer?.nif,
+          ai: existedClient.statisticalIdNumber || customer?.ai
+        }
       }
     } else {
       client = { ...customer, id: null }

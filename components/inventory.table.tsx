@@ -164,7 +164,7 @@ export function InventoryTable({
       }) => (
         <div className="flex items-center">
           <Link
-            className="hover:text-primary hover:underline"
+            className="hover:text-secondary hover:font-bold hover:underline hover:cursor-pointer"
             href={`/dashboard/inventory/${id}`}
           >
             {id}
