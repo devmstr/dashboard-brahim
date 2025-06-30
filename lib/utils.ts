@@ -384,21 +384,26 @@ export function isContentEmpty(note: Content): boolean {
 // export type TubeType = 'MP' | 'MG' | 'E7' | 'E9'
 
 // export const FinsInSpreadSheet = {
-//   NL: 'NL',
-//   TR: 'TR',
-//   Aé: 'AERE'
+//   NL: 'Normale',
+//   TR: 'Zigzag',
+//   Aé: 'Aérer'
 // }
 
 // export const TubeInSpreadSheet = {
-//   ET7: '7',
-//   ET9: '9',
-//   'Mach-P': 'P'
+//   ET7: 'ET7',
+//   ET9: 'ET9',
+//   'Mach-P': 'MP'
 // }
 
 // export const FabricationInSpreadSheet = {
 //   Con: 'RAD',
 //   Fx: 'FAIS',
 //   Rén: 'REN'
+// }
+
+// export const TighteningTypeInSpreadSheet = {
+//   PLi: 'Plié',
+//   BL: 'Boulonné'
 // }
 
 // export const FINS_IN_DESCRIPTION = {
