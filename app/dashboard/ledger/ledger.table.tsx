@@ -247,7 +247,24 @@ export function LedgerTable({
           id: invoice.id,
           invoiceNumber: invoice.number,
           qrAddress: invoice.id,
-          paymentMode: invoice.metadata.paymentType as string,
+          note: invoice.metadata?.note || invoice.note || '',
+          paymentMode: invoice.metadata?.paymentType || invoice?.paymentMode,
+          type: invoice.type,
+          purchaseOrder:
+            invoice.metadata?.purchaseOrder || invoice.purchaseOrder || '',
+          deliverySlip:
+            invoice.metadata?.deliverySlip || invoice.deliverySlip || '',
+          discountRate:
+            invoice.metadata?.discountRate || invoice.discountRate || 0,
+          refundRate: invoice.metadata?.refundRate || invoice.refundRate || 0,
+          stampTaxRate:
+            invoice.metadata?.stampTaxRate || invoice.stampTaxRate || 0,
+          offerValidity:
+            invoice.metadata?.offerValidity || invoice.offerValidity || '',
+          deliveryTime:
+            invoice.metadata?.deliveryTime || invoice.deliveryTime || '',
+          guaranteeTime:
+            invoice.metadata?.guaranteeTime || invoice.guaranteeTime || '',
           items: invoice.metadata.items,
           metadata: invoice.metadata,
           client
@@ -784,13 +801,7 @@ export function LedgerTable({
               <div ref={printRef}>
                 <ReadOnlyInvoice
                   className="max-w-[50rem] w-full"
-                  id={invoiceData.id}
-                  invoiceNumber={invoiceData.invoiceNumber}
-                  qrAddress={invoiceData.qrAddress}
-                  paymentMode={invoiceData.paymentMode}
-                  client={invoiceData.client}
-                  items={invoiceData.items}
-                  metadata={invoiceData.metadata}
+                  {...invoiceData}
                 />
               </div>
             </ScrollArea>

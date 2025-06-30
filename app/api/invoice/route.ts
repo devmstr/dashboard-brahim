@@ -71,25 +71,46 @@ export async function POST(req: NextRequest) {
       dueDate,
       note,
       status,
-      metadata
+      metadata = {}
     } = parsed.data
+
+    // Extract new fields from metadata or body
+    const purchaseOrder = metadata.purchaseOrder || body.purchaseOrder
+    const deliverySlip = metadata.deliverySlip || body.deliverySlip
+    const discountRate = metadata.discountRate ?? body.discountRate ?? 0
+    const refundRate = metadata.refundRate ?? body.refundRate ?? 0
+    const stampTaxRate = metadata.stampTaxRate ?? body.stampTaxRate ?? 0
+    // offerValidity and deliveryTime/guaranteeTime may be string or int
+    let offerValidity = metadata.offerValidity || body.offerValidity
+    let guaranteeTime = metadata.guaranteeTime || body.guaranteeTime
+    let deliveryTime = metadata.deliveryTime || body.deliveryTime
+
+    // Parse offerValidity as Date if string
+    if (offerValidity && typeof offerValidity === 'string') {
+      const d = new Date(offerValidity)
+      offerValidity = isNaN(d.getTime()) ? undefined : d
+    }
+    // Parse guaranteeTime and deliveryTime as int if string
+    if (guaranteeTime && typeof guaranteeTime === 'string') {
+      guaranteeTime = parseInt(guaranteeTime, 10)
+    }
+    if (deliveryTime && typeof deliveryTime === 'string') {
+      deliveryTime = parseInt(deliveryTime, 10)
+    }
 
     // Complete customer object if not completed
     let client = customer
-
     if (!client) {
       return NextResponse.json(
         { message: 'Customer information is required.' },
         { status: 400 }
       )
     }
-
     if (client && client.id) {
       const existedClient = await prisma.client.findUnique({
         where: { id: customer?.id || undefined },
         include: { Address: true }
       })
-
       if (existedClient) {
         client = {
           ...customer,
@@ -105,7 +126,6 @@ export async function POST(req: NextRequest) {
     } else {
       client = { ...customer, id: null }
     }
-
     // Validate required customer fields
     if (client && !client.name) {
       return NextResponse.json(
@@ -143,7 +163,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-
     // Determine invoice type
     const now = new Date()
     const yearShort = now.getFullYear().toString().slice(-2)
@@ -179,8 +198,8 @@ export async function POST(req: NextRequest) {
         type,
         clientName: client?.name,
         clientAddress: client?.address,
-        clientNif: client?.nif,
         clientRC: client?.rc,
+        clientNif: client?.nif,
         clientAi: client?.ai,
         clientId: client?.id,
         subtotal,
@@ -190,6 +209,15 @@ export async function POST(req: NextRequest) {
         dueDate: dueDate ? new Date(dueDate) : undefined,
         note,
         status,
+        purchaseOrder: purchaseOrder || undefined,
+        deliverySlip: deliverySlip || undefined,
+        discountRate: discountRate ?? 0,
+        refundRate: refundRate ?? 0,
+        stampTaxRate: stampTaxRate ?? 0,
+        offerValidity: offerValidity || undefined,
+        guaranteeTime: guaranteeTime ? Number(guaranteeTime) : undefined,
+        deliveryTime: deliveryTime ? Number(deliveryTime) : undefined,
+        // Items only for FINAL, metadata for all
         ...(type === 'FINAL'
           ? {
               items: {
@@ -206,7 +234,7 @@ export async function POST(req: NextRequest) {
             quantity: item.quantity,
             amount: item.price * item.quantity
           })),
-          ...(metadata || {})
+          ...metadata
         }
       }
     })

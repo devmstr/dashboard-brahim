@@ -248,7 +248,7 @@ export function calculateBillingSummary(
   config: BillingConfig = {}
 ) {
   // Sum up all item amounts to get totalHT.
-  const Total = items.reduce((acc, item) => acc + item.amount, 0)
+  const Total = items.reduce((acc, item) => acc + item.price, 0)
 
   // Use provided rates or defaults.
   const discountRate = config.discountRate ?? 0 // default 3%

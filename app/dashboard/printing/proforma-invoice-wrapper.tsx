@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Printer, Save, AlertTriangle } from 'lucide-react'
+import { Printer, Save } from 'lucide-react'
 import { Icons } from '@/components/icons'
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -40,6 +40,22 @@ export interface InvoiceData {
     refund: number
     stampTax: number
   }
+  note?: string
+  type?: string
+  paymentMode?: string
+  dueDate?: string
+  status?: string
+  id?: string
+  invoiceNumber?: string
+  qrAddress?: string
+  discountRate?: number
+  refundRate?: number
+  stampTaxRate?: number
+  purchaseOrder?: string
+  deliverySlip?: string
+  offerValidity?: string
+  deliveryTime?: string
+  guaranteeTime?: string
   metadata: {
     note?: string
     discountRate?: number
@@ -64,10 +80,9 @@ interface InvoicePrinterWrapperProps {
   children: React.ReactElement<any, any> & { ref?: React.Ref<InvoiceRef> }
 }
 
-export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
-  children,
-  metadata: { fileName }
-}) => {
+export const ProformaInvoicePrinterWrapper: React.FC<
+  InvoicePrinterWrapperProps
+> = ({ children, metadata: { fileName } }) => {
   const printRef = useRef<HTMLDivElement>(null)
   const invoiceRef = useRef<InvoiceRef>(null)
   const router = useRouter()
@@ -90,15 +105,7 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
       `
   })
 
-  const validateInvoiceData = (
-    data: InvoiceData,
-    isFinal = false
-  ): string | null => {
-    // For final invoices, client name is required
-    if (isFinal && !data.client.name.trim()) {
-      return 'Le nom du client est requis pour une facture finale'
-    }
-
+  const validateInvoiceData = (data: InvoiceData): string | null => {
     if (
       !data.items.length ||
       data.items.every((item) => !item.label.trim() || item.quantity <= 0)
@@ -108,7 +115,7 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
     return null
   }
 
-  const saveInvoice = async (type: 'PROFORMA' | 'FINAL') => {
+  const saveInvoice = async () => {
     if (!invoiceRef.current) {
       toast({
         title: 'Erreur',
@@ -119,7 +126,7 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
     }
 
     const invoiceData = invoiceRef.current.getInvoiceData()
-    const validationError = validateInvoiceData(invoiceData, type === 'FINAL')
+    const validationError = validateInvoiceData(invoiceData)
     if (validationError) {
       toast({
         title: 'Données invalides',
@@ -131,11 +138,10 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
 
     setIsLoading(true)
     try {
-      // Transform the data to match the API schema
       const apiData = {
         customer: invoiceData.client.name.trim()
           ? {
-              id: null, // Let the API search for existing clients
+              id: null,
               name: invoiceData.client.name,
               address: invoiceData.client.address,
               rc: invoiceData.client.rc,
@@ -152,7 +158,7 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
         subtotal: invoiceData.billingSummary.totalHT,
         tax: invoiceData.billingSummary.vat,
         total: invoiceData.billingSummary.totalTTC,
-        type: type,
+        type: 'PROFORMA',
         note: invoiceData.metadata.note,
         metadata: {
           ...invoiceData.metadata,
@@ -163,11 +169,7 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
         }
       }
 
-      // Use query parameter for draft status
-      const isDraft = type === 'PROFORMA'
-      const url = `/api/invoice${isDraft ? '?isDraft=true' : ''}`
-
-      const response = await fetch(url, {
+      const response = await fetch('/api/invoice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -185,10 +187,7 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
       toast({
         title: 'Succès',
         description:
-          result.message ||
-          `${
-            type === 'PROFORMA' ? 'Facture proforma' : 'Facture finale'
-          } sauvegardée (${result.number})`,
+          result.message || `Facture proforma sauvegardée (${result.number})`,
         variant: 'default'
       })
 
@@ -207,7 +206,7 @@ export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
   }
 
   const handleSaveAndPrint = async () => {
-    const invoiceId = await saveInvoice('PROFORMA')
+    const invoiceId = await saveInvoice()
     if (invoiceId) {
       setShowPrintDialog(false)
       setTimeout(() => {

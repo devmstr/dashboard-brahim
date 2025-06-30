@@ -20,21 +20,20 @@ const ITEMS_PER_PRINT_PAGE = 4
 
 export type InvoiceMetadata = {
   items: InvoiceItem[]
+  note?: string
   purchaseOrder?: string
   deliverySlip?: string
-  note?: string
   discountRate?: number
   refundRate?: number
   stampTaxRate?: number
-  paymentType?: string
+  paymentMode?: string
 }
 
 export interface ReadOnlyInvoiceProps {
   id: string
   invoiceNumber: string
   qrAddress: string
-  paymentMode?: string
-  note?: string
+  items: InvoiceItem[]
   client: {
     name: string
     address?: string
@@ -42,9 +41,19 @@ export interface ReadOnlyInvoiceProps {
     nif: string
     ai: string
   }
-  items: InvoiceItem[]
-  metadata?: InvoiceMetadata
+  note?: string
+  type?: 'FINAL' | 'PROFORMA'
+  paymentMode?: string
+  purchaseOrder?: string
+  deliverySlip?: string
+  discountRate?: number
+  refundRate?: number
+  stampTaxRate?: number
+  offerValidity?: string
+  deliveryTime?: string
+  guaranteeTime?: string
   className?: string
+  metadata?: InvoiceMetadata
 }
 
 const printStyles = `
@@ -65,7 +74,16 @@ export default function ReadOnlyInvoice({
   id,
   invoiceNumber,
   qrAddress,
-  paymentMode = 'Espèce',
+  paymentMode,
+  purchaseOrder,
+  deliverySlip,
+  discountRate,
+  refundRate,
+  stampTaxRate,
+  offerValidity,
+  deliveryTime,
+  guaranteeTime,
+  type = 'FINAL',
   note,
   client,
   items = [],
@@ -89,9 +107,9 @@ export default function ReadOnlyInvoice({
   const billingSummary = useMemo(
     () =>
       calculateBillingSummary(invoiceItems, {
-        discountRate: metadata?.discountRate || 0,
-        refundRate: metadata?.refundRate || 0,
-        stampTaxRate: metadata?.stampTaxRate || 0,
+        discountRate: metadata?.discountRate || discountRate || 0,
+        refundRate: metadata?.refundRate || refundRate || 0,
+        stampTaxRate: metadata?.stampTaxRate || stampTaxRate || 0,
         vatRate: 0.19
       }),
     [invoiceItems, metadata]
@@ -182,22 +200,23 @@ export default function ReadOnlyInvoice({
       />
       <div className="w-full flex justify-between items-start">
         <div className="w-1/4 flex flex-col gap-1 text-sm font-geist-sans">
-          {metadata?.purchaseOrder && (
+          {(metadata?.purchaseOrder || purchaseOrder) && (
             <div className="flex gap-[.2rem] items-center">
               <strong className="font-medium">BC: </strong>
-              <span>{metadata.purchaseOrder}</span>
+              <span>{metadata?.purchaseOrder || purchaseOrder}</span>
             </div>
           )}
-          {metadata?.deliverySlip && (
+          {(metadata?.deliverySlip || deliverySlip) && (
             <div className="flex gap-[.2rem] items-center">
               <strong className="font-medium tracking-widest">BL: </strong>
-              <span>{metadata.deliverySlip}</span>
+              <span>{metadata?.deliverySlip || deliverySlip}</span>
             </div>
           )}
         </div>
         <div className="w-2/4 flex justify-center text-center">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {invoiceNumber.replace(/FF|FP/g, '')}
+            FACTURE:
+            {type === 'FINAL' ? invoiceNumber.replace(/0+/g, '') : 'PROFORMA'}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end text-right text-sm font-geist-sans">
@@ -217,7 +236,7 @@ export default function ReadOnlyInvoice({
               <p className="capitalize font-normal">{client.address}</p>
             )}
           </div>
-          <div className="text-sm font-geist-sans">
+          <div className="text-sm font-geist-sans w-48">
             <p className="flex">
               <strong className="w-10">R.C: </strong> {client.rc}
             </p>
@@ -385,20 +404,36 @@ export default function ReadOnlyInvoice({
       </div>
       <div className="payment-details">
         <div className="space-y-2 text-sm mt-2">
-          {metadata?.paymentType ||
-            (paymentMode && (
-              <div className="space-y-1">
-                <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
-                <p>{metadata?.paymentType || paymentMode}</p>
-              </div>
-            ))}
-          {metadata?.note ||
-            (note && (
-              <div className="space-y-1">
-                <h3 className="font-semibold">REMARQUE</h3>
-                <p>{metadata?.note || note}</p>
-              </div>
-            ))}
+          {paymentMode && (
+            <div className="space-y-1">
+              <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
+              <p>{paymentMode}</p>
+            </div>
+          )}
+          {offerValidity && (
+            <div className="flex gap-1 items-center my-1">
+              <h3 className="font-semibold text-xs ">OFFRE DE PRIX VALABLE:</h3>
+              <p>{offerValidity}</p>
+            </div>
+          )}
+          {deliveryTime && (
+            <div className="flex gap-1 items-center my-1">
+              <h3 className="font-semibold text-xs ">DELAI DE LIVRAISON:</h3>
+              <p>{deliveryTime}</p>
+            </div>
+          )}
+          {guaranteeTime && (
+            <div className="flex gap-1 items-center my-1">
+              <h3 className="font-semibold text-xs ">DELAI DE GARANTE:</h3>
+              <p>{guaranteeTime}</p>
+            </div>
+          )}
+          {note && (
+            <div className="space-y-1">
+              <h3 className="font-semibold">REMARQUE</h3>
+              <p>{note}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -438,7 +473,7 @@ export default function ReadOnlyInvoice({
                 {item.price}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
-                {Number(item.amount.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(item.price.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -503,7 +538,7 @@ export default function ReadOnlyInvoice({
     <div
       className={cn('flex flex-col w-[210mm] gap-8 font-geist-sans', className)}
     >
-      <div ref={componentRef} className="flex flex-col gap-6">
+      <div ref={componentRef} className="flex flex-col gap-6 print:gap-0">
         {pages.map((pageItems, pageIndex) => (
           <div
             key={pageIndex}

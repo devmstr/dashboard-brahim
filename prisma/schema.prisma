@@ -162,12 +162,21 @@ model Invoice {
   status        InvoiceStatus? //e.g., "paid", "unpaid", "overdue"
   paymentMode   String? //e.g., "cash", "bank_transfer"
   dueDate       DateTime?
+  purchaseOrder String? //e.g., "PO123456"
+  deliverySlip  String? // e.g., "DS123456"
+  discountRate  Float?         @default(0) // e.g., 10 for 10%
+  refundRate    Float?         @default(0) // e.g., 5 for 5%
+  stampTaxRate  Float?         @default(0) // e.g., 1 for 1%
+  offerValidity DateTime? // e.g., "2023-12-31"
+  guaranteeTime Int? // e.g., 12 for 12 months
+  deliveryTime  Int? // e.g., 30 for 30 days
   note          String? // Additional notes or comments
   total         Float?
   subtotal      Float?
   tax           Float?
-  items         Radiator[]
-  metadata      Json?
+
+  items    Radiator[]
+  metadata Json?
 
   Order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
   orderId String?

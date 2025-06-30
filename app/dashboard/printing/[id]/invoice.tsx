@@ -66,9 +66,7 @@ export interface InvoiceProps {
   id: string
   invoiceNumber: string
   qrAddress: string
-  // bc: string
-  // bl: string[]
-  paymentMode: string
+
   client: {
     name: string
     address?: string
@@ -79,7 +77,16 @@ export interface InvoiceProps {
   items: InvoiceItem[]
   note?: string
   status?: string
-  type?: string
+  type?: 'FINAL' | 'PROFORMA'
+  paymentMode: string
+  purchaseOrder?: string
+  deliverySlip?: string
+  discountRate?: number
+  refundRate?: number
+  stampTaxRate?: number
+  offerValidity?: string
+  deliveryTime?: string
+  guaranteeTime?: string
   dueDate?: Date
   metadata?: InvoiceMetadata
   className?: string
@@ -296,7 +303,7 @@ export default function Invoice({
         </div>
         <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {invoiceNumber.replace(/FF|FP/g, '')}
+            FACTURE: {invoiceNumber.replace(/0+/g, '')}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
@@ -317,7 +324,7 @@ export default function Invoice({
               <p className="capitalize font-normal">{client.address}</p>
             )}
           </div>
-          <div className="text-sm font-geist-sans">
+          <div className="text-sm font-geist-sans w-48">
             <p className="flex">
               <strong className="w-10">{'R.C: '}</strong> {client.rc}
             </p>
@@ -662,7 +669,7 @@ export default function Invoice({
                 {item.price}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h- font-geist-sans">
-                {Number(item.amount.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(item.price.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}

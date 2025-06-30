@@ -38,7 +38,7 @@ import {
 import './print.css'
 import { toast } from '@/hooks/use-toast'
 import { Icons } from '@/components/icons'
-import { InvoiceData, InvoiceRef } from './invoice-client-wrapper'
+import { InvoiceData, InvoiceRef } from './proforma-invoice-wrapper'
 import {
   Popover,
   PopoverContent,
@@ -57,6 +57,7 @@ export type InvoiceMetadata = {
 
 export interface InvoiceProps {
   className?: string
+  data?: InvoiceData
 }
 
 const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
@@ -264,7 +265,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           <div className="flex w-full justify-between ">
             <div className="flex flex-col gap-1">
               <Input
-                placeholder="Nom du client"
+                placeholder="SARL SO.NE.RA.S"
                 className={cn(
                   'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md',
                   !client.name && 'print:hidden'
@@ -279,7 +280,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
               />
               {/* client address only appear if it exist  */}
               <Input
-                placeholder="Adresse du client"
+                placeholder="Z.I. Garat taam B. P.N 46 Bounoura - 47014"
                 className={cn(
                   'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md',
                   !client.address && 'print:hidden'
@@ -293,7 +294,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                 }}
               />
             </div>
-            <div className="text-sm font-geist-sans">
+            <div className="text-sm font-geist-sans w-48">
               <div
                 className={cn(
                   'flex items-center',
@@ -359,6 +360,10 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
               </div>
             </div>
           </div>
+          <Separator
+            style={{ backgroundColor: '#000' }}
+            className="separator my-2 h-[1.2px] rounded text-black"
+          />
         </div>
       </div>
     )
@@ -367,7 +372,6 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     const [showDeliveryTime, setShowDeliveryTime] = useState(false)
     const [showGuaranteeTime, setShowGuaranteeTime] = useState(false)
     const [showNote, setShowNote] = useState(false)
-    const [addSelectorPopoverOpen, setAddSelectorPopoverOpen] = useState(false)
 
     const renderSelectors = () => {
       // Define a type for selector options
@@ -412,17 +416,19 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           {/* Single Add button with popover menu */}
           {availableSelectors.length > 0 && (
             <Popover>
-              <PopoverTrigger className="w-48 relative flex items-end">
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="absolute top-2.5 -left-7 h-6 w-6 p-0 border border-muted print:hidden"
-                >
-                  <Icons.plus className="h-4 w-4" />
-                  <span className="sr-only">Ajouter un champ</span>
-                </Button>
-              </PopoverTrigger>
+              <div className="w-48 relative flex items-end">
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="absolute top-2.5 -left-7 h-6 w-6 p-0 group print:hidden "
+                  >
+                    <Icons.plus className="h-4 w-4 group-hover:text-secondary group-hover:font-bold" />
+                    <span className="sr-only">Ajouter un champ</span>
+                  </Button>
+                </PopoverTrigger>
+              </div>
               <PopoverContent className="p-1 w-48" side="bottom">
                 <div className="flex flex-col gap-1">
                   {availableSelectors.map((sel) => (
@@ -855,7 +861,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                       setEditedItems((prev: InvoiceItem[]) =>
                         prev.map((i: InvoiceItem) =>
                           i.id === item.id
-                            ? { ...i, quantity, amount: quantity * i.price }
+                            ? { ...i, quantity, price: quantity * i.price }
                             : i
                         )
                       )
@@ -873,7 +879,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                       setEditedItems((prev: InvoiceItem[]) =>
                         prev.map((i: InvoiceItem) =>
                           i.id === item.id
-                            ? { ...i, price, amount: price * i.quantity }
+                            ? { ...i, price, amont: price * i.quantity }
                             : i
                         )
                       )
@@ -882,7 +888,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   />
                 </TableCell>
                 <TableCell className="text-left py-[3px] px-2  font-geist-sans max-w-20">
-                  {Number(item.amount).toLocaleString('fr-FR', {
+                  {Number(item.price).toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
@@ -924,52 +930,6 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
         ]
       })
     }
-
-    // Local function to update invoice metadata via PATCH
-    // const handleMetadataChange = async () => {
-    //   const metadata = {
-    //     purchaseOrder,
-    //     deliverySlip,
-    //     note,
-    //     discountRate,
-    //     refundRate,
-    //     stampTaxRate,
-    //     items: editedItems
-    //   }
-    //   try {
-    //     const invoice = await fetch(`/api/invoice/7645443`, {
-    //       method: 'PATCH',
-    //       headers: { 'Content-Type': 'application/json' },
-    //       body: JSON.stringify({ metadata })
-    //     })
-    //     if (!invoice.ok) {
-    //       const errorData = await invoice.json().catch(() => ({}))
-    //       throw new Error(
-    //         errorData?.message || 'Erreur lors de la mise à jour de la facture'
-    //       )
-    //     }
-    //   } catch (e) {
-    //     // Optionally handle error (e.g., show toast)
-    //     toast({
-    //       title: 'Erreur',
-    //       description:
-    //         'Une erreur est survenue lors de la mise à jour des données',
-    //       variant: 'destructive'
-    //     })
-    //   }
-    // }
-
-    // useEffect(() => {
-    //   handleMetadataChange()
-    // }, [
-    //   purchaseOrder,
-    //   deliverySlip,
-    //   note,
-    //   discountRate,
-    //   refundRate,
-    //   stampTaxRate,
-    //   editedItems
-    // ])
 
     return (
       <>
