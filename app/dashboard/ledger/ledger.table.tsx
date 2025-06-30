@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown, Download, Filter } from 'lucide-react'
+import { ArrowUpDown, ChevronDown, Download, Filter, X } from 'lucide-react'
 import * as React from 'react'
 import { format } from 'date-fns'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -45,34 +45,26 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import Invoice, {
-  InvoiceMetadata,
-  InvoiceProps
-} from '@/app/dashboard/printing/[id]/invoice'
+import type { InvoiceProps } from '@/app/dashboard/printing/[id]/invoice'
 import { toast } from '@/hooks/use-toast'
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
 import { ScrollArea } from '@/components/scroll-area'
 import { useReactToPrint } from 'react-to-print'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTrigger
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import ReadOnlyInvoice from '@/components/readonly-invoice'
+import { Badge } from '@/components/ui/badge'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -84,6 +76,7 @@ interface LedgerEntry {
   company: string
   phone: string
   location: string
+  type?: 'FINAL' | 'PROFORMA' // Added invoice type
 }
 
 interface LedgerTableProps {
@@ -108,7 +101,11 @@ interface LedgerTableProps {
     to: string
     apply: string
     reset: string
+    type: string
     details: string
+    final: string
+    proforma: string
+    allTypes: string
   }
 }
 
@@ -139,13 +136,17 @@ export function LedgerTable({
     location: 'Location',
     limit: 'Limite',
     export: 'Exporter',
-    filter: 'Filtrer',
+    filter: 'Date',
     dateRange: 'Plage de dates',
     from: 'De',
     to: 'À',
     apply: 'Appliquer',
     reset: 'Réinitialiser',
-    details: 'Détails'
+    details: 'Détails',
+    type: 'Type',
+    final: 'Finale',
+    proforma: 'Proforma',
+    allTypes: 'Tous les types'
   }
 }: LedgerTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -158,6 +159,9 @@ export function LedgerTable({
   const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
     {}
   )
+  const [invoiceTypeFilter, setInvoiceTypeFilter] = React.useState<
+    'FINAL' | 'PROFORMA' | null
+  >(null)
   const [showInvoice, setShowInvoice] = React.useState(false)
   const [invoiceData, setInvoiceData] = React.useState<InvoiceProps | null>(
     null
@@ -211,6 +215,11 @@ export function LedgerTable({
       const date = new Date(cellValue)
 
       return date >= new Date(from) && date <= new Date(to)
+    },
+    invoiceType: (row: any, columnId: string, filterValue: any) => {
+      if (!filterValue) return true
+      const cellValue = row.getValue(columnId) as string
+      return cellValue === filterValue
     }
   }
 
@@ -323,6 +332,24 @@ export function LedgerTable({
         </div>
       )
     },
+    type: {
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          <Badge
+            variant="secondary"
+            className={`text-xs px-2 py-1 rounded-full border shadow-sm flex items-center gap-1 transition-all duration-200
+      ${
+        row.original.type === 'FINAL'
+          ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-300'
+          : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300'
+      }`}
+          >
+            {row.original.type === 'FINAL' ? t.final : t.proforma}
+          </Badge>
+        </div>
+      ),
+      filterFn: filterFns['invoiceType']
+    },
     actions: {
       id: 'actions',
       accessorFn: (row) => row.billId,
@@ -369,7 +396,7 @@ export function LedgerTable({
       order: 2
     },
     {
-      id: 'total',
+      id: 'type',
       roles: [
         'GUEST',
         'SALES_AGENT',
@@ -382,7 +409,7 @@ export function LedgerTable({
       order: 3
     },
     {
-      id: 'items',
+      id: 'total',
       roles: [
         'GUEST',
         'SALES_AGENT',
@@ -395,7 +422,7 @@ export function LedgerTable({
       order: 4
     },
     {
-      id: 'createdAt',
+      id: 'items',
       roles: [
         'GUEST',
         'SALES_AGENT',
@@ -408,19 +435,32 @@ export function LedgerTable({
       order: 5
     },
     {
-      id: 'company',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'ACCOUNTANT'],
+      id: 'createdAt',
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'INVENTORY_AGENT',
+        'ENGINEER',
+        'ENGINEERING_MANAGER',
+        'ACCOUNTANT'
+      ],
       order: 6
     },
     {
-      id: 'phone',
+      id: 'company',
       roles: ['SALES_AGENT', 'SALES_MANAGER', 'ACCOUNTANT'],
       order: 7
     },
     {
+      id: 'phone',
+      roles: ['SALES_AGENT', 'SALES_MANAGER', 'ACCOUNTANT'],
+      order: 8
+    },
+    {
       id: 'location',
       roles: ['SALES_AGENT', 'SALES_MANAGER', 'ACCOUNTANT'],
-      order: 8,
+      order: 9,
       responsiveClass: 'hidden lg:table-cell'
     },
     {
@@ -434,7 +474,7 @@ export function LedgerTable({
         'ENGINEERING_MANAGER',
         'ACCOUNTANT'
       ],
-      order: 9
+      order: 10
     }
   ]
 
@@ -497,12 +537,21 @@ export function LedgerTable({
       toDate.setHours(23, 59, 59, 999)
 
       table
-        .getColumn('date')
+        .getColumn('createdAt')
         ?.setFilterValue([fromDate.toISOString(), toDate.toISOString()])
     } else {
-      table.getColumn('date')?.setFilterValue(undefined)
+      table.getColumn('createdAt')?.setFilterValue(undefined)
     }
   }, [dateRange, table])
+
+  // Apply invoice type filter
+  React.useEffect(() => {
+    if (invoiceTypeFilter) {
+      table.getColumn('type')?.setFilterValue(invoiceTypeFilter)
+    } else {
+      table.getColumn('type')?.setFilterValue(undefined)
+    }
+  }, [invoiceTypeFilter, table])
 
   // Helper function to get responsive class for a column
   const getResponsiveClass = (columnId: string): string => {
@@ -525,7 +574,7 @@ export function LedgerTable({
     const rows = table.getFilteredRowModel().rows.map((row) => {
       return exportableColumns.map((column) => {
         const value = row.getValue(column.id)
-        if (column.id === 'date' && value) {
+        if (column.id === 'createdAt' && value) {
           return format(new Date(value as string), 'dd/MM/yyyy')
         }
         if (column.id === 'total' && value) {
@@ -534,6 +583,9 @@ export function LedgerTable({
         if (column.id === 'items' && value) {
           const items = (row.original as LedgerEntry).items
           return items > 0 ? `${items}` : '0'
+        }
+        if (column.id === 'type' && value) {
+          return value === 'FINAL' ? t.final : t.proforma
         }
 
         return value
@@ -569,9 +621,11 @@ export function LedgerTable({
             onChange={(event) => table.setGlobalFilter(event.target.value)}
             className="w-full sm:w-80"
           />
+
+          {/* Date Range Filter */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="flex gap-2">
+              <Button variant="outline" className="flex gap-2 bg-transparent">
                 <Filter className="h-4 w-4" />
                 {t.filter}
               </Button>
@@ -635,13 +689,73 @@ export function LedgerTable({
               </div>
             </PopoverContent>
           </Popover>
+          {/* Invoice Type Filter Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex gap-2 bg-transparent">
+                <Filter className="h-4 w-4" />
+                {t.type}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" align="start">
+              <div className="space-y-4">
+                <h4 className="font-medium">{t.type}</h4>
+                <Separator />
+                <RadioGroup
+                  value={invoiceTypeFilter || 'all'}
+                  onValueChange={(value) => {
+                    if (value === 'all') {
+                      setInvoiceTypeFilter(null)
+                    } else {
+                      setInvoiceTypeFilter(value as 'FINAL' | 'PROFORMA')
+                    }
+                  }}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="all" id="all" />
+                    <Label htmlFor="all" className="cursor-pointer">
+                      {t.allTypes}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="FINAL" id="final" />
+                    <Label htmlFor="final" className="cursor-pointer">
+                      {t.final}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="PROFORMA" id="proforma" />
+                    <Label htmlFor="proforma" className="cursor-pointer">
+                      {t.proforma}
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </PopoverContent>
+          </Popover>
+          {/* Invoice Type Filter Badge */}
+          {invoiceTypeFilter && (
+            <Badge
+              variant="secondary"
+              className={`flex items-center gap-1 cursor-pointer h-8 px-3 py-1 rounded-full border shadow-sm transition-all duration-200
+      ${
+        invoiceTypeFilter === 'FINAL'
+          ? 'bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-300'
+          : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300'
+      }`}
+              onClick={() => setInvoiceTypeFilter(null)}
+            >
+              {invoiceTypeFilter === 'FINAL' ? t.final : t.proforma}
+            </Badge>
+          )}
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="ml-auto text-muted-foreground hover:text-foreground"
+                className="ml-auto text-muted-foreground hover:text-foreground bg-transparent"
               >
                 {t.columns}
                 <ChevronDown className="ml-2 h-4 w-4" />
@@ -671,7 +785,7 @@ export function LedgerTable({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground bg-transparent"
               >
                 {t.limit} ({limit})
                 <ChevronDown className="ml-2 h-4 w-4" />
@@ -700,7 +814,7 @@ export function LedgerTable({
           </DropdownMenu>
           <Button
             variant="outline"
-            className="flex gap-2"
+            className="flex gap-2 bg-transparent"
             onClick={exportToCSV}
           >
             <Download className="h-4 w-4" />

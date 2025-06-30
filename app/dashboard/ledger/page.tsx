@@ -38,6 +38,7 @@ const Page = async () => {
       billId: inv.number,
       id: inv.id,
       total: inv.total || 0,
+      type: inv.type as 'FINAL' | 'PROFORMA',
       items: itemsCount,
       createdAt: inv.createdAt.toISOString(),
       company: inv.Client?.name || inv.clientName || '',
