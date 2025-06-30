@@ -86,7 +86,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         fins: 'Normale',
         finsPitch: '10',
         tube: 'ET7',
-        rows: 1,
+        rows: 2,
         dimensions: {
           diameter: 0,
           height: 0,
@@ -124,6 +124,9 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   const width = form.watch('Collector.dimensions1.width')
   const note = form.watch('note')
   const diameter = form.watch('Core.dimensions.diameter')
+  const coreDimensions = form.watch('Core.dimensions')
+  const collectorDimensions1 = form.watch('Collector.dimensions1')
+  const collectorDimensions2 = form.watch('Collector.dimensions2')
 
   // Enforce "remarque" when no vehicle
   useEffect(() => {
@@ -603,11 +606,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               {type === 'Spirale' ? 'Tube' : 'Faisceau'}
             </span>
-            {type === 'Faisceau' && form.formState.errors.Core?.dimensions && (
-              <div className="mt-2 w-full flex justify-start text-destructive/80 underline text-sm">
-                ** {form.formState.errors.Core.dimensions.message} **
-              </div>
-            )}
+            {type === 'Faisceau' &&
+              form.formState.errors.Core?.dimensions &&
+              (coreDimensions.height < 1 || coreDimensions.width < 1) && (
+                <div className="mt-2 w-full flex justify-start text-destructive/80 underline text-sm">
+                  {form.formState.errors.Core.dimensions.message}
+                </div>
+              )}
             {type === 'Spirale' ? (
               <CardGrid>
                 <FormField
@@ -817,11 +822,12 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                     collecteurs
                   </span>
                   {type === 'Faisceau' &&
-                    form.formState.errors.Core?.dimensions && (
+                    (form.formState.errors.Collector?.dimensions1 ||
+                      form.formState.errors.Collector?.dimensions1) &&
+                    (collectorDimensions1.height < 1 ||
+                      collectorDimensions1.width < 1) && (
                       <div className="mt-2 w-full flex justify-start text-destructive underline text-sm">
-                        **{' '}
                         {form.formState.errors.Collector?.dimensions1?.message}
-                        **
                       </div>
                     )}
                   <CardGrid>

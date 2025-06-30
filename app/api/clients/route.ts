@@ -9,6 +9,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const searchTerm = searchParams.get('search') || ''
+    const onlyCompanies = searchParams.get('onlyCompanies') === 'true'
+
     // if the search is phone number remove the first 0
     const isPhone = /^\d+$/.test(searchTerm)
     const formattedSearchTerm = isPhone
@@ -25,6 +27,7 @@ export async function GET(request: Request) {
           { phone: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
           { label: { contains: search, mode: 'insensitive' } },
+          { isCompany: onlyCompanies ? true : undefined },
           {
             Address: {
               Province: { name: { contains: search, mode: 'insensitive' } }

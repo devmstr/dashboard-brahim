@@ -105,7 +105,7 @@ export const UserAccountNav: React.FC<UserAccountNavProps> = ({
           onSelect={(event) => {
             event.preventDefault()
             signOut({
-              callbackUrl: `${window.location.origin}/`
+              // callbackUrl: `${window.location.origin}/`
             })
           }}
         >

@@ -160,7 +160,7 @@ export default function CustomerSearchInput({
         const response = await fetch(
           `/api/clients?search=${encodeURIComponent(
             searchTerm
-          )}&includeAddress=true`
+          )}&onlyCompanies=${onlyCompanies}`
         )
         if (!response.ok) {
           throw new Error('Failed to fetch clients')

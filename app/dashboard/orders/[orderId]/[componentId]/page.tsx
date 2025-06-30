@@ -58,7 +58,7 @@ const Page: React.FC<Props> = async ({
     const coreComponent = parseMetadata(
       Radiator?.Components.find(({ type }) => type === 'CORE')?.Metadata
     )
-
+    console.log('coreComponent', coreComponent)
     const collectors = Radiator.Components.filter((c) => c.type === 'COLLECTOR')
     // find collector material name
     const collectorMaterialName = collectors.map((c) => {
@@ -95,7 +95,8 @@ const Page: React.FC<Props> = async ({
           tube: coreComponent.tube as Core['tube'],
           dimensions: {
             width: coreComponent?.dimensions?.width as number,
-            height: coreComponent?.dimensions?.height as number
+            height: coreComponent?.dimensions?.height as number,
+            diameter: coreComponent?.dimensions?.diameter as number | undefined
           }
         }
       }),
