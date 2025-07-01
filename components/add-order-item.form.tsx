@@ -59,7 +59,7 @@ import {
 
 interface OrderItemFormProps {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
-  onSubmit: (orderItem: OrderItem) => void
+  onSubmit: (orderItem: OrderItem) => Promise<void>
 }
 
 export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({

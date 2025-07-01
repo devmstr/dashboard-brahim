@@ -144,7 +144,7 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
     [setOrder]
   )
 
-  function onOrderPlaced(orderItem: OrderItem) {
+  async function onOrderPlaced(orderItem: OrderItem) {
     let orderItemPrefix = orderItem.type?.substring(0, 2).toUpperCase() as
       | 'FA'
       | 'RA'

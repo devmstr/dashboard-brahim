@@ -201,57 +201,201 @@ export async function PUT(
 
     // Update order items if provided
     if (orderItems && Array.isArray(orderItems)) {
-      // Handle updates for existing items and creation of new items
-      for (const item of orderItems) {
-        if (item.id) {
-          // Update existing item
-          await prisma.orderItem.update({
-            where: { id: item.id },
-            data: {
-              note: item.note || {},
-              description: item.description || {},
-              modification: item.modification || {},
-              packaging: item.packaging,
-              fabrication: item.fabrication,
-              isModified: item.isModified
+      await prisma.$transaction(async (tx) => {
+        for (const item of orderItems) {
+          // Check if the item exists in the DB
+          const existingItem = item.id
+            ? await tx.orderItem.findUnique({ where: { id: item.id } })
+            : null
+          if (existingItem) {
+            // Update existing item
+            await tx.orderItem.update({
+              where: { id: item.id },
+              data: {
+                note: item.note || {},
+                description: item.description || {},
+                modification: item.modification || {},
+                packaging: item.packaging,
+                fabrication: item.fabrication,
+                isModified: item.isModified,
+                quantity: item.quantity
+              }
+            })
+          } else {
+            // Ensure radiatorId exists, or create a new Radiator and its components
+            let radiatorId = item.radiatorId
+            let createdRadiator = null
+            if (!radiatorId) {
+              // Create a new Radiator with the custom id (SKU)
+              createdRadiator = await tx.radiator.create({
+                data: {
+                  id: item.id, // use the custom SKU as the id
+                  label: item.label || item.id,
+                  category: item.category || undefined,
+                  cooling: item.cooling || undefined,
+                  ...(item.Radiator?.Car?.id
+                    ? {
+                        Models: {
+                          connect: {
+                            id: item.Radiator.Car.id
+                          }
+                        }
+                      }
+                    : {})
+                }
+              })
+              radiatorId = createdRadiator.id
+            } else {
+              // Check if the radiator exists
+              const radiatorExists = await tx.radiator.findUnique({
+                where: { id: radiatorId }
+              })
+              if (!radiatorExists) {
+                createdRadiator = await tx.radiator.create({
+                  data: {
+                    id: radiatorId,
+                    label: item.label || radiatorId,
+                    category: item.category || undefined,
+                    cooling: item.cooling || undefined,
+                    ...(item.Radiator?.Car?.id
+                      ? {
+                          Models: {
+                            connect: {
+                              id: item.Radiator.Car.id
+                            }
+                          }
+                        }
+                      : {})
+                  }
+                })
+                radiatorId = createdRadiator.id
+              }
             }
-          })
-        } else {
-          // Create new item
-          await prisma.orderItem.create({
-            data: {
-              note: item.note || {},
-              description: item.description || {},
-              modification: item.modification || {},
-              packaging: item.packaging,
-              fabrication: item.fabrication,
-              isModified: item.isModified,
-              radiatorId: item.radiatorId,
-              orderId: id
+            // If we created a new radiator, add its components
+            if (createdRadiator) {
+              // Core component
+              if (item.Radiator?.Core) {
+                await tx.component.create({
+                  data: {
+                    name: 'Faisceau',
+                    type: 'CORE',
+                    radiatorId,
+                    Metadata: item.Radiator.Core
+                  }
+                })
+              }
+              // Tube component if diameter exists
+              const tubeDiameter =
+                item.Core?.dimensions?.diameter ||
+                item.Radiator?.Core?.dimensions?.diameter
+              if (tubeDiameter) {
+                await tx.component.create({
+                  data: {
+                    name: 'Tube',
+                    type: 'TUBE',
+                    radiatorId,
+                    Metadata: { diameter: tubeDiameter }
+                  }
+                })
+              }
+              // Collector components
+              if (item.Radiator?.Collector) {
+                // TOP collector
+                await tx.component.create({
+                  data: {
+                    name: 'Collecteur Haut',
+                    type: 'COLLECTOR',
+                    radiatorId,
+                    Metadata: {
+                      ...item.Radiator.Collector,
+                      type: 'TOP',
+                      dimensions: item.Radiator.Collector.dimensions1
+                    }
+                  }
+                })
+                // BOTTOM collector
+                await tx.component.create({
+                  data: {
+                    name: 'Collecteur Bas',
+                    type: 'COLLECTOR',
+                    radiatorId,
+                    Metadata: {
+                      ...item.Radiator.Collector,
+                      type: 'BOTTOM',
+                      dimensions:
+                        item.Radiator.Collector.dimensions2 ||
+                        item.Radiator.Collector.dimensions1
+                    }
+                  }
+                })
+              }
+            } else {
+              // If radiator exists, still add TUBE component if diameter exists
+              const tubeDiameter =
+                item.Core?.dimensions?.diameter ||
+                item.Radiator?.Core?.dimensions?.diameter
+              if (tubeDiameter) {
+                await tx.component.create({
+                  data: {
+                    name: 'Tube',
+                    type: 'TUBE',
+                    radiatorId,
+                    Metadata: { diameter: tubeDiameter }
+                  }
+                })
+              }
             }
-          })
+            // Create new item with valid radiatorId
+            await tx.orderItem.create({
+              data: {
+                id: item.id, // allow custom id (sku)
+                note: item.note || {},
+                description: item.description || {},
+                modification: item.modification || {},
+                packaging: item.packaging,
+                fabrication: item.fabrication,
+                isModified: item.isModified,
+                quantity: item.quantity,
+                radiatorId: radiatorId,
+                orderId: id,
+                type: item.type || undefined
+              }
+            })
+          }
         }
-      }
+      })
     }
 
-    // Add new attachments if provided
-    if (attachments && Array.isArray(attachments)) {
-      for (const attachment of attachments) {
-        if (!attachment.id) {
-          await prisma.attachment.create({
-            data: {
-              url: attachment.url,
-              type: attachment.type || 'unknown',
-              name: attachment.name,
-              uniqueName: attachment.uniqueName,
-              orderId: id
-            }
-          })
-        }
+    // Refetch the updated order with all items
+    const updatedOrderWithItems = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        Client: true,
+        Payment: true,
+        OrdersItems: {
+          include: {
+            Radiator: {
+              include: {
+                Components: {
+                  include: {
+                    MaterialUsages: {
+                      include: {
+                        Material: true
+                      }
+                    }
+                  }
+                },
+                Price: true,
+                Models: { include: { Family: { include: { Brand: true } } } }
+              }
+            },
+            Attachments: true
+          }
+        },
+        Attachments: true
       }
-    }
-
-    return NextResponse.json(updatedOrder)
+    })
+    return NextResponse.json(updatedOrderWithItems)
   } catch (error) {
     console.error('Error updating order:', error)
     return NextResponse.json(
@@ -272,6 +416,23 @@ export async function DELETE(
 ) {
   try {
     const id = params.id
+    const { searchParams } = new URL(request.url)
+    const itemId = searchParams.get('itemId')
+
+    if (itemId) {
+      // Delete a single order item
+      const existingItem = await prisma.orderItem.findUnique({
+        where: { id: itemId }
+      })
+      if (!existingItem) {
+        return NextResponse.json(
+          { message: 'Order item not found' },
+          { status: 404 }
+        )
+      }
+      await prisma.orderItem.delete({ where: { id: itemId } })
+      return NextResponse.json({ message: 'Order item deleted successfully' })
+    }
 
     // Check if order exists
     const existingOrder = await prisma.order.findUnique({
@@ -289,13 +450,13 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Order deleted successfully' })
   } catch (error) {
-    console.error('Error deleting order:', error)
+    console.error('Error deleting order or order item:', error)
     return NextResponse.json(
       {
         message:
           error instanceof Error
             ? error.message
-            : 'An error occurred while deleting the order'
+            : 'An error occurred while deleting the order or order item'
       },
       { status: 500 }
     )

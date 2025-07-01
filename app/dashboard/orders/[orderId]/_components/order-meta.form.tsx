@@ -278,7 +278,7 @@ export const OrderMetaForm: React.FC<Props> = ({
         </div>
         <div className="flex flex-col items-end gap-4">
           <Separator />
-          <Button className="w-fit flex gap-1" type="submit">
+          <Button className="flex gap-1 w-24" type="submit">
             <span>{'Modifier'}</span>
             {isLoading && (
               <Icons.spinner className=" w-auto h-5 animate-spin" />

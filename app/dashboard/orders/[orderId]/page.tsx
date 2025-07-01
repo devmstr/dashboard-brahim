@@ -131,7 +131,7 @@ const Page: React.FC<PageProps> = async ({
       )}
       {true && (
         <Card className="">
-          <OrderComponentsTable data={data} />
+          <OrderComponentsTable orderId={orderId} data={data} />
         </Card>
       )}
       {/* {(isUserRoleSales || isUserRoleProduction) && (

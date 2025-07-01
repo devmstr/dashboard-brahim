@@ -90,9 +90,9 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       Core: {
         ...data.Core,
         dimensions: {
-          height: data.Core.height || data.Core.dimensions?.height || 0,
-          width: data.Core.width || data.Core.dimensions?.width || 0,
-          diameter: data.Core.diameter || data.Core.dimensions?.diameter || 0
+          height: data.Core?.height || data.Core?.dimensions?.height || 0,
+          width: data.Core?.width || data.Core?.dimensions?.width || 0,
+          diameter: data.Core?.diameter || data.Core?.dimensions?.diameter || 0
         }
       },
       Collector: {

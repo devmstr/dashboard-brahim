@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { cn } from '@/lib/utils'
+import { cn, skuId } from '@/lib/utils'
 
 import {
   type ColumnDef,
@@ -55,6 +55,10 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem
 } from '@/components/ui/dropdown-menu'
+import { AddOrderItemForm } from './add-order-item.form'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { concat } from 'lodash'
+import { ScrollArea } from './ui/scroll-area'
 
 export type ComponentsTableEntry = {
   id: string
@@ -70,6 +74,7 @@ export type ComponentsTableEntry = {
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   data?: ComponentsTableEntry[]
+  orderId?: string
   t?: {
     id: string
     brand: string
@@ -84,6 +89,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 export function OrderComponentsTable({
   data: input = [],
+  orderId,
   t = {
     id: 'Matricule',
     label: 'Designation',
@@ -115,9 +121,25 @@ export function OrderComponentsTable({
     table.setPageSize(limit)
   }, [limit])
 
-  const handleDelete = async (orderId: string) => {
-    setData(data.filter(({ id }) => id != orderId))
-    // TODO: delete the item from database
+  const handleDelete = async (orderItemId: string) => {
+    try {
+      // Call backend to delete the order item
+      const response = await fetch(
+        `/api/orders/${orderId}?itemId=${orderItemId}`,
+        {
+          method: 'DELETE'
+        }
+      )
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Error deleting order item:', error)
+        throw new Error(error.message || 'Erreur lors de la suppression')
+      }
+      setData((prev) => prev.filter(({ id }) => id !== orderItemId))
+    } catch (error) {
+      console.error('Error deleting order item:', error)
+      // Optionally show a toast notification here
+    }
   }
 
   const columns: ColumnDef<ComponentsTableEntry>[] = [
@@ -314,68 +336,144 @@ export function OrderComponentsTable({
             onChange={(event) => table.setGlobalFilter(event.target.value)}
             className="w-80"
           />
-          <div className="hidden md:flex gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="ml-auto text-muted-foreground hover:text-foreground"
-                >
-                  Colonnes
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => {
-                    return (
-                      <DropdownMenuCheckboxItem
-                        key={column.id}
-                        className="capitalize text-muted-foreground hover:text-foreground"
-                        checked={column.getIsVisible()}
-                        onCheckedChange={(value) =>
-                          column.toggleVisibility(!!value)
-                        }
-                      >
-                        {t[column.id as keyof typeof t] || column.id}
-                      </DropdownMenuCheckboxItem>
-                    )
-                  })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Limite ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup
-                  value={limit.toString()}
-                  onValueChange={(value) => setLimit(Number.parseInt(value))}
-                >
-                  {['10', '25', '50', '100'].map((value) => (
-                    <DropdownMenuRadioItem
-                      className={cn(
-                        'text-muted-foreground font-medium hover:text-primary',
-                        limit === Number.parseInt(value) && 'text-primary'
-                      )}
-                      key={value}
-                      value={value}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="ml-auto text-muted-foreground hover:text-foreground"
+              >
+                Colonnes
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize text-muted-foreground hover:text-foreground"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
                     >
-                      {value}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                      {t[column.id as keyof typeof t] || column.id}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Limite ({limit}) <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={limit.toString()}
+                onValueChange={(value) => setLimit(Number.parseInt(value))}
+              >
+                {['10', '25', '50', '100'].map((value) => (
+                  <DropdownMenuRadioItem
+                    className={cn(
+                      'text-muted-foreground font-medium hover:text-primary',
+                      limit === Number.parseInt(value) && 'text-primary'
+                    )}
+                    key={value}
+                    value={value}
+                  >
+                    {value}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* add new order item by using the /order/[id] */}
+        </div>
+        <div className="">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="default" className="w-24">
+                <Icons.plus className="w-4 h-4 mr-1" /> Article
+              </Button>
+            </DialogTrigger>
+            <DialogContent asChild className="max-w-5xl">
+              <ScrollArea className="max-h-[80vh]">
+                <AddOrderItemForm
+                  onSubmit={async (orderItem) => {
+                    try {
+                      let orderItemPrefix = orderItem.type
+                        ?.substring(0, 2)
+                        .toUpperCase() as 'FA' | 'RA' | 'AU' | 'RE'
+                      if (orderItem.fabrication == 'Rénovation')
+                        orderItemPrefix = 'RE'
+
+                      const id = skuId(orderItemPrefix)
+                      // Use the /api/orders/[id] API to add the item
+                      const response = await fetch(`/api/orders/${orderId}`, {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          orderItems: [
+                            {
+                              ...orderItem,
+                              id
+                              // radiatorId: id
+                            }
+                          ]
+                        })
+                      })
+                      if (!response.ok) {
+                        const error = await response.json()
+                        console.error('Error adding order item:', error)
+                        throw new Error(
+                          error.message || 'Une erreur est survenue'
+                        )
+                      }
+                      const updatedOrder = await response.json()
+                      // Find the new item in the updated order's OrdersItems
+                      const newItem = updatedOrder.OrdersItems?.find(
+                        (item: any) => item.id === id
+                      )
+                      if (newItem) {
+                        setData((prev) => [
+                          ...prev,
+                          {
+                            id: newItem.id,
+                            brand:
+                              newItem.Radiator?.Models?.[0]?.Family?.Brand
+                                ?.name || '',
+                            model: newItem.Radiator?.Models?.[0]?.name || '',
+                            fabrication: newItem.fabrication || '',
+                            category: newItem.Radiator?.category || '',
+                            label: newItem.Radiator?.label || '',
+                            quantity: newItem.quantity || 0,
+                            isModified: newItem.modification
+                              ? !!newItem.modification
+                              : false,
+                            radiatorId: newItem.Radiator?.id || ''
+                          }
+                        ])
+                      }
+                    } catch (error) {
+                      console.error('Error adding order item:', error)
+                      // Optionally show a toast notification here
+                    }
+                  }}
+                />
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
       <div className="rounded-md border">
