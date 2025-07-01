@@ -34,7 +34,7 @@ export const AddComponentDialog: React.FC<Props> = ({ className }: Props) => {
         <ScrollArea className="max-h-[80vh] pt-2 px-1 pr-2">
           <AddOrderItemForm
             setOpen={setOpen}
-            onSubmit={function (orderItem: OrderItem): void {
+            onSubmit={async (orderItem: OrderItem) => {
               throw new Error('Function not implemented.')
             }}
           />
