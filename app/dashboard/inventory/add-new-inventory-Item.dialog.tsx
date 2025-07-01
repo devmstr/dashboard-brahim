@@ -62,7 +62,7 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
     defaultValues: {
       minStockLevel: 5,
       stockLevel: 0,
-      maxStockLevel: 40,
+      maxStockLevel: 100,
       isActive: true
     }
   })

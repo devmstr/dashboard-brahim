@@ -43,10 +43,24 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
     resolver: zodResolver(inventorySchema),
     defaultValues: {
       ...data,
-      // isActive: true
       location: 'Dépôt SONERAS'
     }
   })
+
+  // Calculate TTC prices automatically
+  const price = form.watch('price') || 0
+  const bulkPrice = form.watch('bulkPrice') || 0
+  const VAT = 0.19
+  const priceTTC = price ? +(price * (1 + VAT)).toFixed(2) : 0
+  const bulkPriceTTC = bulkPrice ? +(bulkPrice * (1 + VAT)).toFixed(2) : 0
+
+  // Update TTC fields in form state for submission
+  React.useEffect(() => {
+    form.setValue('priceTTC', priceTTC)
+  }, [priceTTC])
+  React.useEffect(() => {
+    form.setValue('bulkPriceTTC', bulkPriceTTC)
+  }, [bulkPriceTTC])
 
   const onSubmit = async (items: Partial<InventoryType>) => {
     setError(null)
@@ -59,8 +73,10 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
         },
         body: JSON.stringify({
           price: items.price,
+          priceTTC: priceTTC,
           bulkPrice: items.bulkPrice,
-          bulkPriceThreshold: items.bulkPriceThreshold
+          bulkPriceTTC: bulkPriceTTC,
+          bulkThreshold: items.bulkPriceThreshold
         })
       })
       if (!response.ok) {
@@ -167,39 +183,18 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
             </CardGrid>
 
             {/* Prix */}
-
-            <CardGrid className="">
+            <CardGrid>
               <h3 className="text-lg font-semibold col-span-3">Tarification</h3>
-              <FormField
-                control={form.control}
-                name="bulkPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix en gros</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prix unitaire</FormLabel>
+                    <FormLabel>Prix unitaire (HT)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         step="0.01"
-                        placeholder="+7% par défaut"
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
@@ -208,7 +203,69 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="priceTTC"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prix unitaire (TTC)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={priceTTC}
+                        disabled
+                        readOnly
+                        className="bg-muted"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardGrid>
 
+            <CardGrid>
+              <FormField
+                control={form.control}
+                name="bulkPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prix en gros (HT)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bulkPriceTTC"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prix en gros (TTC)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={bulkPriceTTC}
+                        disabled
+                        readOnly
+                        className="bg-muted"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardGrid>
+            <CardGrid>
               <FormField
                 control={form.control}
                 name="bulkPriceThreshold"

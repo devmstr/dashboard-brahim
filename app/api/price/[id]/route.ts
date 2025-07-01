@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { z } from 'zod'
 import { getCurrentUser } from '@/lib/session'
+import { revalidatePath } from 'next/cache'
 
 export async function PATCH(
   request: NextRequest,
@@ -18,7 +19,15 @@ export async function PATCH(
 
   const id = params.id
   const body = await request.json()
-  const { price, bulkPrice, bulkPriceThreshold, isActive } = body
+  // Map new fields
+  const {
+    price, // unit
+    priceTTC, // unitTTC
+    bulkPrice, // bulk
+    bulkPriceTTC, // bulkTTC
+    bulkPriceThreshold, // bulkThreshold
+    isActive
+  } = body
 
   try {
     // Find the radiator
@@ -38,7 +47,9 @@ export async function PATCH(
       const newPrice = await prisma.price.create({
         data: {
           unit: price ?? 0,
+          unitTTC: priceTTC ?? 0,
           bulk: bulkPrice ?? 0,
+          bulkTTC: bulkPriceTTC ?? 0,
           bulkThreshold: bulkPriceThreshold ?? 0,
           Radiators: { connect: { id } }
         }
@@ -54,12 +65,16 @@ export async function PATCH(
         where: { id: priceId },
         data: {
           ...(price !== undefined ? { unit: price } : {}),
+          ...(priceTTC !== undefined ? { unitTTC: priceTTC } : {}),
           ...(bulkPrice !== undefined ? { bulk: bulkPrice } : {}),
+          ...(bulkPriceTTC !== undefined ? { bulkTTC: bulkPriceTTC } : {}),
           ...(bulkPriceThreshold !== undefined
             ? { bulkThreshold: bulkPriceThreshold }
             : {})
         }
       })
+      // revalidate the path
+      revalidatePath(`/dashboard/inventory/${id}`)
       return NextResponse.json({
         message: 'Price updated',
         price: updatedPrice

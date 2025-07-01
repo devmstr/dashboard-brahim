@@ -13,7 +13,9 @@ export const inventorySchema = z.object({
 
   // pricing
   price: z.number().optional(),
+  priceTTC: z.number().optional(),
   bulkPrice: z.number().optional(),
+  bulkPriceTTC: z.number().optional(),
   bulkPriceThreshold: z.number().optional(),
 
   // Status
