@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     } = body
     // Remove old Core/Collector logic and use Components
     // Validate required fields
+
     if (!clientId) {
       return NextResponse.json(
         { message: 'Client ID is required' },

@@ -256,7 +256,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             <p>Du: {mounted ? format(new Date(), 'dd/MM/yyyy') : ''}</p>
           </div>
         </div>
-        <div className="text-base mt-4 ">
+        <div className="text-base mt-4 w-full ">
           <Separator
             style={{ backgroundColor: '#000' }}
             className="separator my-2 h-[1.4px] rounded "
@@ -282,7 +282,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
               <Input
                 placeholder="Z.I. Garat taam B. P.N 46 Bounoura - 47014"
                 className={cn(
-                  'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md',
+                  'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md w-full',
                   !client.address && 'print:hidden'
                 )}
                 value={client.address}
@@ -421,10 +421,10 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   <Button
                     type="button"
                     size="icon"
-                    variant="ghost"
+                    variant="outline"
                     className="absolute top-2.5 -left-7 h-6 w-6 p-0 group print:hidden "
                   >
-                    <Icons.plus className="h-4 w-4 group-hover:text-secondary group-hover:font-bold" />
+                    <Icons.plus className="h-4 w-4 text-primary group-hover:text-secondary group-hover:font-bold" />
                     <span className="sr-only">Ajouter un champ</span>
                   </Button>
                 </PopoverTrigger>

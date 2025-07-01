@@ -428,7 +428,6 @@ export function OrderComponentsTable({
                             {
                               ...orderItem,
                               id
-                              // radiatorId: id
                             }
                           ]
                         })

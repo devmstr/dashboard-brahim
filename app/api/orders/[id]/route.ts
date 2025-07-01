@@ -6,6 +6,7 @@ import { userRoles } from '@/config/global'
 import { checkIsOnDemandRevalidate } from 'next/dist/server/api-utils'
 import { getUserRole } from '@/lib/session'
 import { revalidatePath } from 'next/cache'
+import { OrderItem } from '@/lib/validations'
 
 export async function GET(
   request: Request,
@@ -89,7 +90,15 @@ export async function PUT(
       orderItems,
       attachments,
       deliveredItems
-    } = body
+    } = body as {
+      deadline?: string
+      state?: string
+      progress?: number
+      payment?: any
+      orderItems: OrderItem[]
+      attachments?: any[]
+      deliveredItems?: any[]
+    }
 
     // Update payment if provided
     if (payment) {
@@ -107,69 +116,13 @@ export async function PUT(
       })
     }
 
-    // Update order items delivery state if deliveredItems is provided
-    if (typeof deliveredItems === 'number') {
-      // Fetch all order items for this order, sorted by creation (or id)
-      const items = await prisma.orderItem.findMany({
-        where: { orderId: id },
-        orderBy: { id: 'asc' } // or use createdAt if available
-      })
-      let toDeliver = deliveredItems
-      let deliveredSum = 0
-      let totalSum = 0
-      for (const item of items) {
-        totalSum += item.quantity || 1
-        // If there are still items to deliver, set state to 'delivered'
-        if (toDeliver > 0) {
-          await prisma.orderItem.update({
-            where: { id: item.id },
-            data: { state: 'delivered' }
-          })
-          deliveredSum += item.quantity || 1
-          toDeliver -= item.quantity || 1
-        } else {
-          // Mark as not delivered (pending or previous state)
-          await prisma.orderItem.update({
-            where: { id: item.id },
-            data: { state: 'pending' }
-          })
-        }
-      }
-      // Update the Order's itemsCount and deliveredItems fields
-      await prisma.order.update({
-        where: { id },
-        data: {
-          itemsCount: totalSum,
-          deliveredItems: deliveredSum
-        }
-      })
-    }
-
     // Prepare update data for the order
     const updateData: any = {
       deadline: deadline ? new Date(deadline) : undefined,
       state,
       progress
     }
-    // If deliveredItems is provided, update itemsCount and deliveredItems
-    if (typeof deliveredItems === 'number') {
-      // Fetch all order items for this order
-      const items = await prisma.orderItem.findMany({
-        where: { orderId: id }
-      })
-      let totalSum = 0
-      let deliveredSum = 0
-      let toDeliver = deliveredItems
-      for (const item of items) {
-        totalSum += item.quantity || 1
-        if (toDeliver > 0) {
-          deliveredSum += item.quantity || 1
-          toDeliver -= item.quantity || 1
-        }
-      }
-      updateData.itemsCount = totalSum
-      updateData.deliveredItems = deliveredSum
-    }
+
     // Update order
     await prisma.order.update({
       where: { id },
@@ -200,16 +153,15 @@ export async function PUT(
       }
     })
 
-    // Update order items if provided
     if (orderItems && Array.isArray(orderItems)) {
       await prisma.$transaction(async (tx) => {
         for (const item of orderItems) {
-          // Check if the item exists in the DB
+          // check if order item exists
           const existingItem = item.id
             ? await tx.orderItem.findUnique({ where: { id: item.id } })
             : null
           if (existingItem) {
-            // Update existing item
+            // update the existing order item
             await tx.orderItem.update({
               where: { id: item.id },
               data: {
@@ -219,15 +171,15 @@ export async function PUT(
                 packaging: item.packaging,
                 fabrication: item.fabrication,
                 isModified: item.isModified,
-                quantity: item.quantity
+                quantity: item.quantity,
+                type: item.type || undefined
               }
             })
           } else {
-            // Ensure radiatorId exists, or create a new Radiator and its components
+            // create a new item and add it if not exist
             let radiatorId = item.radiatorId
             let createdRadiator = null
             if (!radiatorId) {
-              // Create a new Radiator with the custom id (SKU)
               createdRadiator = await tx.radiator.create({
                 data: {
                   id: item.id, // use the custom SKU as the id
@@ -247,7 +199,6 @@ export async function PUT(
               })
               radiatorId = createdRadiator.id
             } else {
-              // Check if the radiator exists
               const radiatorExists = await tx.radiator.findUnique({
                 where: { id: radiatorId }
               })
@@ -274,7 +225,6 @@ export async function PUT(
             }
             // If we created a new radiator, add its components
             if (createdRadiator) {
-              // Core component
               if (item.Radiator?.Core) {
                 await tx.component.create({
                   data: {
@@ -285,7 +235,6 @@ export async function PUT(
                   }
                 })
               }
-              // Tube component if diameter exists
               const tubeDiameter =
                 item.Core?.dimensions?.diameter ||
                 item.Radiator?.Core?.dimensions?.diameter
@@ -299,9 +248,7 @@ export async function PUT(
                   }
                 })
               }
-              // Collector components
               if (item.Radiator?.Collector) {
-                // TOP collector
                 await tx.component.create({
                   data: {
                     name: 'Collecteur Haut',
@@ -314,7 +261,6 @@ export async function PUT(
                     }
                   }
                 })
-                // BOTTOM collector
                 await tx.component.create({
                   data: {
                     name: 'Collecteur Bas',
@@ -331,7 +277,6 @@ export async function PUT(
                 })
               }
             } else {
-              // If radiator exists, still add TUBE component if diameter exists
               const tubeDiameter =
                 item.Core?.dimensions?.diameter ||
                 item.Radiator?.Core?.dimensions?.diameter
@@ -346,7 +291,6 @@ export async function PUT(
                 })
               }
             }
-            // Create new item with valid radiatorId
             await tx.orderItem.create({
               data: {
                 id: item.id, // allow custom id (sku)
