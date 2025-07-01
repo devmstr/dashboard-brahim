@@ -405,7 +405,7 @@ export function OrderComponentsTable({
                 <Icons.plus className="w-4 h-4 mr-1" /> Article
               </Button>
             </DialogTrigger>
-            <DialogContent asChild className="max-w-5xl">
+            <DialogContent className="max-w-5xl">
               <ScrollArea className="max-h-[80vh]">
                 <AddOrderItemForm
                   onSubmit={async (orderItem) => {
