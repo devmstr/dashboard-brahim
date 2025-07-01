@@ -58,7 +58,7 @@ const Page: React.FC<Props> = async ({
     const coreComponent = parseMetadata(
       Radiator?.Components.find(({ type }) => type === 'CORE')?.Metadata
     )
-    console.log('coreComponent', coreComponent)
+
     const collectors = Radiator.Components.filter((c) => c.type === 'COLLECTOR')
     // find collector material name
     const collectorMaterialName = collectors.map((c) => {
@@ -111,10 +111,9 @@ const Page: React.FC<Props> = async ({
       Radiator: Radiator
     }
   } catch (error) {
-    console.log(error)
     return notFound()
   }
-  console.log('orderItem', orderItem)
+
   return (
     <div className="space-y-4">
       <Card>{isSalesUser && <SalesEditOrderItemForm data={orderItem} />}</Card>

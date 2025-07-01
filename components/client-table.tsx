@@ -131,9 +131,7 @@ export function ClientTable({
         method: 'DELETE'
       })
       refresh()
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) {}
   }
 
   const columns: ColumnDef<ClientTableInput>[] = [

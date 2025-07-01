@@ -52,7 +52,6 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
     setFetchedProduct(undefined)
 
     try {
-      console.log(`Fetching product with ID: ${id}`)
       const response = await fetch(`/api/radiators/${id}`)
 
       if (!response.ok) {
@@ -68,7 +67,6 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
       }
 
       setFetchedProduct(data)
-      console.log('Product fetched successfully:', data)
     } catch (error) {
       console.error('Error fetching product:', error)
       toast({

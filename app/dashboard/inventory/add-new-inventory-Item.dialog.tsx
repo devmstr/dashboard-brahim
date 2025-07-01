@@ -74,7 +74,6 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
     setFetchedProduct(undefined)
 
     try {
-      console.log(`Fetching product with ID: ${id}`)
       const response = await fetch(`/api/radiators/${id}`)
 
       if (!response.ok) {
@@ -90,7 +89,6 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
       }
 
       setFetchedProduct(data)
-      console.log('Product fetched successfully:', data)
     } catch (error) {
       console.error('Error fetching product:', error)
       toast({

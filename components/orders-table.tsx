@@ -156,9 +156,7 @@ export function OrderTable({
         method: 'DELETE'
       })
       refresh()
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) {}
   }
 
   // Define a reusable function for creating sortable headers

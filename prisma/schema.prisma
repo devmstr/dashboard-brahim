@@ -213,7 +213,7 @@ model Radiator {
   dir         String?
   cooling     String?
   barcode     String?  @unique
-  label       String?  @unique
+  label       String?
   isActive    Boolean? @default(false)
   inventoryId String?
   priceId     String?

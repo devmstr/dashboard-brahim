@@ -161,7 +161,6 @@ export const ClientInfoForm: React.FC<Props> = ({
       if (selectedCity && selectedCity.zipCode) {
         // Set the zip code field with the city's zip_code
         form.setValue('zip', selectedCity.zipCode)
-        console.log(zipWatch)
       }
     }
   }, [cityWatch, cities, form])

@@ -34,8 +34,6 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
 
   // Handle when a new attachment is added
   function handleAttachmentAdded(attachment: Attachment) {
-    console.log('Attachment added:', attachment)
-
     // Add the new attachment to our state
     setUploadedAttachments((prev) => [...prev, attachment])
 
@@ -48,8 +46,6 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
 
   // Handle when an attachment is deleted
   function handleAttachmentDeleted(fileId: string) {
-    console.log('Attachment deleted:', fileId)
-
     // Remove the deleted attachment from our state
     const updatedAttachments = uploadedAttachments.filter(
       (att) => att.id !== fileId
@@ -141,8 +137,6 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
           })
         )
       }
-
-      console.log('Submitting order with data:', orderData)
 
       const response = await fetch('/api/orders', {
         method: 'POST',

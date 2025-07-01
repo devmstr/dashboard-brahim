@@ -28,11 +28,7 @@ export async function POST(request: Request) {
       )
     }
 
-    if (
-      !Payment ||
-      typeof Payment.price !== 'number' ||
-      typeof Payment.deposit !== 'number'
-    ) {
+    if (!Payment || typeof Payment.price !== 'number') {
       return NextResponse.json(
         { message: 'Valid payment information is required' },
         { status: 400 }
@@ -51,15 +47,15 @@ export async function POST(request: Request) {
       // Create the payment record first
       const createdPayment = await tx.payment.create({
         data: {
-          amount: Payment.price,
-          deposit: Payment.deposit,
-          remaining: Payment.remaining || Payment.price - Payment.deposit,
-          mode: Payment.mode,
+          amount: Payment.price || 0,
+          deposit: Payment.deposit || 0,
+          remaining: Payment.remaining || Payment.price - Payment.deposit || 0,
+          mode: Payment.mode || 'Espèces',
           bank: ['Espèces', 'Cheque', 'À terme'].includes(Payment.mode)
             ? null
             : Payment.bank,
-          iban: Payment.iban,
-          depositor: Payment.depositor
+          iban: Payment.iban || null,
+          depositor: Payment.depositor || null
         }
       })
 
@@ -149,7 +145,6 @@ export async function POST(request: Request) {
                 }
               })
             }
-            console.log('Created new radiator with ID:', radiatorId)
           } else {
             // If radiator exists, still add TUBE component if diameter exists
             const tubeDiameter =
@@ -202,7 +197,8 @@ export async function POST(request: Request) {
           state: state || 'PENDING',
           progress: progress || 0,
           paymentId: createdPayment.id,
-          itemsCount: OrderItems?.length || 0, // Set total items
+          itemsCount:
+            OrderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0, // Set total items
           deliveredItems: body.deliveredItems ?? 0, // Set delivered items (default 0)
 
           // Create order items with processed radiator IDs
@@ -242,7 +238,6 @@ export async function POST(request: Request) {
       return createdOrder
     })
 
-    console.log('Order created successfully:', result.id)
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error creating order:', error)

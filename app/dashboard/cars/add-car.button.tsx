@@ -18,8 +18,7 @@ export const AddCarButton: React.FC<Props> = ({}: Props) => {
     beginTransition(async () => {
       // handle adding new client here
       await delay(1500)
-      console.log('data: ', data)
-      console.log('============ done! ============')
+
       return
     })
   }

@@ -57,7 +57,6 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       createdAt: order.createdAt
     } as OrderTableEntry
   })
-  console.log(data)
 
   return (
     <Card className="">

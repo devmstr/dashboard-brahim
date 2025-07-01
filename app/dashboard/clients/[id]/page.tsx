@@ -15,7 +15,6 @@ export default function EditClientPage({
   const router = useRouter()
 
   const handleSuccess = (updatedClient: any) => {
-    console.log('Client updated successfully:', updatedClient)
     setIsEditing(false)
   }
 

@@ -124,7 +124,7 @@ export const PaymentForm: React.FC<Props> = ({
               // date={data.endDate ? new Date(data.endDate) : new Date()}
               date={date.toISOString()}
               // onDateChange={(date) => {
-              //   console.log(date)
+              //
               //   onChange('endDate', date.toISOString())
               // }}
               onDateChange={(v) => {

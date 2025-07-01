@@ -492,9 +492,7 @@ function Actions({
         method: 'DELETE'
       })
       refresh()
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) {}
   }
 
   return (

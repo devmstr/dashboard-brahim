@@ -87,7 +87,6 @@ export async function DELETE(
       deletedAt: invoice.deletedAt
     })
   } catch (error: any) {
-    console.log('Error deleting invoice:', error)
     return NextResponse.json(
       { message: error.message || 'Internal server error' },
       { status: 500 }

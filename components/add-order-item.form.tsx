@@ -309,7 +309,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
 
     if (!isValid) {
       // Log all errors for investigation
-      console.log('Form validation errors:', form.formState.errors)
+
       const errorMessages = Object.values(form.formState.errors)
         .map((error) => error?.message?.toString())
         .filter(Boolean)

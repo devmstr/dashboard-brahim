@@ -151,8 +151,6 @@ export const PrintProductLabel: React.FC<PrintLabelProps> = ({
     `,
     onBeforePrint: () => {
       if (componentRef.current) {
-        console.log('Content height:', componentRef.current.offsetHeight)
-        console.log('Content width:', componentRef.current.offsetWidth)
       }
       return Promise.resolve()
     }

@@ -14,7 +14,7 @@ import {
 
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { CalculatorForm } from './calculator.form'
+// import { CalculatorForm } from './calculator.form'
 
 interface DaysCalculatorDialogProps {}
 
@@ -35,7 +35,7 @@ export const DaysCalculatorDialog: React.FC<
       <DialogContent className="sm:h-fit container max-w-md">
         {/* start  content */}
         <ScrollArea className="max-h-[80vh]">
-          <CalculatorForm />
+          {/* <CalculatorForm /> */}
         </ScrollArea>
       </DialogContent>
     </Dialog>

@@ -38,7 +38,7 @@ export const LinkLineList: React.FC<Props> = ({ items, t }: Props) => {
         <div className="relative flex gap-4 md:gap-5  lg:gap-6 xl:gap-8 pt-5 pb-3 ">
           {items.map((item, index) => {
             const active = pathname === `${item.href}`
-            console.log(pathname, item.href)
+
             const Icon = Icons[item.icon as keyof typeof Icons]
             return (
               <div key={index} className="relative group">

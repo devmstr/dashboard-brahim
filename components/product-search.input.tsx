@@ -83,7 +83,6 @@ export default function ProductSearchInput({
         }
         const data = await response.json()
 
-        console.log('Feteched : ', data)
         setProducts(data)
       } catch (error) {
         console.error('Error fetching clients:', error)

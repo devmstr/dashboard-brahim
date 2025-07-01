@@ -365,7 +365,6 @@ export function CarSelectionForm({
       if (type) setSelectedType(type)
 
       // In a real application, you would submit this data to your backend
-      console.log('Form submitted:', values)
 
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))

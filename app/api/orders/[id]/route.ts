@@ -5,6 +5,7 @@ import { UserRole } from '@/types'
 import { userRoles } from '@/config/global'
 import { checkIsOnDemandRevalidate } from 'next/dist/server/api-utils'
 import { getUserRole } from '@/lib/session'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(
   request: Request,
@@ -170,7 +171,7 @@ export async function PUT(
       updateData.deliveredItems = deliveredSum
     }
     // Update order
-    const updatedOrder = await prisma.order.update({
+    await prisma.order.update({
       where: { id },
       data: updateData,
       include: {
@@ -501,6 +502,8 @@ export async function PATCH(
     const id = params.id
     const body = await request.json()
 
+    console.log('BODY:', body)
+
     // Validate that the order item exists
     const existingItem = await prisma.orderItem.findUnique({
       where: { id },
@@ -548,11 +551,11 @@ export async function PATCH(
       quantity,
       Radiator
     } = body
-
+    let orderId = null
     // Use a transaction to ensure all operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
       // Update the order item
-      const updatedItem = await tx.orderItem.update({
+      const updatedOrderItem = await tx.orderItem.update({
         where: { id },
         data: {
           type: type,
@@ -564,10 +567,31 @@ export async function PATCH(
           isModified: isModified,
           quantity: quantity,
           ...(isAuthorizedForValidation && {
+            //
             validatedAt: new Date().toLocaleString()
           })
         }
       })
+
+      orderId = updatedOrderItem.orderId
+
+      // Update the parent order's itemsCount if quantity is updated
+      if (typeof quantity === 'number') {
+        // Find all items for this order
+        const allItems = await tx.orderItem.findMany({
+          where: { orderId: updatedOrderItem.orderId }
+        })
+        // TODO: check if the allItem.length - quantity is less then the deliveredItems number
+
+        const newItemsCount = allItems.reduce(
+          (sum, item) => sum + (item.quantity || 1),
+          0
+        )
+        await tx.order.update({
+          where: { id: updatedOrderItem.orderId || undefined },
+          data: { itemsCount: newItemsCount }
+        })
+      }
 
       // If radiator data is provided, update the radiator and its components
       if (Radiator) {
@@ -685,9 +709,8 @@ export async function PATCH(
         }
       })
     })
-
-    console.log('Order item updated successfully:', result?.id)
-
+    // Revalidate the path
+    if (orderId) revalidatePath(`/orders/${orderId}`)
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error updating order item:', error)

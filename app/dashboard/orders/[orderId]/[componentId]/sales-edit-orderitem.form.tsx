@@ -96,7 +96,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
         }
       },
       Collector: {
-        ...data.Collectors.top,
+        ...data.Collectors?.top,
         dimensions1: {
           width:
             data.Collectors?.top?.dimensions?.width ||
@@ -285,7 +285,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
     // }
 
     // if (hasError) {
-    //   console.log('Validation errors found:', form.formState.errors)
+    //
     //   toast({
     //     title: 'Erreur de validation',
     //     description: 'Veuillez remplir toutes les dimensions requises.',
@@ -695,7 +695,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                               form.setValue('Core.fins', v as FinsType)
                             }}
                             selected={field.value}
-                            isInSideADialog
                           />
                         </FormControl>
                         <FormMessage />
@@ -716,7 +715,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                               form.setValue('Core.tube', v as TubeType)
                             }
                             selected={field.value}
-                            isInSideADialog
                           />
                         </FormControl>
                         <FormMessage />
@@ -743,7 +741,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                               form.setValue('Core.finsPitch', v as FinsPitch)
                             }
                             selected={field.value?.toString()}
-                            isInSideADialog
                           />
                         </FormControl>
                         <FormMessage />
@@ -802,7 +799,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                 )
                               }
                               selected={field.value}
-                              isInSideADialog
                             />
                           </FormControl>
                           <FormMessage />
@@ -829,7 +825,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                   )
                                 }
                                 selected={field.value}
-                                isInSideADialog
                               />
                             </FormControl>
                             <FormMessage />
@@ -855,7 +850,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                 )
                               }
                               selected={field.value}
-                              isInSideADialog
                             />
                           </FormControl>
                           <FormMessage />
@@ -1018,14 +1012,26 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
         {/* Form Submission */}
         <div className="pt-3 flex flex-col items-end gap-4">
           <Separator />
-          <Button className="flex gap-1" type="submit">
-            {isLoading && <Icons.spinner className="w-4 h-4 animate-spin" />}
-            {['PRODUCTION_WORKER', 'PRODUCTION_MANAGER'].includes(
-              session?.user?.role || 'UNKNOWN'
-            )
-              ? 'Valider'
-              : 'Modifier'}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant={'outline'}
+              type={'button'}
+              onClick={(e) => {
+                e.preventDefault()
+                router.back()
+              }}
+            >
+              Retour
+            </Button>
+            <Button className="flex gap-1" type="submit">
+              {isLoading && <Icons.spinner className="w-4 h-4 animate-spin" />}
+              {['PRODUCTION_WORKER', 'PRODUCTION_MANAGER'].includes(
+                session?.user?.role || 'UNKNOWN'
+              )
+                ? 'Valider'
+                : 'Modifier'}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

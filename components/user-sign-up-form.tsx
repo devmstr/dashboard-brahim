@@ -48,7 +48,6 @@ export const UserSingUpForm: React.FC<UserSingUpFormProps> = ({
       })
       form.reset()
     } catch (error) {
-      console.log(error)
       // toast({
       //   title: er.data.error,
       //   description: axiosError.response.data.message,

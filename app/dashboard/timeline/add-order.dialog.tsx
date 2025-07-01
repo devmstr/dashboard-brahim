@@ -223,7 +223,6 @@ export function AddOrderDialog({ countries, provinces }: Props) {
   const handleSubmit = () => {
     startTransition(async () => {
       try {
-        console.log(orderData)
         // const { data } = await api.put('profile', {
         //   ...employeeData,
         //   dob: employeeData.dob.toISOString(),

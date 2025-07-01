@@ -61,7 +61,6 @@ export const AddClientDialog: React.FC<Props> = ({ id }: Props) => {
   const handleSubmit = () => {
     startTransition(async () => {
       try {
-        console.log(client)
         // const { data } = await api.put('profile', {
         //   ...employeeData,
         //   dob: employeeData.dob.toISOString(),

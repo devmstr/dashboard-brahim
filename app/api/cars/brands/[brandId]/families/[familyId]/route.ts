@@ -7,7 +7,6 @@ export async function GET(
   { params }: { params: { brandId: string; familyId: string } }
 ) {
   try {
-    console.log('familyId: ', params.familyId, 'brandId: ', params.brandId)
     const family = await prisma.carFamily.findFirst({
       where: {
         id: params.familyId,

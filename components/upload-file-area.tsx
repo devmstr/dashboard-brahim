@@ -464,8 +464,6 @@ export function FileUploadArea({
       return
     }
 
-    console.log('Opening file for preview:', url)
-
     // Open the file in a new tab
     window.open(url, '_blank', 'noopener,noreferrer')
   }, [])
