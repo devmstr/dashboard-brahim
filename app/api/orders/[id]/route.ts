@@ -105,7 +105,7 @@ export async function PUT(
       await prisma.payment.update({
         where: { id: existingOrder.paymentId },
         data: {
-          amount: payment.price, // Fix: use payment.price instead of payment.amount
+          amount: payment.price,
           deposit: payment.deposit,
           remaining: payment.remaining || payment.price - payment.deposit,
           mode: payment.mode || null,
