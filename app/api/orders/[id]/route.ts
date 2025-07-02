@@ -308,6 +308,16 @@ export async function PUT(
             })
           }
         }
+        // After all items are added/updated, recalculate itemsCount
+        const allItems = await tx.orderItem.findMany({ where: { orderId: id } })
+        const newItemsCount = allItems.reduce(
+          (sum, item) => sum + (item.quantity || 1),
+          0
+        )
+        await tx.order.update({
+          where: { id },
+          data: { itemsCount: newItemsCount }
+        })
       })
     }
 
@@ -340,6 +350,7 @@ export async function PUT(
         Attachments: true
       }
     })
+    revalidatePath(`/dashboard/orders/${id}`)
     return NextResponse.json(updatedOrderWithItems)
   } catch (error) {
     console.error('Error updating order:', error)
@@ -375,7 +386,20 @@ export async function DELETE(
           { status: 404 }
         )
       }
+      const orderId = existingItem.orderId
       await prisma.orderItem.delete({ where: { id: itemId } })
+      // Recalculate itemsCount after deletion
+      if (orderId) {
+        const allItems = await prisma.orderItem.findMany({ where: { orderId } })
+        const newItemsCount = allItems.reduce(
+          (sum, item) => sum + (item.quantity || 1),
+          0
+        )
+        await prisma.order.update({
+          where: { id: orderId },
+          data: { itemsCount: newItemsCount }
+        })
+      }
       return NextResponse.json({ message: 'Order item deleted successfully' })
     }
 
@@ -392,6 +416,9 @@ export async function DELETE(
     await prisma.order.delete({
       where: { id }
     })
+
+    // Revalidate the path to ensure the cache is updated
+    revalidatePath(`/dashboard/orders/${id}`)
 
     return NextResponse.json({ message: 'Order deleted successfully' })
   } catch (error) {
@@ -495,7 +522,6 @@ export async function PATCH(
       quantity,
       Radiator
     } = body
-    let orderId = null
     // Use a transaction to ensure all operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
       // Update the order item
@@ -516,8 +542,6 @@ export async function PATCH(
           })
         }
       })
-
-      orderId = updatedOrderItem.orderId
 
       // Update the parent order's itemsCount if quantity is updated
       if (typeof quantity === 'number') {
@@ -654,7 +678,7 @@ export async function PATCH(
       })
     })
     // Revalidate the path
-    if (orderId) revalidatePath(`/orders/${orderId}`)
+    revalidatePath(`/dashboard/orders/${id}`)
     return NextResponse.json(result)
   } catch (error) {
     console.error('Error updating order item:', error)

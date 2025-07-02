@@ -102,6 +102,7 @@ export const orderItemSchema = z.object({
   packaging: z.enum(PACKAGING_TYPES).optional(),
   fabrication: z.enum(FABRICATION_TYPES).optional(),
   label: z.string().optional(),
+  state: z.string().optional(),
   category: z.enum(CATEGORY_TYPES).optional(),
   cooling: z.enum(COOLING_SYSTEMS_TYPES).optional(),
   isModified: z.boolean().nullable().optional(),

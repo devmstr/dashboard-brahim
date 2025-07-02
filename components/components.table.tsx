@@ -136,6 +136,7 @@ export function OrderComponentsTable({
         throw new Error(error.message || 'Erreur lors de la suppression')
       }
       setData((prev) => prev.filter(({ id }) => id !== orderItemId))
+      router.refresh()
     } catch (error) {
       console.error('Error deleting order item:', error)
       // Optionally show a toast notification here
@@ -417,6 +418,12 @@ export function OrderComponentsTable({
                         orderItemPrefix = 'RE'
 
                       const id = skuId(orderItemPrefix)
+                      // Compose Radiator property with Core and Collector from form
+                      const radiatorPayload = {
+                        Core: orderItem.Core,
+                        Collector: orderItem.Collector,
+                        Car: orderItem.Car // include Car if present
+                      }
                       // Use the /api/orders/[id] API to add the item
                       const response = await fetch(`/api/orders/${orderId}`, {
                         method: 'PUT',
@@ -427,7 +434,8 @@ export function OrderComponentsTable({
                           orderItems: [
                             {
                               ...orderItem,
-                              id
+                              id,
+                              Radiator: radiatorPayload
                             }
                           ]
                         })
@@ -463,6 +471,7 @@ export function OrderComponentsTable({
                             radiatorId: newItem.Radiator?.id || ''
                           }
                         ])
+                        router.refresh()
                       }
                     } catch (error) {
                       console.error('Error adding order item:', error)
