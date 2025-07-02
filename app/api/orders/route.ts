@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import type { Attachment, OrderItem } from '@/lib/validations'
 import { skuId } from '@/lib/utils'
+import { TypeOf } from 'zod'
+import { STATUS_TYPES } from '@/config/global'
 
 const prisma = new PrismaClient()
 
@@ -13,7 +15,7 @@ export async function POST(request: Request) {
       id,
       clientId,
       deadline,
-      state,
+      state: status,
       progress,
       Payment,
       OrderItems,
@@ -102,8 +104,7 @@ export async function POST(request: Request) {
 
             // Create tube component as a Component with type 'TUBE' if diameter exists
             const tubeDiameter =
-              item.Core?.dimensions?.diameter ||
-              item.Radiator?.Core?.dimensions?.diameter
+              item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
             if (tubeDiameter) {
               await tx.component.create({
                 data: {
@@ -149,8 +150,7 @@ export async function POST(request: Request) {
           } else {
             // If radiator exists, still add TUBE component if diameter exists
             const tubeDiameter =
-              item.Core?.dimensions?.diameter ||
-              item.Radiator?.Core?.dimensions?.diameter
+              item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
             if (tubeDiameter) {
               await tx.component.create({
                 data: {
@@ -195,7 +195,7 @@ export async function POST(request: Request) {
           id,
           clientId,
           deadline: new Date(deadline).toISOString(),
-          state: state || 'PENDING',
+          status: status as (typeof STATUS_TYPES)[number],
           progress: progress || 0,
           paymentId: createdPayment.id,
           itemsCount:

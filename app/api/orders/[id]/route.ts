@@ -236,8 +236,7 @@ export async function PUT(
                 })
               }
               const tubeDiameter =
-                item.Core?.dimensions?.diameter ||
-                item.Radiator?.Core?.dimensions?.diameter
+                item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
               if (tubeDiameter) {
                 await tx.component.create({
                   data: {
@@ -278,8 +277,7 @@ export async function PUT(
               }
             } else {
               const tubeDiameter =
-                item.Core?.dimensions?.diameter ||
-                item.Radiator?.Core?.dimensions?.diameter
+                item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
               if (tubeDiameter) {
                 await tx.component.create({
                   data: {

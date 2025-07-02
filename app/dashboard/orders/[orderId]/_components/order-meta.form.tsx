@@ -13,6 +13,7 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { BANK_TYPES, PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
 import { delay } from '@/lib/utils'
@@ -21,7 +22,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface Props {
@@ -29,11 +30,18 @@ interface Props {
     orderId: string
     totalItems: number
     deliveredItems: number
+    deadline?: string
   }
 }
 
 export const OrderMetaForm: React.FC<Props> = ({
-  data: { orderId, totalItems = 0, deliveredItems = 0, ...input }
+  data: {
+    orderId,
+    deadline: deadlineInput,
+    totalItems = 0,
+    deliveredItems = 0,
+    ...input
+  }
 }: Props) => {
   const [isLoading, updateOrderMetadata] = React.useTransition()
   const router = useRouter()
@@ -45,6 +53,7 @@ export const OrderMetaForm: React.FC<Props> = ({
   const deposit = form.watch('deposit')
   const mode = form.watch('mode')
   const [delivered, setDelivered] = React.useState<number>(deliveredItems)
+  const [deadline, setDeadline] = useState<string | undefined>(deadlineInput)
 
   const onSubmit = async (formData: PaymentType) => {
     // Ensure deposit is not greater than price
@@ -253,36 +262,30 @@ export const OrderMetaForm: React.FC<Props> = ({
             )}
           </CardGrid>
         </div>
-        {/* Livraison section */}
-        <div className="relative space-y-3 border rounded-md px-3 py-3 mt-6">
-          <div className="flex items-center justify-between select-none">
-            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              livraison
-            </span>
+        <div className="relative border rounded-md px-3 pt-4 py-3">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            délais
+          </span>
+          <div className="flex flex-col gap-2">
+            <Label className="capitalize">{' Délais estimé'}</Label>
+            <DatePicker
+              date={deadline}
+              onDateChange={(v) => setDeadline(v)}
+              locale={fr}
+              placeholder="Choisir une date"
+              formatStr="PPP"
+            />
           </div>
-          <CardGrid>
-            <div className="flex flex-col gap-2">
-              <FormLabel className="capitalize">Articles livrés</FormLabel>
-              <Input
-                type="number"
-                min={0}
-                max={totalItems}
-                value={delivered}
-                onChange={(e) => setDelivered(Number(e.target.value))}
-              />
-              <span className="text-xs text-muted-foreground">
-                {`Livrés: ${delivered} / ${totalItems}`}
-              </span>
-            </div>
-          </CardGrid>
         </div>
         <div className="flex flex-col items-end gap-4">
           <Separator />
-          <Button className="flex gap-1 w-24" type="submit">
-            <span>{'Modifier'}</span>
-            {isLoading && (
+          <Button className="flex gap-1 w-28 " type="submit">
+            {isLoading ? (
               <Icons.spinner className=" w-auto h-5 animate-spin" />
+            ) : (
+              <Icons.edit className=" w-auto h-5 " />
             )}
+            Modifier
           </Button>
         </div>
       </form>

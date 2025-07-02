@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { BANK_TYPES, PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
+import { Order } from '@/lib/validations'
 import { paymentSchema, type PaymentType } from '@/lib/validations/payment'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -55,10 +56,13 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
 
   function onSubmit(formData: PaymentType) {
     // Update order with payment information
-    setOrder((prev) => ({
-      ...prev,
-      Payment: formData
-    }))
+    setOrder((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        Payment: formData
+      }
+    })
 
     router.push('/dashboard/new/validate')
 

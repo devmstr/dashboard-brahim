@@ -28,6 +28,10 @@ const STATUS_CONFIG: Record<
   Fini: {
     iconKey: 'done',
     className: 'bg-[#f0f8e0] text-[#6ba800] border-[#6ba800]' // Brighter green
+  },
+  Livré: {
+    iconKey: 'deliveryPackage',
+    className: 'bg-[#e6f9ed] text-[#1aaa55] border-[#1aaa55]' // Greenish teal for delivery
   }
 }
 

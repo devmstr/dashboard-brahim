@@ -87,8 +87,8 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         finsPitch: '10',
         tube: 'ET7',
         rows: 2,
+        tubeDiameter: 0,
         dimensions: {
-          diameter: 0,
           height: 0,
           width: 0
         }
@@ -123,7 +123,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   const height = form.watch('Collector.dimensions1.height')
   const width = form.watch('Collector.dimensions1.width')
   const note = form.watch('note')
-  const diameter = form.watch('Core.dimensions.diameter')
+  const tubeDiameter = form.watch('Core.tubeDiameter')
   const coreDimensions = form.watch('Core.dimensions')
   const collectorDimensions1 = form.watch('Collector.dimensions1')
   const collectorDimensions2 = form.watch('Collector.dimensions2')
@@ -617,7 +617,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
               <CardGrid>
                 <FormField
                   control={form.control}
-                  name="Core.dimensions.diameter"
+                  name="Core.tubeDiameter"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -631,10 +631,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           type="number"
                           {...field}
                           onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'Core.dimensions.diameter',
-                              Number(value)
-                            )
+                            form.setValue('Core.tubeDiameter', Number(value))
                           }
                           className="w-full"
                         />

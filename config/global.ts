@@ -27,7 +27,8 @@ export const STATUS_TYPES = [
   'Annuler',
   'Non Commence',
   'Encours',
-  'Fini'
+  'Fini',
+  'Livré'
 ] as const
 export const STATUS_TYPE_ARR: string[] = [...STATUS_TYPES]
 // Orders

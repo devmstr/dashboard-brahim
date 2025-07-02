@@ -49,11 +49,15 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
 
   function onClientChange(Client: ClientWithAddress | undefined) {
     setCustomer(Client)
-    setOrder((prev) => ({
-      ...prev,
-      clientId: Client?.id,
-      Client
-    }))
+    setOrder((prev) => {
+      if (!prev) return prev // or throw, or handle as needed
+      return {
+        ...prev,
+        clientId: Client?.id,
+        Client,
+        status: prev.status
+      }
+    })
   }
 
   function handleSubmit(e: React.MouseEvent<HTMLButtonElement>) {
@@ -69,10 +73,14 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
 
     onClientChange(customer)
     // setup an order id
-    setOrder((prev) => ({
-      ...prev,
-      id: order?.id || skuId('CO')
-    }))
+    setOrder((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        id: order?.id || skuId('CO'),
+        status: prev.status // status is guaranteed to be present on prev
+      }
+    })
 
     router.push('new/order')
 

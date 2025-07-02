@@ -557,7 +557,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
               <CardGrid>
                 <FormField
                   control={form.control}
-                  name="Core.dimensions.diameter"
+                  name="Core.tubeDiameter"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -571,10 +571,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                           type="number"
                           {...field}
                           onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'Core.dimensions.diameter',
-                              Number(value)
-                            )
+                            form.setValue('Core.tubeDiameter', Number(value))
                           }
                           className="w-full"
                         />

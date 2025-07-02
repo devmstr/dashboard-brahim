@@ -33,7 +33,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
         }
       },
       deadline: true,
-      state: true,
+      status: true,
       progress: true
     }
   })
@@ -49,7 +49,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       customer: order.Client?.name || '—',
       phone: order.Client?.phone || '—',
       deadline: order.deadline.toISOString(),
-      status: 'Encours',
+      status: 'Non Commence',
       progress: order.progress || 0,
       state: order.Client?.Address?.Province.name || '—',
       items,

@@ -402,8 +402,12 @@ export function OrderComponentsTable({
         <div className="">
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="default" className="w-24">
-                <Icons.plus className="w-4 h-4 mr-1" /> Article
+              <Button
+                variant="default"
+                className="w-28 flex items-center gap-1"
+              >
+                <Icons.packagePlus className="w-auto h-5 mr-1" />{' '}
+                <span>Ajouter</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-5xl">

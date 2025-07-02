@@ -110,10 +110,13 @@ export function OrderItemsTable({
 
   const handleDelete = async (orderId: string) => {
     setData(data.filter(({ id }) => id != orderId))
-    setOrder((prev) => ({
-      ...prev,
-      OrderItems: prev?.OrderItems?.filter(({ id }) => id != orderId)
-    }))
+    setOrder((prev) => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        OrderItems: prev?.OrderItems?.filter(({ id }) => id != orderId)
+      }
+    })
   }
 
   const columns: ColumnDef<OrderItemsTableInput>[] = [

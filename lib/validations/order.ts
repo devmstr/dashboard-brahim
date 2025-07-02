@@ -50,7 +50,6 @@ export type Car = z.infer<typeof carSchema>
 // Dimension schema for components
 const dimensionsSchema = z.object({
   thickness: z.number().min(0).optional(),
-  diameter: z.number().min(0).optional(),
   width: z.number().min(0),
   height: z.number().min(0)
 })
@@ -75,6 +74,7 @@ const coreSchema = z.object({
   finsPitch: z.enum(['10', '11', '12', '14']).optional(),
   tube: z.enum(['ET7', 'ET9', 'MP']).optional(),
   rows: z.number().positive().optional().default(1),
+  tubeDiameter: z.number().min(0).optional(),
   dimensions: dimensionsSchema
 })
 
@@ -95,16 +95,16 @@ export type Attachment = z.infer<typeof attachmentSchema>
 // Order schema - matches the Prisma Order model
 export const orderItemSchema = z.object({
   id: z.string().optional(),
-  type: z.enum(ORDER_TYPES).optional(),
+  type: z.enum(ORDER_TYPES).default('Radiateur'),
   note: contentSchema.optional(),
   description: contentSchema.optional(),
   modification: contentSchema.optional(),
-  packaging: z.enum(PACKAGING_TYPES).optional(),
-  fabrication: z.enum(FABRICATION_TYPES).optional(),
+  packaging: z.enum(PACKAGING_TYPES).default('Carton'),
+  fabrication: z.enum(FABRICATION_TYPES).default('Confection'),
   label: z.string().optional(),
-  state: z.string().optional(),
-  category: z.enum(CATEGORY_TYPES).optional(),
-  cooling: z.enum(COOLING_SYSTEMS_TYPES).optional(),
+  status: z.enum(STATUS_TYPES).default('Non Commence'),
+  category: z.enum(CATEGORY_TYPES).default('Automobile'),
+  cooling: z.enum(COOLING_SYSTEMS_TYPES).default('Eau'),
   isModified: z.boolean().nullable().optional(),
   quantity: z.number().positive().optional().default(1),
   Core: coreSchema.optional(),
@@ -125,7 +125,7 @@ export const orderSchema = z.object({
     .string()
     .default(() => new Date().toISOString())
     .optional(),
-  state: z.enum(STATUS_TYPES).optional(),
+  status: z.enum(STATUS_TYPES).default('Non Commence'),
   progress: z.number().min(0).max(100).default(0).optional(),
   // Relations
   paymentId: z.string().optional(),

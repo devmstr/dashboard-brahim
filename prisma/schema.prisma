@@ -369,7 +369,7 @@ model Attachment {
 model Order {
   id             String       @id @default(cuid())
   deadline       DateTime     @default(now())
-  state          String?
+  status         String?
   progress       Int          @default(0)
   OrdersItems    OrderItem[]
   itemsCount     Int          @default(0)
@@ -396,7 +396,7 @@ model OrderItem {
   type         String?
   fabrication  String?
   isModified   Boolean?
-  state        String? // e.g., "pending", "in_progress", "delivered"
+  status       String? // e.g., "pending", "in_progress", "delivered"
   quantity     Int?
   validatedAt  DateTime?
   canceledAt   DateTime?
