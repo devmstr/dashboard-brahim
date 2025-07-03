@@ -72,7 +72,7 @@ const Page: React.FC<PageProps> = async ({
   })
 
   // Use the new fields from the Order model directly
-  const totalItems = order?.itemsCount || 0
+  const totalItems = order?.totalItems || 0
   const deliveredItems = order?.deliveredItems || 0
 
   // Prepare payment data with correct types for mode and bank
@@ -102,6 +102,7 @@ const Page: React.FC<PageProps> = async ({
       radiatorId,
       fabrication,
       quantity,
+      delivered,
       type,
       isModified
     }) => {
@@ -113,6 +114,7 @@ const Page: React.FC<PageProps> = async ({
         category,
         fabrication,
         quantity,
+        delivered: delivered || '-',
         isModified,
         model: Models[0]?.name || '_',
         brand: Models[0]?.Family?.Brand?.name || '_'

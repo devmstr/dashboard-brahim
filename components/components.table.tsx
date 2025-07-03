@@ -59,6 +59,9 @@ import { AddOrderItemForm } from './add-order-item.form'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { concat } from 'lodash'
 import { ScrollArea } from './ui/scroll-area'
+import { Label } from './ui/label'
+import { toast } from '@/hooks/use-toast'
+import { StatusBudge } from './status-badge'
 
 export type ComponentsTableEntry = {
   id: string
@@ -68,7 +71,7 @@ export type ComponentsTableEntry = {
   category: string
   label: string
   quantity: number
-  isModified: boolean
+  delivered?: number
   radiatorId: string
 }
 
@@ -83,6 +86,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
     label: string
     fabrication: string
     quantity: string
+    delivered: string
     isModified: string
   }
 }
@@ -98,6 +102,7 @@ export function OrderComponentsTable({
     category: 'Category',
     fabrication: 'Fabrication',
     quantity: 'Quantité',
+    delivered: 'Livré',
     isModified: 'Modification'
   },
   ...props
@@ -117,9 +122,21 @@ export function OrderComponentsTable({
   const router = useRouter()
   const pathname = usePathname()
 
+  // Add these state variables after the existing useState declarations
+  const [deliveredDialog, setDeliveredDialog] = React.useState<{
+    open: boolean
+    itemId: string | null
+  }>({ open: false, itemId: null })
+  const [deliveredQty, setDeliveredQty] = React.useState('')
+  const [deliveredLoading, setDeliveredLoading] = React.useState(false)
+
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
+
+  React.useEffect(() => {
+    setData(input)
+  }, [input])
 
   const handleDelete = async (orderItemId: string) => {
     try {
@@ -140,6 +157,49 @@ export function OrderComponentsTable({
     } catch (error) {
       console.error('Error deleting order item:', error)
       // Optionally show a toast notification here
+    }
+  }
+
+  const handleDeliveredSubmit = async () => {
+    if (!deliveredDialog.itemId) return
+
+    setDeliveredLoading(true)
+    try {
+      const response = await fetch(
+        `/api/orders/deliver/${deliveredDialog.itemId}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity: Number(deliveredQty) })
+        }
+      )
+      if (!response.ok) {
+        const err = await response.json()
+        toast({
+          title: 'Erreur',
+          description: err.message || 'Erreur lors de la livraison',
+          variant: 'destructive'
+        })
+        setDeliveredLoading(false)
+        return
+      }
+      setDeliveredDialog({ open: false, itemId: null })
+      setDeliveredQty('')
+      // inform the user of success
+      toast({
+        title: 'Succès',
+        description: 'Livraison enregistrée avec succès',
+        variant: 'success'
+      })
+      router.refresh()
+    } catch (e: any) {
+      toast({
+        title: 'Erreur',
+        description: e.message || 'Erreur lors de la livraison',
+        variant: 'destructive'
+      })
+    } finally {
+      setDeliveredLoading(false)
     }
   }
 
@@ -185,12 +245,12 @@ export function OrderComponentsTable({
       },
       cell: ({
         row: {
-          original: { label, isModified }
+          original: { label }
         }
       }) => {
         const regex = /(?<=x)\d+|\d+(?=x)/gi
-        const parts = label.split(regex)
-        const matches = label.match(regex)
+        const parts = label?.split(regex)
+        const matches = label?.match(regex)
 
         return (
           <div className="flex items-center justify-start gap-2">
@@ -201,7 +261,7 @@ export function OrderComponentsTable({
                 lineHeight: '1.65rem'
               }}
             >
-              {parts.map((part, index) => (
+              {parts?.map((part, index) => (
                 <React.Fragment key={index}>
                   {part}
                   {matches && matches[index] && (
@@ -210,11 +270,6 @@ export function OrderComponentsTable({
                 </React.Fragment>
               ))}
             </p>
-            {isModified ? (
-              <Badge className="bg-yellow-50 text-yellow-500 border-yellow-500 border-2">
-                {'Modifier'}
-              </Badge>
-            ) : null}
           </div>
         )
       }
@@ -295,10 +350,31 @@ export function OrderComponentsTable({
       }
     },
     {
+      accessorKey: 'delivered',
+      enableHiding: true,
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
+    {
       id: 'actions',
       enableHiding: false,
       cell: ({ row }) => (
-        <Actions id={row.original.id} onDelete={handleDelete} />
+        <Actions
+          id={row.original.id}
+          onDelete={handleDelete}
+          onOpenDeliveredDialog={(itemId) =>
+            setDeliveredDialog({ open: true, itemId })
+          }
+        />
       )
     }
   ]
@@ -397,7 +473,18 @@ export function OrderComponentsTable({
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* add new order item by using the /order/[id] */}
+          {/* budge to indicate the total item and the delivered items */}
+          <div className="flex items-center">
+            <Badge className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-300 h-8">
+              {data.reduce((sum, item) => sum + item.quantity, 0)} Articles
+              {data.reduce((sum, item) => sum + Number(item.delivered), 0) && (
+                <span className="ml-2 text-green-500">
+                  ({data.reduce((sum, item) => sum + Number(item.delivered), 0)}{' '}
+                  Livrés)
+                </span>
+              )}
+            </Badge>
+          </div>
         </div>
         <div className="">
           <Dialog>
@@ -580,18 +667,67 @@ export function OrderComponentsTable({
           </Button>
         </div>
       </div>
+      {/* Add this Dialog just before the closing </div> of OrderComponentsTable */}
+      <Dialog
+        open={deliveredDialog.open}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeliveredDialog({ open: false, itemId: null })
+            setDeliveredQty('')
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <div className="flex flex-col gap-4">
+            <h2 className="text-lg font-semibold">Livrer des articles</h2>
+            <Label className="flex flex-col gap-1">
+              <span>Quantité à livrer</span>
+              <Input
+                type="number"
+                min={1}
+                value={deliveredQty}
+                onChange={(e) => setDeliveredQty(e.target.value)}
+                placeholder="Entrer la quantité livrée"
+                disabled={deliveredLoading}
+              />
+            </Label>
+            {/* Error toast replaces inline error */}
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeliveredDialog({ open: false, itemId: null })
+                  setDeliveredQty('')
+                }}
+                disabled={deliveredLoading}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={handleDeliveredSubmit}
+                disabled={!deliveredQty || deliveredLoading}
+              >
+                {deliveredLoading ? 'Envoi...' : 'Confirmer'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
 function Actions({
   id,
-  onDelete
+  onDelete,
+  onOpenDeliveredDialog
 }: {
   id: string
   onDelete: (id: string) => void
+  onOpenDeliveredDialog: (itemId: string) => void
 }) {
   const pathname = usePathname()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
@@ -603,12 +739,22 @@ function Actions({
           <Link
             className={cn(
               buttonVariants({ variant: 'ghost' }),
-              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
+              'flex gap-3 items-center justify-center w-12 cursor-pointer group hover:ring-0 hover:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0  focus:text-primary ring-0'
             )}
             href={`${pathname}/${id}`}
           >
-            <Icons.edit className="w-4 h-4 group-hover:text-primary" />
+            <Icons.edit className="w-4 h-4 group-hover:text-blue-600 " />
           </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault()
+            onOpenDeliveredDialog(id)
+          }}
+          className="flex gap-2 items-center justify-center cursor-pointer group"
+        >
+          <Icons.truck className="w-5 h-5 text-primary/80 group-hover:text-green-600  " />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

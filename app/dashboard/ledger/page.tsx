@@ -18,7 +18,7 @@ const Page = async () => {
 
   // Map invoices to the format expected by LedgerTable
   const data = invoices.map((inv) => {
-    let itemsCount = 0
+    let totalItems = 0
     let meta = inv.metadata
     if (typeof meta === 'string') {
       try {
@@ -32,14 +32,14 @@ const Page = async () => {
       'items' in meta
     ) {
       const itemsArr = (meta as any).items
-      if (Array.isArray(itemsArr)) itemsCount = itemsArr.length
+      if (Array.isArray(itemsArr)) totalItems = itemsArr.length
     }
     return {
       billId: inv.number,
       id: inv.id,
       total: inv.total || 0,
       type: inv.type as 'FINAL' | 'PROFORMA',
-      items: itemsCount,
+      items: totalItems,
       createdAt: inv.createdAt.toISOString(),
       company: inv.Client?.name || inv.clientName || '',
       phone: inv.Client?.phone || '',

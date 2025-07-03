@@ -306,7 +306,7 @@ export async function PUT(
             })
           }
         }
-        // After all items are added/updated, recalculate itemsCount
+        // After all items are added/updated, recalculate totalItems
         const allItems = await tx.orderItem.findMany({ where: { orderId: id } })
         const newItemsCount = allItems.reduce(
           (sum, item) => sum + (item.quantity || 1),
@@ -314,7 +314,7 @@ export async function PUT(
         )
         await tx.order.update({
           where: { id },
-          data: { itemsCount: newItemsCount }
+          data: { totalItems: newItemsCount }
         })
       })
     }
@@ -386,7 +386,7 @@ export async function DELETE(
       }
       const orderId = existingItem.orderId
       await prisma.orderItem.delete({ where: { id: itemId } })
-      // Recalculate itemsCount after deletion
+      // Recalculate totalItems after deletion
       if (orderId) {
         const allItems = await prisma.orderItem.findMany({ where: { orderId } })
         const newItemsCount = allItems.reduce(
@@ -395,7 +395,7 @@ export async function DELETE(
         )
         await prisma.order.update({
           where: { id: orderId },
-          data: { itemsCount: newItemsCount }
+          data: { totalItems: newItemsCount }
         })
       }
       return NextResponse.json({ message: 'Order item deleted successfully' })
@@ -541,7 +541,7 @@ export async function PATCH(
         }
       })
 
-      // Update the parent order's itemsCount if quantity is updated
+      // Update the parent order's totalItems if quantity is updated
       if (typeof quantity === 'number') {
         // Find all items for this order
         const allItems = await tx.orderItem.findMany({
@@ -555,7 +555,7 @@ export async function PATCH(
         )
         await tx.order.update({
           where: { id: updatedOrderItem.orderId || undefined },
-          data: { itemsCount: newItemsCount }
+          data: { totalItems: newItemsCount }
         })
       }
 

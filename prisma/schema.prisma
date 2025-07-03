@@ -373,7 +373,7 @@ model Order {
   status         String?
   progress       Int          @default(0)
   OrdersItems    OrderItem[]
-  itemsCount     Int          @default(0)
+  totalItems     Int          @default(0)
   deliveredItems Int          @default(0)
   Payment        Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
   paymentId      String       @unique
@@ -399,6 +399,7 @@ model OrderItem {
   isModified   Boolean?
   status       String? // e.g., "pending", "in_progress", "delivered"
   quantity     Int?
+  delivered    Int?
   validatedAt  DateTime?
   canceledAt   DateTime?
   createdAt    DateTime     @default(now()) // Made consistent (not optional)

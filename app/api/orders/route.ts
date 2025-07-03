@@ -198,7 +198,7 @@ export async function POST(request: Request) {
           status: status as (typeof STATUS_TYPES)[number],
           progress: progress || 0,
           paymentId: createdPayment.id,
-          itemsCount:
+          totalItems:
             OrderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0, // Set total items
           deliveredItems: body.deliveredItems ?? 0, // Set delivered items (default 0)
 
