@@ -207,13 +207,14 @@ model Price {
 }
 
 model Radiator {
-  id          String   @id @default(cuid())
-  reference   String?  @unique
-  category    String?
-  dir         String?
-  cooling     String?
-  barcode     String?  @unique
-  label       String?
+  id        String  @id @default(cuid())
+  reference String? @unique
+  category  String?
+  dir       String?
+  cooling   String?
+  barcode   String? @unique
+  label     String?
+
   isActive    Boolean? @default(false)
   inventoryId String?
   priceId     String?

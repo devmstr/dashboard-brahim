@@ -31,7 +31,7 @@ const Page: React.FC<Props> = async ({
     'ENGINEERING_MANAGER'
   ])
   let orderItem: any
-
+  console.log('componentId', componentId)
   try {
     const { Attachments, Radiator, ...orderItemData } =
       await prisma.orderItem.findUniqueOrThrow({
@@ -85,6 +85,7 @@ const Page: React.FC<Props> = async ({
       fabrication: orderItemData.fabrication as OrderItem['fabrication'],
       category: Radiator.category as OrderItem['category'],
       cooling: Radiator.cooling as OrderItem['cooling'],
+      status: 'Prévu',
       label: Radiator.label as string,
       ...(coreComponent && {
         Core: {

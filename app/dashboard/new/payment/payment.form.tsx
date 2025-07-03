@@ -36,7 +36,7 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
     defaultValues: {
       ...order?.Payment,
       bank: order?.Payment?.bank || 'BNA',
-      mode: order?.Payment?.mode || 'Virement'
+      mode: order?.Payment?.mode || 'Espèces'
     },
     resolver: zodResolver(paymentSchema)
   })
@@ -56,13 +56,10 @@ export const PaymentForm: React.FC<Props> = ({}: Props) => {
 
   function onSubmit(formData: PaymentType) {
     // Update order with payment information
-    setOrder((prev) => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        Payment: formData
-      }
-    })
+    setOrder((prev) => ({
+      ...prev,
+      Payment: formData
+    }))
 
     router.push('/dashboard/new/validate')
 

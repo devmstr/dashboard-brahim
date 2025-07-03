@@ -1,5 +1,5 @@
 import { Icons } from '@/components/icons'
-import { userRoles } from '@/config/global'
+import { STATUS_TYPES, userRoles } from '@/config/global'
 import { Brand, Car, Core } from '@prisma/client'
 
 type NavItem = {
@@ -27,14 +27,12 @@ export type HomeConfig = {
   nav: MainNavItem[]
 }
 
-export type Status = 'Annuler' | 'Non Commence' | 'Encours' | 'Fini'
-
 export type OrderTableEntry = {
   id: string
   deadline?: string
   customer: string
   phone: string
-  status: Status
+  status: (typeof STATUS_TYPES)[number]
   progress?: number
   state?: string
   total?: number

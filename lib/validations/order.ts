@@ -102,7 +102,7 @@ export const orderItemSchema = z.object({
   packaging: z.enum(PACKAGING_TYPES).default('Carton'),
   fabrication: z.enum(FABRICATION_TYPES).default('Confection'),
   label: z.string().optional(),
-  status: z.enum(STATUS_TYPES).default('Non Commence'),
+  status: z.enum(STATUS_TYPES).default('Prévu').optional(),
   category: z.enum(CATEGORY_TYPES).default('Automobile'),
   cooling: z.enum(COOLING_SYSTEMS_TYPES).default('Eau'),
   isModified: z.boolean().nullable().optional(),
@@ -125,7 +125,7 @@ export const orderSchema = z.object({
     .string()
     .default(() => new Date().toISOString())
     .optional(),
-  status: z.enum(STATUS_TYPES).default('Non Commence'),
+  status: z.enum(STATUS_TYPES).default('Prévu').optional(),
   progress: z.number().min(0).max(100).default(0).optional(),
   // Relations
   paymentId: z.string().optional(),

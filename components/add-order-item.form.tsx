@@ -87,7 +87,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         finsPitch: '10',
         tube: 'ET7',
         rows: 2,
-        tubeDiameter: 0,
+        tubeDiameter: 16,
         dimensions: {
           height: 0,
           width: 0
@@ -218,6 +218,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         rows: formData.Core?.rows,
         fins: formData.Core?.fins,
         pitch: formData.Core?.finsPitch,
+        tubeDiameter: formData.Core?.tubeDiameter,
         tube: formData.Core?.tube
       },
       collectorTop: {
@@ -271,26 +272,26 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const isFaisceau = type === 'Faisceau'
+    const isFaisceauOrSpirale = ['Faisceau', 'Spirale'].includes(type)
     const Core = form.getValues('Core.dimensions')
     const Collector = form.getValues('Collector.dimensions1')
 
     let hasError = false
 
-    if (isFaisceau && (!Core?.width || !Core?.height)) {
+    if (isFaisceauOrSpirale && (!Core?.width || !Core?.height)) {
       form.setError('Core.dimensions', {
         type: 'required',
         message:
-          'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
+          'Les dimensions du faisceau sont obligatoires pour le type Faisceau et Spirale'
       })
       hasError = true
     }
 
-    if (isFaisceau && (!Collector?.width || !Collector?.height)) {
+    if (isFaisceauOrSpirale && (!Collector?.width || !Collector?.height)) {
       form.setError('Collector.dimensions1', {
         type: 'required',
         message:
-          'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
+          'Les dimensions du collecteur sont obligatoires pour le type Faisceau Spirale'
       })
       hasError = true
     }
@@ -601,204 +602,73 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         </div>
 
         {/* Technical Details Section */}
-        {type != 'Autre' && (
+        {!['Autre'].includes(type) && (
           <div className="relative space-y-3 border rounded-md px-3 py-3">
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              {type === 'Spirale' ? 'Tube' : 'Faisceau'}
+              {'Faisceau'}
             </span>
-            {type === 'Faisceau' &&
-              form.formState.errors.Core?.dimensions &&
-              (coreDimensions.height < 1 || coreDimensions.width < 1) && (
-                <div className="mt-2 w-full flex justify-start text-destructive/80 underline text-sm">
-                  {form.formState.errors.Core.dimensions.message}
-                </div>
-              )}
-            {type === 'Spirale' ? (
-              <CardGrid>
-                <FormField
-                  control={form.control}
-                  name="Core.tubeDiameter"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">
-                        Diamètre
-                        <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
-                          (mm)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={({ target: { value } }) =>
-                            form.setValue('Core.tubeDiameter', Number(value))
-                          }
-                          className="w-full"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardGrid>
-            ) : (
-              <>
-                <CardGrid>
+            {form.formState.errors.Core?.dimensions && (
+              <div className="mt-2 w-full flex justify-start text-destructive/80 underline text-sm">
+                {form.formState.errors.Core.dimensions.message}
+              </div>
+            )}
+            <CardGrid>
+              <FormField
+                control={form.control}
+                name="Core.rows"
+                render={({ field }) => (
+                  <FormItem className="group">
+                    <FormLabel className="capitalize">
+                      Nombre De Rangées (N°R)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={({ target: { value } }) =>
+                          form.setValue('Core.rows', Number(value))
+                        }
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Only show when the type is Spiral */}
+              {type === 'Spirale' && (
+                <div className="col-span-2">
                   <FormField
                     control={form.control}
-                    name="Core.rows"
+                    name="Core.tubeDiameter"
                     render={({ field }) => (
-                      <FormItem className="group">
+                      <FormItem className="group w-1/2 pr-2.5">
                         <FormLabel className="capitalize">
-                          Nombre De Rangées (N°R)
+                          Diamètre
+                          <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                            (mm)
+                          </span>
                         </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            {...field}
-                            onChange={({ target: { value } }) =>
-                              form.setValue('Core.rows', Number(value))
-                            }
-                            className="w-full"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {/* Only show dimensions for Faisceau type */}
-                  {type === 'Faisceau' && (
-                    <>
-                      <FormField
-                        control={form.control}
-                        name="Core.dimensions.height"
-                        render={({ field }) => (
-                          <FormItem className="group">
-                            <FormLabel className="capitalize">
-                              Longueur
-                              <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
-                                (mm)
-                              </span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="number"
-                                onChange={({ target: { value } }) =>
-                                  form.setValue(
-                                    'Core.dimensions.height',
-                                    Number(value)
-                                  )
-                                }
-                                className="w-full"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="Core.dimensions.width"
-                        render={({ field }) => (
-                          <FormItem className="group">
-                            <FormLabel className="capitalize">
-                              Largeur
-                              <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
-                                (mm)
-                              </span>
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                {...field}
-                                onChange={({ target: { value } }) =>
-                                  form.setValue(
-                                    'Core.dimensions.width',
-                                    Number(value)
-                                  )
-                                }
-                                className="w-full"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </>
-                  )}
-                </CardGrid>
-
-                <CardGrid>
-                  <FormField
-                    control={form.control}
-                    name="Core.fins"
-                    render={({ field }) => (
-                      <FormItem className="group">
-                        <FormLabel className="capitalize">Ailette</FormLabel>
                         <FormControl>
                           <Combobox
                             {...field}
-                            options={FINS_TYPES}
+                            id="tube-diameter"
+                            options={[
+                              '8',
+                              '10',
+                              '12',
+                              '14',
+                              '16',
+                              '18',
+                              '20',
+                              '22',
+                              '26',
+                              '28',
+                              '32'
+                            ]}
                             onSelect={(v) => {
-                              if (
-                                (v === 'Zigzag' && finsPitch === '11') ||
-                                ((v === 'Droite (Aérer)' ||
-                                  v === 'Droite (Normale)') &&
-                                  finsPitch === '12')
-                              ) {
-                                form.setValue('Core.finsPitch', '10')
-                              }
-                              form.setValue('Core.fins', v as FinsType)
+                              form.setValue('Core.tubeDiameter', Number(v))
                             }}
-                            selected={field.value}
-                            isInSideADialog
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="Core.tube"
-                    render={({ field }) => (
-                      <FormItem className="group">
-                        <FormLabel className="capitalize">Tube</FormLabel>
-                        <FormControl>
-                          <Combobox
-                            id="tube"
-                            options={TUBE_TYPES}
-                            onSelect={(v) =>
-                              form.setValue('Core.tube', v as TubeType)
-                            }
-                            selected={field.value}
-                            isInSideADialog
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="Core.finsPitch"
-                    render={({ field }) => (
-                      <FormItem className="group">
-                        <FormLabel className="capitalize">
-                          Pas Des Tubes
-                        </FormLabel>
-                        <FormControl>
-                          <Combobox
-                            {...field}
-                            options={
-                              fins === 'Zigzag'
-                                ? ['10', '12']
-                                : ['10', '11', '14']
-                            }
-                            onSelect={(v) =>
-                              form.setValue('Core.finsPitch', v as FinsPitch)
-                            }
                             selected={field.value?.toString()}
                             isInSideADialog
                           />
@@ -807,26 +677,164 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       </FormItem>
                     )}
                   />
-                </CardGrid>
-              </>
-            )}
+                </div>
+              )}
 
-            {/* Collectors Section */}
-            {type === 'Faisceau' && (
+              {/* Only show dimensions for Faisceau type */}
+              {['Faisceau', 'Spirale'].includes(type) && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="Core.dimensions.height"
+                    render={({ field }) => (
+                      <FormItem className="group">
+                        <FormLabel className="capitalize">
+                          Longueur
+                          <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                            (mm)
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            onChange={({ target: { value } }) =>
+                              form.setValue(
+                                'Core.dimensions.height',
+                                Number(value)
+                              )
+                            }
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="Core.dimensions.width"
+                    render={({ field }) => (
+                      <FormItem className="group">
+                        <FormLabel className="capitalize">
+                          Largeur
+                          <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
+                            (mm)
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={({ target: { value } }) =>
+                              form.setValue(
+                                'Core.dimensions.width',
+                                Number(value)
+                              )
+                            }
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+            </CardGrid>
+            {['Faisceau', 'Radiateur'].includes(type) && (
+              <CardGrid>
+                <FormField
+                  control={form.control}
+                  name="Core.fins"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">Ailette</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          {...field}
+                          options={FINS_TYPES}
+                          onSelect={(v) => {
+                            if (
+                              (v === 'Zigzag' && finsPitch === '11') ||
+                              ((v === 'Droite (Aérer)' ||
+                                v === 'Droite (Normale)') &&
+                                finsPitch === '12')
+                            ) {
+                              form.setValue('Core.finsPitch', '10')
+                            }
+                            form.setValue('Core.fins', v as FinsType)
+                          }}
+                          selected={field.value}
+                          isInSideADialog
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Core.tube"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">Tube</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          id="tube"
+                          options={TUBE_TYPES}
+                          onSelect={(v) =>
+                            form.setValue('Core.tube', v as TubeType)
+                          }
+                          selected={field.value}
+                          isInSideADialog
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Core.finsPitch"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">
+                        Pas Des Tubes
+                      </FormLabel>
+                      <FormControl>
+                        <Combobox
+                          {...field}
+                          options={
+                            fins === 'Zigzag'
+                              ? ['10', '12']
+                              : ['10', '11', '14']
+                          }
+                          onSelect={(v) =>
+                            form.setValue('Core.finsPitch', v as FinsPitch)
+                          }
+                          selected={field.value?.toString()}
+                          isInSideADialog
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardGrid>
+            )}
+            {['Faisceau', 'Spirale'].includes(type) && (
               <div className="pt-5">
                 <div className="relative space-y-3 border rounded-md px-3 py-3">
                   <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
                     collecteurs
                   </span>
-                  {type === 'Faisceau' &&
-                    (form.formState.errors.Collector?.dimensions1 ||
-                      form.formState.errors.Collector?.dimensions1) &&
-                    (collectorDimensions1.height < 1 ||
-                      collectorDimensions1.width < 1) && (
-                      <div className="mt-2 w-full flex justify-start text-destructive underline text-sm">
-                        {form.formState.errors.Collector?.dimensions1?.message}
-                      </div>
-                    )}
+                  {(form.formState.errors.Collector?.dimensions1 ||
+                    form.formState.errors.Collector?.dimensions2) && (
+                    <div className="mt-2 w-full flex justify-start text-destructive underline text-sm">
+                      {form.formState.errors.Collector?.dimensions1?.message}
+                    </div>
+                  )}
                   <CardGrid>
                     <FormField
                       control={form.control}

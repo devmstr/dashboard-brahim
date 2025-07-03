@@ -123,13 +123,10 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   const handleAddProductToOrder = useCallback(
     (formData: any) => {
       // add the orderItem to orderItem list
-      setOrder((prev) => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          OrderItems: [...(prev?.OrderItems || []), formData]
-        }
-      })
+      setOrder((prev) => ({
+        ...prev,
+        OrderItems: [...(prev?.OrderItems || []), formData]
+      }))
 
       toast({
         title: 'Succès',
@@ -155,13 +152,10 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
 
     orderItem.id = skuId(orderItemPrefix)
     // add the orderItem to orderItem list
-    setOrder((prev) => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        OrderItems: [...(prev?.OrderItems || []), orderItem]
-      }
-    })
+    setOrder((prev) => ({
+      ...prev,
+      OrderItems: [...(prev?.OrderItems || []), orderItem]
+    }))
 
     setOpen(false)
 

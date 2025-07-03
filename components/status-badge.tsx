@@ -17,7 +17,7 @@ const STATUS_CONFIG: Record<
     iconKey: 'abandoned',
     className: 'bg-[#f8f9fa] text-[#a0a0a0] border-[#a0a0a0]' // Lighter gray
   },
-  'Non Commence': {
+  Prévu: {
     iconKey: 'planned',
     className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]' // Brighter blue
   },

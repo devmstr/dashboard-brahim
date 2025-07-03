@@ -49,7 +49,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       customer: order.Client?.name || '—',
       phone: order.Client?.phone || '—',
       deadline: order.deadline.toISOString(),
-      status: 'Non Commence',
+      status: 'Prévu',
       progress: order.progress || 0,
       state: order.Client?.Address?.Province.name || '—',
       items,

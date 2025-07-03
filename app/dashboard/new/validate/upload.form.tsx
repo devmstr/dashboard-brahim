@@ -38,13 +38,10 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
     setUploadedAttachments((prev) => [...prev, attachment])
 
     // Update the order context
-    setOrder((prev) => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        Attachments: [...(prev?.Attachments || []), attachment]
-      }
-    })
+    setOrder((prev) => ({
+      ...prev,
+      Attachments: [...(prev?.Attachments || []), attachment]
+    }))
   }
 
   // Handle when an attachment is deleted
@@ -56,13 +53,10 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
     setUploadedAttachments(updatedAttachments)
 
     // Update the order context
-    setOrder((prev) => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        Attachments: updatedAttachments
-      }
-    })
+    setOrder((prev) => ({
+      ...prev,
+      Attachments: updatedAttachments
+    }))
   }
 
   async function handleSubmit(
@@ -214,10 +208,10 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
           <DatePicker
             date={order?.deadline || new Date().toISOString()}
             onDateChange={(v) =>
-              setOrder((prev) => {
-                if (!prev) return prev
-                return { ...prev, deadline: v }
-              })
+              setOrder((prev) => ({
+                ...prev,
+                deadline: v
+              }))
             }
             locale={fr}
             placeholder="Choisir une date"

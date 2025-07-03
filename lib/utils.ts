@@ -86,6 +86,7 @@ interface ProductConfig {
     fins?: Core['fins']
     tube?: Core['tube']
     pitch?: Core['finsPitch']
+    tubeDiameter?: Core['tubeDiameter']
     dimensions: Dimensions
     rows?: number
   }
@@ -151,6 +152,7 @@ export function generateRadiatorLabel({
     dimensions: coreDimensions,
     fins = 'Normale',
     tube = 'ET7',
+    tubeDiameter = 16,
     pitch = '10',
     rows = 1
   },
@@ -184,8 +186,12 @@ export function generateRadiatorLabel({
   const tighteningT = TIGHTENING_T[tighteningTop]
   const tighteningCode =
     tighteningB === tighteningT ? tighteningB : `${tighteningB}/${tighteningT}`
+  const finsTubeTypeAndPitch =
+    type == 'Spirale'
+      ? `T${tubeDiameter}`
+      : `${FINS_T[fins]}${TUBE_T[tube]} ${pitch}`
 
-  return `${prefix} ${core4DigitsDimensions} ${rows}${FINS_T[fins]}${TUBE_T[tube]} ${pitch} ${collector4DigitsDimensions} ${positionCode} ${tighteningCode} `
+  return `${prefix} ${core4DigitsDimensions} ${rows}${finsTubeTypeAndPitch} ${collector4DigitsDimensions} ${positionCode} ${tighteningCode} `
 }
 
 export function cn(...inputs: ClassValue[]) {

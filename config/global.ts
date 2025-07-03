@@ -25,7 +25,7 @@ export const FABRICATION_TYPES = ['Confection', 'Rénovation'] as const
 export const FABRICATION_TYPES_ARR: string[] = [...FABRICATION_TYPES]
 export const STATUS_TYPES = [
   'Annuler',
-  'Non Commence',
+  'Prévu',
   'Encours',
   'Fini',
   'Livré'
