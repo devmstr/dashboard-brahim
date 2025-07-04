@@ -44,6 +44,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
+import ClientAutocomplete from '@/components/client-autocomplete'
 
 export type InvoiceMetadata = {
   items: InvoiceItem[]
@@ -263,102 +264,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           />
           <h3 className="font-semibold">Client</h3>
           <div className="flex w-full justify-between ">
-            <div className="flex flex-col gap-1">
-              <Input
-                placeholder="SARL SO.NE.RA.S"
-                className={cn(
-                  'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md',
-                  !client.name && 'print:hidden'
-                )}
-                value={client.name}
-                onChange={(e) => {
-                  setClient((prev) => ({
-                    ...prev,
-                    name: e.target.value
-                  }))
-                }}
-              />
-              {/* client address only appear if it exist  */}
-              <Input
-                placeholder="Z.I. Garat taam B. P.N 46 Bounoura - 47014"
-                className={cn(
-                  'h-4 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-md w-full',
-                  !client.address && 'print:hidden'
-                )}
-                value={client.address}
-                onChange={(e) => {
-                  setClient((prev) => ({
-                    ...prev,
-                    address: e.target.value
-                  }))
-                }}
-              />
-            </div>
-            <div className="text-sm font-geist-sans w-48">
-              <div
-                className={cn(
-                  'flex items-center',
-                  !client.rc && 'print:hidden'
-                )}
-              >
-                <strong className="w-10">{'R.C: '}</strong>
-                <Input
-                  placeholder="97/B/0862043"
-                  className={cn(
-                    'h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0'
-                  )}
-                  value={client.rc}
-                  onChange={(e) => {
-                    setClient((prev) => ({
-                      ...prev,
-                      rc: e.target.value
-                    }))
-                  }}
-                />
-              </div>
-              <div
-                className={cn(
-                  'flex items-center',
-                  !client.nif && 'print:hidden'
-                )}
-              >
-                <strong className="w-10">{'N.I.F: '}</strong>{' '}
-                <Input
-                  placeholder="99747086204393"
-                  className={cn(
-                    'h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0'
-                  )}
-                  value={client.nif}
-                  onChange={(e) => {
-                    setClient((prev) => ({
-                      ...prev,
-                      nif: e.target.value
-                    }))
-                  }}
-                />
-              </div>
-              <div
-                className={cn(
-                  'flex items-center',
-                  !client.ai && 'print:hidden'
-                )}
-              >
-                <strong className="w-10">{'A.I: '}</strong>
-                <Input
-                  placeholder="471006003"
-                  className={cn(
-                    'h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0'
-                  )}
-                  value={client.ai}
-                  onChange={(e) => {
-                    setClient((prev) => ({
-                      ...prev,
-                      ai: e.target.value
-                    }))
-                  }}
-                />
-              </div>
-            </div>
+            <ClientAutocomplete client={client} setClient={setClient} />
           </div>
           <Separator
             style={{ backgroundColor: '#000' }}
