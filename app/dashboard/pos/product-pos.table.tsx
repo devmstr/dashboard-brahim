@@ -147,7 +147,7 @@ export function ProductPosTable({
         const matches = label.match(regex)
 
         return (
-          <p className="text-muted-foreground  truncate  overflow-hidden whitespace-nowrap">
+          <p className="text-muted-foreground  truncate  overflow-hidden whitespace-nowrap max-w-sm">
             {parts.map((part, index) => (
               <React.Fragment key={index}>
                 {part}
