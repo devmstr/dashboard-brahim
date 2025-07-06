@@ -20,6 +20,10 @@ export const COMPANY_LABELS_TYPE = [
   }
 ]
 
+export const COMPANY_LABELS_TYPE_ARR: string[] = COMPANY_LABELS_TYPE.map(
+  (type) => type.value
+)
+
 // Fabrication
 export const FABRICATION_TYPES = ['Confection', 'Rénovation'] as const
 export const FABRICATION_TYPES_ARR: string[] = [...FABRICATION_TYPES]

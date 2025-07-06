@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
 
     const isActive = searchParams.get('isActive')
-    const search = searchParams.get('search')
+    const search = searchParams.get('search') as string
 
     // Build the filter object
     const filter: any = {}
@@ -43,12 +43,10 @@ export async function GET(request: NextRequest) {
         },
         // Search by client name through orders
         {
-          OrderItems: {
+          Orders: {
             some: {
-              Order: {
-                Client: {
-                  name: { contains: search, mode: 'insensitive' }
-                }
+              Client: {
+                name: { contains: search, mode: 'insensitive' }
               }
             }
           }
@@ -83,15 +81,13 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        OrderItems: {
+        Orders: {
           include: {
-            Order: {
-              include: {
-                Client: true
-              }
+            Client: true,
+            OrdersItems: {
+              take: 3 // Limit the number of orders returned
             }
-          },
-          take: 3 // Limit the number of orders returned
+          }
         },
         Inventory: true,
         Price: true
@@ -138,8 +134,8 @@ export async function GET(request: NextRequest) {
       })
 
       // Extract clients from order items
-      radiator.OrderItems?.forEach((orderItem) => {
-        const client = orderItem.Order?.Client
+      radiator.Orders?.forEach((orderItem) => {
+        const client = orderItem.Client
         if (client?.id && client?.name) {
           clientMap.set(client.id, client.name)
         }
@@ -172,7 +168,6 @@ export async function GET(request: NextRequest) {
         isActive: radiator.isActive,
         createdAt: radiator.createdAt,
         updatedAt: radiator.updatedAt,
-
         // Include related data
         Inventory: radiator.Inventory,
         Price: radiator.Price,

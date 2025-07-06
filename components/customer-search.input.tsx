@@ -36,7 +36,7 @@ import {
 } from 'lucide-react'
 import { Icons } from '@/components/icons'
 import { AddNewClientDialogButton } from '@/components/add-new-client.button'
-import type { Client } from '@/lib/validations'
+import type { ClientSchemaType as Client } from '@/lib/validations'
 import type { Address } from '@prisma/client'
 import { toast } from '@/hooks/use-toast'
 import { formatPhoneNumber } from '@/lib/utils'

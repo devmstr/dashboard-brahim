@@ -123,6 +123,9 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   const handleAddProductToOrder = useCallback(
     (formData: any) => {
       // add the orderItem to orderItem list
+      console.log('submited radiator: ', formData)
+      console.log('fetched radiator: ', fetchedProduct)
+
       setOrder((prev) => ({
         ...prev,
         OrderItems: [...(prev?.OrderItems || []), formData]
@@ -212,17 +215,7 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
               {fetchedProduct && !isLoading && (
                 <AddOrderItemFromDbFrom
                   onSubmit={handleAddProductToOrder}
-                  initialData={{
-                    id: fetchedProduct.id,
-                    label:
-                      fetchedProduct.label || `Product ${fetchedProduct.id}`,
-                    category: fetchedProduct.category,
-                    cooling: fetchedProduct.cooling,
-                    Car: {
-                      brand: fetchedProduct.Brands?.at(0)?.name,
-                      model: fetchedProduct.Brands?.at(0)?.Models?.at(0)?.name
-                    }
-                  }}
+                  initialData={fetchedProduct}
                 />
               )}
             </div>
@@ -233,11 +226,11 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
       <div>
         <OrderItemsTable
           data={order?.OrderItems?.map(
-            ({ id, label, Car, fabrication, type, quantity }) => ({
+            ({ id, label, Vehicle, fabrication, type, quantity }) => ({
               id: id as string,
               label: label as string,
-              brand: Car?.brand,
-              model: Car?.model,
+              brand: Vehicle?.brand,
+              model: Vehicle?.model,
               fabrication: fabrication as string,
               type: type as string,
               quantity: quantity as number

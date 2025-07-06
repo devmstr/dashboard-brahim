@@ -24,12 +24,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       },
       OrdersItems: {
         select: {
-          _count: true,
-          Radiator: {
-            select: {
-              Price: true
-            }
-          }
+          _count: true
         }
       },
       deadline: true,

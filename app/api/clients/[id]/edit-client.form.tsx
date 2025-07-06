@@ -18,8 +18,8 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import {
-  newClientSchema as clientSchema,
-  type NewClient as Client
+  clientSchema as clientSchema,
+  type ClientSchemaType as Client
 } from '@/lib/validations/client'
 import { toast } from '@/hooks/use-toast'
 
@@ -36,15 +36,15 @@ interface LocationOption {
   zipCode?: string
 }
 
-interface ClientData extends Client {
-  Address?: {
-    id: string
-    street: string
-    City: { id: string; name: string; zipCode?: string }
-    Province: { id: string; name: string }
-    Country: { id: string; name: string }
-  }
-}
+// interface ClientData extends Client {
+//   Address?: {
+//     id: string
+//     street: string
+//     City: { id: string; name: string; zipCode?: string }
+//     Province: { id: string; name: string }
+//     Country: { id: string; name: string }
+//   }
+// }
 
 export const EditClientForm: React.FC<Props> = ({
   clientId,
@@ -60,7 +60,7 @@ export const EditClientForm: React.FC<Props> = ({
   const [isLoadingProvinces, setIsLoadingProvinces] = useState(false)
   const [isLoadingCities, setIsLoadingCities] = useState(false)
   const [isLoadingClient, setIsLoadingClient] = useState(false)
-  const [clientData, setClientData] = useState<ClientData | null>(null)
+  const [clientData, setClientData] = useState<Client | null>(null)
 
   // Initialize form with React Hook Form
   const form = useForm<Client>({
@@ -93,19 +93,19 @@ export const EditClientForm: React.FC<Props> = ({
           throw new Error('Failed to fetch client data')
         }
 
-        const client: ClientData = await response.json()
+        const client = (await response.json()) as Client
         setClientData(client)
 
         // Set form values with fetched data
         const formData = {
           ...client,
           // Use Country.id, Province.id, City.id for selects
-          country: client.Address?.Country?.id || '',
-          province: client.Address?.Province?.id || '',
-          city: client.Address?.City?.id || '',
-          street: client.Address?.street || '',
-          zip: client.Address?.City?.zipCode || '',
-          addressId: client.Address?.id
+          country: client.countryId || '',
+          province: client.provinceId || '',
+          city: client.cityId || '',
+          street: client.street || '',
+          zip: client.zip || '',
+          addressId: client.addressId || ''
         }
 
         // Set all form values

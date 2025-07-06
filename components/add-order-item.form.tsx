@@ -82,50 +82,41 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       packaging: 'Carton',
       quantity: 1,
       category: 'Automobile',
-      Core: {
-        fins: 'Normale',
-        finsPitch: '10',
-        tube: 'ET7',
-        rows: 2,
-        tubeDiameter: 16,
-        dimensions: {
-          height: 0,
-          width: 0
-        }
-      },
-      Collector: {
-        isTinned: true,
-        perforation: 'Perforé',
-        tightening: 'Plié',
-        position: 'Centrer',
-        dimensions1: {
-          height: 0,
-          width: 0,
-          thickness: 1.5
-        },
-        dimensions2: {
-          height: 0,
-          width: 0,
-          thickness: 1.5
-        }
-      }
+      note: '',
+      // core
+      fins: 'Normale',
+      pitch: '10',
+      tubeType: 'ET7',
+      rows: 2,
+      tubeDiameter: 16,
+      betweenCollectors: 0,
+      width: 0,
+      // collectors
+      isModified: false,
+      isTinned: true,
+      isPainted: true,
+      perforation: 'Perforé',
+      tightening: 'Plié',
+      position: 'Centrer',
+      upperCollectorLength: 0,
+      lowerCollectorLength: 0,
+      upperCollectorWidth: 0,
+      lowerCollectorWidth: 0
     },
     resolver: zodResolver(orderItemSchema)
   })
 
   // Watched values
   const type = form.watch('type')
-  const tightening = form.watch('Collector.tightening')
-  const finsPitch = form.watch('Core.finsPitch')
-  const fins = form.watch('Core.fins')
+  const tightening = form.watch('tightening')
+  const pitch = form.watch('pitch')
+  const fins = form.watch('fins')
   const cooling = form.watch('cooling')
-  const height = form.watch('Collector.dimensions1.height')
-  const width = form.watch('Collector.dimensions1.width')
   const note = form.watch('note')
-  const tubeDiameter = form.watch('Core.tubeDiameter')
-  const coreDimensions = form.watch('Core.dimensions')
-  const collectorDimensions1 = form.watch('Collector.dimensions1')
-  const collectorDimensions2 = form.watch('Collector.dimensions2')
+  const betweenCollectors = form.watch('betweenCollectors')
+  const width = form.watch('width')
+  const upperCollectorLength = form.watch('upperCollectorLength')
+  const upperCollectorWidth = form.watch('upperCollectorWidth')
 
   // Enforce "remarque" when no vehicle
   useEffect(() => {
@@ -143,46 +134,42 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
 
   // Validate dimensions when type is "Faisceau"
   useEffect(() => {
-    const isFaisceau = type === 'Faisceau'
-
-    const Core = form.getValues('Core.dimensions')
-    const Collector = form.getValues('Collector.dimensions1')
-
-    const missingCore = !Core?.width || !Core?.height
-    const missingCollector = !Collector?.width || !Collector?.height
-
-    if (isFaisceau && missingCore) {
-      form.setError('Core.dimensions', {
+    if (
+      type === 'Faisceau' &&
+      (!upperCollectorLength || !upperCollectorWidth)
+    ) {
+      form.setError('betweenCollectors', {
         type: 'required',
         message:
           'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
       })
     } else {
-      form.clearErrors('Core.dimensions')
+      form.clearErrors('betweenCollectors')
     }
 
-    if (isFaisceau && missingCollector) {
-      form.setError('Collector.dimensions1', {
+    if (
+      type === 'Faisceau' &&
+      (!upperCollectorLength || !upperCollectorWidth)
+    ) {
+      form.setError('upperCollectorLength', {
         type: 'required',
         message:
           'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
       })
     } else {
-      form.clearErrors('Collector.dimensions1')
+      form.clearErrors('upperCollectorLength')
     }
   }, [type, form])
 
-  // Sync lower Collector dimensions with upper when identical
+  // Sync dimensions when collectors are different
   useEffect(() => {
-    if (isCollectorsDifferent) {
-      form.setValue('Collector.dimensions2', {
-        width,
-        height
-      })
-    } else {
-      form.setValue('Collector.dimensions2', undefined)
-    }
-  }, [isCollectorsDifferent, width, height, form])
+    form.setValue('lowerCollectorLength', upperCollectorLength)
+  }, [upperCollectorLength, form])
+
+  // Sync lower Collector width with upper when identical
+  useEffect(() => {
+    form.setValue('lowerCollectorWidth', upperCollectorWidth)
+  }, [upperCollectorWidth, form])
 
   // Handle form submission
   const onSubmitHandler = (formData: OrderItem) => {
@@ -209,41 +196,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
     }
 
     const label = generateRadiatorLabel({
-      core: {
-        dimensions: {
-          width: Number(formData.Core?.dimensions?.width),
-          height: Number(formData.Core?.dimensions?.height)
-        },
-        rows: formData.Core?.rows,
-        fins: formData.Core?.fins,
-        pitch: formData.Core?.finsPitch,
-        tubeDiameter: formData.Core?.tubeDiameter,
-        tube: formData.Core?.tube
-      },
-      collectorTop: {
-        dimensions: {
-          width: Number(formData.Collector?.dimensions1?.width),
-          height: Number(formData.Collector?.dimensions1?.height)
-        },
-        position: formData.Collector?.position,
-        tightening: formData.Collector?.tightening
-      },
-      collectorBottom: {
-        dimensions: {
-          height: Number(formData.Collector?.dimensions1.height),
-          width: Number(formData.Collector?.dimensions1?.width)
-        },
-        position: formData.Collector?.position,
-        tightening: formData.Collector?.tightening
-      },
-      type: formData.type,
-      fabrication: formData.fabrication
+      ...formData
     })
 
     const orderItem: OrderItem = {
       ...formData,
       label,
-      Car:
+      Vehicle:
         isModelAvailable &&
         carSelection?.model?.id &&
         carSelection?.model?.name &&
@@ -272,13 +231,16 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
     e.preventDefault()
 
     const isFaisceauOrSpirale = ['Faisceau', 'Spirale'].includes(type)
-    const Core = form.getValues('Core.dimensions')
-    const Collector = form.getValues('Collector.dimensions1')
 
     let hasError = false
 
-    if (isFaisceauOrSpirale && (!Core?.width || !Core?.height)) {
-      form.setError('Core.dimensions', {
+    if (isFaisceauOrSpirale && (!betweenCollectors || !width)) {
+      form.setError('betweenCollectors', {
+        type: 'required',
+        message:
+          'Les dimensions du faisceau sont obligatoires pour le type Faisceau et Spirale'
+      })
+      form.setError('width', {
         type: 'required',
         message:
           'Les dimensions du faisceau sont obligatoires pour le type Faisceau et Spirale'
@@ -286,8 +248,16 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       hasError = true
     }
 
-    if (isFaisceauOrSpirale && (!Collector?.width || !Collector?.height)) {
-      form.setError('Collector.dimensions1', {
+    if (
+      isFaisceauOrSpirale &&
+      (!upperCollectorLength || !upperCollectorWidth)
+    ) {
+      form.setError('upperCollectorLength', {
+        type: 'required',
+        message:
+          'Les dimensions du collecteur sont obligatoires pour le type Faisceau Spirale'
+      })
+      form.setError('upperCollectorWidth', {
         type: 'required',
         message:
           'Les dimensions du collecteur sont obligatoires pour le type Faisceau Spirale'
@@ -360,7 +330,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                 <FormLabel className="capitalize">
                   Remarque <span className="text-destructive">*</span>
                 </FormLabel>
-                <FormMessage />
+
                 <FormControl>
                   <MdEditor
                     editorContentClassName="p-4 overflow-y-scroll overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-background scrollbar-thumb-rounded-full scrollbar-track-rounded-full min-h-28"
@@ -418,7 +388,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           }
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -447,7 +416,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       isInSideADialog
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -472,7 +440,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       isInSideADialog
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -503,7 +470,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       isInSideADialog
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -521,9 +487,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         if (value > 0) form.setValue('quantity', value)
                       }}
                       type="number"
+                      value={field.value ?? ''}
+                      // onChange={(e) => field.onChange(Number(e.target.value))}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -540,14 +510,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       onSelect={(v) => {
                         form.setValue('cooling', v as OrderItem['cooling'])
                         if (v !== 'Eau') {
-                          form.setValue('Collector.tightening', 'Plié')
+                          form.setValue('tightening', 'Plié')
                         }
                       }}
                       selected={field.value}
                       isInSideADialog
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -569,7 +538,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       isInSideADialog
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -592,7 +560,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         value={field.value}
                       />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -606,15 +573,11 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               {'Faisceau'}
             </span>
-            {form.formState.errors.Core?.dimensions && (
-              <div className="mt-2 w-full flex justify-start text-destructive/80 underline text-sm">
-                {form.formState.errors.Core.dimensions.message}
-              </div>
-            )}
+
             <CardGrid>
               <FormField
                 control={form.control}
-                name="Core.rows"
+                name="rows"
                 render={({ field }) => (
                   <FormItem className="group">
                     <FormLabel className="capitalize">
@@ -623,14 +586,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                     <FormControl>
                       <Input
                         type="number"
-                        {...field}
-                        onChange={({ target: { value } }) =>
-                          form.setValue('Core.rows', Number(value))
-                        }
-                        className="w-full"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
                       />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -639,7 +601,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                 <div className="col-span-2">
                   <FormField
                     control={form.control}
-                    name="Core.tubeDiameter"
+                    name="tubeDiameter"
                     render={({ field }) => (
                       <FormItem className="group w-1/2 pr-2.5">
                         <FormLabel className="capitalize">
@@ -666,13 +628,12 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               '32'
                             ]}
                             onSelect={(v) => {
-                              form.setValue('Core.tubeDiameter', Number(v))
+                              form.setValue('tubeDiameter', Number(v))
                             }}
                             selected={field.value?.toString()}
                             isInSideADialog
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -684,7 +645,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                 <>
                   <FormField
                     control={form.control}
-                    name="Core.dimensions.height"
+                    name="betweenCollectors"
                     render={({ field }) => (
                       <FormItem className="group">
                         <FormLabel className="capitalize">
@@ -695,24 +656,22 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         </FormLabel>
                         <FormControl>
                           <Input
-                            {...field}
                             type="number"
-                            onChange={({ target: { value } }) =>
-                              form.setValue(
-                                'Core.dimensions.height',
-                                Number(value)
-                              )
+                            value={field.value ?? ''}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
                             }
-                            className="w-full"
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
-                    name="Core.dimensions.width"
+                    name="width"
                     render={({ field }) => (
                       <FormItem className="group">
                         <FormLabel className="capitalize">
@@ -724,17 +683,15 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         <FormControl>
                           <Input
                             type="number"
-                            {...field}
-                            onChange={({ target: { value } }) =>
-                              form.setValue(
-                                'Core.dimensions.width',
-                                Number(value)
-                              )
+                            value={field.value ?? ''}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
                             }
-                            className="w-full"
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -745,7 +702,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
               <CardGrid>
                 <FormField
                   control={form.control}
-                  name="Core.fins"
+                  name="fins"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">Ailette</FormLabel>
@@ -755,26 +712,25 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           options={FINS_TYPES}
                           onSelect={(v) => {
                             if (
-                              (v === 'Zigzag' && finsPitch === '11') ||
+                              (v === 'Zigzag' && pitch === '11') ||
                               ((v === 'Droite (Aérer)' ||
                                 v === 'Droite (Normale)') &&
-                                finsPitch === '12')
+                                pitch === '12')
                             ) {
-                              form.setValue('Core.finsPitch', '10')
+                              form.setValue('pitch', '10')
                             }
-                            form.setValue('Core.fins', v as FinsType)
+                            form.setValue('fins', v as FinsType)
                           }}
                           selected={field.value}
                           isInSideADialog
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="Core.tube"
+                  name="tubeType"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">Tube</FormLabel>
@@ -783,19 +739,18 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           id="tube"
                           options={TUBE_TYPES}
                           onSelect={(v) =>
-                            form.setValue('Core.tube', v as TubeType)
+                            form.setValue('tubeType', v as TubeType)
                           }
                           selected={field.value}
                           isInSideADialog
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="Core.finsPitch"
+                  name="pitch"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -810,13 +765,12 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               : ['10', '11', '14']
                           }
                           onSelect={(v) =>
-                            form.setValue('Core.finsPitch', v as FinsPitch)
+                            form.setValue('pitch', v as FinsPitch)
                           }
                           selected={field.value?.toString()}
                           isInSideADialog
                         />
                       </FormControl>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -828,16 +782,10 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                   <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
                     collecteurs
                   </span>
-                  {(form.formState.errors.Collector?.dimensions1 ||
-                    form.formState.errors.Collector?.dimensions2) && (
-                    <div className="mt-2 w-full flex justify-start text-destructive underline text-sm">
-                      {form.formState.errors.Collector?.dimensions1?.message}
-                    </div>
-                  )}
                   <CardGrid>
                     <FormField
                       control={form.control}
-                      name="Collector.isTinned"
+                      name="isTinned"
                       render={({ field }) => (
                         <FormItem className="w-full md:col-span-2 lg:col-span-3">
                           <FormLabel className="capitalize">Étamé</FormLabel>
@@ -846,17 +794,16 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               {...field}
                               checked={field.value as boolean}
                               onCheckedChange={(v) =>
-                                form.setValue('Collector.isTinned', v)
+                                form.setValue('isTinned', v)
                               }
                             />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="Collector.tightening"
+                      name="tightening"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">Serrage</FormLabel>
@@ -869,7 +816,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               }
                               onSelect={(v) =>
                                 form.setValue(
-                                  'Collector.tightening',
+                                  'tightening',
                                   v as (typeof CLAMPING_TYPES)[number]
                                 )
                               }
@@ -877,14 +824,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               isInSideADialog
                             />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
                     {tightening === 'Boulonné' && (
                       <FormField
                         control={form.control}
-                        name="Collector.perforation"
+                        name="perforation"
                         render={({ field }) => (
                           <FormItem className="group">
                             <FormLabel className="capitalize">
@@ -896,7 +842,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                 options={PERFORATION_TYPES_ARR}
                                 onSelect={(v) =>
                                   form.setValue(
-                                    'Collector.perforation',
+                                    'perforation',
                                     v as (typeof PERFORATION_TYPES)[number]
                                   )
                                 }
@@ -904,14 +850,13 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                 isInSideADialog
                               />
                             </FormControl>
-                            <FormMessage />
                           </FormItem>
                         )}
                       />
                     )}
                     <FormField
                       control={form.control}
-                      name="Collector.position"
+                      name="position"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">
@@ -922,7 +867,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               options={COLLECTOR_POSITION_TYPES_ARR}
                               onSelect={(v) =>
                                 form.setValue(
-                                  'Collector.position',
+                                  'position',
                                   v as (typeof COLLECTOR_POSITION_TYPES)[number]
                                 )
                               }
@@ -930,7 +875,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               isInSideADialog
                             />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -947,11 +891,11 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                   <CardGrid>
                     <FormField
                       control={form.control}
-                      name="Collector.dimensions1.height"
+                      name="upperCollectorLength"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">
-                            Longueur
+                            Longueur (Haut)
                             <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
                               (mm)
                             </span>
@@ -959,26 +903,25 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           <FormControl>
                             <Input
                               type="number"
-                              {...field}
-                              onChange={({ target: { value } }) =>
-                                form.setValue(
-                                  'Collector.dimensions1.height',
-                                  Number(value)
-                                )
+                              value={field.value ?? ''}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
                               }
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                             />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="Collector.dimensions1.width"
+                      name="upperCollectorWidth"
                       render={({ field }) => (
                         <FormItem className="group">
                           <FormLabel className="capitalize">
-                            Largeur
+                            Largeur (Haut)
                             <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
                               (mm)
                             </span>
@@ -986,16 +929,15 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           <FormControl>
                             <Input
                               type="number"
-                              {...field}
-                              onChange={({ target: { value } }) =>
-                                form.setValue(
-                                  'Collector.dimensions1.width',
-                                  Number(value)
-                                )
+                              value={field.value ?? ''}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
                               }
+                              onBlur={field.onBlur}
+                              name={field.name}
+                              ref={field.ref}
                             />
                           </FormControl>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -1012,11 +954,11 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                       <CardGrid>
                         <FormField
                           control={form.control}
-                          name="Collector.dimensions2.height"
+                          name="lowerCollectorLength"
                           render={({ field }) => (
                             <FormItem className="group">
                               <FormLabel className="capitalize">
-                                Longueur
+                                Longueur (Bas)
                                 <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
                                   (mm)
                                 </span>
@@ -1027,23 +969,22 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'Collector.dimensions2.height',
+                                      'lowerCollectorLength',
                                       Number(value)
                                     )
                                   }
                                 />
                               </FormControl>
-                              <FormMessage />
                             </FormItem>
                           )}
                         />
                         <FormField
                           control={form.control}
-                          name="Collector.dimensions2.width"
+                          name="lowerCollectorWidth"
                           render={({ field }) => (
                             <FormItem className="group">
                               <FormLabel className="capitalize">
-                                Largeur
+                                Largeur (Bas)
                                 <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
                                   (mm)
                                 </span>
@@ -1054,13 +995,12 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                   {...field}
                                   onChange={({ target: { value } }) =>
                                     form.setValue(
-                                      'Collector.dimensions2.width',
+                                      'lowerCollectorWidth',
                                       Number(value)
                                     )
                                   }
                                 />
                               </FormControl>
-                              <FormMessage />
                             </FormItem>
                           )}
                         />

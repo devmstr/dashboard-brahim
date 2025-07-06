@@ -72,7 +72,6 @@ export type ComponentsTableEntry = {
   label: string
   quantity: number
   delivered?: number
-  radiatorId: string
 }
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
@@ -224,7 +223,7 @@ export function OrderComponentsTable({
             className="hover:text-secondary hover:font-semibold hover:underline"
             href={`${pathname}/${row.original.id}`}
           >
-            {row.original.radiatorId}
+            {row.original.id}
           </Link>
         </div>
       )
@@ -476,10 +475,19 @@ export function OrderComponentsTable({
           {/* budge to indicate the total item and the delivered items */}
           <div className="flex items-center">
             <Badge className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-300 h-8">
-              {data.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)} Articles
-              {data.some(item => Number(item.delivered) > 0) && (
+              {data.reduce(
+                (sum, item) => sum + (Number(item.quantity) || 0),
+                0
+              )}{' '}
+              Articles
+              {data.some((item) => Number(item.delivered) > 0) && (
                 <span className="ml-2 text-green-500">
-                  ({data.reduce((sum, item) => sum + (Number(item.delivered) || 0), 0)} Livrés)
+                  (
+                  {data.reduce(
+                    (sum, item) => sum + (Number(item.delivered) || 0),
+                    0
+                  )}{' '}
+                  Livrés)
                 </span>
               )}
             </Badge>
@@ -501,19 +509,8 @@ export function OrderComponentsTable({
                 <AddOrderItemForm
                   onSubmit={async (orderItem) => {
                     try {
-                      let orderItemPrefix = orderItem.type
-                        ?.substring(0, 2)
-                        .toUpperCase() as 'FA' | 'RA' | 'AU' | 'RE'
-                      if (orderItem.fabrication == 'Rénovation')
-                        orderItemPrefix = 'RE'
+                      const id = skuId('AR')
 
-                      const id = skuId(orderItemPrefix)
-                      // Compose Radiator property with Core and Collector from form
-                      const radiatorPayload = {
-                        Core: orderItem.Core,
-                        Collector: orderItem.Collector,
-                        Car: orderItem.Car // include Car if present
-                      }
                       // Use the /api/orders/[id] API to add the item
                       const response = await fetch(`/api/orders/${orderId}`, {
                         method: 'PUT',
@@ -524,8 +521,7 @@ export function OrderComponentsTable({
                           orderItems: [
                             {
                               ...orderItem,
-                              id,
-                              Radiator: radiatorPayload
+                              id
                             }
                           ]
                         })
@@ -542,23 +538,21 @@ export function OrderComponentsTable({
                       const newItem = updatedOrder.OrdersItems?.find(
                         (item: any) => item.id === id
                       )
+                      console.log(newItem)
                       if (newItem) {
                         setData((prev) => [
                           ...prev,
                           {
                             id: newItem.id,
-                            brand:
-                              newItem.Radiator?.Models?.[0]?.Family?.Brand
-                                ?.name || '',
-                            model: newItem.Radiator?.Models?.[0]?.name || '',
+                            brand: newItem.Model?.Family?.Brand?.name || '',
+                            model: newItem.Model?.name || '',
                             fabrication: newItem.fabrication || '',
-                            category: newItem.Radiator?.category || '',
-                            label: newItem.Radiator?.label || '',
+                            category: newItem.category || '',
+                            label: newItem.label || '',
                             quantity: newItem.quantity || 0,
                             isModified: newItem.modification
                               ? !!newItem.modification
-                              : false,
-                            radiatorId: newItem.Radiator?.id || ''
+                              : false
                           }
                         ])
                         router.refresh()

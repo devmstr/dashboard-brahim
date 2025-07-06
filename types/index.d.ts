@@ -121,6 +121,11 @@ declare type RadiatorResponse = {
   isActive: boolean
   createdAt: string
   updatedAt: string
+  Components: {
+    name: string
+    type: string
+    meta: any
+  }[]
   Clients: {
     id: string
     name: string

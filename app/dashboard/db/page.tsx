@@ -11,17 +11,14 @@ const Page: React.FC<Props> = async ({}: Props) => {
   const role = await getUserRole()
   const radiators = await prisma.radiator.findMany({
     include: {
-      OrderItems: {
+      Orders: {
         include: {
-          Order: {
-            include: {
-              Client: true
-            }
-          }
+          Client: true
         }
       },
       Models: {
         include: {
+          Types: true,
           Family: {
             include: {
               Brand: true
@@ -32,8 +29,8 @@ const Page: React.FC<Props> = async ({}: Props) => {
     }
   })
   const data = radiators.map((radiator) => {
-    const { OrderItems, Models, ...rest } = radiator
-    const company = OrderItems[0]?.Order?.Client.name || '_'
+    const { Orders, Models, ...rest } = radiator
+    const company = Orders[0]?.Client.name || '_'
     const model = Models[0]?.name || '_'
     const brand = Models[0]?.Family?.Brand.name || '_'
     return {

@@ -49,8 +49,8 @@ import { useOrder } from './new-order.provider'
 export type OrderItemsTableInput = {
   id: string
   label: string
-  brand?: string
-  model?: string
+  brand?: string | null
+  model?: string | null
   fabrication: string
   type: string
   quantity: number
@@ -92,14 +92,14 @@ export function OrderItemsTable({
 
   React.useEffect(() => {
     let orderItems: OrderItemsTableInput[] | undefined = order?.OrderItems?.map(
-      ({ id, Car, type, label, fabrication, quantity }) => ({
+      ({ id, Vehicle, type, label, fabrication, quantity }) => ({
         id: id as string,
         fabrication: fabrication as string,
         quantity: quantity as number,
         type: type as string,
         label: label as string,
-        brand: Car?.brand,
-        model: Car?.model
+        brand: Vehicle?.brand,
+        model: Vehicle?.model
       })
     )
     if (orderItems) setData(orderItems)

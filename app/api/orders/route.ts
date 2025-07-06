@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import type { Attachment, OrderItem } from '@/lib/validations'
+import type { Attachment, Order, OrderItem } from '@/lib/validations'
 import { skuId } from '@/lib/utils'
 import { TypeOf } from 'zod'
 import { STATUS_TYPES } from '@/config/global'
@@ -9,21 +9,20 @@ const prisma = new PrismaClient()
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    // Extract data from the request body
+    const body = (await request.json()) as Order
+
     const {
       id,
       clientId,
       deadline,
-      state: status,
+      status,
       progress,
       Payment,
       OrderItems,
       Attachments
     } = body
-    // Remove old Core/Collector logic and use Components
-    // Validate required fields
-
+    console.log('body : ', body)
+    // Validate inputs
     if (!clientId) {
       return NextResponse.json(
         { message: 'Client ID is required' },
@@ -38,194 +37,115 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!OrderItems || !Array.isArray(OrderItems) || OrderItems.length === 0) {
+    if (!Array.isArray(OrderItems) || OrderItems.length === 0) {
       return NextResponse.json(
         { message: 'At least one order item is required' },
         { status: 400 }
       )
     }
 
-    // Use a transaction to ensure all operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
-      // Create the payment record first
+      // Step 1: Create payment
       const createdPayment = await tx.payment.create({
         data: {
           amount: Payment.price || 0,
           deposit: Payment.deposit || 0,
-          remaining: Payment.remaining || Payment.price - Payment.deposit || 0,
+          remaining:
+            Payment.price && Payment.deposit
+              ? Payment.price - Payment.deposit
+              : Payment.remaining || 0,
           mode: Payment.mode || 'Espèces',
           bank: ['Espèces', 'Cheque', 'À terme'].includes(Payment.mode)
-            ? null
-            : Payment.bank,
-          iban: Payment.iban || null,
-          depositor: Payment.depositor || null
+            ? Payment.bank
+            : null,
+          iban: Payment.iban?.toString() || null,
+          depositor: Payment.depositor || null,
+          Client: { connect: { id: clientId } }
         }
       })
 
-      // Process each order item to ensure radiators exist
-      const processedOrderItems = await Promise.all(
-        OrderItems.map(async (item: OrderItem) => {
-          let radiatorId = item.Radiator?.id || item.id
-          const isExist = await tx.radiator.findUnique({
-            where: { id: radiatorId }
-          })
-          if (!isExist) {
-            // Create the new radiator
-            const newRadiator = await tx.radiator.create({
-              data: {
-                id: radiatorId,
-                label: item.Radiator.label,
-                cooling: item.Radiator.cooling,
-                category: item.Radiator.category || 'automotive',
-                ...(item.Radiator.Car?.id
-                  ? {
-                      Models: {
-                        connect: {
-                          id: item.Radiator.Car.id
-                        }
-                      }
-                    }
-                  : {})
-              }
-            })
-            radiatorId = newRadiator.id
+      // Step 2: Prepare attachments
+      const attachmentsData = (Attachments || []).map((attachment) => ({
+        url: attachment.url,
+        type: attachment.type || 'unknown',
+        name: attachment.name,
+        uniqueName: attachment.uniqueName ?? ''
+      }))
 
-            // Create core component as a Component with type 'CORE'
-            if (item.Radiator.Core) {
-              await tx.component.create({
-                data: {
-                  name: 'Faisceau',
-                  type: 'CORE',
-                  radiatorId,
-                  Metadata: item.Radiator.Core
-                }
-              })
-            }
-
-            // Create tube component as a Component with type 'TUBE' if diameter exists
-            const tubeDiameter =
-              item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
-            if (tubeDiameter) {
-              await tx.component.create({
-                data: {
-                  name: 'Tube',
-                  type: 'TUBE',
-                  radiatorId,
-                  Metadata: { diameter: tubeDiameter }
-                }
-              })
-            }
-
-            // Create collector components as Components with type 'COLLECTOR'
-            if (item.Radiator.Collector) {
-              // TOP collector
-              await tx.component.create({
-                data: {
-                  name: 'Collecteur Haut',
-                  type: 'COLLECTOR',
-                  radiatorId,
-                  Metadata: {
-                    ...item.Radiator.Collector,
-                    type: 'TOP',
-                    dimensions: item.Radiator.Collector.dimensions1
-                  }
-                }
-              })
-              // BOTTOM collector
-              await tx.component.create({
-                data: {
-                  name: 'Collecteur Bas',
-                  type: 'COLLECTOR',
-                  radiatorId,
-                  Metadata: {
-                    ...item.Radiator.Collector,
-                    type: 'BOTTOM',
-                    dimensions:
-                      item.Radiator.Collector.dimensions2 ||
-                      item.Radiator.Collector.dimensions1
-                  }
-                }
-              })
-            }
-          } else {
-            // If radiator exists, still add TUBE component if diameter exists
-            const tubeDiameter =
-              item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
-            if (tubeDiameter) {
-              await tx.component.create({
-                data: {
-                  name: 'Tube',
-                  type: 'TUBE',
-                  radiatorId,
-                  Metadata: { diameter: tubeDiameter }
-                }
-              })
-            }
-          }
-          // Return the processed order item with the correct radiator ID
-          return {
-            id: skuId('AR'),
-            note: item.note || undefined,
-            description: item.description || undefined,
-            modification: item.modification || undefined,
-            packaging: item.packaging || null,
-            fabrication: item.fabrication || null,
-            type: item.type,
-            isModified: item.isModified || null,
-            quantity: item.quantity || 1,
-            radiatorId: radiatorId // Use the existing or newly created radiator ID
-          }
-        })
-      )
-
-      // Prepare attachments data if provided
-      const attachmentsData =
-        Attachments && Attachments.length > 0
-          ? Attachments.map((attachment: Attachment) => ({
-              url: attachment.url,
-              type: attachment.type || 'unknown',
-              name: attachment.name,
-              uniqueName: attachment.uniqueName
-            }))
-          : []
-
-      // Create the order with the payment ID and related items
+      // Step 3: Create order (needed before linking order items)
       const createdOrder = await tx.order.create({
         data: {
           id,
           clientId,
-          deadline: new Date(deadline).toISOString(),
-          status: status as (typeof STATUS_TYPES)[number],
+          deadline: deadline ?? new Date().toISOString(),
+          status: (status as Order['status']) || 'Prévu',
           progress: progress || 0,
           paymentId: createdPayment.id,
-          totalItems:
-            OrderItems?.reduce((sum, item) => sum + item.quantity, 0) || 0, // Set total items
-          deliveredItems: body.deliveredItems ?? 0, // Set delivered items (default 0)
+          totalItems: OrderItems.reduce(
+            (sum, item) => sum + (item.quantity || 1),
+            0
+          ),
+          deliveredItems: 0,
+          ...(attachmentsData.length > 0 && {
+            Attachments: { create: attachmentsData }
+          })
+        }
+      })
 
-          // Create order items with processed radiator IDs
-          OrdersItems: {
-            createMany: {
-              data: processedOrderItems
-            }
-          },
+      // Step 4: Create order items
+      for (const item of OrderItems) {
+        await tx.orderItem.create({
+          data: {
+            id: skuId('AR'),
+            note: item.note || undefined,
+            description: item.description || undefined,
+            modification: item.modification || undefined,
+            packaging: item.packaging || undefined,
+            fabrication: item.fabrication || undefined,
+            type: item.type,
+            isModified: item.isModified ?? false,
+            quantity: item.quantity ?? 1,
+            betweenCollectors: item.betweenCollectors ?? null,
+            category: item.category || 'Automobile',
+            cooling: item.cooling ?? null,
+            isTinned: item.isTinned ?? false,
+            isPainted: item.isPainted ?? false,
+            fins: item.fins ?? null,
+            perforation: item.perforation ?? null,
+            position: item.position ?? null,
+            pitch: item.pitch ? Number(item.pitch) : null,
+            tubeDiameter: item.tubeDiameter ?? null,
+            tube: item.tubeType ?? null,
+            rows: item.rows ?? null,
+            width: item.width ?? null,
+            upperCollectorLength: item.upperCollectorLength ?? null,
+            lowerCollectorLength: item.lowerCollectorLength ?? null,
+            upperCollectorWidth: item.upperCollectorWidth ?? null,
+            lowerCollectorWidth: item.lowerCollectorWidth ?? null,
+            tightening: item.tightening ?? null,
+            label: item.label,
+            status: item.status || 'Prévu',
+            delivered: 0,
+            Order: { connect: { id: createdOrder.id } },
+            ...(item.Vehicle?.id && {
+              Model: { connect: { id: item.Vehicle.id } }
+            })
+          }
+        })
+      }
 
-          // Create attachments if provided
-          ...(attachmentsData.length > 0
-            ? {
-                Attachments: {
-                  create: attachmentsData
-                }
-              }
-            : {})
-        },
+      // Step 5: Return the order with included relations
+      const fullOrder = await tx.order.findUnique({
+        where: { id: createdOrder.id },
         include: {
           OrdersItems: {
             include: {
-              Radiator: {
+              Attachments: true,
+              Model: {
                 include: {
-                  Components: true,
-                  Price: true,
-                  Models: true
+                  Family: {
+                    include: { Brand: true }
+                  }
                 }
               }
             }
@@ -236,7 +156,7 @@ export async function POST(request: Request) {
         }
       })
 
-      return createdOrder
+      return fullOrder
     })
 
     return NextResponse.json(result)
@@ -264,18 +184,18 @@ export async function GET(request: Request) {
 
     const where = clientId ? { clientId } : {}
 
-    const orders = await prisma.order.findMany({
+    let orders = await prisma.order.findMany({
       where,
       include: {
         Client: true,
         Payment: true,
         OrdersItems: {
           include: {
-            Radiator: {
+            Attachments: true,
+            Model: {
               include: {
-                Components: true,
-                Price: true,
-                Models: true
+                // Types: true,
+                Family: { include: { Brand: true } }
               }
             }
           }
@@ -288,8 +208,20 @@ export async function GET(request: Request) {
       skip,
       take: limit
     })
-
+    // count
     const total = await prisma.order.count({ where })
+    // make the models
+    orders = orders.map((item) => ({
+      ...item,
+      OrdersItems: item.OrdersItems.map((orderItem) => ({
+        ...orderItem,
+        Vehicle: {
+          brand: orderItem.Model?.Family.Brand.name,
+          model: orderItem.Model?.name,
+          family: orderItem.Model?.Family.name
+        }
+      }))
+    }))
 
     return NextResponse.json({
       data: orders,

@@ -26,14 +26,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             }
           }
         },
-        OrderItems: {
+        Orders: {
           include: {
-            Order: {
+            Client: true,
+            OrdersItems: {
               include: {
-                Client: true
+                Attachments: true,
+                Model: {
+                  include: {
+                    // Types: true,
+                    Family: { include: { Brand: true } }
+                  }
+                }
               }
-            },
-            Attachments: true
+            }
           }
         },
         Components: {
@@ -45,6 +51,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             }
           }
         },
+
         Inventory: true,
         Price: true,
         Directory: true
@@ -83,8 +90,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     })
 
-    radiator.OrderItems?.forEach((orderItem) => {
-      const client = orderItem.Order?.Client
+    radiator.Orders.forEach((orderItem) => {
+      const client = orderItem.Client
       if (client?.id && client?.name) {
         clientMap.set(client.id, client.name)
       }
@@ -160,52 +167,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
-
-    // Check if product exists
-    const existingProduct = await prisma.radiator.findUnique({
+    await prisma.radiator.update({
       where: { id },
-      include: {
-        Components: true,
-        OrderItems: true
+      data: {
+        status: 'Deleted',
+        hash: null
       }
     })
-
-    if (!existingProduct) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
-    }
-
-    // Check if product is used in any orders
-    if (existingProduct.OrderItems && existingProduct.OrderItems.length > 0) {
-      return NextResponse.json(
-        {
-          error: 'Cannot delete product that is used in orders',
-          orderCount: existingProduct.OrderItems.length
-        },
-        { status: 400 }
-      )
-    }
-
-    // Delete the product and its components in a transaction
-    await prisma.$transaction(async (tx) => {
-      // Delete all components first
-      if (existingProduct.Components.length > 0) {
-        for (const component of existingProduct.Components) {
-          // Delete material usages
-          await tx.materialUsage.deleteMany({
-            where: { componentId: component.id }
-          })
-          // Delete the component
-          await tx.component.delete({
-            where: { id: component.id }
-          })
-        }
-      }
-      // Finally delete the radiator
-      await tx.radiator.delete({
-        where: { id }
-      })
-    })
-
     return NextResponse.json(
       { message: 'Product deleted successfully' },
       { status: 200 }
@@ -271,33 +239,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const updated = await prisma.$transaction(async (tx) => {
       // Generate the radiator label
       const label = generateRadiatorLabel({
-        core: {
-          dimensions: {
-            width: core?.width || 0,
-            height: core?.height || 0
-          },
-          fins: core?.fins as any,
-          tube: core?.tube as any,
-          pitch: core?.finsPitch as any,
-          rows: core?.rows
-        },
-        collectorTop: {
-          dimensions: {
-            width: collectors?.top?.width || 0,
-            height: collectors?.top?.height || 0
-          },
-          tightening: collectors?.top?.tightening as any,
-          position: collectors?.top?.position as any
-        },
-        collectorBottom: {
-          dimensions: {
-            width: collectors?.bottom?.width || 0,
-            height: collectors?.bottom?.height || 0
-          },
-          // TODO: add bottom collector properties later when available
-          tightening: collectors?.top?.tightening as any,
-          position: collectors?.top?.position as any
-        }
+        width: core?.width || 0,
+        betweenCollectors: core?.height || 0,
+        fins: core?.fins as any,
+        tubeType: core?.tube as any,
+        pitch: core?.finsPitch as any,
+        rows: core?.rows,
+        upperCollectorWidth: collectors?.top?.width || 0,
+        upperCollectorLength: collectors?.top?.height || 0,
+        tightening: collectors?.top?.tightening as any,
+        position: collectors?.top?.position as any,
+        lowerCollectorWidth: collectors?.bottom?.width || 0,
+        lowerCollectorLength: collectors?.bottom?.height || 0
       })
 
       // Update main radiator fields

@@ -15,29 +15,15 @@ export async function GET(
   try {
     const id = params.id
 
-    const order = await prisma.order.findUnique({
+    let order = await prisma.order.findUnique({
       where: { id },
       include: {
         Client: true,
         Payment: true,
         OrdersItems: {
           include: {
-            Radiator: {
-              include: {
-                Components: {
-                  include: {
-                    MaterialUsages: {
-                      include: {
-                        Material: true
-                      }
-                    }
-                  }
-                },
-                Price: true,
-                Models: {
-                  include: { Family: { include: { Brand: true } } }
-                }
-              }
+            Model: {
+              include: { Family: { include: { Brand: true } } }
             },
             Attachments: true
           }
@@ -49,7 +35,18 @@ export async function GET(
     if (!order) {
       return NextResponse.json({ message: 'Order not found' }, { status: 404 })
     }
-    return NextResponse.json(order)
+
+    return NextResponse.json({
+      ...order,
+      OrdersItems: order.OrdersItems.map((orderItem) => ({
+        ...orderItem,
+        Vehicle: {
+          brand: orderItem.Model?.Family.Brand.name,
+          model: orderItem.Model?.name,
+          family: orderItem.Model?.Family.name
+        }
+      }))
+    })
   } catch (error) {
     console.error('Error fetching order:', error)
     return NextResponse.json(
@@ -132,21 +129,10 @@ export async function PUT(
         Payment: true,
         OrdersItems: {
           include: {
-            Radiator: {
-              include: {
-                Components: {
-                  include: {
-                    MaterialUsages: {
-                      include: {
-                        Material: true
-                      }
-                    }
-                  }
-                },
-                Price: true,
-                Models: true
-              }
-            }
+            Model: {
+              include: { Family: { include: { Brand: true } } }
+            },
+            Attachments: true
           }
         },
         Attachments: true
@@ -156,152 +142,80 @@ export async function PUT(
     if (orderItems && Array.isArray(orderItems)) {
       await prisma.$transaction(async (tx) => {
         for (const item of orderItems) {
-          // check if order item exists
           const existingItem = item.id
             ? await tx.orderItem.findUnique({ where: { id: item.id } })
             : null
           if (existingItem) {
-            // update the existing order item
             await tx.orderItem.update({
               where: { id: item.id },
               data: {
-                note: item.note || {},
-                description: item.description || {},
-                modification: item.modification || {},
-                packaging: item.packaging,
-                fabrication: item.fabrication,
-                isModified: item.isModified,
-                quantity: item.quantity,
-                type: item.type || undefined
+                note: item.note || undefined,
+                description: item.description || undefined,
+                modification: item.modification || undefined,
+                packaging: item.packaging || undefined,
+                fabrication: item.fabrication || undefined,
+                isModified: item.isModified ?? false,
+                quantity: item.quantity ?? 1,
+                type: item.type || undefined,
+                betweenCollectors: item.betweenCollectors ?? null,
+                category: item.category || 'Automobile',
+                cooling: item.cooling ?? null,
+                isTinned: item.isTinned ?? false,
+                isPainted: item.isPainted ?? false,
+                fins: item.fins ?? null,
+                perforation: item.perforation ?? null,
+                position: item.position ?? null,
+                pitch: item.pitch ? Number(item.pitch) : null,
+                tubeDiameter: item.tubeDiameter ?? null,
+                tube: item.tubeType ?? null,
+                rows: item.rows ?? null,
+                width: item.width ?? null,
+                upperCollectorLength: item.upperCollectorLength ?? null,
+                lowerCollectorLength: item.lowerCollectorLength ?? null,
+                upperCollectorWidth: item.upperCollectorWidth ?? null,
+                lowerCollectorWidth: item.lowerCollectorWidth ?? null,
+                tightening: item.tightening ?? null,
+                label: item.label,
+                status: item.status || 'Prévu',
+                delivered: existingItem.delivered ?? 0,
+                modelId: item.Vehicle?.id
               }
             })
           } else {
-            // create a new item and add it if not exist
-            let radiatorId = item.radiatorId
-            let createdRadiator = null
-            if (!radiatorId) {
-              createdRadiator = await tx.radiator.create({
-                data: {
-                  id: item.id, // use the custom SKU as the id
-                  label: item.label || item.id,
-                  category: item.category || undefined,
-                  cooling: item.cooling || undefined,
-                  ...(item.Radiator?.Car?.id
-                    ? {
-                        Models: {
-                          connect: {
-                            id: item.Radiator.Car.id
-                          }
-                        }
-                      }
-                    : {})
-                }
-              })
-              radiatorId = createdRadiator.id
-            } else {
-              const radiatorExists = await tx.radiator.findUnique({
-                where: { id: radiatorId }
-              })
-              if (!radiatorExists) {
-                createdRadiator = await tx.radiator.create({
-                  data: {
-                    id: radiatorId,
-                    label: item.label || radiatorId,
-                    category: item.category || undefined,
-                    cooling: item.cooling || undefined,
-                    ...(item.Radiator?.Car?.id
-                      ? {
-                          Models: {
-                            connect: {
-                              id: item.Radiator.Car.id
-                            }
-                          }
-                        }
-                      : {})
-                  }
-                })
-                radiatorId = createdRadiator.id
-              }
-            }
-            // If we created a new radiator, add its components
-            if (createdRadiator) {
-              if (item.Radiator?.Core) {
-                await tx.component.create({
-                  data: {
-                    name: 'Faisceau',
-                    type: 'CORE',
-                    radiatorId,
-                    Metadata: item.Radiator.Core
-                  }
-                })
-              }
-              const tubeDiameter =
-                item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
-              if (tubeDiameter) {
-                await tx.component.create({
-                  data: {
-                    name: 'Tube',
-                    type: 'TUBE',
-                    radiatorId,
-                    Metadata: { diameter: tubeDiameter }
-                  }
-                })
-              }
-              if (item.Radiator?.Collector) {
-                await tx.component.create({
-                  data: {
-                    name: 'Collecteur Haut',
-                    type: 'COLLECTOR',
-                    radiatorId,
-                    Metadata: {
-                      ...item.Radiator.Collector,
-                      type: 'TOP',
-                      dimensions: item.Radiator.Collector.dimensions1
-                    }
-                  }
-                })
-                await tx.component.create({
-                  data: {
-                    name: 'Collecteur Bas',
-                    type: 'COLLECTOR',
-                    radiatorId,
-                    Metadata: {
-                      ...item.Radiator.Collector,
-                      type: 'BOTTOM',
-                      dimensions:
-                        item.Radiator.Collector.dimensions2 ||
-                        item.Radiator.Collector.dimensions1
-                    }
-                  }
-                })
-              }
-            } else {
-              const tubeDiameter =
-                item.Core?.tubeDiameter || item.Radiator?.Core?.tubeDiameter
-              if (tubeDiameter) {
-                await tx.component.create({
-                  data: {
-                    name: 'Tube',
-                    type: 'TUBE',
-                    radiatorId,
-                    Metadata: { diameter: tubeDiameter }
-                  }
-                })
-              }
-            }
             await tx.orderItem.create({
               data: {
-                id: item.id, // allow custom id (sku)
-                note: item.note || {},
-                description: item.description || {},
-                modification: item.modification || {},
-                packaging: item.packaging,
-                fabrication: item.fabrication,
-                isModified: item.isModified,
-                quantity: item.quantity,
-                radiatorId: radiatorId,
+                id: item.id,
+                note: item.note || undefined,
+                description: item.description || undefined,
+                modification: item.modification || undefined,
+                packaging: item.packaging || undefined,
+                fabrication: item.fabrication || undefined,
+                isModified: item.isModified ?? false,
+                quantity: item.quantity ?? 1,
+                type: item.type || undefined,
+                betweenCollectors: item.betweenCollectors ?? null,
+                category: item.category || 'Automobile',
+                cooling: item.cooling ?? null,
+                isTinned: item.isTinned ?? false,
+                isPainted: item.isPainted ?? false,
+                fins: item.fins ?? null,
+                perforation: item.perforation ?? null,
+                position: item.position ?? null,
+                pitch: item.pitch ? Number(item.pitch) : null,
+                tubeDiameter: item.tubeDiameter ?? null,
+                tube: item.tubeType ?? null,
+                rows: item.rows ?? null,
+                width: item.width ?? null,
+                upperCollectorLength: item.upperCollectorLength ?? null,
+                lowerCollectorLength: item.lowerCollectorLength ?? null,
+                upperCollectorWidth: item.upperCollectorWidth ?? null,
+                lowerCollectorWidth: item.lowerCollectorWidth ?? null,
+                tightening: item.tightening ?? null,
+                label: item.label,
+                status: item.status || 'Prévu',
+                delivered: 0,
                 orderId: id,
-                type: item.type || undefined
+                modelId: item.Vehicle?.id
               }
             })
           }
@@ -327,22 +241,13 @@ export async function PUT(
         Payment: true,
         OrdersItems: {
           include: {
-            Radiator: {
+            Attachments: true,
+            Model: {
               include: {
-                Components: {
-                  include: {
-                    MaterialUsages: {
-                      include: {
-                        Material: true
-                      }
-                    }
-                  }
-                },
-                Price: true,
-                Models: { include: { Family: { include: { Brand: true } } } }
+                // Types: true,
+                Family: { include: { Brand: true } }
               }
-            },
-            Attachments: true
+            }
           }
         },
         Attachments: true
@@ -477,19 +382,11 @@ export async function PATCH(
     const existingItem = await prisma.orderItem.findUnique({
       where: { id },
       include: {
-        Radiator: {
+        Attachments: true,
+        Model: {
           include: {
-            Components: {
-              include: {
-                MaterialUsages: {
-                  include: {
-                    Material: true
-                  }
-                }
-              }
-            },
-            Price: true,
-            Models: true
+            // Types: true,
+            Family: { include: { Brand: true } }
           }
         }
       }
@@ -517,8 +414,7 @@ export async function PATCH(
       packaging,
       fabrication,
       isModified,
-      quantity,
-      Radiator
+      quantity
     } = body
     // Use a transaction to ensure all operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
@@ -559,117 +455,15 @@ export async function PATCH(
         })
       }
 
-      // If radiator data is provided, update the radiator and its components
-      if (Radiator) {
-        const radiatorId = Radiator.id || existingItem.radiatorId
-
-        // Update the radiator
-        await tx.radiator.update({
-          where: { id: radiatorId },
-          data: {
-            label: Radiator.label,
-            cooling: Radiator.cooling,
-            category: Radiator.category,
-            ...(Radiator.Car?.id
-              ? {
-                  Models: {
-                    connect: {
-                      id: Radiator.Car.id
-                    }
-                  }
-                }
-              : {})
-          }
-        })
-
-        // Update Core component if provided (now as Component with type 'CORE')
-        if (Radiator.Core) {
-          const coreComponent = await tx.component.findFirst({
-            where: {
-              radiatorId,
-              type: 'CORE'
-            }
-          })
-          if (coreComponent) {
-            await tx.component.update({
-              where: { id: coreComponent.id },
-              data: {
-                Metadata: Radiator.Core
-              }
-            })
-          }
-        }
-
-        // Update Collector components if provided (now as Component with type 'COLLECTOR')
-        if (Radiator.Collector) {
-          // TOP collector
-          const topCollector = await tx.component.findFirst({
-            where: {
-              radiatorId,
-              type: 'COLLECTOR',
-              Metadata: {
-                path: ['type'],
-                equals: 'TOP'
-              }
-            }
-          })
-          if (topCollector) {
-            await tx.component.update({
-              where: { id: topCollector.id },
-              data: {
-                Metadata: {
-                  ...Radiator.Collector,
-                  type: 'TOP',
-                  dimensions: Radiator.Collector.dimensions1
-                }
-              }
-            })
-          }
-          // BOTTOM collector
-          const bottomCollector = await tx.component.findFirst({
-            where: {
-              radiatorId,
-              type: 'COLLECTOR',
-              Metadata: {
-                path: ['type'],
-                equals: 'BOTTOM'
-              }
-            }
-          })
-          if (bottomCollector) {
-            await tx.component.update({
-              where: { id: bottomCollector.id },
-              data: {
-                Metadata: {
-                  ...Radiator.Collector,
-                  type: 'BOTTOM',
-                  dimensions:
-                    Radiator.Collector.dimensions2 ||
-                    Radiator.Collector.dimensions1
-                }
-              }
-            })
-          }
-        }
-      }
-
       // Fetch the updated order item with all related data
       return await tx.orderItem.findUnique({
         where: { id },
         include: {
-          Radiator: {
+          Attachments: true,
+          Model: {
             include: {
-              Components: {
-                include: {
-                  MaterialUsages: {
-                    include: {
-                      Material: true
-                    }
-                  }
-                }
-              },
-              Price: true,
-              Models: true
+              // Types: true,
+              Family: { include: { Brand: true } }
             }
           }
         }

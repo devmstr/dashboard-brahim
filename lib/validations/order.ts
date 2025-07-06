@@ -15,69 +15,26 @@ import {
   PERFORATION_TYPES,
   STATUS_TYPES
 } from '@/config/global'
-
-// Client schema
-export const clientSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  phone: z.string().nullable(),
-  isCompany: z.boolean(),
-  email: z.string().nullable().optional(),
-  label: z.string().nullable().optional(),
-  addressId: z.string().nullable().optional()
-})
-
-export type Client = z.infer<typeof clientSchema>
+import { clientSchema } from './client'
 
 // Car-related schemas
 export const carSchema = z.object({
-  id: z.string(),
-  brand: z.string(),
-  model: z.string(),
+  id: z.string().nullable().optional(),
+  brand: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
   family: z.string().optional(),
-  type: z.string().optional(),
-  fuel: z.enum(['Essence', 'Diesel']).optional(),
+  type: z.string().nullable().optional(),
+  fuel: z.enum(['Essence', 'Diesel']).nullable().optional(),
   productionYears: z
     .string()
     .regex(/^\d{4}–\d{4}$/, {
       message: 'Must be in the format YYYY–YYYY'
     })
+    .nullable()
     .optional()
 })
 
 export type Car = z.infer<typeof carSchema>
-
-// Dimension schema for components
-const dimensionsSchema = z.object({
-  thickness: z.number().min(0).optional(),
-  width: z.number().min(0).optional(),
-  height: z.number().min(0).optional()
-})
-
-export type Dimensions = z.infer<typeof dimensionsSchema>
-
-// Component schemas
-const collectorSchema = z.object({
-  position: z.enum(COLLECTOR_POSITION_TYPES).optional(),
-  tightening: z.enum(CLAMPING_TYPES).optional(),
-  perforation: z.enum(PERFORATION_TYPES).optional(),
-  isTinned: z.boolean().default(false).optional(),
-  dimensions1: dimensionsSchema,
-  dimensions2: dimensionsSchema.optional()
-})
-
-export type Collector = z.infer<typeof collectorSchema>
-
-const coreSchema = z.object({
-  fins: z.enum(['Normale', 'Aérer', 'Zigzag']).optional(),
-  finsPitch: z.enum(['10', '11', '12', '14']).optional(),
-  tube: z.enum(['ET7', 'ET9', 'MP']).optional(),
-  rows: z.number().positive().optional().default(1),
-  tubeDiameter: z.number().min(0).optional(),
-  dimensions: dimensionsSchema
-})
-
-export type Core = z.infer<typeof coreSchema>
 
 // Attachment schema
 export const attachmentSchema = z.object({
@@ -104,15 +61,26 @@ export const orderItemSchema = z.object({
   status: z.enum(STATUS_TYPES).default('Prévu').optional(),
   category: z.enum(CATEGORY_TYPES).default('Automobile'),
   cooling: z.enum(COOLING_SYSTEMS_TYPES).default('Eau'),
-  isModified: z.boolean().nullable().optional(),
-  quantity: z.number().positive().optional().default(1),
-  Core: coreSchema.optional(),
-  Collector: collectorSchema.optional(),
-  radiatorId: z.string().optional(),
-  orderId: z.string().nullable().optional(),
-  Attachments: z.array(attachmentSchema).optional(),
-  Car: carSchema.optional(),
-  Radiator: z.any().optional()
+  isModified: z.boolean().optional(),
+  isTinned: z.boolean().optional(),
+  isPainted: z.boolean().optional(),
+  quantity: z.number().min(0).optional(),
+  fins: z.enum(['Normale', 'Aérer', 'Zigzag']).optional(),
+  pitch: z.enum(['10', '11', '12', '14']).optional(),
+  tubeType: z.enum(['ET7', 'ET9', 'MP']).optional(),
+  tubeDiameter: z.number().min(0).optional(),
+  rows: z.number().min(0).optional(),
+  betweenCollectors: z.number().min(0).optional(),
+  width: z.number().min(0).optional(),
+  position: z.enum(COLLECTOR_POSITION_TYPES).optional(),
+  tightening: z.enum(CLAMPING_TYPES).optional(),
+  perforation: z.enum(PERFORATION_TYPES).optional(),
+  upperCollectorLength: z.number().min(0).optional(),
+  lowerCollectorLength: z.number().min(0).optional(),
+  upperCollectorWidth: z.number().min(0).optional(),
+  lowerCollectorWidth: z.number().min(0).optional(),
+  orderId: z.string().optional(),
+  Vehicle: carSchema.optional()
 })
 
 export type OrderItem = z.infer<typeof orderItemSchema>

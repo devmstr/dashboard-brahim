@@ -63,7 +63,7 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): Promise<void> {
     event.preventDefault()
-
+    console.log(order)
     if (!order) {
       toast({
         title: 'Erreur',
@@ -73,7 +73,7 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
       return
     }
 
-    if (!order.Client?.id) {
+    if (!order.Client?.id && !order.clientId) {
       toast({
         title: 'Client manquant',
         description: 'Veuillez sélectionner un client pour cette commande',
@@ -99,34 +99,14 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
       // Create the order
       const orderData = {
         id: order.id,
-        clientId: order.Client.id,
+        clientId: order.Client?.id || order.clientId,
         deadline: order.deadline || new Date().toISOString(),
         state: 'PENDING',
         progress: 0,
         Payment: order.Payment || null,
         totalItems: order.OrderItems?.length || 0, // Add total items
         deliveredItems: 0, // New orders start with 0 delivered
-        OrderItems: order.OrderItems.map((item: OrderItem) => ({
-          id: item.id,
-          note: item.note,
-          quantity: item.quantity,
-          description: item.description,
-          modification: item.modification,
-          packaging: item.packaging,
-          fabrication: item.fabrication,
-          isModified: item.isModified,
-          radiatorId: item.radiatorId,
-          type: item.type,
-          Radiator: {
-            id: item.Radiator?.id || item.radiatorId,
-            cooling: item.cooling,
-            category: item.category,
-            label: item.label,
-            Core: item.Core,
-            Collector: item.Collector,
-            Car: item.Car
-          }
-        })),
+        OrderItems: order.OrderItems,
         Attachments: uploadedAttachments.map(
           ({ id, name, type, url, uniqueName }) => ({
             id,

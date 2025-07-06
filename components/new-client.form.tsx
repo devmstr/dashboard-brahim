@@ -18,8 +18,8 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import {
-  newClientSchema as clientSchema,
-  type NewClient as Client
+  clientSchema as clientSchema,
+  type ClientSchemaType as Client
 } from '@/lib/validations/client'
 import { toast } from '@/hooks/use-toast'
 

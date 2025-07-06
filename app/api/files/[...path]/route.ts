@@ -45,7 +45,7 @@ export async function GET(
     else if (ext === '.bmp') contentType = 'image/bmp'
 
     // Return file with appropriate headers
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(fileBuffer as any, {
       headers: {
         'Content-Type': contentType,
         'Content-Disposition': `inline; filename="${path.basename(

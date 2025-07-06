@@ -3,7 +3,7 @@ import { Card } from '@/components/card'
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
 import prisma from '@/lib/db'
 import { SalesEditOrderItemForm } from './sales-edit-orderitem.form'
-import { Collector, Core, OrderItem } from '@/lib/validations'
+import { OrderItem } from '@/lib/validations'
 import { notFound } from 'next/navigation'
 import { parseMetadata } from '@/lib/utils'
 import { Ordering } from '@tanstack/react-table'
@@ -30,97 +30,85 @@ const Page: React.FC<Props> = async ({
     'ENGINEER',
     'ENGINEERING_MANAGER'
   ])
-  let orderItem: any
-  console.log('componentId', componentId)
   try {
-    const { Attachments, Radiator, ...orderItemData } =
-      await prisma.orderItem.findUniqueOrThrow({
-        where: { id: componentId },
-        include: {
-          Attachments: true,
-          Radiator: {
-            include: {
-              Components: {
-                include: {
-                  MaterialUsages: {
-                    include: {
-                      Material: true
-                    }
-                  }
-                }
+    const orderItem = await prisma.orderItem.findUniqueOrThrow({
+      where: { id: componentId },
+      include: {
+        Attachments: true,
+        Model: {
+          include: {
+            Family: {
+              include: {
+                Brand: true
               }
             }
           }
         }
-      })
-
-    // Find core component (type === 'CORE')
-    const coreComponent = parseMetadata(
-      Radiator?.Components.find(({ type }) => type === 'CORE')?.Metadata
+      }
+    })
+    console.log('db', orderItem)
+    return (
+      <div className="space-y-4">
+        <Card>
+          {isSalesUser && (
+            <SalesEditOrderItemForm
+              data={{
+                ...orderItem,
+                id: orderItem.id,
+                packaging: orderItem.packaging as OrderItem['packaging'],
+                type: orderItem.type as OrderItem['type'],
+                category: orderItem.category as OrderItem['category'],
+                cooling: orderItem.cooling as OrderItem['cooling'],
+                fabrication: orderItem.fabrication as OrderItem['fabrication'],
+                note: orderItem.note as OrderItem['note'],
+                modification:
+                  orderItem.modification as OrderItem['modification'],
+                description: orderItem.description as OrderItem['description'],
+                label: orderItem.label as OrderItem['label'],
+                status: (orderItem.status as OrderItem['status']) ?? 'Prévu',
+                isModified: orderItem.isModified as OrderItem['isModified'],
+                isTinned: orderItem.isTinned as OrderItem['isTinned'],
+                isPainted: orderItem.isPainted as OrderItem['isPainted'],
+                fins: orderItem.fins as OrderItem['fins'],
+                perforation: orderItem.perforation as OrderItem['perforation'],
+                position: orderItem.position as OrderItem['position'],
+                quantity: orderItem.quantity as OrderItem['quantity'],
+                pitch: orderItem.pitch?.toString() as OrderItem['pitch'],
+                tubeDiameter:
+                  orderItem.tubeDiameter as OrderItem['tubeDiameter'],
+                tubeType: orderItem.tube as OrderItem['tubeType'],
+                rows: orderItem.rows as OrderItem['rows'],
+                width: orderItem.width as OrderItem['width'],
+                betweenCollectors:
+                  orderItem.betweenCollectors as OrderItem['betweenCollectors'],
+                upperCollectorLength:
+                  orderItem.upperCollectorLength as OrderItem['upperCollectorLength'],
+                lowerCollectorLength:
+                  orderItem.lowerCollectorLength as OrderItem['lowerCollectorLength'],
+                upperCollectorWidth:
+                  orderItem.upperCollectorWidth as OrderItem['upperCollectorWidth'],
+                lowerCollectorWidth:
+                  orderItem.lowerCollectorWidth as OrderItem['lowerCollectorWidth'],
+                tightening: orderItem.tightening as OrderItem['tightening'],
+                orderId: orderId,
+                Vehicle: orderItem?.Model
+                  ? {
+                      id: orderItem.Model.id,
+                      model: orderItem.Model.name,
+                      brand: orderItem.Model.Family.Brand.name,
+                      family: orderItem.Model.Family.name,
+                      productionYears: orderItem.Model.production as string
+                    }
+                  : undefined
+              }}
+            />
+          )}
+        </Card>
+      </div>
     )
-
-    const collectors = Radiator.Components.filter((c) => c.type === 'COLLECTOR')
-    // find collector material name
-    const collectorMaterialName = collectors.map((c) => {
-      const material = c.MaterialUsages[0]?.Material.name
-      return material
-    })[0]
-
-    const collectorTop = collectors.find(
-      (c) => parseMetadata(c.Metadata)?.type === 'TOP'
-    )?.Metadata as any
-
-    const collectorBottom = collectors.find(
-      (c) => parseMetadata(c.Metadata)?.type === 'BOTTOM'
-    )?.Metadata as any
-
-    orderItem = {
-      ...orderItemData,
-      note: orderItemData.note as string,
-      description: orderItemData.description as string,
-      modification: orderItemData.modification as string,
-      quantity: orderItemData.quantity as number,
-      type: orderItemData.type as OrderItem['type'],
-      packaging: orderItemData.packaging as OrderItem['packaging'],
-      fabrication: orderItemData.fabrication as OrderItem['fabrication'],
-      category: Radiator.category as OrderItem['category'],
-      cooling: Radiator.cooling as OrderItem['cooling'],
-      status: 'Prévu',
-
-      label: Radiator.label as string,
-      ...(coreComponent && {
-        Core: {
-          ...coreComponent,
-          rows: coreComponent.rows as number,
-          fins: coreComponent.fins as Core['fins'],
-          finsPitch: coreComponent.finsPitch?.toString() as Core['finsPitch'],
-          tube: coreComponent.tube as Core['tube'],
-          dimensions: {
-            width: coreComponent?.dimensions?.width as number,
-            height: coreComponent?.dimensions?.height as number,
-            diameter: coreComponent?.dimensions?.diameter as number | undefined
-          }
-        }
-      }),
-      ...(collectorTop &&
-        collectorBottom && {
-          Collectors: {
-            top: { ...collectorTop, material: collectorMaterialName },
-            bottom: { ...collectorBottom, material: collectorMaterialName }
-          }
-        }),
-      Attachments: Attachments,
-      Radiator: Radiator
-    }
   } catch (error) {
     return notFound()
   }
-
-  return (
-    <div className="space-y-4">
-      <Card>{isSalesUser && <SalesEditOrderItemForm data={orderItem} />}</Card>
-    </div>
-  )
 }
 
 export default Page

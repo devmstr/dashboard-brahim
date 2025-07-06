@@ -4,7 +4,7 @@ import n2words from 'n2words'
 import { BillingConfig, InvoiceItem, UserRole } from '@/types'
 import { customAlphabet } from 'nanoid'
 import { ORDER_TYPES, FABRICATION_TYPES } from '@/config/global'
-import { Collector, Core, OrderItem } from './validations'
+import { OrderItem } from './validations'
 import { RSC_PREFETCH_SUFFIX } from 'next/dist/lib/constants'
 import { Content } from '@tiptap/react'
 
@@ -93,27 +93,23 @@ interface ProductConfig {
   cooling?: OrderItem['cooling']
   brand?: string
   model?: string
-  core: {
-    fins?: Core['fins']
-    tube?: Core['tube']
-    pitch?: Core['finsPitch']
-    tubeDiameter?: Core['tubeDiameter']
-    dimensions: Dimensions
-    rows?: number
-  }
-  collectorTop: {
-    tightening?: Collector['tightening']
-    position?: Collector['position']
-    dimensions: Dimensions
-  }
-  collectorBottom: {
-    tightening?: Collector['tightening']
-    position?: Collector['position']
-    dimensions: Dimensions
-  }
+  fins?: OrderItem['fins']
+  tubeType?: OrderItem['tubeType']
+  pitch?: OrderItem['pitch']
+  tubeDiameter?: OrderItem['tubeDiameter']
+  rows?: number
+  betweenCollectors?: OrderItem['betweenCollectors']
+  width?: OrderItem['width']
+  upperCollectorLength?: OrderItem['upperCollectorLength']
+  upperCollectorWidth?: OrderItem['upperCollectorWidth']
+  lowerCollectorLength?: OrderItem['lowerCollectorLength']
+  lowerCollectorWidth?: OrderItem['lowerCollectorWidth']
+  tightening?: OrderItem['tightening']
+  position?: OrderItem['position']
 }
 
-const pad = (n: number): string => n.toString().padStart(4, '0')
+const pad = (n: number | undefined): string =>
+  (n?.toString() || '0').padStart(4, '0')
 
 const formatDimension = (main: number, lower?: number): string =>
   lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
@@ -162,52 +158,48 @@ export function generateRadiatorLabel({
   cooling = 'Eau',
   brand = '',
   model = '',
-  core: {
-    dimensions: coreDimensions,
-    fins = 'Normale',
-    tube = 'ET7',
-    tubeDiameter = 16,
-    pitch = '10',
-    rows = 1
-  },
-  collectorBottom: {
-    dimensions: collector1Dimensions,
-    tightening: tighteningBottom = 'Plié',
-    position: positionBottom = 'Centrer'
-  },
-  collectorTop: {
-    dimensions: collector2Dimensions,
-    tightening: tighteningTop = 'Plié',
-    position: positionTop = 'Centrer'
-  }
+  betweenCollectors = 0,
+  width,
+  fins = 'Normale',
+  tubeType = 'ET7',
+  tubeDiameter = 16,
+  pitch = '10',
+  rows = 1,
+  upperCollectorLength = 0,
+  upperCollectorWidth = 0,
+  lowerCollectorLength = 0,
+  lowerCollectorWidth = 0,
+  tightening = 'Plié',
+  position = 'Centrer'
 }: ProductConfig): string {
   const prefix = getPrefix(type, fabrication)
 
-  const core4DigitsDimensions = `${pad(coreDimensions.height)}X${pad(
-    coreDimensions.width
-  )}`
-
-  const collector4DigitsDimensions = `${formatDimension(
-    collector1Dimensions.height,
-    collector2Dimensions.height
-  )}X${formatDimension(collector1Dimensions.width, collector2Dimensions.width)}`
-
-  // Position code logic: always two chars (e.g. C/C, C/P, etc.), unless both are the same, then one char (e.g. C, P, D)
-  const pos1 = POSITION_T[positionBottom]
-  const pos2 = POSITION_T[positionTop]
-  const positionCode = pos1 === pos2 ? pos1 : `${pos1}/${pos2}`
-  const tighteningB = TIGHTENING_T[tighteningBottom]
-  const tighteningT = TIGHTENING_T[tighteningTop]
-  const tighteningCode =
-    tighteningB === tighteningT ? tighteningB : `${tighteningB}/${tighteningT}`
-  const finsTubeTypeAndPitch =
-    type == 'Spirale'
+  const core = `${pad(betweenCollectors)}X${pad(width)}`
+  const collectors = `${formatDimension(
+    upperCollectorLength,
+    lowerCollectorLength
+  )}X${formatDimension(upperCollectorWidth, lowerCollectorWidth)}`
+  const finsTube =
+    type === 'Spirale'
       ? `T${tubeDiameter}`
-      : `${FINS_T[fins]}${TUBE_T[tube]} ${pitch}`
-  const coolingText = cooling != 'Eau' ? coolingDec[cooling] : ''
-  const brandModelText = `${brand} ${model}`.trim()
+      : `${FINS_T[fins]}${TUBE_T[tubeType]} ${pitch}`
 
-  return `${prefix} ${core4DigitsDimensions} ${rows}${finsTubeTypeAndPitch} ${collector4DigitsDimensions} ${tighteningCode} ${positionCode} ${coolingText} ${brandModelText}`.trim()
+  const coolingText = cooling !== 'Eau' ? ` ${coolingDec[cooling]}` : ''
+  const brandModel = `${brand} ${model}`.trim()
+
+  return [
+    prefix,
+    core,
+    `${rows}${finsTube}`,
+    collectors,
+    TIGHTENING_T[tightening],
+    POSITION_T[position],
+    coolingText,
+    brandModel
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
 }
 
 export function cn(...inputs: ClassValue[]) {

@@ -213,8 +213,8 @@ model Radiator {
   dir        String?
   cooling    String?
   barcode    String? @unique
-  label      String?
-  hash       String?
+  label      String? @unique
+  hash       String? @unique // Unique hash for the radiator
   status     String? // e.g., "active", "inactive", "draft" , "ar"
   type       String? // e.g., "collector", "core", "tube"
   production String? // e.g., "2023-10-01"
@@ -231,16 +231,10 @@ model Radiator {
   Directory  Directory?  @relation(fields: [directoryId], references: [id], onDelete: SetNull)
   Models     CarModel[]
   Components Component[]
-  OrderItems OrderItem[]
+  Orders     Order[]
   Invoice    Invoice?    @relation(fields: [invoiceId], references: [id])
   invoiceId  String?
 
-  @@unique([label, status])
-  @@unique([hash, status])
-  @@index([reference])
-  @@index([barcode])
-  @@index([label, status])
-  @@index([hash, status])
   @@map("radiators")
 }
 
@@ -317,9 +311,10 @@ model CarModel {
   familyId   String
   radiatorId String?
 
-  Family   CarFamily @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  Types    CarType[]
-  Radiator Radiator? @relation(fields: [radiatorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  Family    CarFamily   @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Types     CarType[]
+  Radiator  Radiator?   @relation(fields: [radiatorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  OrderItem OrderItem[]
 
   @@map("car_models")
 }
@@ -393,34 +388,56 @@ model Order {
   Client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   Attachments    Attachment[]
 
-  createdAt DateTime  @default(now()) // Added for consistency
-  updatedAt DateTime  @updatedAt // Added for consistency
-  Invoice   Invoice[]
+  createdAt  DateTime  @default(now()) // Added for consistency
+  updatedAt  DateTime  @updatedAt // Added for consistency
+  Invoice    Invoice[]
+  Radiator   Radiator? @relation(fields: [radiatorId], references: [id])
+  radiatorId String?
 
   @@map("order_batches") // Added map directive for consistency
 }
 
 model OrderItem {
-  id           String       @id @default(cuid())
-  note         Json?
-  description  Json?
-  modification Json?
-  packaging    String?
-  type         String?
-  fabrication  String?
-  isModified   Boolean?
-  status       String? // e.g., "pending", "in_progress", "delivered"
-  quantity     Int?
-  delivered    Int?
-  validatedAt  DateTime?
-  canceledAt   DateTime?
-  createdAt    DateTime     @default(now()) // Made consistent (not optional)
-  updatedAt    DateTime     @updatedAt // Made consistent (not optional)
-  Radiator     Radiator     @relation(fields: [radiatorId], references: [id], onDelete: Restrict)
-  radiatorId   String
-  Order        Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  orderId      String?
-  Attachments  Attachment[]
+  id                   String       @id @default(cuid())
+  note                 Json?
+  description          Json?
+  modification         Json?
+  packaging            String?
+  type                 String?
+  category             String?
+  cooling              String?
+  label                String?
+  production           String?
+  fabrication          String?
+  isModified           Boolean?
+  status               String? // e.g., "pending", "in_progress", "delivered"
+  quantity             Int?
+  delivered            Int?
+  validatedAt          DateTime?
+  canceledAt           DateTime?
+  fins                 String?
+  pitch                Int?
+  tube                 String?
+  rows                 Int?
+  tubeDiameter         Int?
+  betweenCollectors    Int?
+  width                Int?
+  position             String?
+  tightening           String?
+  perforation          String?
+  isTinned             Boolean?     @default(false)
+  isPainted            Boolean?     @default(true)
+  upperCollectorLength Int?
+  lowerCollectorLength Int?
+  upperCollectorWidth  Int?
+  lowerCollectorWidth  Int?
+  Model                CarModel?    @relation(fields: [modelId], references: [id], onDelete: SetNull)
+  modelId              String?
+  createdAt            DateTime     @default(now()) // Made consistent (not optional)
+  updatedAt            DateTime     @updatedAt // Made consistent (not optional)
+  Order                Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderId              String?
+  Attachments          Attachment[]
 
   @@map("orders")
 }

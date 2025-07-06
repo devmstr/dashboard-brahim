@@ -1,7 +1,7 @@
 'use client'
 import { toast } from '@/hooks/use-toast'
 import { skuId } from '@/lib/utils'
-import { Client } from '@/lib/validations'
+import { ClientSchemaType as Client } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ClientTable, ClientTableInput } from '@/components/client-table'

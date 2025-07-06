@@ -50,9 +50,16 @@ import {
 } from '@/components/ui/alert-dialog'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import { useRouter } from 'next/navigation'
-import { Client } from '@/lib/validations'
+import { ClientSchemaType as Client, ClientSchemaType } from '@/lib/validations'
+import { ClientWithAddress } from './customer-search.input'
 
-export type ClientTableInput = Client & {
+export type ClientTableInput = {
+  id: string
+  name: string
+  phone: string | null
+  label: string | null
+  isCompany: boolean | null
+  email: string | null
   Address: {
     Province: { name: string }
   } | null
@@ -80,7 +87,7 @@ interface Props {
   showLimitSelector?: boolean
   showPaginationButtons?: boolean
   // Replace customActions with renderActions
-  renderActions?: (rowData: ClientTableInput) => React.ReactNode
+  renderActions?: (rowData: ClientWithAddress) => React.ReactNode
   onDelete?: (id: string) => Promise<void>
   className?: string
 }
@@ -284,14 +291,22 @@ export function ClientTable({
       header: () => (
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
-      cell: ({ row }) => {
+      cell: ({ row: { original } }) => {
         // If renderActions is provided, call it with the row data
         if (renderActions) {
-          return renderActions(row.original)
+          return renderActions({
+            id: original.id,
+            name: original.name,
+            isCompany: original.isCompany || false,
+            phone: original.phone || '',
+            email: original.email || '',
+            label: original.label || '',
+            Address: original.Address
+          })
         }
 
         // Otherwise, use the default Actions component
-        return <Actions id={row.original.id} onDelete={handleDelete} />
+        return <Actions id={original.id || 'unknown'} onDelete={handleDelete} />
       }
     }
   ]

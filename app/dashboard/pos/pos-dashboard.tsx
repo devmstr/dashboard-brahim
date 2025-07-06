@@ -6,7 +6,7 @@ import CustomerSearchInput from '@/components/customer-search.input'
 import ProductsSection from './product-section'
 import CartSection from './cart-selection'
 import { useRouter } from 'next/navigation'
-import { Client } from '@/lib/validations'
+import { ClientSchemaType } from '@/lib/validations'
 import { toast } from '@/hooks/use-toast'
 import { rest } from 'lodash'
 
@@ -15,9 +15,9 @@ export default function PosDashboard() {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   )
-  const [selectedCustomer, setSelectedCustomer] = useState<Client | undefined>(
-    undefined
-  )
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    ClientSchemaType | undefined
+  >(undefined)
   const [products, setProducts] = useState<Product[]>([])
 
   useEffect(() => {
