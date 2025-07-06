@@ -82,7 +82,9 @@ interface Props {
     model: string
     quantity: string
     price: string
+    priceTTC: string
     bulkPrice: string
+    bulkPriceTTC: string
     bulkPriceThreshold: string
     limit: string
   }
@@ -107,8 +109,10 @@ export function InventoryTable({
     designation: 'Désignation',
     barcode: 'Code à barres',
     quantity: 'Quantity',
-    price: 'Prix Unitaire',
-    bulkPrice: 'Prix En Gros',
+    price: 'Prix HT',
+    priceTTC: 'Prix TTC',
+    bulkPrice: 'Gros HT',
+    bulkPriceTTC: 'Gros TTC',
     bulkPriceThreshold: 'Seuil Prix En Gros',
     columns: 'Colonnes',
     limit: 'Limite',
@@ -245,8 +249,10 @@ export function InventoryTable({
       roles: ['SALES_AGENT', 'SALES_MANAGER'],
       order: 5
     },
-    { id: 'bulkPrice', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 6 },
-    { id: 'price', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 7 },
+    { id: 'price', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 6 },
+    { id: 'priceTTC', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 7 },
+    { id: 'bulkPrice', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 8 },
+    { id: 'bulkPriceTTC', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 9 },
     {
       id: 'barcode',
       roles: ['INVENTORY_AGENT', 'ENGINEER', 'ENGINEERING_MANAGER'],
@@ -262,7 +268,7 @@ export function InventoryTable({
         'ENGINEER',
         'ENGINEERING_MANAGER'
       ],
-      order: 8
+      order: 10
     }
   ]
 

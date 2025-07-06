@@ -89,14 +89,17 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       ...data,
       Core: {
         ...data.Core,
+
+        tubeDiameter:
+          data.Core?.diameter || data.Core?.dimensions?.diameter || 0,
         dimensions: {
           height: data.Core?.height || data.Core?.dimensions?.height || 0,
-          width: data.Core?.width || data.Core?.dimensions?.width || 0,
-          diameter: data.Core?.diameter || data.Core?.dimensions?.diameter || 0
+          width: data.Core?.width || data.Core?.dimensions?.width || 0
         }
       },
       Collector: {
         ...data.Collectors?.top,
+
         dimensions1: {
           width:
             data.Collectors?.top?.dimensions?.width ||
@@ -183,6 +186,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       const label = generateRadiatorLabel({
         type: formData.type,
         fabrication: formData.fabrication,
+
         core: {
           dimensions: {
             width: Number(formData.Core?.dimensions.width),
@@ -297,9 +301,9 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
     const isValid = await form.trigger()
 
     if (!isValid) {
-      const errorMessages = Object.values(form.formState.errors)
-        .map((error) => error?.message?.toString())
-        .filter(Boolean)
+      const errorMessages = extractErrorMessages(form.formState.errors)
+
+      console.log('errorMessages', errorMessages)
 
       toast({
         title: 'Erreurs de validation',
@@ -316,6 +320,15 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
     }
 
     form.handleSubmit(onSubmitHandler)(e)
+  }
+
+  function extractErrorMessages(errors: any): string[] {
+    if (!errors) return []
+    if (typeof errors.message === 'string') return [errors.message]
+    if (Array.isArray(errors)) return errors.flatMap(extractErrorMessages)
+    if (typeof errors === 'object')
+      return Object.values(errors).flatMap(extractErrorMessages)
+    return []
   }
 
   return (

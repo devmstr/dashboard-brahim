@@ -624,7 +624,8 @@ export function CarSelectionForm({
                                         : 'opacity-0'
                                     )}
                                   />
-                                  {model.name} ({model.production})
+                                  {model.name}{' '}
+                                  {model.production && `(${model.production})`}
                                 </CommandItem>
                               ))}
                             </CommandGroup>

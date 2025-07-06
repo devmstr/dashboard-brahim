@@ -43,7 +43,13 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
     resolver: zodResolver(inventorySchema),
     defaultValues: {
       ...data,
-      location: 'Dépôt SONERAS'
+      location: 'Dépôt SONERAS',
+      bulkPrice: data?.bulkPrice || 0,
+      bulkPriceTTC: data?.bulkPriceTTC || 0,
+      bulkPriceThreshold: data?.bulkPriceThreshold || 0,
+      price: data?.price || 0,
+      priceTTC: data?.priceTTC || 0,
+      isActive: data?.isActive !== undefined ? data.isActive : true
     }
   })
 

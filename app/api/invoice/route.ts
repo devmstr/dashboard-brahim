@@ -119,8 +119,8 @@ export async function POST(req: NextRequest) {
           label: existedClient.label || customer?.label,
           address: existedClient.Address?.street || customer?.address,
           rc: existedClient.tradeRegisterNumber || customer?.rc,
-          nif: existedClient.fiscalNumber || customer?.nif,
-          ai: existedClient.statisticalIdNumber || customer?.ai
+          nif: existedClient.taxIdNumber || customer?.nif,
+          ai: existedClient.registrationArticle || customer?.ai
         }
       }
     } else {

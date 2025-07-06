@@ -20,7 +20,7 @@ import {
 export const clientSchema = z.object({
   id: z.string(),
   name: z.string(),
-  phone: z.string(),
+  phone: z.string().nullable(),
   isCompany: z.boolean(),
   email: z.string().nullable().optional(),
   label: z.string().nullable().optional(),
@@ -50,8 +50,8 @@ export type Car = z.infer<typeof carSchema>
 // Dimension schema for components
 const dimensionsSchema = z.object({
   thickness: z.number().min(0).optional(),
-  width: z.number().min(0),
-  height: z.number().min(0)
+  width: z.number().min(0).optional(),
+  height: z.number().min(0).optional()
 })
 
 export type Dimensions = z.infer<typeof dimensionsSchema>
@@ -59,7 +59,6 @@ export type Dimensions = z.infer<typeof dimensionsSchema>
 // Component schemas
 const collectorSchema = z.object({
   position: z.enum(COLLECTOR_POSITION_TYPES).optional(),
-  material: z.enum(COLLECTOR_MATERIALS_TYPES).optional(),
   tightening: z.enum(CLAMPING_TYPES).optional(),
   perforation: z.enum(PERFORATION_TYPES).optional(),
   isTinned: z.boolean().default(false).optional(),

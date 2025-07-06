@@ -156,7 +156,9 @@ export default function ClientAutocomplete({
       setHighlightedIdx((prev) => (prev + 1) % suggestions.length)
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
-      setHighlightedIdx((prev) => (prev - 1 + suggestions.length) % suggestions.length)
+      setHighlightedIdx(
+        (prev) => (prev - 1 + suggestions.length) % suggestions.length
+      )
     } else if (e.key === 'Enter' || e.key === 'Tab') {
       if (highlightedIdx >= 0 && highlightedIdx < suggestions.length) {
         e.preventDefault()

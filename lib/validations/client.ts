@@ -13,10 +13,7 @@ export const addressSchema = z.object({
 export const newClientSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
-  phone: z
-    .string()
-    .min(8, { message: 'Phone number must be at least 8 characters' })
-    .regex(/^[0-9+\s()-]+$/, { message: 'Invalid phone number format' }),
+  phone: z.string().optional(),
   label: z.string().nullable().optional(),
   email: z
     .string()

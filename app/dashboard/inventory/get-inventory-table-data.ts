@@ -19,8 +19,10 @@ export async function getInventoryTableData() {
       designation: rad.label || rad.reference || '',
       barcode: rad.barcode || '',
       quantity: inv.level,
-      price: rad.Price?.unit ?? undefined,
-      bulkPrice: rad.Price?.bulk ?? undefined,
+      price: rad.Price?.unit ?? 0,
+      priceTTC: rad.Price?.unitTTC ?? 0,
+      bulkPrice: rad.Price?.bulk ?? 0,
+      bulkPriceTTC: rad.Price?.bulkTTC ?? 0,
       bulkPriceThreshold: rad.Price?.bulkThreshold // Add if you have this field
     }))
   )

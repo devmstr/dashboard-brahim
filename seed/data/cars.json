@@ -1,0 +1,1226 @@
+[
+  {
+    "model": "300KVA",
+    "brand": "TOPCAROL"
+  },
+  {
+    "model": "KUBOTA",
+    "brand": "KUBOTA"
+  },
+  {
+    "model": "PASSAT",
+    "brand": "VOLSWAGEN"
+  },
+  {
+    "model": "100L6",
+    "brand": "SNVI"
+  },
+  {
+    "model": "VERSATILE",
+    "brand": "VERSATILE"
+  },
+  {
+    "model": "966H",
+    "brand": "CAT"
+  },
+  {
+    "model": "T4",
+    "brand": "VOLKSWAGEN"
+  },
+  {
+    "model": "LITEACE",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "DELTA",
+    "brand": "DAIHATSU"
+  },
+  {
+    "model": "LIBHER",
+    "brand": "LIBHER"
+  },
+  {
+    "model": "VISTA",
+    "brand": "TATA"
+  },
+  {
+    "model": "COUNTY",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "XCMG",
+    "brand": "XCMG"
+  },
+  {
+    "model": "HINO",
+    "brand": "HINO"
+  },
+  {
+    "model": "IVECO",
+    "brand": "IVECO"
+  },
+  {
+    "model": "913",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "805",
+    "brand": "FIAT"
+  },
+  {
+    "model": "ASTRA",
+    "brand": "IVECO"
+  },
+  {
+    "model": "D155A6",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "STH400KW",
+    "brand": "CAT"
+  },
+  {
+    "model": "932",
+    "brand": "CHENGGONG"
+  },
+  {
+    "model": "PENGPU",
+    "brand": "PENGPU"
+  },
+  {
+    "model": "CHARGEUR",
+    "brand": "JBC"
+  },
+  {
+    "model": "CAMION",
+    "brand": "DAEWOO"
+  },
+  {
+    "model": "T4CHAUFFAGE",
+    "brand": "VOLKSWAGEN"
+  },
+  {
+    "model": "TATA",
+    "brand": "TATA"
+  },
+  {
+    "model": "403",
+    "brand": "PEUGEOT"
+  },
+  {
+    "model": "HOWO",
+    "brand": "HOWO"
+  },
+  {
+    "model": "3508B25ELEM",
+    "brand": "CAT"
+  },
+  {
+    "model": "POSTE",
+    "brand": "LINCON"
+  },
+  {
+    "model": "HD",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "D9GM",
+    "brand": "CAT"
+  },
+  {
+    "model": "D9PM",
+    "brand": "CAT"
+  },
+  {
+    "model": "A500",
+    "brand": "VANHOOL"
+  },
+  {
+    "model": "SDMO",
+    "brand": "SDMO"
+  },
+  {
+    "model": "J110KVA",
+    "brand": "SDMO"
+  },
+  {
+    "model": "DI60",
+    "brand": "SONALIKA"
+  },
+  {
+    "model": "11LMENT",
+    "brand": "CAT"
+  },
+  {
+    "model": "13LMENT",
+    "brand": "CAT"
+  },
+  {
+    "model": "LANDCRUISER",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "HL770",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "MD27",
+    "brand": "ISUZU"
+  },
+  {
+    "model": "GM",
+    "brand": "VOLVO"
+  },
+  {
+    "model": "FTR",
+    "brand": "ISUZU"
+  },
+  {
+    "model": "PATROL",
+    "brand": "NISSAN"
+  },
+  {
+    "model": "T800",
+    "brand": "KENWORTH"
+  },
+  {
+    "model": "FILIPINI",
+    "brand": "FILIPINI"
+  },
+  {
+    "model": "PARTNER",
+    "brand": "PEUGEOT"
+  },
+  {
+    "model": "HILUX",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "TAFE75",
+    "brand": "TIRSAM"
+  },
+  {
+    "model": "FORD",
+    "brand": "FORD"
+  },
+  {
+    "model": "ECOBUS",
+    "brand": "ISUZU"
+  },
+  {
+    "model": "PELLE",
+    "brand": "HITACHI"
+  },
+  {
+    "model": "329",
+    "brand": "FIAT"
+  },
+  {
+    "model": "HD72",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "PERKINS",
+    "brand": "PERKINS"
+  },
+  {
+    "model": "JHONDEER",
+    "brand": "JHONDEER"
+  },
+  {
+    "model": "PELLE",
+    "brand": "HYDRAUMAC"
+  },
+  {
+    "model": "TRACTEUR",
+    "brand": "CIRTA"
+  },
+  {
+    "model": "NOVUSK4",
+    "brand": "DAEWOO"
+  },
+  {
+    "model": "525KVA",
+    "brand": "DOSAN"
+  },
+  {
+    "model": "DOOSAN",
+    "brand": "DOOSAN"
+  },
+  {
+    "model": "PHA600",
+    "brand": "TEREX"
+  },
+  {
+    "model": "PATROLGR",
+    "brand": "NISSAN"
+  },
+  {
+    "model": "TOYOTA",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "C18",
+    "brand": "CAT"
+  },
+  {
+    "model": "3512A CTE",
+    "brand": "CAT"
+  },
+  {
+    "model": "RETRO",
+    "brand": "MST"
+  },
+  {
+    "model": "WILLIS",
+    "brand": "JEEP"
+  },
+  {
+    "model": "TAD351",
+    "brand": "VOLVO"
+  },
+  {
+    "model": "7T",
+    "brand": "GERMAN"
+  },
+  {
+    "model": "GE",
+    "brand": "DANYO"
+  },
+  {
+    "model": "EXPERT",
+    "brand": "PEUGEOT"
+  },
+  {
+    "model": "AM",
+    "brand": "KINGLONG"
+  },
+  {
+    "model": "926",
+    "brand": "LIBHER"
+  },
+  {
+    "model": "CALRCKH250E",
+    "brand": "HYSTER"
+  },
+  {
+    "model": "CLARCKOM80",
+    "brand": "FIAT"
+  },
+  {
+    "model": "GE",
+    "brand": "PERKINS"
+  },
+  {
+    "model": "GE15KVA",
+    "brand": "YANMAR"
+  },
+  {
+    "model": "HONGYONG",
+    "brand": "HONGYONG"
+  },
+  {
+    "model": "944",
+    "brand": "LIBHER"
+  },
+  {
+    "model": "DAWOO",
+    "brand": "DAWOO"
+  },
+  {
+    "model": "CLARK",
+    "brand": "JCB"
+  },
+  {
+    "model": "BULL85",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "GOLDONI",
+    "brand": "GOLDONI"
+  },
+  {
+    "model": "T3",
+    "brand": "VOLKSWAGEN"
+  },
+  {
+    "model": "504",
+    "brand": "PEUGEOT"
+  },
+  {
+    "model": "350870ZAM",
+    "brand": "CAT"
+  },
+  {
+    "model": "GE1200KVA",
+    "brand": "MTU"
+  },
+  {
+    "model": "MST",
+    "brand": "MST"
+  },
+  {
+    "model": "HIGER",
+    "brand": "HIGER"
+  },
+  {
+    "model": "R520",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "FAW",
+    "brand": "FAW"
+  },
+  {
+    "model": "NIVLEUSE505",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "90Z5",
+    "brand": "KAWASAKI"
+  },
+  {
+    "model": "NT855G6",
+    "brand": "CUMMINS"
+  },
+  {
+    "model": "F12",
+    "brand": "VOLVO"
+  },
+  {
+    "model": "NISSANE",
+    "brand": "NISSANE"
+  },
+  {
+    "model": "ZX520CLC",
+    "brand": "HITACHI"
+  },
+  {
+    "model": "R300",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "NIVLEUSE",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "CHARIOTELEVATOR",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "D155A5",
+    "brand": "CAT"
+  },
+  {
+    "model": "HYUNDAI",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "MERCEDES",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "STYER",
+    "brand": "SCHACMAN"
+  },
+  {
+    "model": "1778001",
+    "brand": "CAT"
+  },
+  {
+    "model": "CASE",
+    "brand": "CASE"
+  },
+  {
+    "model": "T915",
+    "brand": "VANHOOL"
+  },
+  {
+    "model": "FJ60",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "CHAUFFOPTRA",
+    "brand": "CHVROLET"
+  },
+  {
+    "model": "L300",
+    "brand": "MITSUBISHI"
+  },
+  {
+    "model": "COMPRESSEUR",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "100KVA",
+    "brand": "PERKINS"
+  },
+  {
+    "model": "911",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "WB93RS",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "GW460",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "6L",
+    "brand": "DEUTZ"
+  },
+  {
+    "model": "3TMODIFIER",
+    "brand": "GERMAN"
+  },
+  {
+    "model": "10T",
+    "brand": "GERMAN"
+  },
+  {
+    "model": "CLARK",
+    "brand": "MANITOU"
+  },
+  {
+    "model": "DAEWOO",
+    "brand": "DAEWOO"
+  },
+  {
+    "model": "KOMATSU",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "HD120",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "DI60",
+    "brand": "FAMAG"
+  },
+  {
+    "model": "D155A5",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "FIORINO",
+    "brand": "FIAT"
+  },
+  {
+    "model": "B11",
+    "brand": "CITROEN"
+  },
+  {
+    "model": "TRACYOUGZLAV",
+    "brand": "IMT"
+  },
+  {
+    "model": "CBH",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "GBH",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "G260",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "SCHACMAN",
+    "brand": "SCHACMAN"
+  },
+  {
+    "model": "GLR8",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "MAJOR",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "F10 12",
+    "brand": "VOLVO"
+  },
+  {
+    "model": "OM55",
+    "brand": "FIAT"
+  },
+  {
+    "model": "130KVA",
+    "brand": "SDMO"
+  },
+  {
+    "model": "LITACE",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "E2200",
+    "brand": "MAZDA"
+  },
+  {
+    "model": "220EXCAVATOR",
+    "brand": "JCM"
+  },
+  {
+    "model": "505",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "LIBEHR",
+    "brand": "LIBEHR"
+  },
+  {
+    "model": "AUDI80B4",
+    "brand": "AUDI"
+  },
+  {
+    "model": "7TONES",
+    "brand": "GERMAN"
+  },
+  {
+    "model": "TIDA",
+    "brand": "NISSAN"
+  },
+  {
+    "model": "TPN440",
+    "brand": "PERKINS"
+  },
+  {
+    "model": "P40",
+    "brand": "NISSAN"
+  },
+  {
+    "model": "R320REF11QB45020",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "AB37590",
+    "brand": "PERKINS"
+  },
+  {
+    "model": "88KVA",
+    "brand": "SDMO"
+  },
+  {
+    "model": "L200",
+    "brand": "MITSUBICHI"
+  },
+  {
+    "model": "619",
+    "brand": "FIAT"
+  },
+  {
+    "model": "KY",
+    "brand": "HINO"
+  },
+  {
+    "model": "F1012",
+    "brand": "VOLVO"
+  },
+  {
+    "model": "COMP",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "BU30",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "BLACANCAR",
+    "brand": "BLACANCAR"
+  },
+  {
+    "model": "4BZ",
+    "brand": "CAT"
+  },
+  {
+    "model": "C13REF281800074K04",
+    "brand": "NOMADE"
+  },
+  {
+    "model": "BUS",
+    "brand": "ISUZU"
+  },
+  {
+    "model": "504DZL",
+    "brand": "PEUGEOT"
+  },
+  {
+    "model": "E2000",
+    "brand": "MAZDA"
+  },
+  {
+    "model": "ISUZU",
+    "brand": "ISUZU"
+  },
+  {
+    "model": "J9 DZL",
+    "brand": "PEUGEOT"
+  },
+  {
+    "model": "FJ45",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "KINGLONG",
+    "brand": "KINGLONG"
+  },
+  {
+    "model": "TR280",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "TRACT",
+    "brand": "IMT"
+  },
+  {
+    "model": "JCB",
+    "brand": "JCB"
+  },
+  {
+    "model": "V8",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "ZX330LC3G",
+    "brand": "HITACHI"
+  },
+  {
+    "model": "11ELEM",
+    "brand": "CAT"
+  },
+  {
+    "model": "13ELEM",
+    "brand": "CAT"
+  },
+  {
+    "model": "MANITOU",
+    "brand": "MANITOU"
+  },
+  {
+    "model": "LAVERDA3400",
+    "brand": "FIAT"
+  },
+  {
+    "model": "BERLIET",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "SYMEX",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "LPT1613TC",
+    "brand": "TATA"
+  },
+  {
+    "model": "CAT",
+    "brand": "CAT"
+  },
+  {
+    "model": "TRAFIC",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "A05040527",
+    "brand": "CAT"
+  },
+  {
+    "model": "300",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "IRANI",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "EUROTRAKKER",
+    "brand": "IVECO"
+  },
+  {
+    "model": "WINGEL",
+    "brand": "GREATWEL"
+  },
+  {
+    "model": "GE",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "CLARK",
+    "brand": "FEELER"
+  },
+  {
+    "model": "60KVA",
+    "brand": "GE"
+  },
+  {
+    "model": "500KVA",
+    "brand": "VISA"
+  },
+  {
+    "model": "1000KVA",
+    "brand": "MTU"
+  },
+  {
+    "model": "RETROCHARGEUR",
+    "brand": "JCB"
+  },
+  {
+    "model": "CELITE",
+    "brand": "CELITE"
+  },
+  {
+    "model": "ASTRA",
+    "brand": "ASTRA"
+  },
+  {
+    "model": "CIVILAN2000BVW41",
+    "brand": "NISSAN"
+  },
+  {
+    "model": "CIVILANPM",
+    "brand": "NISSAN"
+  },
+  {
+    "model": "PC550",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "GLR190",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "BYD",
+    "brand": "BYD"
+  },
+  {
+    "model": "500",
+    "brand": "HINO"
+  },
+  {
+    "model": "DI75",
+    "brand": "FAMAG"
+  },
+  {
+    "model": "MAXITI",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "LT45",
+    "brand": "VOLKSWAGEN"
+  },
+  {
+    "model": "MASTER1997",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "19",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "1177110",
+    "brand": "POWERPACK"
+  },
+  {
+    "model": "CLARK",
+    "brand": "CLARK"
+  },
+  {
+    "model": "BOTCHMIXTER",
+    "brand": "BOTCHMIXTER"
+  },
+  {
+    "model": "2620200",
+    "brand": "CAT"
+  },
+  {
+    "model": "PAJERO",
+    "brand": "MITSUBICHI"
+  },
+  {
+    "model": "350825ELEM",
+    "brand": "CAT"
+  },
+  {
+    "model": "DAWEOO",
+    "brand": "DAWEOO"
+  },
+  {
+    "model": "GRTR",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "HE",
+    "brand": "HINO"
+  },
+  {
+    "model": "GLR200",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "GLR8 GB",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "HH",
+    "brand": "HINO"
+  },
+  {
+    "model": "GBC8MT",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "IMT",
+    "brand": "IMT"
+  },
+  {
+    "model": "300KVA",
+    "brand": "AMIMERENERGIE"
+  },
+  {
+    "model": "VOLVO",
+    "brand": "VOLVO"
+  },
+  {
+    "model": "500KVA",
+    "brand": "CUMMINS"
+  },
+  {
+    "model": "19DZL",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "C13",
+    "brand": "NOMADE"
+  },
+  {
+    "model": "MASSEYFERGUSON",
+    "brand": "MASSEYFERGUSON"
+  },
+  {
+    "model": "XENON",
+    "brand": "TATA"
+  },
+  {
+    "model": "18L4",
+    "brand": "SNVI"
+  },
+  {
+    "model": "G320",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "SDEMO",
+    "brand": "SDEMO"
+  },
+  {
+    "model": "LHM120",
+    "brand": "LIEBHER"
+  },
+  {
+    "model": "12T",
+    "brand": "TEREX"
+  },
+  {
+    "model": "12T",
+    "brand": "SANY"
+  },
+  {
+    "model": "42T",
+    "brand": "TEREX"
+  },
+  {
+    "model": "RENAULT",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "E330D",
+    "brand": "CAT"
+  },
+  {
+    "model": "TB305",
+    "brand": "SNVI"
+  },
+  {
+    "model": "LIEBHER",
+    "brand": "LIEBHER"
+  },
+  {
+    "model": "JMC",
+    "brand": "JMC"
+  },
+  {
+    "model": "544",
+    "brand": "MST"
+  },
+  {
+    "model": "PM",
+    "brand": "KINGLONG"
+  },
+  {
+    "model": "100PLACE",
+    "brand": "HIGER"
+  },
+  {
+    "model": "D85",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "DOSAN",
+    "brand": "DOSAN"
+  },
+  {
+    "model": "ESPACE",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "DX300LCA",
+    "brand": "DOOSAN"
+  },
+  {
+    "model": "TRACTEUR",
+    "brand": "TRACTEUR"
+  },
+  {
+    "model": "CYZ",
+    "brand": "ISUZU"
+  },
+  {
+    "model": "400KV",
+    "brand": "VISA"
+  },
+  {
+    "model": "4030T",
+    "brand": "MOL"
+  },
+  {
+    "model": "4BZ1692191",
+    "brand": "CAT"
+  },
+  {
+    "model": "DOSAN420",
+    "brand": "DOSAN420"
+  },
+  {
+    "model": "WT110",
+    "brand": "SONALIKA"
+  },
+  {
+    "model": "AEROCITY",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "TB305340",
+    "brand": "SNVI"
+  },
+  {
+    "model": "UNIMOG416",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "15T",
+    "brand": "MAN"
+  },
+  {
+    "model": "D155",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "FRAISEUSEW100CF",
+    "brand": "WERTGEN"
+  },
+  {
+    "model": "TRACTEUR",
+    "brand": "KUBOTA"
+  },
+  {
+    "model": "DYNA20230",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "CLARCKMC20",
+    "brand": "MANITOU"
+  },
+  {
+    "model": "C15",
+    "brand": "CAT"
+  },
+  {
+    "model": "JL",
+    "brand": "JMC"
+  },
+  {
+    "model": "DELTA",
+    "brand": "DELTA"
+  },
+  {
+    "model": "MASSYFERGUSON",
+    "brand": "MASSYFERGUSON"
+  },
+  {
+    "model": "R12",
+    "brand": "RENAULT"
+  },
+  {
+    "model": "HIACE",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "Z50",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "GT550",
+    "brand": "TADANO"
+  },
+  {
+    "model": "305BXGM",
+    "brand": "PEUGEOT"
+  },
+  {
+    "model": "3T",
+    "brand": "DOSAN"
+  },
+  {
+    "model": "FD60",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "40442",
+    "brand": "MAN"
+  },
+  {
+    "model": "M80045W",
+    "brand": "IVECO"
+  },
+  {
+    "model": "BUS",
+    "brand": "TATA"
+  },
+  {
+    "model": "B0500045000",
+    "brand": "BRDM"
+  },
+  {
+    "model": "APC40",
+    "brand": "BTR80"
+  },
+  {
+    "model": "APC2",
+    "brand": "BTRPY2"
+  },
+  {
+    "model": "A3803H",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "PATROLRD28",
+    "brand": "NISSAN"
+  },
+  {
+    "model": "III",
+    "brand": "MAZDA"
+  },
+  {
+    "model": "RAM2013",
+    "brand": "DODGE"
+  },
+  {
+    "model": "AEROTOWN",
+    "brand": "HYUNDAI"
+  },
+  {
+    "model": "L150G",
+    "brand": "VOLVO"
+  },
+  {
+    "model": "770G",
+    "brand": "JOHNDEERE"
+  },
+  {
+    "model": "PAJERO",
+    "brand": "MITSUBISHI"
+  },
+  {
+    "model": "MCV120",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "CITYBUS",
+    "brand": "HIGER"
+  },
+  {
+    "model": "DISCOVERY",
+    "brand": "LANDROVER"
+  },
+  {
+    "model": "DFSK",
+    "brand": "DFSK"
+  },
+  {
+    "model": "SIENNA",
+    "brand": "FIAT"
+  },
+  {
+    "model": "BULLD155AM",
+    "brand": "KOMATSU"
+  },
+  {
+    "model": "OPEL",
+    "brand": "OPEL"
+  },
+  {
+    "model": "420",
+    "brand": "BAYBEN"
+  },
+  {
+    "model": "COASTER",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "T6",
+    "brand": "FORD"
+  },
+  {
+    "model": "180",
+    "brand": "JCB"
+  },
+  {
+    "model": "ASUHOUCHINE",
+    "brand": "ASUHOUCHINE"
+  },
+  {
+    "model": "XT",
+    "brand": "YAMAHA"
+  },
+  {
+    "model": "GLM12",
+    "brand": "BERLIET"
+  },
+  {
+    "model": "ACTROS",
+    "brand": "MERCEDES"
+  },
+  {
+    "model": "150KVA",
+    "brand": "PERKINS"
+  },
+  {
+    "model": "105",
+    "brand": "TOYOTA"
+  },
+  {
+    "model": "350870Z7C4402",
+    "brand": "CAT"
+  },
+  {
+    "model": "3T",
+    "brand": "MANITOU"
+  },
+  {
+    "model": "3T",
+    "brand": "JJCC"
+  }
+]

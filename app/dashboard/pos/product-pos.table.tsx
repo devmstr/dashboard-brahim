@@ -63,7 +63,7 @@ interface Props {
     label: string
     stock: string
     price: string
-    bulkPrice: string
+    priceTTC: string
   }
 }
 
@@ -77,8 +77,8 @@ export function ProductPosTable({
     id: 'Matricule',
     label: 'Désignation',
     stock: 'Stock',
-    price: 'Prix (Unit)',
-    bulkPrice: 'Prix (Gros)'
+    price: 'Prix (HT)',
+    priceTTC: 'Prix (TTC)'
   }
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -117,7 +117,7 @@ export function ProductPosTable({
         <div className="flex items-center">
           <Link
             className="hover:text-secondary hover:font-semibold hover:underline"
-            href={`clients/${id}`}
+            href={`/dashboard/inventory/${id}`}
           >
             {id}
           </Link>
@@ -182,25 +182,6 @@ export function ProductPosTable({
       }) => <div className="flex items-center">{stockLevel}</div>
     },
     {
-      accessorKey: 'bulkPrice',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({
-        row: {
-          original: { bulkPrice }
-        }
-      }) => <div className="flex items-center">{bulkPrice}</div>
-    },
-    {
       accessorKey: 'price',
       header: ({ column }) => {
         return (
@@ -218,6 +199,25 @@ export function ProductPosTable({
           original: { price }
         }
       }) => <div className="flex items-center">{price}</div>
+    },
+    {
+      accessorKey: 'priceTTC',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { priceTTC }
+        }
+      }) => <div className="flex items-center">{priceTTC}</div>
     },
     {
       id: 'actions',

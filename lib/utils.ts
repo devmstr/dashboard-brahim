@@ -13,12 +13,14 @@ export enum SKU_PREFIX {
   RE = 'RE', // Radiateur renovation (typeof radiator)
   FA = 'FA', // Faisceau
   FE = 'FE', // Faisceau Empalé
+  SP = 'SP', // Spirale
+  MO = 'MO', // model
+  BR = 'BR', // brand
   AR = 'AR', // order item (article)
   AU = 'AU', // Other (typeof order item)
   CO = 'CO', // order
   CB = 'CB', // non confirmed order
   CL = 'CL', // client
-  VE = 'VE', // model
   PA = 'PA', // payment
   FP = 'FP', // facture proforma
   FF = 'FF', // facture final
@@ -73,6 +75,12 @@ const POSITION_T = {
   Dépassée: 'D'
 } as const
 
+export const coolingDec = {
+  Air: 'TUR',
+  Eau: 'EAU',
+  Huile: 'HUI'
+} as const
+
 export type FinsPitch = '10' | '11' | '12' | '14'
 export type FinsType = keyof typeof FINS_T
 export type TubeType = keyof typeof TUBE_T
@@ -82,6 +90,9 @@ export type PositionType = keyof typeof POSITION_T
 interface ProductConfig {
   type?: OrderItem['type']
   fabrication?: OrderItem['fabrication']
+  cooling?: OrderItem['cooling']
+  brand?: string
+  model?: string
   core: {
     fins?: Core['fins']
     tube?: Core['tube']
@@ -148,6 +159,9 @@ export const formatPhoneNumber = (phone: string | null | undefined) => {
 export function generateRadiatorLabel({
   type,
   fabrication,
+  cooling = 'Eau',
+  brand = '',
+  model = '',
   core: {
     dimensions: coreDimensions,
     fins = 'Normale',
@@ -190,8 +204,10 @@ export function generateRadiatorLabel({
     type == 'Spirale'
       ? `T${tubeDiameter}`
       : `${FINS_T[fins]}${TUBE_T[tube]} ${pitch}`
+  const coolingText = cooling != 'Eau' ? coolingDec[cooling] : ''
+  const brandModelText = `${brand} ${model}`.trim()
 
-  return `${prefix} ${core4DigitsDimensions} ${rows}${finsTubeTypeAndPitch} ${collector4DigitsDimensions} ${positionCode} ${tighteningCode} `
+  return `${prefix} ${core4DigitsDimensions} ${rows}${finsTubeTypeAndPitch} ${collector4DigitsDimensions} ${tighteningCode} ${positionCode} ${coolingText} ${brandModelText}`.trim()
 }
 
 export function cn(...inputs: ClassValue[]) {

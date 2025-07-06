@@ -45,8 +45,8 @@ async function main() {
     // Create inventory for the radiator
     const inventory = await prisma.inventory.create({
       data: {
-        level: Number.parseInt(quantity || '0', 10),
-        alertAt: 10,
+        level: Number.parseInt(quantity.toString() || '0', 5),
+        alertAt: 5,
         maxLevel: 500
       }
     })
@@ -54,11 +54,11 @@ async function main() {
     // Create price for the radiator
     const price = await prisma.price.create({
       data: {
-        unit: 100,
-        unitTTC: 120,
-        bulk: 80,
-        bulkTTC: 96,
-        bulkThreshold: 10
+        unit: 0,
+        unitTTC: 0,
+        bulk: 0,
+        bulkTTC: 0,
+        bulkThreshold: 100
       }
     })
 

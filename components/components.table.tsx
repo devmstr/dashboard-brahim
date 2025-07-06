@@ -476,11 +476,10 @@ export function OrderComponentsTable({
           {/* budge to indicate the total item and the delivered items */}
           <div className="flex items-center">
             <Badge className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100 hover:border-purple-300 h-8">
-              {data.reduce((sum, item) => sum + item.quantity, 0)} Articles
-              {data.reduce((sum, item) => sum + Number(item.delivered), 0) && (
+              {data.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)} Articles
+              {data.some(item => Number(item.delivered) > 0) && (
                 <span className="ml-2 text-green-500">
-                  ({data.reduce((sum, item) => sum + Number(item.delivered), 0)}{' '}
-                  Livrés)
+                  ({data.reduce((sum, item) => sum + (Number(item.delivered) || 0), 0)} Livrés)
                 </span>
               )}
             </Badge>

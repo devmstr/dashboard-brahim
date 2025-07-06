@@ -98,7 +98,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         perforation: 'Perforé',
         tightening: 'Plié',
         position: 'Centrer',
-        material: 'Laiton',
         dimensions1: {
           height: 0,
           width: 0,

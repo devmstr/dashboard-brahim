@@ -86,6 +86,7 @@ const Page: React.FC<Props> = async ({
       category: Radiator.category as OrderItem['category'],
       cooling: Radiator.cooling as OrderItem['cooling'],
       status: 'Prévu',
+
       label: Radiator.label as string,
       ...(coreComponent && {
         Core: {

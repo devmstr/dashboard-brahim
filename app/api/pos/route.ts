@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       label: r.label,
       description: r.label,
       price: r.Price?.unit ?? 0,
-      bulkPrice: r.Price?.bulk ?? 0,
+      priceTTC: r.Price?.unitTTC ?? 0,
       stockLevel: r.Inventory?.level ?? 0,
       minStockLevel: r.Inventory?.alertAt ?? 0,
       maxStockLevel: r.Inventory?.maxLevel ?? 0,

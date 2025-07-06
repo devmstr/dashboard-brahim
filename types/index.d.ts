@@ -56,8 +56,9 @@ export type InventoryTableEntry = {
   model?: string
   quantity: number
   price?: number
+  priceTTC?: number
   bulkPrice?: number
-  bulkPrice?: number
+  bulkPriceTTC?: number
   bulkPriceThreshold?: number
 }
 
@@ -76,7 +77,7 @@ export type ProductPosTableEntry = {
   label: string
   stockLevel: number
   price: number
-  bulkPrice: number
+  priceTTC: number
 }
 
 export type FooterConfig = {
@@ -154,7 +155,7 @@ export interface Product {
   label: string
   stockLevel: number
   price: number
-  bulkPrice: number
+  priceTTC: number
   image?: string
 }
 

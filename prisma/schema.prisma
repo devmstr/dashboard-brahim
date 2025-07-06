@@ -207,13 +207,17 @@ model Price {
 }
 
 model Radiator {
-  id        String  @id @default(cuid())
-  reference String? @unique
-  category  String?
-  dir       String?
-  cooling   String?
-  barcode   String? @unique
-  label     String?
+  id         String  @id @default(cuid())
+  reference  String? @unique
+  category   String?
+  dir        String?
+  cooling    String?
+  barcode    String? @unique
+  label      String?
+  hash       String?
+  status     String? // e.g., "active", "inactive", "draft" , "ar"
+  type       String? // e.g., "collector", "core", "tube"
+  production String? // e.g., "2023-10-01"
 
   isActive    Boolean? @default(false)
   inventoryId String?
@@ -231,6 +235,12 @@ model Radiator {
   Invoice    Invoice?    @relation(fields: [invoiceId], references: [id])
   invoiceId  String?
 
+  @@unique([label, status])
+  @@unique([hash, status])
+  @@index([reference])
+  @@index([barcode])
+  @@index([label, status])
+  @@index([hash, status])
   @@map("radiators")
 }
 
@@ -329,7 +339,7 @@ model CarType {
 model Client {
   id                  String  @id @default(cuid())
   name                String
-  phone               String  @unique
+  phone               String? // TODO: add @unique when the database is ready
   label               String?
   email               String? @unique
   isCompany           Boolean @default(false)
@@ -345,6 +355,7 @@ model Client {
   Address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
 
   Orders    Order[]
+  Payments  Payment[] // Added to directly link payments to clients for easier querying
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Invoice   Invoice[]
@@ -374,6 +385,7 @@ model Order {
   progress       Int          @default(0)
   OrdersItems    OrderItem[]
   totalItems     Int          @default(0)
+  totalAmount    Float? // Added to store the total order value
   deliveredItems Int          @default(0)
   Payment        Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
   paymentId      String       @unique
@@ -414,20 +426,39 @@ model OrderItem {
 }
 
 model Payment {
-  id        String  @id @default(cuid())
-  amount    Float
-  deposit   Float
-  remaining Float
-  mode      String?
-  bank      String?
-  iban      String?
-  depositor String?
+  id                 String               @id @default(cuid())
+  amount             Float
+  deposit            Float
+  remaining          Float
+  status             String? // Tracks payment status (e.g., "pending", "partial", "completed")
+  mode               String?
+  bank               String?
+  iban               String?
+  depositor          String?
+  paymentDate        DateTime? // Precise payment timing for filtering by year
+  Order              Order?               @relation(name: "OrderToPayment")
+  createdAt          DateTime             @default(now()) // Added for consistency
+  updatedAt          DateTime             @updatedAt // Added for consistency
+  Client             Client?              @relation(fields: [clientId], references: [id])
+  clientId           String?
+  PaymentInstallment PaymentInstallment[]
 
-  Order     Order?   @relation(name: "OrderToPayment")
-  createdAt DateTime @default(now()) // Added for consistency
-  updatedAt DateTime @updatedAt // Added for consistency
-
+  @@index([clientId])
+  @@index([paymentDate])
+  @@index([status])
   @@map("payments")
+}
+
+model PaymentInstallment {
+  id          String   @id @default(cuid())
+  paymentId   String
+  Payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  amount      Float
+  paymentDate DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("payment_installments")
 }
 
 // FILE SYSTEM
