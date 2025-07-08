@@ -121,7 +121,6 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
         const payload = {
           ...data,
           radiatorId: selectedProduct.id,
-          // Ensure numeric fields are numbers
           stockLevel: Number(data.stockLevel),
           minStockLevel: Number(data.minStockLevel),
           maxStockLevel: Number(data.maxStockLevel),

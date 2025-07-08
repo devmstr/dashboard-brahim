@@ -64,17 +64,13 @@ export type InvoiceMetadata = {
 
 export interface InvoiceProps {
   id: string
-  invoiceNumber: string
-  qrAddress: string
-
-  client: {
-    name: string
-    address?: string
-    rc: string
-    nif: string
-    ai: string
-  }
-  items: InvoiceItem[]
+  reference: string
+  name: string
+  address?: string
+  tradeRegisterNumber?: string
+  registrationArticle?: string
+  taxIdNumber?: string
+  items: InvoiceItem[] | []
   note?: string
   status?: string
   type?: 'FINAL' | 'PROFORMA'
@@ -88,29 +84,33 @@ export interface InvoiceProps {
   deliveryTime?: string
   guaranteeTime?: string
   dueDate?: Date
-  metadata?: InvoiceMetadata
   className?: string
   readonly?: boolean
 }
 
-export default function Invoice({
-  id,
-  invoiceNumber,
-  qrAddress,
-  paymentMode,
-  client,
-  items = [],
-  className,
-  metadata,
-  type = 'FINAL',
-  dueDate = new Date(),
-  note: inputNote = '',
-  status = 'PAID',
+export default function Invoice(input: InvoiceProps) {
+  const [data, setData] = useState<InvoiceProps>(input)
+  // update data on mount
+  useEffect(() => setData(input), [])
 
-  readonly = false
-}: InvoiceProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const componentRef = useRef<HTMLDivElement>(null)
+  const scrollYProgress = useScrollProgress(scrollRef)
+  const [editedId, setEditedId] = useState<string | undefined>(undefined)
+
+  const billingSummary = useMemo(
+    () =>
+      calculateBillingSummary(data.items, {
+        discountRate: data.discountRate,
+        refundRate: data.refundRate,
+        stampTaxRate: data.stampTaxRate,
+        vatRate: 0.19
+      }),
+    [data.items, data.discountRate, data.refundRate, data.stampTaxRate]
+  )
+
   useEffect(() => {
-    if (readonly) {
+    if (data.readonly) {
       // Add the style to the document head when in readonly mode
       const styleElement = document.createElement('style')
       styleElement.innerHTML = printPreviewStyles
@@ -121,72 +121,25 @@ export default function Invoice({
         document.head.removeChild(styleElement)
       }
     }
-  }, [readonly])
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const scrollYProgress = useScrollProgress(scrollRef)
-  // const [showScrollIndicator, setShowScrollIndicator] = useState(true)
-  const [note, setNote] = useState<string>(metadata?.note || inputNote)
-  const [data, setData] = useState<InvoiceItem[]>(items)
-  const [refundRate, setRefundRate] = useState<number>(
-    metadata?.refundRate as number
-  )
-  const [discountRate, setDiscountRate] = useState<number>(
-    metadata?.discountRate as number
-  )
-  const [stampTaxRate, setStampTaxRate] = useState<number>(
-    ['Espèces', 'Espèces + Versement'].includes(metadata?.paymentType as string)
-      ? 0.01
-      : 0
-  )
-  const [purchaseOrder, setPurchaseOrder] = useState<string>(
-    metadata?.purchaseOrder as string
-  )
-  const [deliverySlip, setDeliverySlip] = useState<string>(
-    metadata?.deliverySlip as string
-  )
-  const [editingItemId, setEditingItemId] = useState<number | null>(null)
-  const [paymentType, setPaymentType] = useState<
-    (typeof PAYMENT_TYPES)[number]
-  >((metadata?.paymentType as (typeof PAYMENT_TYPES)[number]) || paymentMode)
-  const [editedItems, setEditedItems] = useState<InvoiceItem[]>(
-    metadata?.items as InvoiceItem[]
-  )
-  const componentRef = useRef<HTMLDivElement>(null)
-  const billingSummary = useMemo(
-    () =>
-      calculateBillingSummary(editedItems, {
-        discountRate: discountRate,
-        refundRate: refundRate,
-        stampTaxRate: stampTaxRate,
-        vatRate: 0.19
-      }),
-    [editedItems, discountRate, refundRate, stampTaxRate]
-  )
-
-  useEffect(() => {
-    if (metadata && Array.isArray(metadata.items)) {
-      setEditedItems(
-        metadata.items.map((metaItem, idx) => ({
-          ...items[idx],
-          ...metaItem,
-          label: metaItem.label || items[idx]?.label || ''
-        }))
-      )
-    } else {
-      setEditedItems(items)
-    }
-    // ...existing code for other fields...
-  }, [metadata, items])
+  }, [data.readonly])
 
   // Handle payment type change
   const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
-    setPaymentType(value)
-
+    setData((prev) => ({
+      ...prev,
+      paymentMode: value
+    }))
     // If payment type is Espèces or Espèces + Versement, set stampTaxRate to 0.01 (1%)
     if (value === 'Espèces' || value === 'Espèces + Versement') {
-      setStampTaxRate(0.01)
+      setData((prev) => ({
+        ...prev,
+        stampTaxRate: 0.01
+      }))
     } else {
-      setStampTaxRate(0)
+      setData((prev) => ({
+        ...prev,
+        stampTaxRate: 0
+      }))
     }
   }
 
@@ -229,11 +182,11 @@ export default function Invoice({
                 y: 45,
                 excavate: true
               }}
-              value={qrAddress}
+              value={data.reference}
               className="w-[4.57rem] h-auto"
             />
             <span className="text-[0.745rem] w-20 text-center ">
-              {qrAddress}
+              {data.reference}
             </span>
           </div>
         </div>
@@ -268,17 +221,21 @@ export default function Invoice({
             <Input
               placeholder="002171"
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={purchaseOrder || ''}
+              value={data.purchaseOrder}
               onChange={(e) => {
-                if (!readonly) setPurchaseOrder(e.target.value)
+                if (data.readonly) return
+                setData((prev) => ({
+                  ...prev,
+                  purchaseOrder: e.target.value
+                }))
               }}
-              readOnly={readonly}
+              readOnly={data.readonly}
             />
           </div>
-          {purchaseOrder && (
+          {data.purchaseOrder && (
             <div className="hidden print:flex gap-[.2rem] items-center">
               <strong className="font-medium">{'BC: '} </strong>
-              <span>{purchaseOrder}</span>
+              <span>{data.purchaseOrder}</span>
             </div>
           )}
           {/* BL: always render input (screen) and value (print, if not empty) */}
@@ -287,23 +244,27 @@ export default function Invoice({
             <Input
               placeholder="23-26/2025"
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={deliverySlip || ''}
-              onChange={(e) => {
-                if (!readonly) setDeliverySlip(e.target.value)
+              value={data.deliverySlip || ''}
+              onChange={({ target: { value } }) => {
+                if (data.readonly)
+                  setData((prev) => ({
+                    ...prev,
+                    deliverySlip: value
+                  }))
               }}
-              readOnly={readonly}
+              readOnly={data.readonly}
             />
           </div>
-          {deliverySlip && (
+          {data.deliverySlip && (
             <div className="hidden print:flex gap-[.2rem] items-center">
               <strong className="font-medium tracking-widest">{'BL: '} </strong>
-              <span>{deliverySlip}</span>
+              <span>{data.deliverySlip}</span>
             </div>
           )}
         </div>
         <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {invoiceNumber.replace(/0+/g, '')}
+            FACTURE: {data.reference.replace(/0+/g, '')}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
@@ -318,21 +279,23 @@ export default function Invoice({
         <h3 className="font-semibold">Client</h3>
         <div className="flex w-full justify-between ">
           <div>
-            <p className="font-medium uppercase">{client.name}</p>
+            <p className="font-medium uppercase">{data.name}</p>
             {/* client address only appear if it exist  */}
-            {client.address && (
-              <p className="capitalize font-normal">{client.address}</p>
+            {data.address && (
+              <p className="capitalize font-normal">{data.address}</p>
             )}
           </div>
           <div className="text-sm font-geist-sans w-48">
             <p className="flex">
-              <strong className="w-10">{'R.C: '}</strong> {client.rc}
+              <strong className="w-10">{'R.C: '}</strong>{' '}
+              {data.tradeRegisterNumber}
             </p>
             <p className="flex">
-              <strong className="w-10">{'N.I.F: '}</strong> {client.nif}
+              <strong className="w-10">{'N.I.F: '}</strong> {data.taxIdNumber}
             </p>
             <p className="flex">
-              <strong className="w-10">{'A.I: '}</strong> {client.ai}
+              <strong className="w-10">{'A.I: '}</strong>{' '}
+              {data.registrationArticle}
             </p>
           </div>
         </div>
@@ -405,7 +368,7 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between',
-                !discountRate && !refund && 'print:hidden'
+                !data.discountRate && !refund && 'print:hidden'
               )}
             >
               <span>TOTAL BRUTE H.T</span>
@@ -419,23 +382,38 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between border-t-[1.6px] pt-[1px]',
-                !discountRate && 'print:hidden'
+                !data.discountRate && 'print:hidden'
               )}
             >
               <div className="flex gap-1 items-center">
                 <span>REMISE </span>
                 <Input
                   value={
-                    discountRate ? (discountRate * 100).toFixed() : undefined
+                    data.discountRate
+                      ? (data.discountRate * 100).toFixed()
+                      : undefined
                   }
                   type="number"
                   name="discount-percentage"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (!readonly && Number(v) < 25 && Number(v) >= 0)
-                      setDiscountRate(Number(v) / 100)
+                    if (data.readonly && Number(v) < 0) return
+                    // discount should be less then 25%
+                    if (Number(v) > 25) {
+                      toast({
+                        title: 'Avertissement',
+                        description:
+                          'Le taux de remise doit être inférieur à 25 %',
+                        variant: 'warning'
+                      })
+                      return
+                    }
+                    setData((prev) => ({
+                      ...prev,
+                      discountRate: Number(v) / 100
+                    }))
                   }}
-                  readOnly={readonly}
+                  readOnly={data.readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -458,15 +436,30 @@ export default function Invoice({
               <div className="flex gap-1 items-center">
                 <span>R.G</span>
                 <Input
-                  value={refundRate ? (refundRate * 100).toFixed() : undefined}
+                  value={
+                    data.refundRate
+                      ? (data.refundRate * 100).toFixed()
+                      : undefined
+                  }
                   type="number"
                   name="guarantee-refund"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (!readonly && Number(v) < 100 && Number(v) >= 0)
-                      setRefundRate(Number(v) / 100)
+                    if (data.readonly && Number(v) < 0) return
+                    // Le taux de remboursement doit être inférieur à 50 %
+                    if (Number(v) > 50)
+                      toast({
+                        title: 'Avertissement',
+                        description:
+                          'Le taux de remboursement doit être inférieur à 50 %',
+                        variant: 'destructive'
+                      })
+                    setData((prev) => ({
+                      ...prev,
+                      refundRate: Number(v) / 100
+                    }))
                   }}
-                  readOnly={readonly}
+                  readOnly={data.readonly}
                   className={cn(
                     'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -501,22 +494,28 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between border-t-[1.6px] pt-[1px]',
-                !stampTaxRate && 'print:hidden'
+                !data.stampTaxRate && 'print:hidden'
               )}
             >
               <div className="flex gap-1 items-center">
                 <span>TIMBRE</span>
                 <Input
-                  value={stampTaxRate ? (stampTaxRate * 100).toFixed() : 0}
+                  value={
+                    data.stampTaxRate ? (data.stampTaxRate * 100).toFixed() : 0
+                  }
                   type="number"
                   name="stamp-tax"
                   placeholder="0"
                   onChange={({ target: { value } }) => {
-                    if (!readonly && Number(value) >= 0 && Number(value) < 2) {
-                      setStampTaxRate(Number(value) / 100)
-                    }
+                    if (data.readonly && Number(value) < 0 && Number(value) > 1)
+                      return
+
+                    setData((prev) => ({
+                      ...prev,
+                      stampTaxRate: Number(value) / 100
+                    }))
                   }}
-                  readOnly={readonly}
+                  readOnly={data.readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end  h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -556,9 +555,9 @@ export default function Invoice({
           <div className="space-y-1">
             <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
             <Select
-              value={paymentType}
+              value={data.paymentMode}
               onValueChange={handlePaymentTypeChange}
-              disabled={readonly}
+              disabled={data.readonly}
             >
               <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
                 <SelectValue placeholder="Sélectionner le mode de paiement" />
@@ -578,17 +577,18 @@ export default function Invoice({
             <Textarea
               className="w-full min-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
               placeholder="Saisissez des remarques pour cette facture..."
-              value={note}
-              onChange={(e) => {
-                if (!readonly) setNote(e.target.value)
+              value={data.note}
+              onChange={({ target: { value } }) => {
+                if (data.readonly) return
+                setData((prev) => ({ ...prev, note: value }))
               }}
-              readOnly={readonly}
+              readOnly={data.readonly}
             />
           </div>
-          {note && (
+          {data.note && (
             <div className="hidden print:block space-y-1">
               <h3 className="font-semibold">REMARQUE</h3>
-              <p className="">{note}</p>
+              <p className="">{data.note}</p>
             </div>
           )}
         </div>
@@ -623,21 +623,24 @@ export default function Invoice({
             <TableRow key={item.id}>
               <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
               <TableCell className="py-[3px] px-2 h-8 relative">
-                {!readonly && editingItemId === item.id ? (
+                {!data.readonly && editedId === item.id ? (
                   <Input
                     value={item.label}
                     onChange={(e) => {
                       const newValue = e.target.value
-                      setEditedItems((prev) =>
-                        prev.map((i) =>
-                          i.id === item.id ? { ...i, label: newValue } : i
+                      setData((prev) => ({
+                        ...prev,
+                        items: prev.items.map((nonEditedItem) =>
+                          nonEditedItem.id === item.id
+                            ? { ...nonEditedItem, label: newValue }
+                            : nonEditedItem
                         )
-                      )
+                      }))
                     }}
-                    onBlur={() => setEditingItemId(null)}
+                    onBlur={() => setEditedId(undefined)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        setEditingItemId(null)
+                        setEditedId(undefined)
                       }
                     }}
                     autoFocus
@@ -645,13 +648,13 @@ export default function Invoice({
                   />
                 ) : (
                   <div className="flex items-center">
-                    {!readonly && (
+                    {!data.readonly && (
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
                         onClick={() => {
-                          setEditingItemId(item.id)
+                          setEditedId(item.id)
                         }}
                       >
                         <Pencil className="h-3 w-3" />
@@ -680,23 +683,13 @@ export default function Invoice({
       </Table>
     )
   }
-  // Local function to update invoice metadata via PATCH
-  const handleMetadataChange = async () => {
-    const metadata = {
-      purchaseOrder,
-      deliverySlip,
-      note,
-      discountRate,
-      refundRate,
-      stampTaxRate,
-      paymentType,
-      items: editedItems
-    }
+
+  const updateData = async () => {
     try {
-      const invoice = await fetch(`/api/invoice/${id}`, {
+      const invoice = await fetch(`/api/invoice/${data.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ metadata })
+        body: JSON.stringify(data)
       })
       if (!invoice.ok) {
         const errorData = await invoice.json().catch(() => ({}))
@@ -714,61 +707,32 @@ export default function Invoice({
       })
     }
   }
-
-  // On first mount, update state variables from props.metadata if present
   useEffect(() => {
-    if (metadata) {
-      if ('purchaseOrder' in metadata)
-        setPurchaseOrder(metadata?.purchaseOrder as string)
-      if ('deliverySlip' in metadata)
-        setDeliverySlip(metadata?.deliverySlip as string)
-      if ('note' in metadata) setNote(metadata?.note as string)
-      if ('discountRate' in metadata)
-        setDiscountRate(metadata?.discountRate as number)
-      if ('refundRate' in metadata)
-        setRefundRate(metadata?.refundRate as number)
-      if ('stampTaxRate' in metadata)
-        setStampTaxRate(metadata.stampTaxRate || 0)
-      if ('paymentType' in metadata)
-        setPaymentType(metadata?.paymentType as (typeof PAYMENT_TYPES)[number])
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [metadata])
-
-  useEffect(() => {
-    handleMetadataChange()
-  }, [
-    purchaseOrder,
-    deliverySlip,
-    note,
-    discountRate,
-    refundRate,
-    stampTaxRate,
-    paymentType,
-    editedItems
-  ])
+    // Update api data when the data is changed
+    updateData()
+  }, [data])
 
   return (
     <>
       <div
         className={cn(
           'flex flex-col w-[210mm] gap-8 font-geist-sans',
-          readonly && 'print-preview',
-          className
+          data.readonly && 'print-preview',
+          data.className
         )}
       >
         {/* Print-only content */}
         {(() => {
           const pages: InvoiceItem[][] = []
-          const totalItems = editedItems.length
+          const totalItems = data.items.length
 
           // If there are 2 or fewer items, simply push all on one page.
           if (totalItems <= 4) {
-            pages.push(editedItems)
+            pages.push(data.items)
           } else {
             // Reserve the last 2 items for the final page.
-            const mainSection = editedItems.slice(0, totalItems - 2)
-            const lastPage = editedItems.slice(totalItems - 2)
+            const mainSection = data.items.slice(0, totalItems - 2)
+            const lastPage = data.items.slice(totalItems - 2)
 
             // Determine the number of main pages.
             // We want each main page to have at most ITEMS_PER_PRINT_PAGE items.

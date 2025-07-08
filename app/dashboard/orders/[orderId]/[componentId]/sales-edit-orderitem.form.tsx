@@ -32,19 +32,16 @@ import {
   CATEGORY_TYPES_ARR,
   type CLAMPING_TYPES,
   CLAMPING_TYPES_ARR,
-  COLLECTOR_MATERIALS_TYPES_ARR,
   type COLLECTOR_POSITION_TYPES,
   COLLECTOR_POSITION_TYPES_ARR,
   COOLING_SYSTEMS_TYPES_ARR,
   FABRICATION_TYPES_ARR,
   FINS_TYPES,
-  ORDER_TYPES_ARR,
   PACKAGING_TYPES_ARR,
   type PERFORATION_TYPES,
   PERFORATION_TYPES_ARR,
   TUBE_TYPES
 } from '@/config/global'
-import { Ordering } from '@tanstack/react-table'
 import { Icons } from '@/components/icons'
 import { Content } from '@tiptap/react'
 import { useSession } from 'next-auth/react'

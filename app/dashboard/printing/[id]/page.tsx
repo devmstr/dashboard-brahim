@@ -16,7 +16,7 @@ export default async function Page({ params }: { params: { id: string } }) {
       },
       items: {
         include: {
-          Price: true
+          Radiator: true
         }
       }
     }

@@ -126,8 +126,9 @@ model Inventory {
 
 model InventoryItem {
   id         String    @id @default(cuid())
-  name       String?
+  label      String?
   price      Int?
+  amount     Int?
   quantity   Int?
   radiatorId String?
   Radiator   Radiator? @relation(fields: [radiatorId], references: [id])

@@ -141,7 +141,7 @@ declare type RadiatorResponse = {
 }
 
 declare type InvoiceItem = {
-  id: number
+  id: string
   label: string
   quantity: number
   price: number

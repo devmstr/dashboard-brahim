@@ -16,7 +16,7 @@ export async function getInventoryTableData() {
   return inventories.flatMap((inv) =>
     inv.Radiators.map((rad) => ({
       id: rad.id,
-      designation: rad.label || rad.reference || '',
+      designation: rad.label || '',
       barcode: rad.barcode || '',
       quantity: inv.level,
       price: rad.Price?.unit ?? 0,
