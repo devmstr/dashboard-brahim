@@ -23,7 +23,7 @@ export async function GET(
         Client: true,
         items: {
           include: {
-            Price: true
+            Radiator: true
           }
         }
       }

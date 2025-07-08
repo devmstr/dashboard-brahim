@@ -4,31 +4,39 @@ import { z } from 'zod'
 import { skuId } from '@/lib/utils'
 import { revalidatePath } from 'next/cache'
 
-const InvoiceSchema = z.object({
-  customer: z
-    .object({
-      id: z.string().nullable().optional(),
-      name: z.string().optional(),
-      address: z.string().optional(),
-      addressId: z.string().optional(),
-      label: z.string().optional(),
-      rc: z.string().optional(),
-      nif: z.string().optional(),
-      ai: z.string().optional()
-    })
-    .optional(),
+const invoiceSchema = z.object({
+  id: z.string(),
+  reference: z.string(),
+  date: z.string(), // Use `z.date()` if parsed as a JS Date object
+  name: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  tradeRegisterNumber: z.string().nullable().optional(),
+  registrationArticle: z.string().nullable().optional(),
+  taxIdNumber: z.string().nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  purchaseOrder: z.string().nullable().optional(),
+  deliverySlip: z.string().nullable().optional(),
+  discountRate: z.number().nullable().optional().default(0),
+  refundRate: z.number().nullable().optional().default(0),
+  stampTaxRate: z.number().nullable().optional().default(0),
+  offerValidity: z.string().nullable().optional(),
+  guaranteeTime: z.number().nullable().optional(),
+  deliveryTime: z.number().nullable().optional(),
+  total: z.number().nullable().optional(),
+  subtotal: z.number().nullable().optional(),
+  tax: z.number().nullable().optional(),
   items: z
     .array(
       z.object({
         id: z.string(),
         name: z.string(),
         price: z.number(),
-        quantity: z.number()
+        quantity: z.number(),
+        radiatorId: z.string().optional()
       })
     )
     .min(1, 'At least one item is required'),
   type: z.enum(['PROFORMA', 'FINAL']).optional(),
-  subtotal: z.number(),
   paymentMode: z
     .enum([
       'Espèces',
@@ -39,19 +47,15 @@ const InvoiceSchema = z.object({
       'À terme'
     ])
     .optional(),
-  dueDate: z.string().optional(),
   note: z.string().optional(),
   status: z.enum(['PAID', 'UNPAID', 'OVERDUE']).optional(),
-  tax: z.number(),
-  total: z.number(),
-  metadata: z.any().optional()
+  clientId: z.string().optional()
 })
 
 export async function POST(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url)
     const body = await req.json()
-    const parsed = InvoiceSchema.safeParse(body)
+    const parsed = invoiceSchema.safeParse(body)
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -61,183 +65,75 @@ export async function POST(req: NextRequest) {
     }
 
     const {
-      customer,
-      items,
+      id,
+      reference,
+      date,
+      name,
+      address,
+      tradeRegisterNumber,
+      registrationArticle,
+      taxIdNumber,
+      dueDate,
+      purchaseOrder,
+      deliverySlip,
+      discountRate,
+      refundRate,
+      stampTaxRate,
+      offerValidity,
+      guaranteeTime,
+      deliveryTime,
+      total,
       subtotal,
       tax,
-      total,
+      items,
       type,
       paymentMode,
-      dueDate,
       note,
       status,
-      metadata = {}
+      clientId
     } = parsed.data
 
-    // Extract new fields from metadata or body
-    const purchaseOrder = metadata.purchaseOrder || body.purchaseOrder
-    const deliverySlip = metadata.deliverySlip || body.deliverySlip
-    const discountRate = metadata.discountRate ?? body.discountRate ?? 0
-    const refundRate = metadata.refundRate ?? body.refundRate ?? 0
-    const stampTaxRate = metadata.stampTaxRate ?? body.stampTaxRate ?? 0
-    // offerValidity and deliveryTime/guaranteeTime may be string or int
-    let offerValidity = metadata.offerValidity || body.offerValidity
-    let guaranteeTime = metadata.guaranteeTime || body.guaranteeTime
-    let deliveryTime = metadata.deliveryTime || body.deliveryTime
+    // Convert date fields to Date objects
+    const dateObj = date ? new Date(date) : new Date()
+    const dueDateObj = dueDate ? new Date(dueDate) : undefined
+    const offerValidityObj = offerValidity ? new Date(offerValidity) : undefined
 
-    // Parse offerValidity as Date if string
-    if (offerValidity && typeof offerValidity === 'string') {
-      const d = new Date(offerValidity)
-      offerValidity = isNaN(d.getTime()) ? undefined : d
-    }
-    // Parse guaranteeTime and deliveryTime as int if string
-    if (guaranteeTime && typeof guaranteeTime === 'string') {
-      guaranteeTime = parseInt(guaranteeTime, 10)
-    }
-    if (deliveryTime && typeof deliveryTime === 'string') {
-      deliveryTime = parseInt(deliveryTime, 10)
-    }
-
-    // Complete customer object if not completed
-    let client = customer
-    if (!client) {
-      return NextResponse.json(
-        { message: 'Customer information is required.' },
-        { status: 400 }
-      )
-    }
-    if (client && client.id) {
-      const existedClient = await prisma.client.findUnique({
-        where: { id: customer?.id || undefined },
-        include: { Address: true }
-      })
-      if (existedClient) {
-        client = {
-          ...customer,
-          id: existedClient.id,
-          name: existedClient.name || customer?.name,
-          label: existedClient.label || customer?.label,
-          address: existedClient.Address?.street || customer?.address,
-          rc: existedClient.tradeRegisterNumber || customer?.rc,
-          nif: existedClient.taxIdNumber || customer?.nif,
-          ai: existedClient.registrationArticle || customer?.ai
-        }
-      }
-    } else {
-      client = { ...customer, id: null }
-    }
-    // Validate required customer fields
-    if (client && !client.name) {
-      return NextResponse.json(
-        { message: 'Customer name is required.' },
-        { status: 400 }
-      )
-    }
-    if (client && !client.address) {
-      return NextResponse.json(
-        { message: 'Customer address is required.' },
-        { status: 400 }
-      )
-    }
-    if (client && !client.rc) {
-      return NextResponse.json(
-        { message: 'Customer trade register number (RC) is required.' },
-        { status: 400 }
-      )
-    }
-    if (client && !client.nif) {
-      return NextResponse.json(
-        { message: 'Customer fiscal number (NIF) is required.' },
-        { status: 400 }
-      )
-    }
-    if (client && !client.ai) {
-      return NextResponse.json(
-        { message: 'Customer statistical ID number (AI) is required.' },
-        { status: 400 }
-      )
-    }
-    if (!items || items.length === 0) {
-      return NextResponse.json(
-        { message: 'At least one item is required.' },
-        { status: 400 }
-      )
-    }
-    // Determine invoice type
-    const now = new Date()
-    const yearShort = now.getFullYear().toString().slice(-2)
-    const prefix = (type === 'FINAL' ? 'FF' : 'FP') + yearShort + '-'
-    const lastInvoice = await prisma.invoice.findFirst({
-      where: {
-        number: { startsWith: prefix },
-        type
-      },
-      orderBy: { createdAt: 'desc' }
-    })
-    let nextSeq = 1
-    if (lastInvoice?.number) {
-      const match = lastInvoice.number.match(/^(FF|FP)(\d{2})-(\d{4})$/)
-      if (match) {
-        nextSeq = parseInt(match[3], 10) + 1
-      }
-    }
-    const invoiceNumber = `${prefix}${nextSeq.toString().padStart(4, '0')}`
-    const id = skuId(type === 'FINAL' ? 'FF' : 'FP')
-    if (!id) {
-      return NextResponse.json(
-        { message: 'Failed to generate invoice ID.' },
-        { status: 500 }
-      )
-    }
-    const hasValidClient = !!client?.id
     // Create invoice
     const invoice = await prisma.invoice.create({
       data: {
         id,
-        number: invoiceNumber,
-        type,
-        clientName: client?.name,
-        clientAddress: client?.address,
-        clientRC: client?.rc,
-        clientNif: client?.nif,
-        clientAi: client?.ai,
-        clientId: client?.id,
-        subtotal,
-        tax,
-        total,
-        paymentMode,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
-        note,
-        status,
-        purchaseOrder: purchaseOrder || undefined,
-        deliverySlip: deliverySlip || undefined,
+        reference,
+        date: dateObj,
+        name: name ?? undefined,
+        address: address ?? undefined,
+        tradeRegisterNumber: tradeRegisterNumber ?? undefined,
+        registrationArticle: registrationArticle ?? undefined,
+        taxIdNumber: taxIdNumber ?? undefined,
+        type: type ?? undefined,
+        status: status ?? undefined,
+        paymentMode: paymentMode ?? undefined,
+        dueDate: dueDateObj,
+        purchaseOrder: purchaseOrder ?? undefined,
+        deliverySlip: deliverySlip ?? undefined,
         discountRate: discountRate ?? 0,
         refundRate: refundRate ?? 0,
         stampTaxRate: stampTaxRate ?? 0,
-        offerValidity: offerValidity || undefined,
-        guaranteeTime: guaranteeTime ? Number(guaranteeTime) : undefined,
-        deliveryTime: deliveryTime ? Number(deliveryTime) : undefined,
-        // Items only for FINAL, metadata for all
-        ...(type === 'FINAL'
-          ? {
-              items: {
-                connect: items.map((item) => ({ id: item.id }))
-              }
-            }
-          : {}),
-        metadata: {
-          ...(hasValidClient ? {} : { client: client }),
-          items: items.map((item) => ({
-            id: item.id,
-            label: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            amount: item.price * item.quantity
-          })),
-          ...metadata
+        offerValidity: offerValidityObj,
+        guaranteeTime: guaranteeTime ?? undefined,
+        deliveryTime: deliveryTime ?? undefined,
+        note: note ?? undefined,
+        total: total ?? undefined,
+        subtotal: subtotal ?? undefined,
+        tax: tax ?? undefined,
+        clientId: clientId ?? undefined,
+        items: {
+          createMany: {
+            data: items
+          }
         }
       }
     })
+
     revalidatePath('/dashboard/ledger')
     return NextResponse.json({ id: invoice.id })
   } catch (error: any) {

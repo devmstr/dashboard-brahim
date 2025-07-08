@@ -97,7 +97,7 @@ const Page: React.FC<Props> = async ({
                       model: orderItem.Model.name,
                       brand: orderItem.Model.Family.Brand.name,
                       family: orderItem.Model.Family.name,
-                      productionYears: orderItem.Model.production as string
+                      year: orderItem.Model.year as string
                     }
                   : undefined
               }}

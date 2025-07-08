@@ -7,13 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum CollectorType {
-  TOP
-  BOTTOM
-
-  @@map("collector_position")
-}
-
 model Account {
   id                 String    @id @default(cuid())
   userId             String
@@ -65,13 +58,6 @@ model VerificationRequest {
   updatedAt  DateTime @updatedAt
 
   @@unique([identifier, token])
-}
-
-// ENUMS
-enum AccessLevel {
-  VIEW
-  EDIT
-  MANAGE
 }
 
 // LOCATION MODELS
@@ -138,45 +124,44 @@ model Inventory {
   @@map("inventories")
 }
 
-enum InvoiceType {
-  PROFORMA
-  FINAL
-}
-
-enum InvoiceStatus {
-  PAID
-  UNPAID
-  OVERDUE
+model InventoryItem {
+  id         String    @id @default(cuid())
+  name       String?
+  price      Int?
+  quantity   Int?
+  radiatorId String?
+  Radiator   Radiator? @relation(fields: [radiatorId], references: [id])
+  Invoice    Invoice?  @relation(fields: [invoiceId], references: [id])
+  invoiceId  String?
 }
 
 model Invoice {
-  id            String         @id @default(cuid())
-  number        String         @unique
-  date          DateTime       @default(now())
-  clientName    String?
-  clientAddress String?
-  clientRC      String? //e.g., "RC123456"
-  clientNif     String? //e.g., "NIF123456"
-  clientAi      String? //e.g., "AI123456"
-  type          InvoiceType    @default(FINAL) //e.g., "proforma", "final"
-  status        InvoiceStatus? //e.g., "paid", "unpaid", "overdue"
-  paymentMode   String? //e.g., "cash", "bank_transfer"
-  dueDate       DateTime?
-  purchaseOrder String? //e.g., "PO123456"
-  deliverySlip  String? // e.g., "DS123456"
-  discountRate  Float?         @default(0) // e.g., 10 for 10%
-  refundRate    Float?         @default(0) // e.g., 5 for 5%
-  stampTaxRate  Float?         @default(0) // e.g., 1 for 1%
-  offerValidity DateTime? // e.g., "2023-12-31"
-  guaranteeTime Int? // e.g., 12 for 12 months
-  deliveryTime  Int? // e.g., 30 for 30 days
-  note          String? // Additional notes or comments
-  total         Float?
-  subtotal      Float?
-  tax           Float?
+  id                  String    @id @default(cuid())
+  reference           String    @unique
+  date                DateTime  @default(now())
+  name                String?
+  address             String?
+  tradeRegisterNumber String?
+  registrationArticle String?
+  taxIdNumber         String?
+  type                String?
+  status              String?
+  paymentMode         String?
+  dueDate             DateTime?
+  purchaseOrder       String?
+  deliverySlip        String?
+  discountRate        Float?    @default(0)
+  refundRate          Float?    @default(0)
+  stampTaxRate        Float?    @default(0)
+  offerValidity       DateTime?
+  guaranteeTime       Int?
+  deliveryTime        Int?
+  note                String?
+  total               Float?
+  subtotal            Float?
+  tax                 Float?
 
-  items    Radiator[]
-  metadata Json?
+  items InventoryItem[]
 
   Order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
   orderId String?
@@ -184,11 +169,26 @@ model Invoice {
   clientId String?
   Client   Client? @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
+  histories InvoiceHistory[]
+
   createdAt DateTime  @default(now())
   deletedAt DateTime?
   updatedAt DateTime  @updatedAt
 
   @@map("invoices")
+}
+
+model InvoiceHistory {
+  id        String   @id @default(cuid())
+  invoiceId String
+  data      Json // Full snapshot of invoice
+  changedAt DateTime @default(now())
+  changedBy String? // optional: user ID or name who made the change
+  reason    String? // optional: "client request", "correction", etc.
+
+  Invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_histories")
 }
 
 model Price {
@@ -207,52 +207,59 @@ model Price {
 }
 
 model Radiator {
-  id         String  @id @default(cuid())
-  reference  String? @unique
-  category   String?
-  dir        String?
-  cooling    String?
-  barcode    String? @unique
-  label      String? @unique
-  hash       String? @unique // Unique hash for the radiator
-  status     String? // e.g., "active", "inactive", "draft" , "ar"
-  type       String? // e.g., "collector", "core", "tube"
-  production String? // e.g., "2023-10-01"
-
-  isActive    Boolean? @default(false)
-  inventoryId String?
-  priceId     String?
-  directoryId String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  Inventory  Inventory?  @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
-  Price      Price?      @relation(fields: [priceId], references: [id], onDelete: SetNull)
-  Directory  Directory?  @relation(fields: [directoryId], references: [id], onDelete: SetNull)
-  Models     CarModel[]
-  Components Component[]
-  Orders     Order[]
-  Invoice    Invoice?    @relation(fields: [invoiceId], references: [id])
-  invoiceId  String?
+  id                   String          @id @default(cuid())
+  partNumber           String?         @unique // is unique manufacturing number 
+  category             String?
+  cooling              String?
+  barcode              String?         @unique
+  label                String?         @unique
+  hash                 String?         @unique // Unique hash for the radiator
+  status               String? // e.g., "active", "inactive", "draft" , "ar"
+  type                 String? // e.g., "collector", "core", "tube"
+  production           String? // e.g., "2023-10-01"
+  fabrication          String?
+  fins                 String?
+  pitch                Int?
+  tube                 String?
+  rows                 Int?
+  tubeDiameter         Int?
+  betweenCollectors    Int?
+  width                Int?
+  position             String?
+  tightening           String?
+  perforation          String?
+  isTinned             Boolean?        @default(false)
+  isPainted            Boolean?        @default(true)
+  upperCollectorLength Int?
+  lowerCollectorLength Int?
+  upperCollectorWidth  Int?
+  lowerCollectorWidth  Int?
+  isActive             Boolean?        @default(false)
+  inventoryId          String?
+  priceId              String?
+  directoryId          String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  Inventory            Inventory?      @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+  Price                Price?          @relation(fields: [priceId], references: [id], onDelete: SetNull)
+  Directory            Directory?      @relation(fields: [directoryId], references: [id], onDelete: SetNull)
+  Models               CarModel[]
+  Components           Component[]
+  Orders               Order[]
+  invoiceId            String?
+  InventoryItem        InventoryItem[]
 
   @@map("radiators")
 }
 
-enum ComponentType {
-  COLLECTOR
-  CORE
-  TUBE
-}
-
 model Component {
-  id         String        @id @default(cuid())
-  name       String
-  type       ComponentType
+  id         String @id @default(cuid())
+  label      String
+  type       String
   radiatorId String
 
   Radiator       Radiator        @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
   MaterialUsages MaterialUsage[]
-  Metadata       Json?
 
   @@map("components")
 }
@@ -260,12 +267,15 @@ model Component {
 // MATERIAL SYSTEM
 
 model Material {
-  id          String          @id @default(cuid())
-  reference   String?         @unique
-  name        String
-  description String? // e.g., "High-quality steel for radiator cores"
-  unit        String // e.g., "grams", "pieces", "meters", "cm²"
-  Usages      MaterialUsage[]
+  id               String          @id @default(cuid())
+  reference        String?         @unique
+  name             String
+  description      String?
+  unit             String // e.g., "kg", "g", "l", "m²", "cm²"
+  baseUnit         String // e.g., "g", "ml", "m²"
+  conversionFactor Float // e.g., 1000 if unit is "kg" and baseUnit is "g"
+  unitCost         Float // cost per base unit
+  Usages           MaterialUsage[]
 
   @@map("materials")
 }
@@ -305,9 +315,11 @@ model CarFamily {
 }
 
 model CarModel {
-  id         String  @id @default(cuid())
-  name       String
-  production String?
+  id   String  @id @default(cuid())
+  name String
+  year String?
+  fuel String?
+
   familyId   String
   radiatorId String?
 
@@ -339,8 +351,8 @@ model Client {
   email               String? @unique
   isCompany           Boolean @default(false)
   website             String?
-  tradeRegisterNumber String?
   fiscalNumber        String?
+  tradeRegisterNumber String?
   registrationArticle String?
   taxIdNumber         String?
   statisticalIdNumber String?
@@ -402,6 +414,7 @@ model OrderItem {
   note                 Json?
   description          Json?
   modification         Json?
+  serialNumber         String?
   packaging            String?
   type                 String?
   category             String?
@@ -536,8 +549,8 @@ model Tag {
 }
 
 model Permission {
-  id     String      @id @default(cuid())
-  access AccessLevel
+  id     String  @id @default(cuid())
+  access String?
   userId String
   fileId String?
   dirId  String?

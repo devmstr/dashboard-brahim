@@ -17,11 +17,9 @@ export async function GET(request: NextRequest) {
     // Add search functionality across multiple fields
     if (search) {
       filter.OR = [
-        // Search by name/label
         { label: { contains: search, mode: 'insensitive' } },
-        // Search by reference
-        { reference: { contains: search, mode: 'insensitive' } },
-        // Search by model name
+        { partNumber: { contains: search, mode: 'insensitive' } },
+        { hash: { contains: search, mode: 'insensitive' } },
         {
           Models: {
             some: {
@@ -29,7 +27,6 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        // Search by brand name through models
         {
           Models: {
             some: {
@@ -41,7 +38,6 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        // Search by client name through orders
         {
           Orders: {
             some: {
@@ -74,6 +70,7 @@ export async function GET(request: NextRequest) {
         },
         Models: {
           include: {
+            Types: true,
             Family: {
               include: {
                 Brand: true
@@ -81,12 +78,13 @@ export async function GET(request: NextRequest) {
             }
           }
         },
+
         Orders: {
           include: {
-            Client: true,
-            OrdersItems: {
-              take: 3 // Limit the number of orders returned
-            }
+            Client: true
+            // OrdersItems: {
+            //   take: 3 // Limit the number of orders returned
+            // }
           }
         },
         Inventory: true,
@@ -103,85 +101,36 @@ export async function GET(request: NextRequest) {
     const total = await prisma.radiator.count({ where: filter })
 
     // Format the response to include only essential fields
-    const formattedData = radiators.map((radiator) => {
-      const clientMap = new Map<string, string>()
-
-      // Group models by brand
-      const brandModelsMap = new Map<
-        string,
-        { id: string; name: string; Models: { id: string; name: string }[] }
-      >()
-
-      // Process models and organize by brand
-      radiator.Models.forEach((model) => {
-        if (model.Family?.Brand) {
-          const brandId = model.Family.Brand.id
-          const brandName = model.Family.Brand.name
-
-          if (!brandModelsMap.has(brandId)) {
-            brandModelsMap.set(brandId, {
-              id: brandId,
-              name: brandName,
-              Models: []
-            })
-          }
-
-          brandModelsMap.get(brandId)?.Models.push({
-            id: model.id,
-            name: model.name
+    const formattedRadiators = radiators.map(
+      ({ Components, Orders, Models, Price, Inventory, ...radiator }) => ({
+        ...radiator,
+        inventor: Inventory?.level,
+        inventorId: Inventory?.id,
+        priceHT: Price?.unit,
+        priceTTC: Price?.unitTTC,
+        bulkPriceHT: Price?.bulk,
+        bulkPriceTTC: Price?.bulkTTC,
+        Components: Components.map(({ MaterialUsages, ...component }) => ({
+          ...component,
+          usages: MaterialUsages.map(({ Material, quantity }) => ({
+            ...Material,
+            quantity
+          }))
+        })),
+        Models: Models.map(
+          ({ Family: { Brand, ...Family }, Types, ...model }) => ({
+            ...model,
+            Types,
+            Family,
+            Brand
           })
-        }
+        ),
+        Clients: Orders.map(({ Client }) => ({ ...Client }))
       })
-
-      // Extract clients from order items
-      radiator.Orders?.forEach((orderItem) => {
-        const client = orderItem.Client
-        if (client?.id && client?.name) {
-          clientMap.set(client.id, client.name)
-        }
-      })
-
-      // Extract components
-      const Components = radiator.Components.map((component) => {
-        return {
-          id: component.id,
-          name: component.name,
-          type: component.type,
-          radiatorId: component.radiatorId,
-          Materials: component.MaterialUsages?.map((usage) => ({
-            id: usage.materialId,
-            name: usage.Material?.name,
-            quantity: usage.quantity,
-            unit: usage.Material?.unit
-          })),
-          meta: component.Metadata || null
-        }
-      })
-
-      return {
-        id: radiator.id,
-        reference: radiator.reference,
-        label: radiator.label || `Product ${radiator.id}`,
-        category: radiator.category,
-        cooling: radiator.cooling,
-        barcode: radiator.barcode,
-        isActive: radiator.isActive,
-        createdAt: radiator.createdAt,
-        updatedAt: radiator.updatedAt,
-        // Include related data
-        Inventory: radiator.Inventory,
-        Price: radiator.Price,
-        Components,
-        Brands: Array.from(brandModelsMap.values()),
-        Clients: Array.from(clientMap.entries()).map(([id, name]) => ({
-          id,
-          name
-        }))
-      }
-    })
+    )
 
     return NextResponse.json({
-      data: formattedData,
+      data: formattedRadiators,
       pagination: {
         total,
         page,

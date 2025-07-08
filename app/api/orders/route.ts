@@ -21,7 +21,6 @@ export async function POST(request: Request) {
       OrderItems,
       Attachments
     } = body
-    console.log('body : ', body)
     // Validate inputs
     if (!clientId) {
       return NextResponse.json(

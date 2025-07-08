@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     // Map to POS product format
     const products = radiators.map((r) => ({
       id: r.id,
-      reference: r.reference,
+      reference: r.partNumber,
       label: r.label,
       description: r.label,
       price: r.Price?.unit ?? 0,

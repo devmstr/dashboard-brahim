@@ -45,7 +45,7 @@ export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
       family: defaultValues?.family || '',
       type: defaultValues?.type || '',
       fuel: defaultValues?.fuel || 'Diesel',
-      productionYears: defaultValues?.productionYears || ''
+      year: defaultValues?.year || ''
     }
   })
 

@@ -25,7 +25,7 @@ export const carSchema = z.object({
   family: z.string().optional(),
   type: z.string().nullable().optional(),
   fuel: z.enum(['Essence', 'Diesel']).nullable().optional(),
-  productionYears: z
+  year: z
     .string()
     .regex(/^\d{4}–\d{4}$/, {
       message: 'Must be in the format YYYY–YYYY'
