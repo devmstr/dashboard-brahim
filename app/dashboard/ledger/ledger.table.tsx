@@ -37,7 +37,7 @@ import {
 import Link from 'next/link'
 import { Icons } from '@/components/icons'
 import { cn, hasUserRole } from '@/lib/utils'
-import type { UserRole } from '@/types'
+import type { Invoice as InvoiceType, UserRole } from '@/types'
 import { useRouter } from 'next/navigation'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import {
@@ -62,9 +62,9 @@ import { Calendar } from '@/components/ui/calendar'
 import { ScrollArea } from '@/components/scroll-area'
 import { useReactToPrint } from 'react-to-print'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
-import ReadOnlyInvoice from '@/components/readonly-invoice'
 import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import Invoice from '@/app/dashboard/printing/[id]/invoice'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -163,9 +163,7 @@ export function LedgerTable({
     'FINAL' | 'PROFORMA' | null
   >(null)
   const [showInvoice, setShowInvoice] = React.useState(false)
-  const [invoiceData, setInvoiceData] = React.useState<InvoiceProps | null>(
-    null
-  )
+  const [invoice, setInvoice] = React.useState<InvoiceType | null>(null)
   const printRef = React.useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
@@ -225,7 +223,7 @@ export function LedgerTable({
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: `Facture-${invoiceData?.invoiceNumber}`,
+    documentTitle: `Facture-${invoice?.reference}`,
     pageStyle: `
           @page { 
             size: A4;
@@ -245,39 +243,7 @@ export function LedgerTable({
       const res = await fetch(`/api/invoice/${id}`)
       if (res.ok) {
         const invoice = await res.json()
-        const client = {
-          name: invoice.clientName || '',
-          address: invoice.clientAddress || '',
-          rc: invoice.clientRC || '',
-          nif: invoice.clientNif || '',
-          ai: invoice.clientAi || ''
-        }
-        setInvoiceData({
-          id: invoice.id,
-          invoiceNumber: invoice.number,
-          qrAddress: invoice.id,
-          note: invoice.metadata?.note || invoice.note || '',
-          paymentMode: invoice.metadata?.paymentType || invoice?.paymentMode,
-          type: invoice.type,
-          purchaseOrder:
-            invoice.metadata?.purchaseOrder || invoice.purchaseOrder || '',
-          deliverySlip:
-            invoice.metadata?.deliverySlip || invoice.deliverySlip || '',
-          discountRate:
-            invoice.metadata?.discountRate || invoice.discountRate || 0,
-          refundRate: invoice.metadata?.refundRate || invoice.refundRate || 0,
-          stampTaxRate:
-            invoice.metadata?.stampTaxRate || invoice.stampTaxRate || 0,
-          offerValidity:
-            invoice.metadata?.offerValidity || invoice.offerValidity || '',
-          deliveryTime:
-            invoice.metadata?.deliveryTime || invoice.deliveryTime || '',
-          guaranteeTime:
-            invoice.metadata?.guaranteeTime || invoice.guaranteeTime || '',
-          items: invoice.metadata.items,
-          metadata: invoice.metadata,
-          client
-        })
+        setInvoice(invoice)
       }
     } catch (e) {
       toast({
@@ -910,12 +876,13 @@ export function LedgerTable({
       {/* Invoice Print Dialog rendered in parent */}
       <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
         <DialogContent className="p-0 max-w-[50rem]">
-          {invoiceData ? (
+          {invoice ? (
             <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
               <div ref={printRef}>
-                <ReadOnlyInvoice
+                <Invoice
+                  data={invoice}
                   className="max-w-[50rem] w-full"
-                  {...invoiceData}
+                  readonly
                 />
               </div>
             </ScrollArea>

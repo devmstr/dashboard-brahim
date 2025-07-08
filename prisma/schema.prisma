@@ -124,8 +124,8 @@ model Inventory {
   @@map("inventories")
 }
 
-model InventoryItem {
-  id         String    @id @default(cuid())
+model InvoiceItem {
+  id         Int       @id @default(autoincrement())
   label      String?
   price      Int?
   amount     Int?
@@ -134,12 +134,14 @@ model InventoryItem {
   Radiator   Radiator? @relation(fields: [radiatorId], references: [id])
   Invoice    Invoice?  @relation(fields: [invoiceId], references: [id])
   invoiceId  String?
+
+  @@map("InvoiceItem")
 }
 
 model Invoice {
   id                  String    @id @default(cuid())
   reference           String    @unique
-  date                DateTime  @default(now())
+  date                DateTime? @default(now())
   name                String?
   address             String?
   tradeRegisterNumber String?
@@ -148,21 +150,20 @@ model Invoice {
   type                String?
   status              String?
   paymentMode         String?
-  dueDate             DateTime?
   purchaseOrder       String?
   deliverySlip        String?
   discountRate        Float?    @default(0)
   refundRate          Float?    @default(0)
   stampTaxRate        Float?    @default(0)
-  offerValidity       DateTime?
-  guaranteeTime       Int?
-  deliveryTime        Int?
+  offerValidity       String?
+  guaranteeTime       String?
+  deliveryTime        String?
   note                String?
   total               Float?
   subtotal            Float?
   tax                 Float?
 
-  items InventoryItem[]
+  items InvoiceItem[]
 
   Order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
   orderId String?
@@ -172,9 +173,9 @@ model Invoice {
 
   histories InvoiceHistory[]
 
-  createdAt DateTime  @default(now())
   deletedAt DateTime?
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
 
   @@map("invoices")
 }
@@ -208,13 +209,14 @@ model Price {
 }
 
 model Radiator {
-  id                   String          @id @default(cuid())
-  partNumber           String?         @unique // is unique manufacturing number 
+  id                   String        @id @default(cuid())
+  partNumber           String?       @unique // is unique manufacturing number 
   category             String?
+  dirId                String?
   cooling              String?
-  barcode              String?         @unique
-  label                String?         @unique
-  hash                 String?         @unique // Unique hash for the radiator
+  barcode              String?       @unique
+  label                String?       @unique
+  hash                 String?       @unique // Unique hash for the radiator
   status               String? // e.g., "active", "inactive", "draft" , "ar"
   type                 String? // e.g., "collector", "core", "tube"
   production           String? // e.g., "2023-10-01"
@@ -229,26 +231,26 @@ model Radiator {
   position             String?
   tightening           String?
   perforation          String?
-  isTinned             Boolean?        @default(false)
-  isPainted            Boolean?        @default(true)
+  isTinned             Boolean?      @default(false)
+  isPainted            Boolean?      @default(true)
   upperCollectorLength Int?
   lowerCollectorLength Int?
   upperCollectorWidth  Int?
   lowerCollectorWidth  Int?
-  isActive             Boolean?        @default(false)
+  isActive             Boolean?      @default(false)
   inventoryId          String?
   priceId              String?
   directoryId          String?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  Inventory            Inventory?      @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
-  Price                Price?          @relation(fields: [priceId], references: [id], onDelete: SetNull)
-  Directory            Directory?      @relation(fields: [directoryId], references: [id], onDelete: SetNull)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  Inventory            Inventory?    @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+  Price                Price?        @relation(fields: [priceId], references: [id], onDelete: SetNull)
+  Directory            Directory?    @relation(fields: [directoryId], references: [id], onDelete: SetNull)
   Models               CarModel[]
   Components           Component[]
   Orders               Order[]
   invoiceId            String?
-  InventoryItem        InventoryItem[]
+  InventoryItem        InvoiceItem[]
 
   @@map("radiators")
 }

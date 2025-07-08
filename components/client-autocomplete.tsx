@@ -14,13 +14,14 @@ import {
 import { Building, Loader2, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface Client {
-  name: string
-  address: string
-  rc: string
-  nif: string
-  ai: string
+export interface Client {
+  name: string | null
+  address: string | null
+  tradeRegisterNumber: string | null
+  registrationArticle: string | null
+  taxIdNumber: string | null
 }
+
 interface ApiClient {
   Address: { street: string }
   name: string
@@ -135,9 +136,9 @@ export default function ClientAutocomplete({
     setClient({
       name: isCompany ? `${label} ${name}` : name,
       address: street,
-      rc: tradeRegisterNumber || '',
-      nif: taxIdNumber || '',
-      ai: registrationArticle || ''
+      tradeRegisterNumber: tradeRegisterNumber || '',
+      taxIdNumber: taxIdNumber || '',
+      registrationArticle: registrationArticle || ''
     })
     setQuery('')
     setShowDropdown(false)
@@ -186,7 +187,7 @@ export default function ClientAutocomplete({
               'h-6 p-0 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base',
               !client.name && 'print:hidden'
             )}
-            value={client.name}
+            value={client.name ?? undefined}
             onChange={(e) => handleNameChange(e.target.value)}
             onFocus={() => {
               if (suggestions.length > 0) setShowDropdown(true)
@@ -273,7 +274,7 @@ export default function ClientAutocomplete({
             'h-6 p-0 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base',
             !client.address && 'print:hidden'
           )}
-          value={client.address}
+          value={client.address ?? undefined}
           onChange={(e) => setClient({ ...client, address: e.target.value })}
         />
       </div>
@@ -283,45 +284,51 @@ export default function ClientAutocomplete({
         <div
           className={cn(
             'flex items-center gap-2',
-            !client.rc && 'print:hidden'
+            !client.tradeRegisterNumber && 'print:hidden'
           )}
         >
           <span className="font-semibold min-w-[3rem]">R.C:</span>
           <Input
             placeholder="97/B/0862043"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.rc}
-            onChange={(e) => setClient({ ...client, rc: e.target.value })}
+            value={client.tradeRegisterNumber ?? undefined}
+            onChange={(e) =>
+              setClient({ ...client, tradeRegisterNumber: e.target.value })
+            }
           />
         </div>
 
         <div
           className={cn(
             'flex items-center gap-2',
-            !client.nif && 'print:hidden'
+            !client.taxIdNumber && 'print:hidden'
           )}
         >
           <span className="font-semibold min-w-[3rem]">N.I.F:</span>
           <Input
             placeholder="99747086204393"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.nif}
-            onChange={(e) => setClient({ ...client, nif: e.target.value })}
+            value={client.taxIdNumber ?? undefined}
+            onChange={(e) =>
+              setClient({ ...client, taxIdNumber: e.target.value })
+            }
           />
         </div>
 
         <div
           className={cn(
             'flex items-center gap-2',
-            !client.ai && 'print:hidden'
+            !client.registrationArticle && 'print:hidden'
           )}
         >
           <span className="font-semibold min-w-[3rem]">A.I:</span>
           <Input
             placeholder="471006003"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.ai}
-            onChange={(e) => setClient({ ...client, ai: e.target.value })}
+            value={client.registrationArticle ?? undefined}
+            onChange={(e) =>
+              setClient({ ...client, registrationArticle: e.target.value })
+            }
           />
         </div>
       </div>

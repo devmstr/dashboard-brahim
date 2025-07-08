@@ -7,36 +7,45 @@ async function main() {
 
   // Array of materials to seed
   const materials = [
-    // Brass tubes with French descriptions, gram units, and radiator usage
     {
       reference: 'TUBL30',
       name: 'Tube En Laiton Ø 30',
       description:
         'Tube en laiton de diamètre 30mm, utilisé pour les radiateurs et installations de chauffage',
-      unit: 'grammes'
+      unit: 'grammes',
+      baseUnit: 'mètre',
+      conversionFactor: 840, // e.g., 840g/m
+      unitCost: 0.012 // €/g
     },
     {
       reference: 'TUBL32',
       name: 'Tube En Laiton Ø 32',
       description:
         'Tube en laiton de diamètre 32mm, utilisé pour les radiateurs et installations de chauffage',
-      unit: 'grammes'
+      unit: 'grammes',
+      baseUnit: 'mètre',
+      conversionFactor: 920, // 920g/m
+      unitCost: 0.012
     },
     {
       reference: 'TUBL35',
       name: 'Tube En Laiton Ø 35',
       description:
         'Tube en laiton de diamètre 35mm, utilisé pour les radiateurs et installations de chauffage',
-      unit: 'grammes'
+      unit: 'grammes',
+      baseUnit: 'mètre',
+      conversionFactor: 1050, // 1050g/m
+      unitCost: 0.012
     },
     {
       reference: 'BNL06',
       name: 'Band En Laiton Ø 6',
-
       description:
-        'Bande en laiton de diamètre 6mm, utilisé pour les radiateurs et installations de chauffage',
-
-      unit: 'grammes'
+        'Bande en laiton de diamètre 6mm, utilisée pour les radiateurs et installations de chauffage',
+      unit: 'grammes',
+      baseUnit: 'mètre',
+      conversionFactor: 150, // 150g/m
+      unitCost: 0.012
     }
   ]
 

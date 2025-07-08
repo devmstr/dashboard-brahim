@@ -151,120 +151,31 @@ async function main() {
     const radiator = await prisma.radiator.create({
       data: {
         id: id,
-        reference: productReference,
+        partNumber: productReference,
         label: productLabel,
         category,
-        dir: `C${faker.string.numeric(3)}`,
+        directoryId: `C${faker.string.numeric(3)}`,
         cooling: faker.helpers.arrayElement(COOLING_TYPES),
         barcode: faker.string.numeric(13),
         isActive: true,
         inventoryId: inventory.id,
-        priceId: price.id
+        priceId: price.id,
+        betweenCollectors: 0,
+        width: 0,
+        rows: 0,
+        fins: 'Zigzag',
+        pitch: 0,
+        tube: 'ET7',
+        upperCollectorLength: 0,
+        upperCollectorWidth: 0,
+        position: '',
+        tightening: '',
+        perforation: '',
+        isTinned: true
       }
     })
 
     console.log(`✅ Created product: ${radiator.label} - ${productLabel}`)
-
-    // Create a core component
-    await prisma.component.create({
-      data: {
-        name: `Core ${faker.string.alphanumeric(4).toUpperCase()}`,
-        type: 'CORE',
-        radiatorId: radiator.id,
-        Metadata: {
-          width: coreWidth,
-          height: coreHeight,
-          rows,
-          fins,
-          finsPitch,
-          tube
-        }
-      }
-    })
-
-    console.log(`  ➕ Added CORE component to product ${radiator.label}`)
-
-    // Create TOP collector component
-    await prisma.component.create({
-      data: {
-        name: `Collector TOP ${faker.string.alphanumeric(4).toUpperCase()}`,
-        type: 'COLLECTOR',
-        radiatorId: radiator.id,
-        // material materialUsage
-        MaterialUsages: {
-          create: {
-            quantity: 1,
-            Material: {
-              connectOrCreate: {
-                where: {
-                  reference: 'BNL06'
-                },
-                create: {
-                  reference: 'BNL06',
-                  name: 'Laiton',
-                  unit: 'grammes'
-                }
-              }
-            }
-          }
-        },
-        Metadata: {
-          type: 'TOP',
-          width: collectorWidth,
-          height: collectorHeight,
-          thickness: faker.helpers.arrayElement([1.5, 1, 2, 2.5]),
-          // position and tightening
-          position,
-          tightening,
-          perforation: faker.helpers.arrayElement(PERFORATION),
-          isTinned: faker.datatype.boolean()
-        }
-      }
-    })
-
-    console.log(
-      `  ➕ Added TOP COLLECTOR component to product ${radiator.label}`
-    )
-
-    // Create BOTTOM collector component
-    await prisma.component.create({
-      data: {
-        name: `Collector BOTTOM ${faker.string.alphanumeric(4).toUpperCase()}`,
-        type: 'COLLECTOR',
-        radiatorId: radiator.id,
-        MaterialUsages: {
-          create: {
-            quantity: 1,
-            Material: {
-              connectOrCreate: {
-                where: {
-                  reference: 'BNL06'
-                },
-                create: {
-                  reference: 'BNL06',
-                  name: 'Laiton',
-                  unit: 'grammes'
-                }
-              }
-            }
-          }
-        },
-        Metadata: {
-          width: collectorWidth,
-          height: collectorHeight,
-          thickness: faker.helpers.arrayElement([1.5, 1, 2, 2.5]),
-          type: 'BOTTOM',
-          position,
-          tightening,
-          perforation: faker.helpers.arrayElement(PERFORATION),
-          isTinned: faker.datatype.boolean()
-        }
-      }
-    })
-
-    console.log(
-      `  ➕ Added BOTTOM COLLECTOR component to product ${radiator.label}`
-    )
   }
 
   console.log('✨ Database seeding completed successfully!')

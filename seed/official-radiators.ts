@@ -77,8 +77,10 @@ async function main() {
         // Create price for the radiator (using some default values)
         const price = await prisma.price.create({
           data: {
-            unit: 0, // Random price between 10k-50k
-            bulk: 0, // Random bulk price
+            unit: 0,
+            bulk: 0,
+            unitTTC: 0,
+            bulkTTC: 0,
             bulkThreshold: 10
           }
         })
@@ -113,54 +115,49 @@ async function main() {
             | 'SP'
         )
 
-        // Create the radiator
-        const data: any = {
-          id,
-          reference: radiatorData.reference,
-          label: `${radiatorData.designation} ${radiatorData.brand} ${radiatorData.model}`,
-          category: category,
-          dir: radiatorData.dirId,
-          cooling: coolingType,
-          barcode: radiatorData.barcode || undefined,
-          hash: radiatorData.hash || generateHash(radiatorData),
-          isActive: radiatorData.production === 'Fini',
-          inventoryId: inventory.id,
-          priceId: price.id
-        }
-
-        if (model?.id) {
-          data.Models = {
-            connect: {
-              id: model.id
-            }
-          }
-        }
-
         const radiator = await prisma.radiator.create({
-          data
-        })
-
-        // Create core component
-        await prisma.component.create({
           data: {
-            name: `Core ${radiatorData.reference}`,
-            type: 'CORE',
-            radiatorId: radiator.id,
-            Metadata: {
-              width: radiatorData.coreWidth,
-              height: radiatorData.coreHeight,
-              rows: radiatorData.rows,
-              fins: radiatorData.fins,
-              finsPitch: radiatorData.pitch,
-              tube: radiatorData.tube
-            }
+            id,
+            partNumber: radiatorData.reference,
+            label: `${radiatorData.designation} ${radiatorData.brand} ${radiatorData.model}`,
+            category: category,
+            dirId: radiatorData.dirId,
+            cooling: coolingType,
+            barcode: radiatorData.barcode || undefined,
+            hash: radiatorData.hash || generateHash(radiatorData),
+            isActive: radiatorData.production === 'Fini',
+            inventoryId: inventory.id,
+            priceId: price.id,
+            betweenCollectors: radiatorData.coreHeight,
+            width: radiatorData.coreWidth,
+            rows: radiatorData.rows,
+            fins: radiatorData.fins,
+            pitch: radiatorData.pitch,
+            tube: radiatorData.tube,
+            upperCollectorLength: radiatorData.upperCollectorLength,
+            upperCollectorWidth: radiatorData.upperCollectorWidth,
+            position:
+              radiatorData.position === 'Center' ? 'Centrer' : 'Dépassée',
+            tightening:
+              radiatorData.tightening === 'Plié' ? 'Plié' : 'Boulonné',
+            perforation: 'Non Perforé',
+            isTinned: false,
+            ...(model
+              ? {
+                  Models: {
+                    connect: {
+                      id: model.id
+                    }
+                  }
+                }
+              : {})
           }
         })
 
         // Create upper collector component
         await prisma.component.create({
           data: {
-            name: `Upper Collector ${radiatorData.reference}`,
+            label: `Collecteur Supérieur ${radiatorData.reference}`,
             type: 'COLLECTOR',
             radiatorId: radiator.id,
             MaterialUsages: {
@@ -174,23 +171,14 @@ async function main() {
                     create: {
                       reference: 'BNL06',
                       name: 'Laiton',
-                      unit: 'grammes'
+                      unit: 'grammes',
+                      baseUnit: 'mètre',
+                      conversionFactor: 150, // 150g/m
+                      unitCost: 0.012
                     }
                   }
                 }
               }
-            },
-            Metadata: {
-              type: 'TOP',
-              width: radiatorData.upperCollectorLength,
-              height: radiatorData.upperCollectorWidth,
-              thickness: 1.5,
-              position:
-                radiatorData.position === 'Center' ? 'Centrer' : 'Dépassée',
-              tightening:
-                radiatorData.tightening === 'Plié' ? 'Plié' : 'Boulonné',
-              perforation: 'Non Perforé',
-              isTinned: false
             }
           }
         })
@@ -198,7 +186,7 @@ async function main() {
         // Create lower collector component
         await prisma.component.create({
           data: {
-            name: `Lower Collector ${radiatorData.reference}`,
+            label: `Collecteur inférieur ${radiatorData.reference}`,
             type: 'COLLECTOR',
             radiatorId: radiator.id,
             MaterialUsages: {
@@ -212,23 +200,14 @@ async function main() {
                     create: {
                       reference: 'BNL06',
                       name: 'Laiton',
-                      unit: 'grammes'
+                      unit: 'grammes',
+                      baseUnit: 'mètre',
+                      conversionFactor: 150, // 150g/m
+                      unitCost: 0.012
                     }
                   }
                 }
               }
-            },
-            Metadata: {
-              type: 'BOTTOM',
-              width: radiatorData.lowerCollectorLength,
-              height: radiatorData.lowerCollectorWidth,
-              thickness: 1.5,
-              position:
-                radiatorData.position === 'Center' ? 'Centrer' : 'Dépassée',
-              tightening:
-                radiatorData.tightening === 'Plié' ? 'Plié' : 'Boulonné',
-              perforation: 'Non Perforé',
-              isTinned: false
             }
           }
         })

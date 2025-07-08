@@ -19,18 +19,18 @@ import { clientSchema } from './client'
 
 // Car-related schemas
 export const carSchema = z.object({
-  id: z.string().nullable().optional(),
-  brand: z.string().nullable().optional(),
-  model: z.string().nullable().optional(),
+  id: z.string().optional(),
+  brand: z.string().optional(),
+  model: z.string().optional(),
   family: z.string().optional(),
-  type: z.string().nullable().optional(),
-  fuel: z.enum(['Essence', 'Diesel']).nullable().optional(),
+  type: z.string().optional(),
+  fuel: z.enum(['Essence', 'Diesel']).optional(),
   year: z
     .string()
     .regex(/^\d{4}–\d{4}$/, {
       message: 'Must be in the format YYYY–YYYY'
     })
-    .nullable()
+
     .optional()
 })
 

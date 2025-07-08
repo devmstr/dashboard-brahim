@@ -146,7 +146,7 @@ export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
           />
           <FormField
             control={form.control}
-            name="productionYears"
+            name="year"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Années de Production</FormLabel>

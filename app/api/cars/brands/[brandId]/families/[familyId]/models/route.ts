@@ -58,7 +58,7 @@ export async function POST(
     const model = await prisma.carModel.create({
       data: {
         name: json.name,
-        production: json.production,
+        year: json.production,
         familyId: params.familyId,
         radiatorId: json.radiatorId
       }

@@ -7,49 +7,27 @@ const Page = async () => {
   const invoices = await prisma.invoice.findMany({
     where: { deletedAt: null },
     include: {
-      Client: {
-        include: {
-          Address: true
-        }
-      }
+      items: true,
+      Client: true
     },
     orderBy: { createdAt: 'desc' }
   })
 
-  // Map invoices to the format expected by LedgerTable
-  const data = invoices.map((inv) => {
-    let totalItems = 0
-    let meta = inv.metadata
-    if (typeof meta === 'string') {
-      try {
-        meta = JSON.parse(meta)
-      } catch {}
-    }
-    if (
-      meta &&
-      typeof meta === 'object' &&
-      !Array.isArray(meta) &&
-      'items' in meta
-    ) {
-      const itemsArr = (meta as any).items
-      if (Array.isArray(itemsArr)) totalItems = itemsArr.length
-    }
-    return {
-      billId: inv.number,
-      id: inv.id,
-      total: inv.total || 0,
-      type: inv.type as 'FINAL' | 'PROFORMA',
-      items: totalItems,
-      createdAt: inv.createdAt.toISOString(),
-      company: inv.Client?.name || inv.clientName || '',
-      phone: inv.Client?.phone || '',
-      location: inv.Client?.Address?.street || ''
-    }
-  })
+  const formattedData = invoices.map((invoice) => ({
+    billId: invoice.reference,
+    id: invoice.id,
+    total: invoice.total || 0,
+    type: invoice.type as 'FINAL' | 'PROFORMA',
+    items: invoice.items.length + 1,
+    createdAt: invoice.createdAt?.toISOString() ?? '',
+    company: invoice.name || '',
+    phone: invoice.Client?.phone || '',
+    location: invoice.address || ''
+  }))
 
   return (
     <Card>
-      <LedgerTable userRole="ACCOUNTANT" data={data} />
+      <LedgerTable userRole="ACCOUNTANT" data={formattedData} />
     </Card>
   )
 }

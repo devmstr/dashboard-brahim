@@ -35,7 +35,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
     const brand = Models[0]?.Family?.Brand.name || '_'
     return {
       ...rest,
-      dirId: rest.dir || '_',
+      dirId: rest.directoryId || '_',
       barcode: rest.barcode || '_',
       designation: rest.label || '_',
       company,

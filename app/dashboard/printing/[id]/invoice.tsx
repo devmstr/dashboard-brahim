@@ -21,7 +21,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { PAYMENT_TYPES } from '@/config/global'
 import { useScrollProgress } from '@/hooks/use-scroll'
 import { amountToWords, calculateBillingSummary, cn } from '@/lib/utils'
-import type { InvoiceItem } from '@/types'
 import { format } from 'date-fns'
 import { Pencil } from 'lucide-react'
 import Image from 'next/image'
@@ -29,6 +28,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './print.css'
 import { toast } from '@/hooks/use-toast'
+import { type Invoice } from '@/types'
 
 const printPreviewStyles = `
   .print-preview .print\\:hidden {
@@ -51,52 +51,25 @@ const printPreviewStyles = `
 
 const ITEMS_PER_PRINT_PAGE = 4 // Declare the ITEMS_PER_PRINT_PAGE variable
 
-export type InvoiceMetadata = {
-  items: InvoiceItem[]
-  purchaseOrder?: string
-  deliverySlip?: string
-  note?: string
-  discountRate?: number
-  refundRate?: number
-  stampTaxRate?: number
-  paymentType?: string
-}
-
 export interface InvoiceProps {
-  id: string
-  reference: string
-  name: string
-  address?: string
-  tradeRegisterNumber?: string
-  registrationArticle?: string
-  taxIdNumber?: string
-  items: InvoiceItem[] | []
-  note?: string
-  status?: string
-  type?: 'FINAL' | 'PROFORMA'
-  paymentMode: string
-  purchaseOrder?: string
-  deliverySlip?: string
-  discountRate?: number
-  refundRate?: number
-  stampTaxRate?: number
-  offerValidity?: string
-  deliveryTime?: string
-  guaranteeTime?: string
-  dueDate?: Date
+  data: Invoice
   className?: string
   readonly?: boolean
 }
 
-export default function Invoice(input: InvoiceProps) {
-  const [data, setData] = useState<InvoiceProps>(input)
+export default function Invoice({
+  data: input,
+  className,
+  readonly = false
+}: InvoiceProps) {
+  const [data, setData] = useState<Invoice>(input)
   // update data on mount
   useEffect(() => setData(input), [])
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const componentRef = useRef<HTMLDivElement>(null)
   const scrollYProgress = useScrollProgress(scrollRef)
-  const [editedId, setEditedId] = useState<string | undefined>(undefined)
+  const [editedId, setEditedId] = useState<number | undefined>(undefined)
 
   const billingSummary = useMemo(
     () =>
@@ -110,7 +83,7 @@ export default function Invoice(input: InvoiceProps) {
   )
 
   useEffect(() => {
-    if (data.readonly) {
+    if (readonly) {
       // Add the style to the document head when in readonly mode
       const styleElement = document.createElement('style')
       styleElement.innerHTML = printPreviewStyles
@@ -121,7 +94,7 @@ export default function Invoice(input: InvoiceProps) {
         document.head.removeChild(styleElement)
       }
     }
-  }, [data.readonly])
+  }, [readonly])
 
   // Handle payment type change
   const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
@@ -182,12 +155,10 @@ export default function Invoice(input: InvoiceProps) {
                 y: 45,
                 excavate: true
               }}
-              value={data.reference}
+              value={data.id}
               className="w-[4.57rem] h-auto"
             />
-            <span className="text-[0.745rem] w-20 text-center ">
-              {data.reference}
-            </span>
+            <span className="text-[0.745rem] w-20 text-center ">{data.id}</span>
           </div>
         </div>
       </div>
@@ -221,15 +192,15 @@ export default function Invoice(input: InvoiceProps) {
             <Input
               placeholder="002171"
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={data.purchaseOrder}
+              value={data.purchaseOrder ?? undefined}
               onChange={(e) => {
-                if (data.readonly) return
+                if (readonly) return
                 setData((prev) => ({
                   ...prev,
                   purchaseOrder: e.target.value
                 }))
               }}
-              readOnly={data.readonly}
+              readOnly={readonly}
             />
           </div>
           {data.purchaseOrder && (
@@ -246,13 +217,13 @@ export default function Invoice(input: InvoiceProps) {
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
               value={data.deliverySlip || ''}
               onChange={({ target: { value } }) => {
-                if (data.readonly)
+                if (readonly)
                   setData((prev) => ({
                     ...prev,
                     deliverySlip: value
                   }))
               }}
-              readOnly={data.readonly}
+              readOnly={readonly}
             />
           </div>
           {data.deliverySlip && (
@@ -264,7 +235,7 @@ export default function Invoice(input: InvoiceProps) {
         </div>
         <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {data.reference.replace(/0+/g, '')}
+            FACTURE: {data.reference?.replace(/0+/g, '')}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
@@ -397,7 +368,7 @@ export default function Invoice(input: InvoiceProps) {
                   name="discount-percentage"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (data.readonly && Number(v) < 0) return
+                    if (readonly && Number(v) < 0) return
                     // discount should be less then 25%
                     if (Number(v) > 25) {
                       toast({
@@ -413,7 +384,7 @@ export default function Invoice(input: InvoiceProps) {
                       discountRate: Number(v) / 100
                     }))
                   }}
-                  readOnly={data.readonly}
+                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -445,7 +416,7 @@ export default function Invoice(input: InvoiceProps) {
                   name="guarantee-refund"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (data.readonly && Number(v) < 0) return
+                    if (readonly && Number(v) < 0) return
                     // Le taux de remboursement doit être inférieur à 50 %
                     if (Number(v) > 50)
                       toast({
@@ -459,7 +430,7 @@ export default function Invoice(input: InvoiceProps) {
                       refundRate: Number(v) / 100
                     }))
                   }}
-                  readOnly={data.readonly}
+                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -507,7 +478,7 @@ export default function Invoice(input: InvoiceProps) {
                   name="stamp-tax"
                   placeholder="0"
                   onChange={({ target: { value } }) => {
-                    if (data.readonly && Number(value) < 0 && Number(value) > 1)
+                    if (readonly && Number(value) < 0 && Number(value) > 1)
                       return
 
                     setData((prev) => ({
@@ -515,7 +486,7 @@ export default function Invoice(input: InvoiceProps) {
                       stampTaxRate: Number(value) / 100
                     }))
                   }}
-                  readOnly={data.readonly}
+                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end  h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -555,9 +526,9 @@ export default function Invoice(input: InvoiceProps) {
           <div className="space-y-1">
             <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
             <Select
-              value={data.paymentMode}
+              value={data.paymentMode ?? undefined}
               onValueChange={handlePaymentTypeChange}
-              disabled={data.readonly}
+              disabled={readonly}
             >
               <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
                 <SelectValue placeholder="Sélectionner le mode de paiement" />
@@ -577,12 +548,12 @@ export default function Invoice(input: InvoiceProps) {
             <Textarea
               className="w-full min-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
               placeholder="Saisissez des remarques pour cette facture..."
-              value={data.note}
+              value={data.note ?? undefined}
               onChange={({ target: { value } }) => {
-                if (data.readonly) return
+                if (readonly) return
                 setData((prev) => ({ ...prev, note: value }))
               }}
-              readOnly={data.readonly}
+              readOnly={readonly}
             />
           </div>
           {data.note && (
@@ -596,7 +567,7 @@ export default function Invoice(input: InvoiceProps) {
     </div>
   )
 
-  const renderTable = (pageItems: InvoiceItem[]) => {
+  const renderTable = (pageItems: Invoice['items']) => {
     return (
       <Table className="font-geist-sans text-sm w-full font-light hide-scrollbar-print ">
         <TableHeader className="print:table-header-group bg-gray-100  border-y">
@@ -623,9 +594,9 @@ export default function Invoice(input: InvoiceProps) {
             <TableRow key={item.id}>
               <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
               <TableCell className="py-[3px] px-2 h-8 relative">
-                {!data.readonly && editedId === item.id ? (
+                {!readonly && editedId === item.id ? (
                   <Input
-                    value={item.label}
+                    value={item.label ?? undefined}
                     onChange={(e) => {
                       const newValue = e.target.value
                       setData((prev) => ({
@@ -648,7 +619,7 @@ export default function Invoice(input: InvoiceProps) {
                   />
                 ) : (
                   <div className="flex items-center">
-                    {!data.readonly && (
+                    {!readonly && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -672,7 +643,7 @@ export default function Invoice(input: InvoiceProps) {
                 {item.price}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h- font-geist-sans">
-                {Number(item.price.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(item.price?.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -717,13 +688,13 @@ export default function Invoice(input: InvoiceProps) {
       <div
         className={cn(
           'flex flex-col w-[210mm] gap-8 font-geist-sans',
-          data.readonly && 'print-preview',
-          data.className
+          readonly && 'print-preview',
+          className
         )}
       >
         {/* Print-only content */}
         {(() => {
-          const pages: InvoiceItem[][] = []
+          const pages: Invoice['items'][] = []
           const totalItems = data.items.length
 
           // If there are 2 or fewer items, simply push all on one page.
@@ -762,7 +733,7 @@ export default function Invoice(input: InvoiceProps) {
 
             // As a safety check, if any chunk exceeds ITEMS_PER_PRINT_PAGE,
             // fall back to simple chunking.
-            const refinedMainPages: InvoiceItem[][] = []
+            const refinedMainPages: Invoice['items'][] = []
             mainPages.forEach((page) => {
               if (page.length > ITEMS_PER_PRINT_PAGE) {
                 for (let i = 0; i < page.length; i += ITEMS_PER_PRINT_PAGE) {

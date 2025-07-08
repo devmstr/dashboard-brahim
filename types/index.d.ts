@@ -1,6 +1,6 @@
 import { Icons } from '@/components/icons'
 import { STATUS_TYPES, userRoles } from '@/config/global'
-import { Brand, Car, Core } from '@prisma/client'
+import { Brand, Car } from '@prisma/client'
 
 type NavItem = {
   title: string
@@ -141,18 +141,47 @@ declare type RadiatorResponse = {
 }
 
 declare type InvoiceItem = {
+  id: number
+  label: string | null
+  price: number | null
+  amount: number | null
+  quantity: number | null
+}
+
+declare type Invoice = {
   id: string
-  label: string
-  quantity: number
-  price: number
-  amount: number
+  reference: string
+  date: Date | null
+  name: string | null
+  address: string | null
+  tradeRegisterNumber: string | null
+  registrationArticle: string | null
+  taxIdNumber: string | null
+  type: string | null
+  status: string | null
+  paymentMode: string | null
+  purchaseOrder: string | null
+  deliverySlip: string | null
+  discountRate: number | null
+  refundRate: number | null
+  stampTaxRate: number | null
+  offerValidity: string | null
+  guaranteeTime: string | null
+  deliveryTime: string | null
+  note: string | null
+  total: number | null
+  subtotal: number | null
+  tax: number | null
+  orderId: string | null
+  clientId: string | null
+  items: InvoiceItem[] | []
 }
 
 declare type BillingConfig = {
-  discountRate?: number // e.g., 0.03 for 3%
-  refundRate?: number // RG is provided directly as a number
-  vatRate?: number // fixed at 0.19 (19%)
-  stampTaxRate?: number // fixed at 0.01 (1%)
+  discountRate?: number | null // e.g., 0.03 for 3%
+  refundRate?: number | null // RG is provided directly as a number
+  vatRate?: number | null // fixed at 0.19 (19%)
+  stampTaxRate?: number | null // fixed at 0.01 (1%)
 }
 
 export interface Product {

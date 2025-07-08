@@ -143,11 +143,13 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       lowerCollectorLength: validated.lowerCollectorLength ?? 0
     })
 
+    const { Components, ...data } = validated
+
     // Start transaction for atomic update
     const radiator = await prisma.radiator.update({
       where: { id },
       data: {
-        ...validated,
+        ...data,
         pitch: Number(validated.pitch),
         label
       }

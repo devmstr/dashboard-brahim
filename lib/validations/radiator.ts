@@ -1,6 +1,5 @@
 import {
   ORDER_TYPES,
-  PACKAGING_TYPES,
   FABRICATION_TYPES,
   STATUS_TYPES,
   CATEGORY_TYPES,
@@ -10,12 +9,12 @@ import {
   PERFORATION_TYPES
 } from '@/config/global'
 import { z } from 'zod'
+import { carSchema } from './order'
 
 export const radiatorSchema = z.object({
   id: z.string(),
-  partNumber: z.string().nullable().optional(),
+  partNumber: z.string().optional(),
   type: z.enum(ORDER_TYPES).default('Radiateur'),
-  packaging: z.enum(PACKAGING_TYPES).default('Carton'),
   fabrication: z.enum(FABRICATION_TYPES).default('Confection'),
   production: z.enum(['Fini', 'Semi-Fini']).default('Fini'),
   status: z.enum(STATUS_TYPES).default('Prévu').optional(),
@@ -27,21 +26,47 @@ export const radiatorSchema = z.object({
   position: z.enum(COLLECTOR_POSITION_TYPES).optional(),
   tightening: z.enum(CLAMPING_TYPES).optional(),
   perforation: z.enum(PERFORATION_TYPES).optional(),
-  dirId: z.string().nullable().optional(),
-  barcode: z.string().nullable().optional(),
-  label: z.string().nullable().optional(),
-  hash: z.string().nullable().optional(),
-  rows: z.number().nullable().optional(),
-  tubeDiameter: z.number().nullable().optional(),
-  betweenCollectors: z.number().nullable().optional(),
-  width: z.number().nullable().optional(),
-  isTinned: z.boolean().nullable().optional(),
-  isPainted: z.boolean().nullable().optional(),
-  upperCollectorLength: z.number().nullable().optional(),
-  lowerCollectorLength: z.number().nullable().optional(),
-  upperCollectorWidth: z.number().nullable().optional(),
-  lowerCollectorWidth: z.number().nullable().optional(),
-  isActive: z.boolean().nullable().optional()
+  dirId: z.string().optional(),
+  barcode: z.string().optional(),
+  label: z.string().optional(),
+  hash: z.string().optional(),
+  rows: z.number().optional(),
+  tubeDiameter: z.number().optional(),
+  betweenCollectors: z.number().optional(),
+  width: z.number().optional(),
+  isTinned: z.boolean().optional(),
+  isPainted: z.boolean().optional(),
+  upperCollectorLength: z.number().optional(),
+  lowerCollectorLength: z.number().optional(),
+  upperCollectorWidth: z.number().optional(),
+  lowerCollectorWidth: z.number().optional(),
+  isActive: z.boolean().optional(),
+  Vehicle: carSchema.optional(),
+  Components: z
+    .array(
+      z.object({
+        usages: z
+          .array(
+            z.object({
+              id: z.string(),
+              quantity: z.number().optional(),
+              reference: z.string().optional(),
+              name: z.string().optional(),
+              description: z.string().optional(),
+              unit: z.string().optional(),
+              baseUnit: z.string().optional(),
+              conversionFactor: z.number().optional(),
+              unitCost: z.number().optional()
+            })
+          )
+          .optional(),
+        id: z.string(),
+        label: z.string().optional(),
+        type: z.string().optional(),
+        radiatorId: z.string().optional()
+      })
+    )
+    .optional()
 })
 
-export type radiatorSchemaType = z.infer<typeof radiatorSchema>
+export type RadiatorSchemaType = z.infer<typeof radiatorSchema>

@@ -38,6 +38,7 @@ async function main() {
       lowerCollectorLength,
       lowerCollectorWidth,
       tightening,
+      position,
       tube,
       designation
     } = radiator
@@ -66,36 +67,31 @@ async function main() {
     const createdRadiator = await prisma.radiator.create({
       data: {
         id: id,
-        reference: reference || null,
+        partNumber: reference || null,
         category: 'Automobile', // Default category
-        dir: dirId || null,
+        directoryId: dirId || null,
         cooling: 'Eau', // Default cooling
         barcode: barcode || null,
         label: designation || null,
         isActive: true,
         inventoryId: inventory.id,
-        priceId: price.id
+        priceId: price.id,
+        betweenCollectors: coreHeight,
+        width: coreWidth,
+        rows: rows,
+        fins: fins,
+        pitch: pitch,
+        tube: tube,
+        upperCollectorLength: upperCollectorLength,
+        upperCollectorWidth: upperCollectorWidth,
+        position: position === 'Center' ? 'Centrer' : 'Dépassée',
+        tightening: tightening === 'Plié' ? 'Plié' : 'Boulonné',
+        perforation: 'Non Perforé',
+        isTinned: false
       }
     })
 
     console.log(`✅ Created radiator: ${createdRadiator.label}`)
-
-    // Create a core component
-    await prisma.component.create({
-      data: {
-        name: `Core for ${reference}`,
-        type: 'CORE',
-        radiatorId: createdRadiator.id,
-        Metadata: {
-          coreHeight: coreHeight,
-          coreWidth: coreWidth,
-          rows: rows,
-          fins: fins,
-          pitch: pitch,
-          tube: tube
-        }
-      }
-    })
   }
 
   console.log('✨ Database seeding completed successfully!')

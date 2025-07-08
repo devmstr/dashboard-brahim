@@ -2,13 +2,15 @@ import { Card } from '@/components/card'
 import { RadiatorEditForm } from './radiator-edit.from'
 import prisma from '@/lib/db'
 import { parseMetadata } from '@/lib/utils'
+import { notFound } from 'next/navigation'
+import { RadiatorSchemaType } from '@/lib/validations/radiator'
 
 interface Props {
   params: { id: string }
 }
 
 const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
-  const radiator = await prisma.radiator.findUniqueOrThrow({
+  const record = await prisma.radiator.findUnique({
     where: { id },
     include: {
       Models: {
@@ -32,51 +34,21 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
       }
     }
   })
+  if (!record) return notFound()
 
-  // Find core and collector components
-  const coreComponent = radiator.Components.find(
-    (c) => c.type === 'CORE'
-  )?.Metadata
+  const { Components, ...radiator } = record
 
-  const collectors = radiator.Components.filter((c) => c.type === 'COLLECTOR')
-  // find collector material name
-  const collectorMaterialName = collectors.map((c) => {
-    const material = c.MaterialUsages[0]?.Material.name
-    return material
-  })[0]
-
-  const collectorTop = collectors.find(
-    (c) => parseMetadata(c.Metadata)?.type === 'TOP'
-  )?.Metadata as any
-
-  const collectorBottom = collectors.find(
-    (c) => parseMetadata(c.Metadata)?.type === 'BOTTOM'
-  )?.Metadata as any
-  const core = parseMetadata(coreComponent)
-  const car = {
-    id: radiator.Models[0]?.id || '',
-    brand: radiator.Models[0]?.Family?.Brand.name || '',
-    family: radiator.Models[0]?.Family.name || '',
-    model: radiator.Models[0]?.name || '',
-    type: radiator.Models[0]?.Types[0]?.name || ''
-  }
-
-  // Map to form data structure
   const data = {
-    id: radiator.id,
-    isActive: Boolean(radiator.isActive),
-    dirId: radiator.dir || '',
-    ...(car && { car }),
-    ...(core && { core }),
-    ...(collectorTop &&
-      collectorBottom && {
-        collectors: {
-          top: { ...collectorTop, material: collectorMaterialName },
-          bottom: { ...collectorBottom, material: collectorMaterialName }
-        }
-      }),
-    radiatorAttachment: [] // Map attachments if you have them
-  }
+    ...radiator,
+    pitch: radiator.pitch?.toString(),
+    Components: Components.map(({ MaterialUsages, ...component }) => ({
+      ...component,
+      usages: MaterialUsages.map(({ Material, quantity }) => ({
+        ...Material,
+        quantity
+      }))
+    }))
+  } as RadiatorSchemaType
 
   return (
     <Card>

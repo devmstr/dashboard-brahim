@@ -62,7 +62,7 @@ export async function PUT(
       },
       data: {
         name: json.name,
-        production: json.production,
+        year: json.production,
         radiatorId: json.radiatorId
       }
     })

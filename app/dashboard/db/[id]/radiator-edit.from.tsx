@@ -41,30 +41,25 @@ import { isContentEmpty } from '@/lib/utils'
 import { z } from 'zod'
 import { Content } from '@tiptap/react'
 import { contentSchema } from '@/lib/validations'
-import {
-  radiatorEditFormSchema,
-  radiatorEditFormType
-} from '@/lib/validations/radiator'
+import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
+import { OrderItem } from '@prisma/client'
 
 interface RadiatorEditFormProps {
-  data: radiatorEditFormType
+  data: RadiatorSchemaType
 }
 
 export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
   // State management
   const [isLoading, setIsLoading] = useState(false)
-  const [markdown, setMarkdown] = useState<Content>(
-    data.modification as Content
-  )
 
   // Form initialization with data from props
-  const form = useForm<radiatorEditFormType>({
+  const form = useForm<RadiatorSchemaType>({
     defaultValues: data,
-    resolver: zodResolver(radiatorEditFormSchema)
+    resolver: zodResolver(radiatorSchema)
   })
 
   // Handle form submission
-  const handleSubmit = async (formData: radiatorEditFormType) => {
+  const handleSubmit = async (formData: RadiatorSchemaType) => {
     try {
       setIsLoading(true)
       // delete components from formData
@@ -115,7 +110,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
           <CardGrid>
             <FormField
               control={form.control}
-              name="car.brand"
+              name="Vehicle.brand"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Marque</FormLabel>
@@ -134,7 +129,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
             <FormField
               control={form.control}
-              name="car.family"
+              name="Vehicle.family"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Famille</FormLabel>
@@ -153,7 +148,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
             <FormField
               control={form.control}
-              name="car.model"
+              name="Vehicle.model"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Modèle</FormLabel>
@@ -172,7 +167,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
             <FormField
               control={form.control}
-              name="car.type"
+              name="Vehicle.type"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Type</FormLabel>
@@ -201,7 +196,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             {/* Core Dimensions - Always visible */}
             <FormField
               control={form.control}
-              name="core.height"
+              name="betweenCollectors"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">
@@ -215,7 +210,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       {...field}
                       type="number"
                       onChange={({ target: { value } }) =>
-                        form.setValue('core.height', Number(value))
+                        form.setValue('betweenCollectors', Number(value))
                       }
                       className="w-full"
                     />
@@ -226,7 +221,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
             <FormField
               control={form.control}
-              name="core.width"
+              name="width"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">
@@ -240,7 +235,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       {...field}
                       type="number"
                       onChange={({ target: { value } }) =>
-                        form.setValue('core.width', Number(value))
+                        form.setValue('width', Number(value))
                       }
                       className="w-full"
                     />
@@ -251,7 +246,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
             <FormField
               control={form.control}
-              name="core.rows"
+              name="rows"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">
@@ -262,7 +257,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       type="number"
                       {...field}
                       onChange={({ target: { value } }) =>
-                        form.setValue('core.rows', Number(value))
+                        form.setValue('rows', Number(value))
                       }
                       className="w-full"
                     />
@@ -276,7 +271,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
           <CardGrid>
             <FormField
               control={form.control}
-              name="core.fins"
+              name="fins"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Ailette</FormLabel>
@@ -284,7 +279,9 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Combobox
                       {...field}
                       options={FINS_TYPES}
-                      onSelect={(v) => form.setValue('core.fins', v)}
+                      onSelect={(v) =>
+                        form.setValue('fins', v as RadiatorSchemaType['fins'])
+                      }
                       selected={field.value}
                     />
                   </FormControl>
@@ -294,15 +291,20 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
             <FormField
               control={form.control}
-              name="core.tube"
+              name="tubeType"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Tube</FormLabel>
                   <FormControl>
                     <Combobox
-                      id="tube"
+                      id="tube-type"
                       options={TUBE_TYPES}
-                      onSelect={(v) => form.setValue('core.tube', v)}
+                      onSelect={(v) =>
+                        form.setValue(
+                          'tubeType',
+                          v as RadiatorSchemaType['tubeType']
+                        )
+                      }
                       selected={field.value}
                     />
                   </FormControl>
@@ -312,7 +314,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             />
             <FormField
               control={form.control}
-              name="core.finsPitch"
+              name="pitch"
               render={({ field }) => (
                 <FormItem className="group">
                   <FormLabel className="capitalize">Pas Des Tubes</FormLabel>
@@ -321,7 +323,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       {...field}
                       options={['10', '11', '12', '14']}
                       onSelect={(v) =>
-                        form.setValue('core.finsPitch', Number(v))
+                        form.setValue('pitch', v as RadiatorSchemaType['pitch'])
                       }
                       selected={field.value?.toString()}
                     />
@@ -342,7 +344,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
               <CardGrid>
                 <FormField
                   control={form.control}
-                  name="collectors.top.isTinned"
+                  name="isTinned"
                   render={({ field }) => (
                     <FormItem className="w-full md:col-span-2 lg:col-span-3">
                       <FormLabel className="capitalize">Étamé</FormLabel>
@@ -350,9 +352,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                         <Switcher
                           {...field}
                           checked={field.value as boolean}
-                          onCheckedChange={(v) =>
-                            form.setValue('collectors.top.isTinned', v)
-                          }
+                          onCheckedChange={(v) => form.setValue('isTinned', v)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -361,26 +361,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                 />
                 <FormField
                   control={form.control}
-                  name="collectors.top.material"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">Matière</FormLabel>
-                      <FormControl>
-                        <Combobox
-                          options={COLLECTOR_MATERIALS_TYPES_ARR}
-                          onSelect={(v) =>
-                            form.setValue('collectors.top.material', v)
-                          }
-                          selected={field.value}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="collectors.top.tightening"
+                  name="tightening"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">Serrage</FormLabel>
@@ -388,7 +369,10 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                         <Combobox
                           options={CLAMPING_TYPES_ARR}
                           onSelect={(v) =>
-                            form.setValue('collectors.top.tightening', v)
+                            form.setValue(
+                              'tightening',
+                              v as RadiatorSchemaType['tightening']
+                            )
                           }
                           selected={field.value}
                         />
@@ -400,7 +384,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                 {/* Perforation field - Always visible */}
                 <FormField
                   control={form.control}
-                  name="collectors.top.perforation"
+                  name="perforation"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">Perforation</FormLabel>
@@ -409,7 +393,10 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           id="perforation"
                           options={PERFORATION_TYPES_ARR}
                           onSelect={(v) =>
-                            form.setValue('collectors.top.perforation', v)
+                            form.setValue(
+                              'perforation',
+                              v as RadiatorSchemaType['perforation']
+                            )
                           }
                           selected={field.value}
                         />
@@ -420,7 +407,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                 />
                 <FormField
                   control={form.control}
-                  name="collectors.top.position"
+                  name="position"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -430,7 +417,10 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                         <Combobox
                           options={COLLECTOR_POSITION_TYPES_ARR}
                           onSelect={(v) =>
-                            form.setValue('collectors.top.position', v)
+                            form.setValue(
+                              'position',
+                              v as RadiatorSchemaType['position']
+                            )
                           }
                           selected={field.value}
                         />
@@ -450,7 +440,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
               <CardGrid>
                 <FormField
                   control={form.control}
-                  name="collectors.top.height"
+                  name="upperCollectorLength"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -464,10 +454,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           type="number"
                           {...field}
                           onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'collectors.top.height',
-                              Number(value)
-                            )
+                            form.setValue('upperCollectorLength', Number(value))
                           }
                         />
                       </FormControl>
@@ -477,7 +464,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                 />
                 <FormField
                   control={form.control}
-                  name="collectors.top.width"
+                  name="upperCollectorWidth"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -491,34 +478,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           type="number"
                           {...field}
                           onChange={({ target: { value } }) =>
-                            form.setValue('collectors.top.width', Number(value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="collectors.top.thickness"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">
-                        Épaisseur
-                        <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
-                          (mm)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'collectors.top.thickness',
-                              Number(value)
-                            )
+                            form.setValue('upperCollectorWidth', Number(value))
                           }
                         />
                       </FormControl>
@@ -537,7 +497,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
               <CardGrid>
                 <FormField
                   control={form.control}
-                  name="collectors.bottom.height"
+                  name="lowerCollectorLength"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -551,10 +511,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           type="number"
                           {...field}
                           onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'collectors.bottom.height',
-                              Number(value)
-                            )
+                            form.setValue('lowerCollectorLength', Number(value))
                           }
                         />
                       </FormControl>
@@ -564,7 +521,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                 />
                 <FormField
                   control={form.control}
-                  name="collectors.bottom.width"
+                  name="lowerCollectorWidth"
                   render={({ field }) => (
                     <FormItem className="group">
                       <FormLabel className="capitalize">
@@ -578,37 +535,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           type="number"
                           {...field}
                           onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'collectors.bottom.width',
-                              Number(value)
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="collectors.bottom.thickness"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">
-                        Épaisseur
-                        <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
-                          (mm)
-                        </span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={({ target: { value } }) =>
-                            form.setValue(
-                              'collectors.bottom.thickness',
-                              Number(value)
-                            )
+                            form.setValue('lowerCollectorWidth', Number(value))
                           }
                         />
                       </FormControl>
