@@ -5,9 +5,7 @@ import { ClientSchemaType as Client } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ClientTable, ClientTableInput } from '@/components/client-table'
-import CustomerSearchInput, {
-  ClientWithAddress
-} from '@/components/customer-search.input'
+import CustomerSearchInput from '@/components/customer-search.input'
 import { Icons } from '@/components/icons'
 import { useOrder } from '@/components/new-order.provider'
 import { Button } from '@/components/ui/button'
@@ -20,9 +18,7 @@ interface Props {
 
 export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   const { order, setOrder } = useOrder()
-  const [customer, setCustomer] = useState<ClientWithAddress | undefined>(
-    order?.Client
-  )
+  const [customer, setCustomer] = useState<Client | undefined>(order?.Client)
   const router = useRouter()
 
   // Add an effect to keep local state in sync with order context
@@ -47,7 +43,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
     )
   }
 
-  function onClientChange(Client: ClientWithAddress | undefined) {
+  function onClientChange(Client: Client | undefined) {
     setCustomer(Client)
     setOrder((prev) => ({
       ...prev,

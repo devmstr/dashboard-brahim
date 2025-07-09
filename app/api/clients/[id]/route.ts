@@ -11,7 +11,7 @@ export async function GET(
   try {
     const id = params.id
 
-    const client = await prisma.client.findUnique({
+    const record = await prisma.client.findUnique({
       where: { id },
       include: {
         Address: {
@@ -24,11 +24,24 @@ export async function GET(
       }
     })
 
-    if (!client) {
+    if (!record) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
-
-    return NextResponse.json(client)
+    const { Address, ...client } = record
+    return NextResponse.json({
+      ...client,
+      ...(Address && {
+        addressId: Address.id,
+        street: Address.street,
+        cityId: Address.cityId,
+        provinceId: Address.provinceId,
+        countryId: Address.countryId,
+        country: Address.Country.name,
+        province: Address.Province.name,
+        city: Address.City.name,
+        zip: Address.City.zipCode
+      })
+    })
   } catch (error) {
     console.error('Error fetching client:', error)
     return NextResponse.json(

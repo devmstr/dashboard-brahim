@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     const search = isPhone ? formattedSearchTerm : searchTerm
 
     // Always perform a search, even with empty search term
-    const clients = await prisma.client.findMany({
+    const records = await prisma.client.findMany({
       where: {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
@@ -42,15 +42,29 @@ export async function GET(request: Request) {
         _count: { select: { Orders: true } }
       }
     })
+    if (!records) {
+      return NextResponse.json({ error: 'Clients not found' }, { status: 404 })
+    }
     // format the clients phone number
-    const phoneFormattedClients = clients.map((client) => {
-      const { phone, ...rest } = client
+    const response = records.map((record) => {
+      const { phone, Address, ...client } = record
       return {
-        ...rest,
-        phone: formatPhoneNumber(phone)
+        ...client,
+        phone: formatPhoneNumber(phone),
+        ...(Address && {
+          addressId: Address.id,
+          street: Address.street,
+          cityId: Address.cityId,
+          provinceId: Address.provinceId,
+          countryId: Address.countryId,
+          country: Address.Country.name,
+          province: Address.Province.name,
+          city: Address.City.name,
+          zip: Address.City.zipCode
+        })
       }
     })
-    return NextResponse.json(phoneFormattedClients)
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Error fetching clients:', error)
     return NextResponse.json(
@@ -60,36 +74,6 @@ export async function GET(request: Request) {
   }
 }
 
-// Define the schema for client creation
-const clientCreateSchema = z.object({
-  name: z.string().min(1, { message: 'Le nom est requis' }),
-  phone: z.string(),
-  email: z
-    .string()
-    .email({ message: 'Email invalide' })
-    .optional()
-    .or(z.literal('')),
-  website: z
-    .string()
-    .url({ message: 'URL invalide' })
-    .optional()
-    .or(z.literal('')),
-  isCompany: z.boolean().default(false),
-  country: z.string().min(1, { message: 'Le pays est requis' }),
-  province: z.string().min(1, { message: 'La wilaya est requise' }),
-  city: z.string().min(1, { message: 'La commune est requise' }),
-  street: z.string().optional(),
-  zip: z.string().optional(),
-  // Company-specific fields
-  label: z.string().optional(),
-  tradeRegisterNumber: z.string().optional(),
-  fiscalNumber: z.string().optional(),
-  taxIdNumber: z.string().optional(),
-  statisticalIdNumber: z.string().optional(),
-  registrationArticle: z.string().optional(),
-  approvalNumber: z.string().optional()
-})
-
 // POST to create a new client
 export async function POST(request: Request) {
   try {
@@ -97,7 +81,7 @@ export async function POST(request: Request) {
     // Validate the request body using try/catch instead of safeParse
     let data
     try {
-      data = clientCreateSchema.parse(body)
+      data = clientSchema.parse(body)
     } catch (validationError) {
       if (validationError instanceof z.ZodError) {
         return NextResponse.json(

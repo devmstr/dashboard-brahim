@@ -36,7 +36,10 @@ import {
 } from 'lucide-react'
 import { Icons } from '@/components/icons'
 import { AddNewClientDialogButton } from '@/components/add-new-client.button'
-import type { ClientSchemaType as Client } from '@/lib/validations'
+import {
+  clientSchema,
+  type ClientSchemaType as Client
+} from '@/lib/validations'
 import type { Address } from '@prisma/client'
 import { toast } from '@/hooks/use-toast'
 import { formatPhoneNumber } from '@/lib/utils'
@@ -49,15 +52,6 @@ interface CustomerSectionProps {
   onlyCompanies?: boolean // Optional prop to filter only companies
 }
 
-// Extended client type to include address information
-export type ClientWithAddress = Client & {
-  Address?: {
-    Province?: {
-      name: string
-    }
-  } | null
-}
-
 export default function CustomerSearchInput({
   selected,
   onSelectChange,
@@ -66,16 +60,13 @@ export default function CustomerSearchInput({
   onlyCompanies = false // Optional prop to filter only companies
 }: CustomerSectionProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const [clients, setClients] = useState<ClientWithAddress[]>([])
+  const [clients, setClients] = useState<Client[]>([])
   const [isSearchLoading, setIsSearchLoading] = useState(false)
   const [isAddressLoading, setIsAddressLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const [triggerWidth, setTriggerWidth] = useState(0)
   const triggerRef = useRef<HTMLDivElement>(null)
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
-  const [address, setAddress] = useState<ClientWithAddress['Address'] | null>(
-    null
-  )
   const [error, setError] = useState<string | null>(null)
   const [clientDataReady, setClientDataReady] = useState(false)
 
@@ -166,7 +157,7 @@ export default function CustomerSearchInput({
           throw new Error('Failed to fetch clients')
         }
         const data = await response.json()
-        setClients(data.data || data) // Handle both formats (with pagination or direct array)
+        setClients(data.data || data)
       } catch (error) {
         console.error('Error fetching clients:', error)
       } finally {
@@ -177,69 +168,8 @@ export default function CustomerSearchInput({
     fetchClients()
   }, [searchTerm])
 
-  useEffect(() => {
-    // Reset states when client changes
-    setAddress(null)
-    setClientDataReady(false)
-    setError(null)
-
-    // Only fetch if client exists and has an addressId
-    if (!selected) {
-      setClientDataReady(true) // No client selected means we're ready (nothing to load)
-      return
-    }
-
-    // If client has no addressId, we're ready immediately
-    if (!selected.addressId) {
-      setClientDataReady(true)
-      return
-    }
-
-    async function fetchClientAddress() {
-      setIsAddressLoading(true)
-
-      try {
-        // Fetch client with address details
-        const response = await fetch(`/api/clients/${selected?.id}`)
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch client address: ${response.status}`)
-        }
-
-        const data = await response.json()
-
-        // Check if address data exists
-        if (data.Address) {
-          setAddress(data.Address)
-        } else {
-          // Client has addressId but no address found
-          setAddress(null)
-          console.warn(
-            `Client ${selected?.id} has addressId but no address was found`
-          )
-        }
-
-        // Mark client data as ready
-        setClientDataReady(true)
-      } catch (err) {
-        console.error('Error fetching client address:', err)
-        setError(err instanceof Error ? err.message : 'Failed to fetch address')
-        toast({
-          title: 'Error',
-          description: 'Failed to load client address information',
-          variant: 'destructive'
-        })
-        setClientDataReady(true) // Still mark as ready so UI isn't stuck
-      } finally {
-        setIsAddressLoading(false)
-      }
-    }
-
-    fetchClientAddress()
-  }, [selected])
-
   // Select a client
-  const selectClient = (client: ClientWithAddress) => {
+  const selectClient = (client: Client) => {
     setClientDataReady(false) // Reset ready state when selecting a new client
     onSelectChange(client)
     setSearchTerm('')
@@ -254,11 +184,11 @@ export default function CustomerSearchInput({
   }
 
   // Format address for display
-  const formatAddress = (client: ClientWithAddress) => {
-    if (!client.Address) return null
+  const formatAddress = (client: Client) => {
+    if (!client.province) return null
 
     const parts = []
-    if (client.Address.Province?.name) parts.push(client.Address.Province.name)
+    if (client.province) parts.push(client.province)
 
     return parts.length > 0 ? parts.join(', ') : null
   }
@@ -440,10 +370,10 @@ export default function CustomerSearchInput({
                   </div>
                 )}
 
-                {address && address.Province && (
+                {selected.province && (
                   <div className="flex items-center text-sm">
                     <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{address.Province?.name}</span>
+                    <span>{selected.province}</span>
                   </div>
                 )}
                 {selected.phone && (
