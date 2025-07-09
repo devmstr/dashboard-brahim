@@ -4,7 +4,7 @@ import { skuId } from '@/lib/utils'
 import { ClientSchemaType as Client } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ClientTable, ClientTableInput } from '@/components/client-table'
+import { ClientTable } from '@/components/client-table'
 import CustomerSearchInput from '@/components/customer-search.input'
 import { Icons } from '@/components/icons'
 import { useOrder } from '@/components/new-order.provider'
@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 
 interface Props {
-  data: ClientTableInput[]
+  data: Client[]
 }
 
 export const ClientForm: React.FC<Props> = ({ data }: Props) => {
@@ -43,12 +43,12 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
     )
   }
 
-  function onClientChange(Client: Client | undefined) {
-    setCustomer(Client)
+  function onClientChange(client: Client | undefined) {
+    setCustomer(client)
+    console.log('Client : ', client)
     setOrder((prev) => ({
       ...prev,
-      clientId: Client?.id,
-      Client
+      Client: client
     }))
   }
 
@@ -71,13 +71,6 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
     }))
 
     router.push('new/order')
-
-    // toast({
-    //   title: 'Étape 1 : Client enregistré',
-    //   description:
-    //     'Les informations du client ont été enregistrées avec succès.',
-    //   variant: 'success'
-    // })
 
     return
   }

@@ -3,7 +3,7 @@ import * as z from 'zod'
 
 // Client schema matching the Prisma model
 export const clientSchema = z.object({
-  id: z.string().optional(),
+  id: z.string(),
   name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
   phone: z.string().optional(),
   label: z.string().optional(),
@@ -30,7 +30,6 @@ export const clientSchema = z.object({
     .object({
       Orders: z.number().optional()
     })
-    .nullable()
     .optional()
 })
 

@@ -20,7 +20,6 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import type { ClientTableEntry } from '@/types'
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -50,35 +49,19 @@ import {
 } from '@/components/ui/alert-dialog'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import { useRouter } from 'next/navigation'
-import { ClientSchemaType as Client, ClientSchemaType } from '@/lib/validations'
-import { ClientWithAddress } from './customer-search.input'
-
-export type ClientTableInput = {
-  id: string
-  name: string
-  phone: string | null
-  label: string | null
-  isCompany: boolean | null
-  email: string | null
-  Address: {
-    Province: { name: string }
-  } | null
-  _count?: {
-    Orders: number
-  } | null
-}
+import { ClientSchemaType as Client } from '@/lib/validations'
 
 interface Props {
-  data: ClientTableInput[]
+  data: Client[]
   t?: {
+    id: string
     columns: string
     limit: string
     placeholder: string
-    id: string
     label: string
     name: string
     phone: string
-    Address: string
+    province: string
     _count: string
   }
   // New props for configurable UI elements
@@ -87,7 +70,7 @@ interface Props {
   showLimitSelector?: boolean
   showPaginationButtons?: boolean
   // Replace customActions with renderActions
-  renderActions?: (rowData: ClientWithAddress) => React.ReactNode
+  renderActions?: (rowData: Client) => React.ReactNode
   onDelete?: (id: string) => Promise<void>
   className?: string
 }
@@ -103,7 +86,7 @@ export function ClientTable({
     label: 'F.Juridique',
     name: 'Client',
     phone: 'Tél',
-    Address: 'Location'
+    province: 'Location'
   },
   showSearch = true,
   showColumnSelector = true,
@@ -141,7 +124,7 @@ export function ClientTable({
     } catch (error) {}
   }
 
-  const columns: ColumnDef<ClientTableInput>[] = [
+  const columns: ColumnDef<Client>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -265,7 +248,7 @@ export function ClientTable({
       }
     },
     {
-      accessorKey: 'Address',
+      accessorKey: 'province',
       header: ({ column }) => {
         return (
           <div
@@ -279,9 +262,7 @@ export function ClientTable({
       },
       cell: ({ row }) => {
         return (
-          <div className="flex items-center gap-1">
-            {row.original.Address?.Province?.name}
-          </div>
+          <div className="flex items-center gap-1">{row.original.province}</div>
         )
       }
     },
@@ -293,20 +274,10 @@ export function ClientTable({
       ),
       cell: ({ row: { original } }) => {
         // If renderActions is provided, call it with the row data
-        if (renderActions) {
-          return renderActions({
-            id: original.id,
-            name: original.name,
-            isCompany: original.isCompany || false,
-            phone: original.phone || '',
-            email: original.email || '',
-            label: original.label || '',
-            Address: original.Address
-          })
-        }
+        if (renderActions) return renderActions(original)
 
         // Otherwise, use the default Actions component
-        return <Actions id={original.id || 'unknown'} onDelete={handleDelete} />
+        return <Actions id={original.id} onDelete={handleDelete} />
       }
     }
   ]

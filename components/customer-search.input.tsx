@@ -2,16 +2,16 @@
 
 import type React from 'react'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { AddNewClientDialogButton } from '@/components/add-new-client.button'
+import { Icons } from '@/components/icons'
+import { Button } from '@/components/ui/button'
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
-  CardFooter
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandEmpty,
@@ -19,30 +19,25 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command'
+import { Input } from '@/components/ui/input'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
+import { formatPhoneNumber } from '@/lib/utils'
+import { type ClientSchemaType as Client } from '@/lib/validations'
 import {
-  Search,
-  User,
   Building,
-  X,
   Mail,
   MapPin,
+  Phone,
+  Search,
   Tag,
-  Phone
+  User,
+  X
 } from 'lucide-react'
-import { Icons } from '@/components/icons'
-import { AddNewClientDialogButton } from '@/components/add-new-client.button'
-import {
-  clientSchema,
-  type ClientSchemaType as Client
-} from '@/lib/validations'
-import type { Address } from '@prisma/client'
-import { toast } from '@/hooks/use-toast'
-import { formatPhoneNumber } from '@/lib/utils'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface CustomerSectionProps {
   selected?: Client
@@ -158,6 +153,7 @@ export default function CustomerSearchInput({
         }
         const data = await response.json()
         setClients(data.data || data)
+        setClientDataReady(true)
       } catch (error) {
         console.error('Error fetching clients:', error)
       } finally {
@@ -174,6 +170,7 @@ export default function CustomerSearchInput({
     onSelectChange(client)
     setSearchTerm('')
     setIsPopoverOpen(false)
+    setClientDataReady(true)
     inputRef.current?.focus()
   }
 
@@ -182,18 +179,6 @@ export default function CustomerSearchInput({
     onSelectChange(undefined)
     setClientDataReady(true) // Reset to ready state when clearing
   }
-
-  // Format address for display
-  const formatAddress = (client: Client) => {
-    if (!client.province) return null
-
-    const parts = []
-    if (client.province) parts.push(client.province)
-
-    return parts.length > 0 ? parts.join(', ') : null
-  }
-
-  // Format phone for display
 
   return (
     <Card className="h-fit">
@@ -254,8 +239,6 @@ export default function CustomerSearchInput({
                     <CommandEmpty>Aucun client trouvé.</CommandEmpty>
                     <CommandGroup heading="Acheteurs">
                       {clients.map((client) => {
-                        const addressText = formatAddress(client)
-
                         return (
                           <CommandItem
                             key={client.id}
@@ -286,11 +269,11 @@ export default function CustomerSearchInput({
                                       {highlightMatch(client.phone)}
                                     </div>
                                   )}
-                                  {addressText && (
+                                  {client.province && (
                                     <div className="flex items-center text-xs text-muted-foreground">
                                       <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
                                       <span className="truncate ">
-                                        {highlightMatch(addressText)}
+                                        {highlightMatch(client.province)}
                                       </span>
                                     </div>
                                   )}

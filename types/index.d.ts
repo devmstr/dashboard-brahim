@@ -148,6 +148,34 @@ declare type InvoiceItem = {
   quantity: number | null
 }
 
+declare type Client = {
+  id: string
+  name: string
+  isCompany: boolean | null
+  phone: string | null
+  label: string | null
+  email: string | null
+  website: string | null
+  tradeRegisterNumber: string | null
+  fiscalNumber: string | null
+  registrationArticle: string | null
+  taxIdNumber: string | null
+  statisticalIdNumber: string | null
+  approvalNumber: string | null
+  addressId: string | null
+  street: string | null
+  cityId: string | null
+  provinceId: string | null
+  countryId: string | null
+  country: string | null
+  province: string | null
+  city: string | null
+  zip: string | null
+  _count: {
+    Orders: number
+  } | null
+}
+
 declare type Invoice = {
   id: string
   reference: string

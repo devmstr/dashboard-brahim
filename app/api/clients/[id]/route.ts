@@ -20,7 +20,8 @@ export async function GET(
             Province: true,
             Country: true
           }
-        }
+        },
+        _count: { select: { Orders: true } }
       }
     })
 

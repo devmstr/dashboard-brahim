@@ -1,21 +1,18 @@
-import * as z from 'zod'
-import { contentSchema } from './tiptap'
-import { paymentSchema } from './payment'
 import {
   CATEGORY_TYPES,
-  CATEGORY_TYPES_ARR,
   CLAMPING_TYPES,
-  COLLECTOR_MATERIALS_TYPES,
   COLLECTOR_POSITION_TYPES,
   COOLING_SYSTEMS_TYPES,
-  COOLING_SYSTEMS_TYPES_ARR,
   FABRICATION_TYPES,
   ORDER_TYPES,
   PACKAGING_TYPES,
   PERFORATION_TYPES,
   STATUS_TYPES
 } from '@/config/global'
+import * as z from 'zod'
 import { clientSchema } from './client'
+import { paymentSchema } from './payment'
+import { contentSchema } from './tiptap'
 
 // Car-related schemas
 export const carSchema = z.object({
