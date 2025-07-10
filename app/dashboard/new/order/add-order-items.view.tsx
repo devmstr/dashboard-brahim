@@ -12,15 +12,13 @@ import { Separator } from '@/components/ui/separator'
 import { cn, skuId } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import ProductSearchInput, {
-  type RadiatorResp
-} from '@/components/search-product.input'
 import { toast } from '@/hooks/use-toast'
 import { AddOrderItemForm } from '@/components/add-order-item.form'
 import type { OrderItem } from '@/lib/validations'
 import { AddOrderItemFromDbFrom } from './add-order-item-from-db.form'
 import { RadiatorSearchCard } from '@/components/radiator-search.card'
-import { RadiatorResponse } from '@/types'
+import { ApiRadiator } from '@/types'
+import ProductSearchInput from '@/components/search-product.input'
 
 type Props = {}
 
@@ -30,15 +28,15 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<
-    RadiatorResp | undefined
+    ApiRadiator | undefined
   >(undefined)
-  const [fetchedProduct, setFetchedProduct] = useState<
-    RadiatorResponse | undefined
-  >(undefined)
+  const [fetchedProduct, setFetchedProduct] = useState<ApiRadiator | undefined>(
+    undefined
+  )
   const [isProductFormOpen, setIsProductFormOpen] = useState(false)
 
   // Function to handle product selection from the search input
-  const handleProductSelect = useCallback((product?: RadiatorResp) => {
+  const handleProductSelect = useCallback((product?: ApiRadiator) => {
     setSelectedProduct(product)
     // Reset fetched product when selection changes
     setFetchedProduct(undefined)
@@ -110,21 +108,12 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
     }
     // call the order endpoint and create the order
     router.push('payment')
-
-    // toast({
-    //   title: 'Étape 2 : Articles enregistrés',
-    //   description:
-    //     'Tous les articles de la commande ont été enregistrés avec succès.',
-    //   variant: 'success'
-    // })
   }
 
   // Function to handle form submission and add product to order
   const handleAddProductToOrder = useCallback(
-    (formData: any) => {
-      // add the orderItem to orderItem list
-      console.log('submited radiator: ', formData)
-      console.log('fetched radiator: ', fetchedProduct)
+    (formData: OrderItem) => {
+      console.log(formData)
 
       setOrder((prev) => ({
         ...prev,
@@ -146,15 +135,7 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   )
 
   async function onOrderPlaced(orderItem: OrderItem) {
-    let orderItemPrefix = orderItem.type?.substring(0, 2).toUpperCase() as
-      | 'FA'
-      | 'RA'
-      | 'AU'
-      | 'RE'
-    if (orderItem.fabrication == 'Rénovation') orderItemPrefix = 'RE'
-
-    orderItem.id = skuId(orderItemPrefix)
-    // add the orderItem to orderItem list
+    orderItem.id = skuId('AR')
     setOrder((prev) => ({
       ...prev,
       OrderItems: [...(prev?.OrderItems || []), orderItem]
@@ -215,7 +196,7 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
               {fetchedProduct && !isLoading && (
                 <AddOrderItemFromDbFrom
                   onSubmit={handleAddProductToOrder}
-                  initialData={fetchedProduct}
+                  apiRadiator={fetchedProduct}
                 />
               )}
             </div>
@@ -229,8 +210,8 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
             ({ id, label, Vehicle, fabrication, type, quantity }) => ({
               id: id as string,
               label: label as string,
-              brand: Vehicle?.brand,
-              model: Vehicle?.model,
+              brand: Vehicle?.Brand?.name,
+              model: Vehicle?.name,
               fabrication: fabrication as string,
               type: type as string,
               quantity: quantity as number

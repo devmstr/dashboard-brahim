@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
 
 const prisma = new PrismaClient()
 
@@ -144,6 +145,9 @@ export async function PUT(
         }
       }
     })
+
+    // revalidate path
+    revalidatePath('/dashboard/clients')
 
     return NextResponse.json(clientWithRelations)
   } catch (error) {

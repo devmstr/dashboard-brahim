@@ -211,8 +211,8 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
         fileDeleteStates={isDeleting}
         initialFiles={attachments.map((file) => ({
           id: file.id,
-          name: file.name,
-          uniqueName: file.uniqueName || file.name,
+          name: file.name ?? '',
+          uniqueName: file.uniqueName || file.name || '',
           path: file.path || '',
           url: file.url,
           fileId: file.id,

@@ -3,9 +3,7 @@ import { twMerge } from 'tailwind-merge'
 import n2words from 'n2words'
 import { BillingConfig, InvoiceItem, UserRole } from '@/types'
 import { customAlphabet } from 'nanoid'
-import { ORDER_TYPES, FABRICATION_TYPES } from '@/config/global'
 import { OrderItem } from './validations'
-import { RSC_PREFETCH_SUFFIX } from 'next/dist/lib/constants'
 import { Content } from '@tiptap/react'
 
 export enum SKU_PREFIX {
@@ -48,11 +46,6 @@ export function generateUniqueFilename(originalFilename: string): string {
   return `${uniqueId}.${extension}`
 }
 
-interface Dimensions {
-  width: number
-  height: number
-}
-
 const FINS_T = {
   Zigzag: 'Z',
   Aérer: 'A',
@@ -81,41 +74,43 @@ export const coolingDec = {
   Huile: 'HUI'
 } as const
 
-export type FinsPitch = '10' | '11' | '12' | '14'
-export type FinsType = keyof typeof FINS_T
-export type TubeType = keyof typeof TUBE_T
-export type TighteningType = keyof typeof TIGHTENING_T
-export type PositionType = keyof typeof POSITION_T
+export type Fins = 'Normale' | 'Aérer' | 'Zigzag'
+export type Tube = 'ET7' | 'ET9' | 'MP'
+export type Tightening = 'Plié' | 'Boulonné'
+export type Position = 'Centrer' | 'Dépassée'
+export type Type = 'Radiateur' | 'Spirale' | 'Faisceau' | 'Autre'
+export type Fabrication = 'Confection' | 'Rénovation'
+export type Cooling = 'Eau' | 'Air' | 'Huile'
 
 interface ProductConfig {
-  type?: OrderItem['type']
-  fabrication?: OrderItem['fabrication']
-  cooling?: OrderItem['cooling']
-  brand?: string
-  model?: string
-  fins?: OrderItem['fins']
-  tubeType?: OrderItem['tubeType']
-  pitch?: OrderItem['pitch']
-  tubeDiameter?: OrderItem['tubeDiameter']
-  rows?: number
-  betweenCollectors?: OrderItem['betweenCollectors']
-  width?: OrderItem['width']
-  upperCollectorLength?: OrderItem['upperCollectorLength']
-  upperCollectorWidth?: OrderItem['upperCollectorWidth']
-  lowerCollectorLength?: OrderItem['lowerCollectorLength']
-  lowerCollectorWidth?: OrderItem['lowerCollectorWidth']
-  tightening?: OrderItem['tightening']
-  position?: OrderItem['position']
+  type?: string | null
+  fabrication?: string | null
+  cooling?: string | null
+  fins?: string | null
+  tubeType?: string | null
+  pitch?: number | null
+  tubeDiameter?: number | null
+  rows?: number | null
+  betweenCollectors?: number | null
+  width?: number | null
+  upperCollectorLength?: number | null
+  upperCollectorWidth?: number | null
+  lowerCollectorLength?: number | null
+  lowerCollectorWidth?: number | null
+  tightening?: string | null
+  position?: string | null
+  brand?: string | null
+  model?: string | null
 }
 
-const pad = (n: number | undefined): string =>
+const pad = (n?: number | null): string =>
   (n?.toString() || '0').padStart(4, '0')
 
-const formatDimension = (main: number, lower?: number): string =>
+const formatDimension = (main?: number | null, lower?: number | null): string =>
   lower && lower !== main ? `${pad(main)}/${pad(lower)}` : pad(main)
 
 const getPrefix = (
-  type: OrderItem['type'] = 'Radiateur',
+  type: Type,
   fabrication: OrderItem['fabrication'] = 'Confection'
 ): string =>
   type === 'Radiateur'
@@ -123,6 +118,57 @@ const getPrefix = (
       ? 'RAD'
       : 'REN'
     : type.slice(0, 3).toUpperCase()
+
+export function generateRadiatorLabel({
+  type,
+  fabrication,
+  cooling = 'Eau',
+  brand = '',
+  model = '',
+  betweenCollectors = 0,
+  width,
+  fins = 'Normale',
+  tubeType = 'ET7',
+  tubeDiameter = 16,
+  pitch = 10,
+  rows = 1,
+  upperCollectorLength = 0,
+  upperCollectorWidth = 0,
+  lowerCollectorLength = 0,
+  lowerCollectorWidth = 0,
+  tightening = 'Plié',
+  position = 'Centrer'
+}: ProductConfig): string {
+  const prefix = getPrefix(type as Type, fabrication as Fabrication)
+
+  const core = `${pad(betweenCollectors)}X${pad(width!)}`
+  const collectors = `${formatDimension(
+    upperCollectorLength,
+    lowerCollectorLength
+  )}X${formatDimension(upperCollectorWidth, lowerCollectorWidth)}`
+  const finsTube =
+    type === 'Spirale'
+      ? `T${tubeDiameter}`
+      : `${FINS_T[fins as Fins]}${TUBE_T[tubeType as Tube]} ${pitch}`
+
+  const coolingText =
+    cooling !== 'Eau' ? ` ${coolingDec[cooling as Cooling]}` : ''
+  const brandModel = `${brand} ${model}`.trim()
+
+  return [
+    prefix,
+    core,
+    `${rows}${finsTube}`,
+    collectors,
+    TIGHTENING_T[tightening as Tightening],
+    POSITION_T[position as Position],
+    coolingText,
+    brandModel
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+}
 
 export const formatPhoneNumber = (phone: string | null | undefined) => {
   if (!phone) return ''
@@ -150,56 +196,6 @@ export const formatPhoneNumber = (phone: string | null | undefined) => {
   }
   // if phone number is 9 digits, format it as 0X XX XX XX
   return cleanedPhone.replace(/(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
-}
-
-export function generateRadiatorLabel({
-  type,
-  fabrication,
-  cooling = 'Eau',
-  brand = '',
-  model = '',
-  betweenCollectors = 0,
-  width,
-  fins = 'Normale',
-  tubeType = 'ET7',
-  tubeDiameter = 16,
-  pitch = '10',
-  rows = 1,
-  upperCollectorLength = 0,
-  upperCollectorWidth = 0,
-  lowerCollectorLength = 0,
-  lowerCollectorWidth = 0,
-  tightening = 'Plié',
-  position = 'Centrer'
-}: ProductConfig): string {
-  const prefix = getPrefix(type, fabrication)
-
-  const core = `${pad(betweenCollectors)}X${pad(width)}`
-  const collectors = `${formatDimension(
-    upperCollectorLength,
-    lowerCollectorLength
-  )}X${formatDimension(upperCollectorWidth, lowerCollectorWidth)}`
-  const finsTube =
-    type === 'Spirale'
-      ? `T${tubeDiameter}`
-      : `${FINS_T[fins]}${TUBE_T[tubeType]} ${pitch}`
-
-  const coolingText = cooling !== 'Eau' ? ` ${coolingDec[cooling]}` : ''
-  const brandModel = `${brand} ${model}`.trim()
-
-  return [
-    prefix,
-    core,
-    `${rows}${finsTube}`,
-    collectors,
-    TIGHTENING_T[tightening],
-    POSITION_T[position],
-    coolingText,
-    brandModel
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .trim()
 }
 
 export function cn(...inputs: ClassValue[]) {

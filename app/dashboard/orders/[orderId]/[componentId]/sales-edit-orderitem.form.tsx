@@ -1,16 +1,13 @@
 'use client'
 
-import type React from 'react'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 // UI Components
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import {
   Form,
   FormControl,
@@ -19,15 +16,16 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 
 // Custom Components
+import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
+import { Icons } from '@/components/icons'
 import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
-import { CardGrid } from '@/components/card'
-import { toast } from '@/hooks/use-toast'
-import { generateRadiatorLabel, isContentEmpty } from '@/lib/utils'
-import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
 import {
   CATEGORY_TYPES_ARR,
   type CLAMPING_TYPES,
@@ -42,7 +40,9 @@ import {
   PERFORATION_TYPES_ARR,
   TUBE_TYPES
 } from '@/config/global'
-import { Icons } from '@/components/icons'
+import { toast } from '@/hooks/use-toast'
+import { generateRadiatorLabel, isContentEmpty } from '@/lib/utils'
+import { type OrderItem, orderItemSchema } from '@/lib/validations/order'
 import { Content } from '@tiptap/react'
 import { useSession } from 'next-auth/react'
 
@@ -76,15 +76,18 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   const form = useForm<OrderItem>({
     defaultValues: {
       ...data,
+      type: data.type ?? 'Radiateur',
       modification: data.modification ?? '',
       note: data.note ?? '',
-      description: data.description ?? ''
+      pitch: data.pitch,
+      description: data.description ?? '',
+      tubeDiameter: 0
     },
     resolver: zodResolver(orderItemSchema)
   })
 
   // Watched values
-  const type = form.watch('type')
+  const type = form.watch('type') as string
   const tightening = form.watch('tightening')
   const pitch = form.watch('pitch')
   const fins = form.watch('fins')
@@ -107,13 +110,13 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   }, [upperCollectorWidth, form])
 
   // Handle form submission
-  const onSubmitHandler = async (formData: OrderItem) => {
+  const onSubmitHandler = async (orderItem: OrderItem) => {
     try {
       setIsLoading(true)
-      const label = generateRadiatorLabel(formData)
+      const label = generateRadiatorLabel(orderItem)
 
       const updatedOrderItem: OrderItem = {
-        ...formData,
+        ...orderItem,
         label
       }
 
@@ -152,66 +155,45 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   }
 
   // Handle form submission with validation
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    try {
+      if (
+        type === 'Faisceau' &&
+        (!upperCollectorLength || !upperCollectorWidth)
+      ) {
+        form.setError('betweenCollectors', {
+          type: 'required',
+          message:
+            'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
+        })
+        form.setError('upperCollectorLength', {
+          type: 'required',
+          message:
+            'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
+        })
+      } else {
+        form.clearErrors('betweenCollectors')
+        form.clearErrors('upperCollectorLength')
+      }
 
-    if (
-      type === 'Faisceau' &&
-      (!upperCollectorLength || !upperCollectorWidth)
-    ) {
-      form.setError('betweenCollectors', {
-        type: 'required',
-        message:
-          'Les dimensions du faisceau sont obligatoires pour le type Faisceau'
-      })
-    } else {
-      form.clearErrors('betweenCollectors')
-    }
+      const isValid = await form.trigger()
 
-    if (
-      type === 'Faisceau' &&
-      (!upperCollectorLength || !upperCollectorWidth)
-    ) {
-      form.setError('upperCollectorLength', {
-        type: 'required',
-        message:
-          'Les dimensions du collecteur sont obligatoires pour le type Faisceau'
-      })
-    } else {
-      form.clearErrors('upperCollectorLength')
-    }
+      if (!isValid) {
+        console.log(form.formState.errors)
+        throw new Error('Form validation failed')
+      }
 
-    const isValid = await form.trigger()
-
-    if (!isValid) {
-      const errorMessages = extractErrorMessages(form.formState.errors)
-
-      console.log('errorMessages', errorMessages)
-
+      form.handleSubmit(onSubmitHandler)(e)
+    } catch (error: any) {
+      console.log(error)
       toast({
         title: 'Erreurs de validation',
-        description: (
-          <ul className="list-disc pl-4 mt-2 space-y-1">
-            {errorMessages.map((message, index) => (
-              <li key={index}>{message}</li>
-            ))}
-          </ul>
-        ),
+        description: error.message || 'Erreur inconnue',
         variant: 'destructive'
       })
-      return
     }
-
-    form.handleSubmit(onSubmitHandler)(e)
-  }
-
-  function extractErrorMessages(errors: any): string[] {
-    if (!errors) return []
-    if (typeof errors.message === 'string') return [errors.message]
-    if (Array.isArray(errors)) return errors.flatMap(extractErrorMessages)
-    if (typeof errors === 'object')
-      return Object.values(errors).flatMap(extractErrorMessages)
-    return []
   }
 
   return (
@@ -313,9 +295,9 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                         if (v === 'Faisceau') {
                           form.setValue('fabrication', 'Confection')
                         }
-                        form.setValue('category', v as OrderItem['category'])
+                        form.setValue('category', v)
                       }}
-                      selected={field.value}
+                      selected={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -339,13 +321,8 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                             )
                           : FABRICATION_TYPES_ARR
                       }
-                      onSelect={(v) =>
-                        form.setValue(
-                          'fabrication',
-                          v as OrderItem['fabrication']
-                        )
-                      }
-                      selected={field.value as string}
+                      onSelect={(v) => form.setValue('fabrication', v)}
+                      selected={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -366,6 +343,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                         if (value > 0) form.setValue('quantity', value)
                       }}
                       type="number"
+                      value={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -383,12 +361,12 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                       {...field}
                       options={COOLING_SYSTEMS_TYPES_ARR}
                       onSelect={(v) => {
-                        form.setValue('cooling', v as OrderItem['cooling'])
+                        form.setValue('cooling', v)
                         if (v !== 'Eau') {
                           form.setValue('tightening', 'Plié')
                         }
                       }}
-                      selected={field.value}
+                      selected={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -406,9 +384,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                       {...field}
                       id="packaging"
                       options={PACKAGING_TYPES_ARR}
-                      onSelect={(v) =>
-                        form.setValue('packaging', v as OrderItem['packaging'])
-                      }
+                      onSelect={(v) => form.setValue('packaging', v)}
                       selected={field.value as string}
                     />
                   </FormControl>
@@ -588,16 +564,16 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                           options={FINS_TYPES}
                           onSelect={(v) => {
                             if (
-                              (v === 'Zigzag' && pitch === '11') ||
+                              (v === 'Zigzag' && pitch === 11) ||
                               ((v === 'Droite (Aérer)' ||
                                 v === 'Droite (Normale)') &&
-                                pitch === '12')
+                                pitch === 12)
                             ) {
-                              form.setValue('pitch', '10')
+                              form.setValue('pitch', 10)
                             }
-                            form.setValue('fins', v as OrderItem['fins'])
+                            form.setValue('fins', v)
                           }}
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                           isInSideADialog
                         />
                       </FormControl>
@@ -614,13 +590,8 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                         <Combobox
                           id="tube"
                           options={TUBE_TYPES}
-                          onSelect={(v) =>
-                            form.setValue(
-                              'tubeType',
-                              v as OrderItem['tubeType']
-                            )
-                          }
-                          selected={field.value}
+                          onSelect={(v) => form.setValue('tubeType', v)}
+                          selected={field.value ?? undefined}
                           isInSideADialog
                         />
                       </FormControl>
@@ -643,9 +614,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                               ? ['10', '12']
                               : ['10', '11', '14']
                           }
-                          onSelect={(v) =>
-                            form.setValue('pitch', v as OrderItem['pitch'])
-                          }
+                          onSelect={(v) => form.setValue('pitch', Number(v))}
                           selected={field.value?.toString()}
                           isInSideADialog
                         />
@@ -693,13 +662,8 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                   ? ['Plié']
                                   : CLAMPING_TYPES_ARR
                               }
-                              onSelect={(v) =>
-                                form.setValue(
-                                  'tightening',
-                                  v as (typeof CLAMPING_TYPES)[number]
-                                )
-                              }
-                              selected={field.value}
+                              onSelect={(v) => form.setValue('tightening', v)}
+                              selected={field.value ?? undefined}
                               isInSideADialog
                             />
                           </FormControl>
@@ -720,12 +684,9 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                 id="perforation"
                                 options={PERFORATION_TYPES_ARR}
                                 onSelect={(v) =>
-                                  form.setValue(
-                                    'perforation',
-                                    v as (typeof PERFORATION_TYPES)[number]
-                                  )
+                                  form.setValue('perforation', v)
                                 }
-                                selected={field.value}
+                                selected={field.value ?? undefined}
                                 isInSideADialog
                               />
                             </FormControl>
@@ -744,13 +705,8 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                           <FormControl>
                             <Combobox
                               options={COLLECTOR_POSITION_TYPES_ARR}
-                              onSelect={(v) =>
-                                form.setValue(
-                                  'position',
-                                  v as (typeof COLLECTOR_POSITION_TYPES)[number]
-                                )
-                              }
-                              selected={field.value}
+                              onSelect={(v) => form.setValue('position', v)}
+                              selected={field.value ?? undefined}
                               isInSideADialog
                             />
                           </FormControl>
@@ -852,6 +808,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>
@@ -878,6 +835,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>

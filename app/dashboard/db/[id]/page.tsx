@@ -36,11 +36,11 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
   })
   if (!record) return notFound()
 
-  const { Components, ...radiator } = record
+  const { Components, Models, ...radiator } = record
 
   const data = {
     ...radiator,
-    pitch: radiator.pitch?.toString(),
+    pitch: radiator.pitch,
     Components: Components.map(({ MaterialUsages, ...component }) => ({
       ...component,
       usages: MaterialUsages.map(({ Material, quantity }) => ({
@@ -48,7 +48,7 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
         quantity
       }))
     }))
-  } as RadiatorSchemaType
+  }
 
   return (
     <Card>

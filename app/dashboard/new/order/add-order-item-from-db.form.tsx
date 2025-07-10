@@ -3,7 +3,6 @@
 import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
 import { MdEditor } from '@/components/md-editor'
-import { RadiatorResp } from '@/components/search-product.input'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -28,8 +27,15 @@ import {
   PACKAGING_TYPES,
   PACKAGING_TYPES_ARR
 } from '@/config/global'
-import { contentSchema, OrderItem, orderItemSchema } from '@/lib/validations'
-import { RadiatorResponse } from '@/types'
+import { isContentEmpty } from '@/lib/utils'
+import {
+  VehicleSchemaType,
+  contentSchema,
+  OrderItem,
+  orderItemSchema
+} from '@/lib/validations'
+import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
+import { ApiRadiator } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -37,111 +43,70 @@ import * as z from 'zod'
 
 // Form schema
 const formSchema = z.object({
-  type: z.enum(ORDER_TYPES).optional(),
-  fabrication: z.enum(FABRICATION_TYPES).optional(),
-  quantity: z.number().positive().optional().default(1),
-  packaging: z.enum(PACKAGING_TYPES).optional(),
-  category: z.enum(CATEGORY_TYPES).optional(),
-  cooling: z.enum(COOLING_SYSTEMS_TYPES).optional(),
-  isModified: z.boolean().nullable().optional(),
-  note: contentSchema.optional(),
-  modification: contentSchema.optional(),
-  description: contentSchema.optional()
+  type: z.string().optional(),
+  fabrication: z.string().optional(),
+  quantity: z.number().optional(),
+  packaging: z.string().optional(),
+  category: z.string().optional(),
+  cooling: z.string().optional(),
+  isModified: z.boolean().optional(),
+  modification: contentSchema.optional()
 })
 
 type FromType = z.infer<typeof formSchema>
 
 interface ProductDetailsFormProps {
-  initialData: RadiatorResponse
-  onSubmit: (values: Partial<OrderItem>) => void
-}
-
-const IDTOTYPE = new Map<string, string>([
-  ['F', 'Faisceau'],
-  ['R', 'Radiateur'],
-  ['A', 'Autre'],
-  ['S', 'Spirale']
-])
-
-type Collector = {
-  type: string
-  width: number
-  height: number
-  isTinned: boolean
-  position: string
-  thickness: number
-  tightening: string
-  perforation: string
-}
-type Core = {
-  fins: string
-  rows: number
-  tube: string
-  width: number
-  height: number
-  finsPitch: number
+  apiRadiator: ApiRadiator
+  onSubmit: (values: OrderItem) => void
 }
 
 export function AddOrderItemFromDbFrom({
-  initialData,
+  apiRadiator,
   onSubmit
 }: ProductDetailsFormProps) {
   const [isModificationIncluded, setIsModificationIncluded] = useState(false)
-  console.log(initialData)
-  // Initialize form with default values
   const form = useForm<FromType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: IDTOTYPE.get(initialData.id[0]) as OrderItem['type'],
-      fabrication: 'Confection',
-      category: (initialData.category as OrderItem['category']) ?? 'Automobile',
+      ...apiRadiator,
+      type: apiRadiator.type ?? 'Radiateur',
+      fabrication: apiRadiator.fabrication ?? 'Confection',
+      category: apiRadiator.category ?? 'Automobile',
       quantity: 1,
-      cooling: (initialData.cooling as OrderItem['cooling']) ?? 'Eau',
+      cooling: apiRadiator.cooling ?? 'Eau',
       isModified: false,
-      packaging: 'Carton',
-      modification: '',
-      description: ''
+      packaging: 'Carton'
     }
   })
 
   const type = form.watch('type')
 
   function handleSubmit(data: FromType) {
-    const coreMeta = initialData.Components.find(({ type }) => type === 'CORE')
-      ?.meta as Core
-    const collectorTopMeta = initialData.Components.find(
-      ({ type, meta }) => type === 'COLLECTOR' && meta.type === 'TOP'
-    )?.meta as Collector
-    const collectorBottomMeta = initialData.Components.find(
-      ({ type, meta }) => type === 'COLLECTOR' && meta.type === 'BOTTOM'
-    )?.meta as Collector
-
-    onSubmit({
-      ...data,
-      id: initialData.id,
-      label: initialData.label,
-      isModified: false,
-      betweenCollectors: coreMeta.height,
-      width: coreMeta.width,
-      fins: coreMeta.fins as OrderItem['fins'],
-      pitch: coreMeta.fins as OrderItem['pitch'],
-      rows: coreMeta.rows,
-      tubeType: coreMeta.tube as OrderItem['tubeType'],
-      upperCollectorLength: collectorTopMeta.height,
-      upperCollectorWidth: collectorTopMeta.width,
-      lowerCollectorLength: collectorBottomMeta.height,
-      lowerCollectorWidth: collectorBottomMeta.width,
-      perforation: collectorTopMeta.perforation as OrderItem['perforation'],
-      isTinned: collectorTopMeta.isTinned,
-      position: collectorTopMeta.position as OrderItem['position'],
-      tightening: collectorTopMeta.tightening as OrderItem['tightening'],
-      // add spiral info
-      Vehicle: {
-        id: initialData.Brands?.at(0)?.Models?.at(0)?.id,
-        brand: initialData.Brands?.at(0)?.name,
-        model: initialData.Brands?.at(0)?.Models?.at(0)?.name
+    try {
+      const firstModel = apiRadiator.Models.at(0)
+      console.log(firstModel)
+      const orderItem: OrderItem = {
+        ...apiRadiator,
+        ...data,
+        ...(firstModel
+          ? {
+              Vehicle: {
+                id: firstModel.id,
+                name: firstModel.name,
+                Brand: firstModel.Brand,
+                Family: firstModel.Family,
+                Types: firstModel.Types,
+                fuel: firstModel.fuel || '',
+                year: firstModel.year || ''
+              }
+            }
+          : { Vehicle: undefined })
       }
-    })
+      const parsed = orderItemSchema.parse(orderItem)
+      onSubmit(parsed)
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   return (
@@ -153,12 +118,12 @@ export function AddOrderItemFromDbFrom({
             Radiateur
           </span>
           <div className="space-y-2">
-            <div className="font-medium text-lg">{initialData.label}</div>
-            {initialData.Brands?.at(0)?.name &&
-              initialData.Brands?.at(0)?.Models?.at(0)?.name && (
+            <div className="font-medium text-lg">{apiRadiator.label}</div>
+            {apiRadiator.Models[0]?.Brand?.name &&
+              apiRadiator.Models[0]?.name && (
                 <div className="text-sm text-muted-foreground">
-                  {initialData.Brands.at(0)?.name} -{' '}
-                  {initialData.Brands.at(0)?.Models.at(0)?.name}
+                  {apiRadiator.Models[0]?.Brand?.name} -{' '}
+                  {apiRadiator.Models[0]?.name}
                 </div>
               )}
           </div>
@@ -224,7 +189,7 @@ export function AddOrderItemFromDbFrom({
                           if (v === 'Faisceau') {
                             form.setValue('fabrication', 'Confection')
                           }
-                          form.setValue('category', v as OrderItem['category'])
+                          form.setValue('category', v)
                         }}
                         selected={field.value}
                         isInSideADialog

@@ -34,7 +34,9 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
           isActive: Boolean(radiator.isActive),
           bulkPrice: radiator.Price?.bulk,
           bulkPriceThreshold: radiator.Price?.bulkThreshold,
-          price: radiator.Price?.unit
+          price: radiator.Price?.unit ?? 0,
+          priceTTC: radiator.Price?.unitTTC ?? 0,
+          bulkPriceTTC: radiator.Price?.bulkTTC ?? 0
         }}
       />
     )

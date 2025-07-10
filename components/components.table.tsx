@@ -526,6 +526,7 @@ export function OrderComponentsTable({
                           ]
                         })
                       })
+                      console.log(response)
                       if (!response.ok) {
                         const error = await response.json()
                         console.error('Error adding order item:', error)
@@ -538,7 +539,6 @@ export function OrderComponentsTable({
                       const newItem = updatedOrder.OrdersItems?.find(
                         (item: any) => item.id === id
                       )
-                      console.log(newItem)
                       if (newItem) {
                         setData((prev) => [
                           ...prev,
@@ -551,7 +551,7 @@ export function OrderComponentsTable({
                             label: newItem.label || '',
                             quantity: newItem.quantity || 0,
                             isModified: newItem.modification
-                              ? !!newItem.modification
+                              ? newItem.isModified
                               : false
                           }
                         ])

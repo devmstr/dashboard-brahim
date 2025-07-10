@@ -40,8 +40,9 @@ export default async function EditClientPage({
       <EditClientForm
         data={{
           ...client,
+          id: client.id,
           label: client.label ?? undefined,
-          email: client.label ?? undefined,
+          email: client.email ?? undefined,
           phone: formatPhoneNumber(client.phone),
           website: client.website ?? undefined,
           tradeRegisterNumber: client.tradeRegisterNumber ?? undefined,

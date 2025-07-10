@@ -104,12 +104,17 @@ export async function GET(request: NextRequest) {
     const formattedRadiators = radiators.map(
       ({ Components, Orders, Models, Price, Inventory, ...radiator }) => ({
         ...radiator,
-        inventor: Inventory?.level,
+        inventoryLevel: Inventory?.level,
+        inventoryMaxLevel: Inventory?.maxLevel,
+        inventoryAlertAt: Inventory?.alertAt,
+        inventoryLocation: Inventory?.location,
         inventorId: Inventory?.id,
+        priceId: Price?.id,
         priceHT: Price?.unit,
         priceTTC: Price?.unitTTC,
         bulkPriceHT: Price?.bulk,
         bulkPriceTTC: Price?.bulkTTC,
+        bulkPriceThreshold: Price?.bulkThreshold,
         Components: Components.map(({ MaterialUsages, ...component }) => ({
           ...component,
           usages: MaterialUsages.map(({ Material, quantity }) => ({
@@ -117,14 +122,17 @@ export async function GET(request: NextRequest) {
             quantity
           }))
         })),
-        Models: Models.map(
-          ({ Family: { Brand, ...Family }, Types, ...model }) => ({
+        Models: Models.map(({ Family, Types, ...model }) => {
+          return {
             ...model,
             Types,
-            Family,
-            Brand
-          })
-        ),
+            Family: {
+              id: Family?.id,
+              name: Family?.id
+            },
+            Brand: Family?.Brand
+          }
+        }),
         Clients: Orders.map(({ Client }) => ({ ...Client }))
       })
     )

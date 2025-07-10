@@ -81,7 +81,7 @@ async function main() {
         rows: rows,
         fins: fins,
         pitch: pitch,
-        tube: tube,
+        tubeType: tube,
         upperCollectorLength: upperCollectorLength,
         upperCollectorWidth: upperCollectorWidth,
         position: position === 'Center' ? 'Centrer' : 'Dépassée',

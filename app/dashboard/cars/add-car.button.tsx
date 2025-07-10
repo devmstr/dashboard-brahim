@@ -6,7 +6,7 @@ import { delay } from '@/lib/utils'
 import { ClientSchemaType } from '../timeline/add-order.dialog'
 import { useTransition } from 'react'
 import { z } from 'zod'
-import { Car } from '@/lib/validations'
+import { VehicleSchemaType } from '@/lib/validations'
 import { CarForm } from './new-car.form'
 
 interface Props {}
@@ -14,7 +14,7 @@ interface Props {}
 export const AddCarButton: React.FC<Props> = ({}: Props) => {
   const [isLoading, beginTransition] = useTransition()
 
-  const handleSubmit = async (data: Car) => {
+  const handleSubmit = async (data: VehicleSchemaType) => {
     beginTransition(async () => {
       // handle adding new client here
       await delay(1500)

@@ -20,27 +20,11 @@ import { Icons } from '@/components/icons'
 import { useDebounce } from '@/hooks/use-debounce'
 import { format } from 'date-fns'
 import type { Radiator } from '@prisma/client'
-
-// Updated Product interface to match API response
-export type RadiatorResp = {
-  id: string
-  label: string
-  reference?: string
-  category?: string
-  cooling?: string
-  barcode?: string
-  isActive?: boolean
-  Clients: { id: string; name: string }[]
-  Brands: { id: string; name: string; Models: { id: string; name: string }[] }[]
-  Inventory?: { level: number; alertAt: number } | null
-  Price?: { unit: number; bulk: number } | null
-  createdAt?: string
-  updatedAt?: string
-}
+import { ApiRadiator } from '@/types'
 
 interface ProductSearchInputProps {
-  selected?: Pick<Radiator, 'id' | 'label'>
-  onSelectChange: (product?: RadiatorResp) => void
+  selected?: Pick<ApiRadiator, 'id' | 'label'>
+  onSelectChange: (product?: ApiRadiator) => void
   children?: React.ReactNode
   placeholder?: string
   usePortal?: boolean
@@ -55,7 +39,7 @@ export default function ProductSearchInput({
 }: ProductSearchInputProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
-  const [products, setProducts] = useState<RadiatorResp[]>([])
+  const [products, setProducts] = useState<ApiRadiator[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -117,7 +101,7 @@ export default function ProductSearchInput({
 
   // Select a product
   const handleSelectProduct = useCallback(
-    (product: RadiatorResp) => {
+    (product: ApiRadiator) => {
       // Pass the full product object to the parent component
       onSelectChange(product)
       setSearchTerm('')
@@ -252,35 +236,23 @@ export default function ProductSearchInput({
                               </div>
                               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pl-7 text-xs text-muted-foreground">
                                 {/* Display brands with their models */}
-                                {product.Brands &&
-                                  product.Brands.length > 0 && (
+                                {product.Models &&
+                                  product.Models.length > 0 && (
                                     <div className="flex items-center gap-1">
                                       <Car className="w-3 h-3" />
                                       <span>
-                                        {product.Brands.map((brand, idx) => (
-                                          <span key={brand.id}>
+                                        {product.Models.map((model, idx) => (
+                                          <span
+                                            className="flex gap-1"
+                                            key={model.id}
+                                          >
                                             {idx > 0 && ', '}
                                             <strong>
-                                              {highlightMatch(brand.name)}
+                                              {highlightMatch(model.Brand.name)}
                                             </strong>
-                                            {brand.Models &&
-                                              brand.Models.length > 0 && (
-                                                <span>
-                                                  {' '}
-                                                  (
-                                                  {brand.Models.map(
-                                                    (model, midx) => (
-                                                      <span key={model.id}>
-                                                        {midx > 0 && ', '}
-                                                        {highlightMatch(
-                                                          model.name
-                                                        )}
-                                                      </span>
-                                                    )
-                                                  )}
-                                                  )
-                                                </span>
-                                              )}
+                                            <span>
+                                              ({highlightMatch(model.name)})
+                                            </span>
                                           </span>
                                         ))}
                                       </span>
@@ -301,16 +273,16 @@ export default function ProductSearchInput({
                                     </div>
                                   )}
 
-                                {product.Price && (
+                                {product.priceHT && (
                                   <div className="text-xs">
-                                    Prix: {product.Price.unit.toLocaleString()}{' '}
-                                    DA
+                                    Prix: <strong>{product.priceHT}</strong> DA
                                   </div>
                                 )}
 
-                                {product.Inventory && (
+                                {product.inventoryLevel && (
                                   <div className="text-xs">
-                                    Stock: {product.Inventory.level}
+                                    Stock:{' '}
+                                    <strong>{product.inventoryLevel}</strong>
                                   </div>
                                 )}
                               </div>

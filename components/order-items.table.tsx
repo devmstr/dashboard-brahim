@@ -98,8 +98,8 @@ export function OrderItemsTable({
         quantity: quantity as number,
         type: type as string,
         label: label as string,
-        brand: Vehicle?.brand,
-        model: Vehicle?.model
+        brand: Vehicle?.Brand?.name,
+        model: Vehicle?.name
       })
     )
     if (orderItems) setData(orderItems)
@@ -165,22 +165,24 @@ export function OrderItemsTable({
         const matches = label.match(regex)
 
         return (
-          <p
-            className="text-foreground/85  truncate  overflow-hidden whitespace-nowrap"
-            style={{
-              fontSize: ' 1.05rem',
-              lineHeight: '1.65rem'
-            }}
-          >
-            {parts.map((part, index) => (
-              <React.Fragment key={index}>
-                {part}
-                {matches && matches[index] && (
-                  <span className="font-semibold">{matches[index]}</span>
-                )}
-              </React.Fragment>
-            ))}
-          </p>
+          <div className="max-w-sm overflow-x-auto scrollbar-hidden">
+            <p
+              className="text-foreground/85 min-w-fit whitespace-nowrap"
+              style={{
+                fontSize: '1.05rem',
+                lineHeight: '1.65rem'
+              }}
+            >
+              {parts.map((part, index) => (
+                <React.Fragment key={index}>
+                  {part}
+                  {matches && matches[index] && (
+                    <span className="font-semibold">{matches[index]}</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </p>
+          </div>
         )
       }
     },

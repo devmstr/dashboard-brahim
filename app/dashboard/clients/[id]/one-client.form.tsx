@@ -29,7 +29,6 @@ interface Props {
 }
 
 export const EditClientForm: React.FC<Props> = ({ data }: Props) => {
-  const router = useRouter()
   const [isLoading, updateOrderMetadata] = React.useTransition()
   const form = useForm<Client>({
     defaultValues: data,
@@ -40,7 +39,12 @@ export const EditClientForm: React.FC<Props> = ({ data }: Props) => {
   const onSubmit = (formData: Client) => {
     // update data using react query
     updateOrderMetadata(async () => {
-      await delay(1500)
+      const response = await fetch(`/api/clients/${data?.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(formData)
+      })
+      const responseData = await response.json()
+      console.log('responseData : ', responseData)
     })
   }
   return (

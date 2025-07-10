@@ -3,19 +3,10 @@ import { Car, Factory, Info, Tractor, Zap, Users } from 'lucide-react'
 import type { OrderItem } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { ApiRadiator } from '@/types'
 
 interface Props {
-  product: {
-    id: string
-    label: string
-    category: OrderItem['category'] // as "Automobile" | "Industriel" | "Générateurs" | "Agricole" | undefined
-    Brands?: Array<{
-      id: string
-      name: string
-      Models?: Array<{ id: string; name: string }>
-    }>
-    Clients?: Array<{ id: string; name: string }>
-  }
+  product: ApiRadiator
   children?: React.ReactNode
 }
 
@@ -52,16 +43,6 @@ export const RadiatorSearchCard: React.FC<Props> = ({ product, children }) => {
     }
   }
 
-  // Count total models across all brands
-  const totalModels =
-    product.Brands?.reduce(
-      (acc, brand) => acc + (brand.Models?.length || 0),
-      0
-    ) || 0
-
-  // Count total clients
-  const totalClients = product.Clients?.length || 0
-
   return (
     <div
       className={cn(
@@ -88,21 +69,22 @@ export const RadiatorSearchCard: React.FC<Props> = ({ product, children }) => {
           <div className="flex items-center gap-1.5 mb-2">
             <Car className="h-4 w-4 text-gray-500" />
             <span className="text-sm font-medium">
-              Brands ({product.Brands?.length || 0})
+              Brands{' '}
+              {product.Models?.length ? `(${product.Models?.length})` : ''}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {product.Brands?.slice(0, 3).map((brand) => (
+            {product.Models?.slice(0, 3).map((model) => (
               <span
-                key={brand.id}
+                key={model.id}
                 className="text-xs px-2 py-1 bg-white/80 rounded-full border border-gray-100"
               >
-                {brand.name}
+                {model.Brand.name} - {model.name}
               </span>
             ))}
-            {(product.Brands?.length || 0) > 3 && (
+            {(product.Models?.length || 0) > 3 && (
               <span className="text-xs px-2 py-1 bg-white/80 rounded-full border border-gray-100">
-                +{(product.Brands?.length || 0) - 3} more
+                +{(product.Models?.length || 0) - 3} more
               </span>
             )}
           </div>
@@ -116,7 +98,8 @@ export const RadiatorSearchCard: React.FC<Props> = ({ product, children }) => {
           <div className="flex items-center gap-1.5 mb-2">
             <Users className="h-4 w-4 text-gray-500" />
             <span className="text-sm font-medium">
-              Clients ({totalClients})
+              Clients{' '}
+              {product.Clients?.length ? `(${product.Clients?.length})` : ''}
             </span>
           </div>
           <div className="flex flex-wrap gap-2">

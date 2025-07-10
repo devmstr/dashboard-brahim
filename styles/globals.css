@@ -63,6 +63,14 @@
     clip-path: polygon(0 50%, 100% 0, 100% 100%);
   }
 
+  .scrollbar-hidden {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
+
   .menu-btn {
     @apply relative -left-[0.8rem];
     z-index: 9999;

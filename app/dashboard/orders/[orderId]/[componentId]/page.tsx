@@ -3,10 +3,11 @@ import { Card } from '@/components/card'
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
 import prisma from '@/lib/db'
 import { SalesEditOrderItemForm } from './sales-edit-orderitem.form'
-import { OrderItem } from '@/lib/validations'
+import { OrderItem, VehicleSchemaType } from '@/lib/validations'
 import { notFound } from 'next/navigation'
 import { parseMetadata } from '@/lib/utils'
 import { Ordering } from '@tanstack/react-table'
+import { Content } from '@tiptap/react'
 
 interface Props {
   params: {
@@ -37,6 +38,7 @@ const Page: React.FC<Props> = async ({
         Attachments: true,
         Model: {
           include: {
+            Types: true,
             Family: {
               include: {
                 Brand: true
@@ -55,50 +57,19 @@ const Page: React.FC<Props> = async ({
               data={{
                 ...orderItem,
                 id: orderItem.id,
-                packaging: orderItem.packaging as OrderItem['packaging'],
-                type: orderItem.type as OrderItem['type'],
-                category: orderItem.category as OrderItem['category'],
-                cooling: orderItem.cooling as OrderItem['cooling'],
-                fabrication: orderItem.fabrication as OrderItem['fabrication'],
-                note: orderItem.note as OrderItem['note'],
-                modification:
-                  orderItem.modification as OrderItem['modification'],
-                description: orderItem.description as OrderItem['description'],
-                label: orderItem.label as OrderItem['label'],
-                status: (orderItem.status as OrderItem['status']) ?? 'Prévu',
-                isModified: orderItem.isModified as OrderItem['isModified'],
-                isTinned: orderItem.isTinned as OrderItem['isTinned'],
-                isPainted: orderItem.isPainted as OrderItem['isPainted'],
-                fins: orderItem.fins as OrderItem['fins'],
-                perforation: orderItem.perforation as OrderItem['perforation'],
-                position: orderItem.position as OrderItem['position'],
-                quantity: orderItem.quantity as OrderItem['quantity'],
-                pitch: orderItem.pitch?.toString() as OrderItem['pitch'],
-                tubeDiameter:
-                  orderItem.tubeDiameter as OrderItem['tubeDiameter'],
-                tubeType: orderItem.tube as OrderItem['tubeType'],
-                rows: orderItem.rows as OrderItem['rows'],
-                width: orderItem.width as OrderItem['width'],
-                betweenCollectors:
-                  orderItem.betweenCollectors as OrderItem['betweenCollectors'],
-                upperCollectorLength:
-                  orderItem.upperCollectorLength as OrderItem['upperCollectorLength'],
-                lowerCollectorLength:
-                  orderItem.lowerCollectorLength as OrderItem['lowerCollectorLength'],
-                upperCollectorWidth:
-                  orderItem.upperCollectorWidth as OrderItem['upperCollectorWidth'],
-                lowerCollectorWidth:
-                  orderItem.lowerCollectorWidth as OrderItem['lowerCollectorWidth'],
-                tightening: orderItem.tightening as OrderItem['tightening'],
-                orderId: orderId,
+                note: orderItem.note as Content,
+                modification: orderItem.modification as Content,
+                description: orderItem.description as Content,
                 Vehicle: orderItem?.Model
-                  ? {
+                  ? ({
                       id: orderItem.Model.id,
-                      model: orderItem.Model.name,
-                      brand: orderItem.Model.Family.Brand.name,
-                      family: orderItem.Model.Family.name,
-                      year: orderItem.Model.year as string
-                    }
+                      name: orderItem.Model.name,
+                      Brand: orderItem.Model.Family?.Brand,
+                      Family: orderItem.Model.Family,
+                      Types: orderItem.Model.Types,
+                      year: orderItem.Model.year || '',
+                      fuel: orderItem.Model.fuel || ''
+                    } as VehicleSchemaType)
                   : undefined
               }}
             />

@@ -133,7 +133,7 @@ async function main() {
             rows: radiatorData.rows,
             fins: radiatorData.fins,
             pitch: radiatorData.pitch,
-            tube: radiatorData.tube,
+            tubeType: radiatorData.tube,
             upperCollectorLength: radiatorData.upperCollectorLength,
             upperCollectorWidth: radiatorData.upperCollectorWidth,
             position:

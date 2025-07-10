@@ -111,32 +111,99 @@ export type Dictionary = Record<string, string>
 
 declare type UserRole = Uppercase<(typeof userRoles)[number]>
 
-declare type RadiatorResponse = {
+declare type ApiRadiator = {
   id: string
-  reference: string
-  label: string
-  category: OrderItem['category']
-  cooling: OrderItem['cooling']
-  barcode: string
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  partNumber: string | null
+  category: string | null
+  dirId: string | null
+  cooling: string | null
+  barcode: string | null
+  label: string | null
+  hash: string | null
+  status: string | null
+  type: string | null
+  production: string | null
+  fabrication: string | null
+  fins: string | null
+  pitch: number | null
+  tube: string | null
+  rows: number | null
+  tubeDiameter: number | null
+  betweenCollectors: number | null
+  width: number | null
+  position: string | null
+  tightening: string | null
+  perforation: string | null
+  isTinned: boolean | null
+  tubeType: string | null
+  isPainted: boolean | null
+  upperCollectorLength: number | null
+  lowerCollectorLength: number | null
+  upperCollectorWidth: number | null
+  lowerCollectorWidth: number | null
+  isActive: boolean | null
+  inventoryLevel: number | null
+  inventoryMaxLevel: number | null
+  inventoryAlertAt: number | null
+  inventoryLocation: string | null
+  inventorId: string | null
+  priceId: string | null
+  priceHT: number | null
+  priceTTC: number | null
+  bulkPriceHT: number | null
+  bulkPriceTTC: number | null
+  bulkPriceThreshold: number | null
+  createdAt: Date | null
   Components: {
+    usages: {
+      id: string
+      name: string
+      quantity: number | null
+      reference: string | null
+      description: string | null
+      unit: string | null
+      baseUnit: string | null
+      conversionFactor: number | null
+      unitCost: number | null
+    }[]
+    id: string
+    label: string
+    type: string | null
+    radiatorId: string | null
+  }[]
+  Models: {
+    Types: {
+      id: string
+      name: string
+    }[]
+    Family: {
+      id: string
+      name: string
+    }
+    Brand: {
+      id: string
+      name: string
+    }
+    id: string
     name: string
-    type: string
-    meta: any
+    year: string | null
+    fuel: string | null
   }[]
   Clients: {
     id: string
     name: string
-  }[]
-  Brands: {
-    id: string
-    name: string
-    Models: {
-      id: string
-      name: string
-    }[]
+    phone: string | null
+    label: string | null
+    email: string | null
+    isCompany: boolean
+    website: string | null
+    fiscalNumber: string | null
+    tradeRegisterNumber: string | null
+    registrationArticle: string | null
+    taxIdNumber: string | null
+    statisticalIdNumber: string | null
+    approvalNumber: string | null
+    addressId: string | null
   }[]
 }
 

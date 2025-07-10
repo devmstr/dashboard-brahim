@@ -1,18 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { CardGrid } from '@/components/card'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -25,32 +14,44 @@ import {
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toast } from '@/components/ui/use-toast'
-import { CardGrid } from '@/components/card'
-import { Car, carSchema } from '@/lib/validations'
+import { VehicleSchemaType } from '@/lib/validations'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 interface CarFormProps {
-  defaultValues?: Partial<Car>
-  onSubmit?: (data: Car) => void
+  defaultValues?: Partial<VehicleSchemaType>
+  onSubmit?: (data: NewCarSchemaType) => void
 }
+
+export const newCarSchema = z.object({
+  id: z.string(),
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  family: z.string().optional(),
+  type: z.string().optional(),
+  fuel: z.string().optional(),
+  year: z.string().optional()
+})
+
+export type NewCarSchemaType = z.infer<typeof newCarSchema>
 
 export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Initialize the form with default values
-  const form = useForm<Car>({
-    resolver: zodResolver(carSchema),
+  const form = useForm<NewCarSchemaType>({
+    resolver: zodResolver(newCarSchema),
     defaultValues: {
-      brand: defaultValues?.brand || '',
-      model: defaultValues?.model || '',
-      family: defaultValues?.family || '',
-      type: defaultValues?.type || '',
+      ...defaultValues,
       fuel: defaultValues?.fuel || 'Diesel',
       year: defaultValues?.year || ''
     }
   })
 
   // Handle form submission
-  const handleSubmit = async (data: Car) => {
+  const handleSubmit = async (data: NewCarSchemaType) => {
     setIsSubmitting(true)
     try {
       if (onSubmit) {

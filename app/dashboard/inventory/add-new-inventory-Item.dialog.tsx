@@ -32,7 +32,7 @@ import { Icons } from '@/components/icons'
 import ProductSearchInput from '@/components/search-product.input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { inventorySchema, InventoryType } from './schema.zod'
-import { RadiatorResponse } from '@/types'
+import { ApiRadiator } from '@/types'
 import { RadiatorSearchCard } from '@/components/radiator-search.card'
 
 type AddInventoryItemProps = {}
@@ -41,20 +41,16 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
   const [open, setOpen] = useState(false)
 
   const [selectedProduct, setSelectedProduct] = useState<
-    | {
-        id: string
-        label: string
-      }
-    | undefined
+    ApiRadiator | undefined
   >(undefined)
 
   const [isLoading, setIsLoading] = useState(false)
   const [isAdding, setAddingTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const [fetchedProduct, setFetchedProduct] = useState<
-    RadiatorResponse | undefined
-  >(undefined)
+  const [fetchedProduct, setFetchedProduct] = useState<ApiRadiator | undefined>(
+    undefined
+  )
 
   // Initialize the form with react-hook-form
   const form = useForm<Partial<InventoryType>>({

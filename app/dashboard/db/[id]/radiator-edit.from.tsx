@@ -15,20 +15,16 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 
 // Custom Components
-import { type CarSelection } from '@/components/car-selection.from'
 import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
-import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
 
 // Utilities and Config
 import {
   CLAMPING_TYPES_ARR,
-  COLLECTOR_MATERIALS_TYPES_ARR,
   COLLECTOR_POSITION_TYPES_ARR,
   FINS_TYPES,
   PERFORATION_TYPES_ARR,
@@ -36,13 +32,8 @@ import {
 } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
 
-import { useState } from 'react'
-import { isContentEmpty } from '@/lib/utils'
-import { z } from 'zod'
-import { Content } from '@tiptap/react'
-import { contentSchema } from '@/lib/validations'
 import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
-import { OrderItem } from '@prisma/client'
+import { useState } from 'react'
 
 interface RadiatorEditFormProps {
   data: RadiatorSchemaType
@@ -117,6 +108,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value ?? undefined}
                       type="text"
                       className="w-full"
                       disabled
@@ -208,6 +200,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value ?? undefined}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('betweenCollectors', Number(value))
@@ -233,6 +226,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value ?? undefined}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('width', Number(value))
@@ -256,6 +250,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Input
                       type="number"
                       {...field}
+                      value={field.value ?? undefined}
                       onChange={({ target: { value } }) =>
                         form.setValue('rows', Number(value))
                       }
@@ -282,7 +277,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       onSelect={(v) =>
                         form.setValue('fins', v as RadiatorSchemaType['fins'])
                       }
-                      selected={field.value}
+                      selected={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -305,7 +300,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           v as RadiatorSchemaType['tubeType']
                         )
                       }
-                      selected={field.value}
+                      selected={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -322,9 +317,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Combobox
                       {...field}
                       options={['10', '11', '12', '14']}
-                      onSelect={(v) =>
-                        form.setValue('pitch', v as RadiatorSchemaType['pitch'])
-                      }
+                      onSelect={(v) => form.setValue('pitch', Number(v))}
                       selected={field.value?.toString()}
                     />
                   </FormControl>
@@ -374,7 +367,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                               v as RadiatorSchemaType['tightening']
                             )
                           }
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -398,7 +391,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                               v as RadiatorSchemaType['perforation']
                             )
                           }
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -422,7 +415,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                               v as RadiatorSchemaType['position']
                             )
                           }
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -456,6 +449,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorLength', Number(value))
                           }
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -480,6 +474,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorWidth', Number(value))
                           }
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -513,6 +508,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorLength', Number(value))
                           }
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -537,6 +533,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorWidth', Number(value))
                           }
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -564,6 +561,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     {...field}
                     placeholder="Enter Dir ID"
                     className="w-full"
+                    value={field.value ?? undefined}
                   />
                 </FormControl>
                 <FormMessage />

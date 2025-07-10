@@ -223,7 +223,7 @@ model Radiator {
   fabrication          String?
   fins                 String?
   pitch                Int?
-  tube                 String?
+  tubeType             String?
   rows                 Int?
   tubeDiameter         Int?
   betweenCollectors    Int?
@@ -256,12 +256,12 @@ model Radiator {
 }
 
 model Component {
-  id         String @id @default(cuid())
+  id         String  @id @default(cuid())
   label      String
-  type       String
-  radiatorId String
+  type       String?
+  radiatorId String?
 
-  Radiator       Radiator        @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
+  Radiator       Radiator?       @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
   MaterialUsages MaterialUsage[]
 
   @@map("components")
@@ -274,10 +274,10 @@ model Material {
   reference        String?         @unique
   name             String
   description      String?
-  unit             String // e.g., "kg", "g", "l", "m²", "cm²"
-  baseUnit         String // e.g., "g", "ml", "m²"
-  conversionFactor Float // e.g., 1000 if unit is "kg" and baseUnit is "g"
-  unitCost         Float // cost per base unit
+  unit             String? // e.g., "kg", "g", "l", "m²", "cm²"
+  baseUnit         String? // e.g., "g", "ml", "m²"
+  conversionFactor Float? // e.g., 1000 if unit is "kg" and baseUnit is "g"
+  unitCost         Float? // cost per base unit
   Usages           MaterialUsage[]
 
   @@map("materials")
@@ -287,7 +287,7 @@ model MaterialUsage {
   id          String @id @default(cuid())
   componentId String
   materialId  String
-  quantity    Float
+  quantity    Float?
 
   Component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
   Material  Material  @relation(fields: [materialId], references: [id], onDelete: Cascade)
@@ -307,11 +307,11 @@ model Brand {
 }
 
 model CarFamily {
-  id      String @id @default(cuid())
+  id      String  @id @default(cuid())
   name    String
-  brandId String
+  brandId String?
 
-  Brand  Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Brand  Brand?     @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   Models CarModel[]
 
   @@map("car_families")
@@ -323,10 +323,10 @@ model CarModel {
   year String?
   fuel String?
 
-  familyId   String
+  familyId   String?
   radiatorId String?
 
-  Family    CarFamily   @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Family    CarFamily?  @relation(fields: [familyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   Types     CarType[]
   Radiator  Radiator?   @relation(fields: [radiatorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   OrderItem OrderItem[]
@@ -335,11 +335,11 @@ model CarModel {
 }
 
 model CarType {
-  id      String @id @default(cuid())
+  id      String  @id @default(cuid())
   name    String
-  modelId String
+  modelId String?
 
-  Model CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  Model CarModel? @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("car_type")
 }
@@ -433,7 +433,7 @@ model OrderItem {
   canceledAt           DateTime?
   fins                 String?
   pitch                Int?
-  tube                 String?
+  tubeType             String?
   rows                 Int?
   tubeDiameter         Int?
   betweenCollectors    Int?

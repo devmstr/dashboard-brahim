@@ -165,7 +165,7 @@ async function main() {
         rows: 0,
         fins: 'Zigzag',
         pitch: 0,
-        tube: 'ET7',
+        tubeType: 'ET7',
         upperCollectorLength: 0,
         upperCollectorWidth: 0,
         position: '',

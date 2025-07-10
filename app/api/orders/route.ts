@@ -65,10 +65,10 @@ export async function POST(request: Request) {
 
       // Step 2: Prepare attachments
       const attachmentsData = (Attachments || []).map((attachment) => ({
-        url: attachment.url,
-        type: attachment.type || 'unknown',
-        name: attachment.name,
-        uniqueName: attachment.uniqueName ?? ''
+        url: attachment.url || '',
+        type: attachment.type || '',
+        name: attachment.name || '',
+        uniqueName: attachment.uniqueName || ''
       }))
 
       // Step 3: Create order (needed before linking order items)
@@ -76,8 +76,8 @@ export async function POST(request: Request) {
         data: {
           id,
           clientId,
-          deadline: deadline ?? new Date().toISOString(),
-          status: (status as Order['status']) || 'Prévu',
+          deadline: deadline,
+          status: status,
           progress: progress || 0,
           paymentId: createdPayment.id,
           totalItems: OrderItems.reduce(
@@ -85,9 +85,11 @@ export async function POST(request: Request) {
             0
           ),
           deliveredItems: 0,
-          ...(attachmentsData.length > 0 && {
-            Attachments: { create: attachmentsData }
-          })
+          ...(attachmentsData.length > 0
+            ? {
+                Attachments: { create: attachmentsData }
+              }
+            : undefined)
         }
       })
 
@@ -114,7 +116,7 @@ export async function POST(request: Request) {
             position: item.position ?? null,
             pitch: item.pitch ? Number(item.pitch) : null,
             tubeDiameter: item.tubeDiameter ?? null,
-            tube: item.tubeType ?? null,
+            tubeType: item.tubeType ?? null,
             rows: item.rows ?? null,
             width: item.width ?? null,
             upperCollectorLength: item.upperCollectorLength ?? null,
@@ -215,9 +217,9 @@ export async function GET(request: Request) {
       OrdersItems: item.OrdersItems.map((orderItem) => ({
         ...orderItem,
         Vehicle: {
-          brand: orderItem.Model?.Family.Brand.name,
+          brand: orderItem.Model?.Family?.Brand?.name,
           model: orderItem.Model?.name,
-          family: orderItem.Model?.Family.name
+          family: orderItem.Model?.Family?.name
         }
       }))
     }))

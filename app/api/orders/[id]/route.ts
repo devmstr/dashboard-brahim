@@ -41,9 +41,9 @@ export async function GET(
       OrdersItems: order.OrdersItems.map((orderItem) => ({
         ...orderItem,
         Vehicle: {
-          brand: orderItem.Model?.Family.Brand.name,
+          brand: orderItem.Model?.Family?.Brand?.name,
           model: orderItem.Model?.name,
-          family: orderItem.Model?.Family.name
+          family: orderItem.Model?.Family?.name
         }
       }))
     })
@@ -167,7 +167,7 @@ export async function PUT(
                 position: item.position ?? null,
                 pitch: item.pitch ? Number(item.pitch) : null,
                 tubeDiameter: item.tubeDiameter ?? null,
-                tube: item.tubeType ?? null,
+                tubeType: item.tubeType ?? null,
                 rows: item.rows ?? null,
                 width: item.width ?? null,
                 upperCollectorLength: item.upperCollectorLength ?? null,
@@ -203,7 +203,7 @@ export async function PUT(
                 position: item.position ?? null,
                 pitch: item.pitch ? Number(item.pitch) : null,
                 tubeDiameter: item.tubeDiameter ?? null,
-                tube: item.tubeType ?? null,
+                tubeType: item.tubeType ?? null,
                 rows: item.rows ?? null,
                 width: item.width ?? null,
                 upperCollectorLength: item.upperCollectorLength ?? null,
@@ -374,9 +374,7 @@ export async function PATCH(
     ].includes(role)
 
     const id = params.id
-    const body = await request.json()
-
-    console.log('BODY:', body)
+    const body = (await request.json()) as OrderItem
 
     // Validate that the order item exists
     const existingItem = await prisma.orderItem.findUnique({
@@ -405,40 +403,50 @@ export async function PATCH(
         { status: 404 }
       )
 
-    // Extract data from the request body
-    const {
-      type,
-      note,
-      description,
-      modification,
-      packaging,
-      fabrication,
-      isModified,
-      quantity
-    } = body
     // Use a transaction to ensure all operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
       // Update the order item
       const updatedOrderItem = await tx.orderItem.update({
         where: { id },
         data: {
-          type: type,
-          note: note || undefined,
-          description: description || undefined,
-          modification: modification || undefined,
-          packaging: packaging,
-          fabrication: fabrication,
-          isModified: isModified,
-          quantity: quantity,
+          note: body.note || undefined,
+          description: body.description || undefined,
+          modification: body.modification || undefined,
+          packaging: body.packaging || undefined,
+          fabrication: body.fabrication || undefined,
+          isModified: body.isModified ?? false,
+          quantity: body.quantity ?? 1,
+          type: body.type || undefined,
+          betweenCollectors: body.betweenCollectors ?? null,
+          category: body.category || 'Automobile',
+          cooling: body.cooling ?? null,
+          isTinned: body.isTinned ?? false,
+          isPainted: body.isPainted ?? false,
+          fins: body.fins ?? null,
+          perforation: body.perforation ?? null,
+          position: body.position ?? null,
+          pitch: body.pitch ? Number(body.pitch) : null,
+          tubeDiameter: body.tubeDiameter ?? null,
+          tubeType: body.tubeType ?? null,
+          rows: body.rows ?? null,
+          width: body.width ?? null,
+          upperCollectorLength: body.upperCollectorLength ?? null,
+          lowerCollectorLength: body.lowerCollectorLength ?? null,
+          upperCollectorWidth: body.upperCollectorWidth ?? null,
+          lowerCollectorWidth: body.lowerCollectorWidth ?? null,
+          tightening: body.tightening ?? null,
+          label: body.label,
+          status: body.status || 'Prévu',
+          delivered: existingItem.delivered ?? 0,
+          modelId: body.Vehicle?.id,
           ...(isAuthorizedForValidation && {
-            //
             validatedAt: new Date().toLocaleString()
           })
         }
       })
 
       // Update the parent order's totalItems if quantity is updated
-      if (typeof quantity === 'number') {
+      if (typeof body.quantity === 'number') {
         // Find all items for this order
         const allItems = await tx.orderItem.findMany({
           where: { orderId: updatedOrderItem.orderId }
@@ -462,7 +470,7 @@ export async function PATCH(
           Attachments: true,
           Model: {
             include: {
-              // Types: true,
+              Types: true,
               Family: { include: { Brand: true } }
             }
           }

@@ -32,7 +32,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
     const { Orders, Models, ...rest } = radiator
     const company = Orders[0]?.Client.name || '_'
     const model = Models[0]?.name || '_'
-    const brand = Models[0]?.Family?.Brand.name || '_'
+    const brand = Models[0]?.Family?.Brand?.name || '_'
     return {
       ...rest,
       dirId: rest.directoryId || '_',

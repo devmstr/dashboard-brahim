@@ -1,61 +1,48 @@
 'use client'
 
-import type React from 'react'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 // UI Components
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
-  FormMessage
+  FormLabel
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 
 // Custom Components
 import { Combobox } from '@/components/combobox'
 import { MdEditor } from '@/components/md-editor'
 import { Switcher } from '@/components/switcher'
-import { CardGrid } from './card'
-import { CarSelectionForm, type CarSelection } from './car-selection.from'
-import { toast } from '@/hooks/use-toast'
 import {
-  FinsPitch,
-  FinsType,
-  generateRadiatorLabel,
-  PositionType,
-  TighteningType,
-  TubeType
-} from '@/lib/utils'
-import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
-import {
-  CATEGORY_TYPES,
   CATEGORY_TYPES_ARR,
   CLAMPING_TYPES,
   CLAMPING_TYPES_ARR,
   COLLECTOR_POSITION_TYPES,
   COLLECTOR_POSITION_TYPES_ARR,
-  COOLING_SYSTEMS_TYPES,
   COOLING_SYSTEMS_TYPES_ARR,
-  FABRICATION_TYPES,
   FABRICATION_TYPES_ARR,
   FINS_TYPES,
-  ORDER_TYPES,
   ORDER_TYPES_ARR,
-  PACKAGING_TYPES,
   PACKAGING_TYPES_ARR,
   PERFORATION_TYPES,
   PERFORATION_TYPES_ARR,
   TUBE_TYPES
 } from '@/config/global'
+import { toast } from '@/hooks/use-toast'
+import { generateRadiatorLabel, skuId } from '@/lib/utils'
+import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
+import { CarSelectionForm, type CarSelection } from './car-selection.from'
+import { CardGrid } from './card'
 
 interface OrderItemFormProps {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
@@ -76,6 +63,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   // Form initialization with default values
   const form = useForm<OrderItem>({
     defaultValues: {
+      id: skuId('AR'),
       type: 'Radiateur',
       fabrication: 'Confection',
       cooling: 'Eau',
@@ -85,7 +73,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       note: '',
       // core
       fins: 'Normale',
-      pitch: '10',
+      pitch: 10,
       tubeType: 'ET7',
       rows: 2,
       tubeDiameter: 16,
@@ -94,7 +82,6 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       // collectors
       isModified: false,
       isTinned: true,
-      isPainted: true,
       perforation: 'Perforé',
       tightening: 'Plié',
       position: 'Centrer',
@@ -195,9 +182,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       return
     }
 
-    const label = generateRadiatorLabel({
-      ...formData
-    })
+    const label = generateRadiatorLabel(formData)
 
     const orderItem: OrderItem = {
       ...formData,
@@ -209,8 +194,8 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         carSelection?.brand?.name
           ? {
               id: carSelection.model.id,
-              model: carSelection.model.name,
-              brand: carSelection.brand.name
+              name: carSelection.model.name,
+              Brand: carSelection.brand
             }
           : undefined
     }
@@ -230,7 +215,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const isFaisceauOrSpirale = ['Faisceau', 'Spirale'].includes(type)
+    const isFaisceauOrSpirale = ['Faisceau', 'Spirale'].includes(type ?? '')
 
     let hasError = false
 
@@ -412,7 +397,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         }
                         form.setValue('category', v as OrderItem['category'])
                       }}
-                      selected={field.value}
+                      selected={field.value ?? undefined}
                       isInSideADialog
                     />
                   </FormControl>
@@ -436,7 +421,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         }
                         form.setValue('type', v as OrderItem['type'])
                       }}
-                      selected={field.value}
+                      selected={field.value ?? undefined}
                       isInSideADialog
                     />
                   </FormControl>
@@ -513,7 +498,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           form.setValue('tightening', 'Plié')
                         }
                       }}
-                      selected={field.value}
+                      selected={field.value ?? undefined}
                       isInSideADialog
                     />
                   </FormControl>
@@ -568,7 +553,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         </div>
 
         {/* Technical Details Section */}
-        {!['Autre'].includes(type) && (
+        {!['Autre'].includes(type ?? '') && (
           <div className="relative space-y-3 border rounded-md px-3 py-3">
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               {'Faisceau'}
@@ -641,7 +626,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
               )}
 
               {/* Only show dimensions for Faisceau type */}
-              {['Faisceau', 'Spirale'].includes(type) && (
+              {['Faisceau', 'Spirale'].includes(type ?? '') && (
                 <>
                   <FormField
                     control={form.control}
@@ -698,7 +683,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                 </>
               )}
             </CardGrid>
-            {['Faisceau', 'Radiateur'].includes(type) && (
+            {['Faisceau', 'Radiateur'].includes(type ?? '') && (
               <CardGrid>
                 <FormField
                   control={form.control}
@@ -712,16 +697,16 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           options={FINS_TYPES}
                           onSelect={(v) => {
                             if (
-                              (v === 'Zigzag' && pitch === '11') ||
+                              (v === 'Zigzag' && pitch === 11) ||
                               ((v === 'Droite (Aérer)' ||
                                 v === 'Droite (Normale)') &&
-                                pitch === '12')
+                                pitch === 12)
                             ) {
-                              form.setValue('pitch', '10')
+                              form.setValue('pitch', 10)
                             }
-                            form.setValue('fins', v as FinsType)
+                            form.setValue('fins', v)
                           }}
-                          selected={field.value}
+                          selected={field.value ?? undefined}
                           isInSideADialog
                         />
                       </FormControl>
@@ -738,10 +723,8 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         <Combobox
                           id="tube"
                           options={TUBE_TYPES}
-                          onSelect={(v) =>
-                            form.setValue('tubeType', v as TubeType)
-                          }
-                          selected={field.value}
+                          onSelect={(v) => form.setValue('tubeType', v)}
+                          selected={field.value ?? undefined}
                           isInSideADialog
                         />
                       </FormControl>
@@ -764,9 +747,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                               ? ['10', '12']
                               : ['10', '11', '14']
                           }
-                          onSelect={(v) =>
-                            form.setValue('pitch', v as FinsPitch)
-                          }
+                          onSelect={(v) => form.setValue('pitch', Number(v))}
                           selected={field.value?.toString()}
                           isInSideADialog
                         />
@@ -776,7 +757,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                 />
               </CardGrid>
             )}
-            {['Faisceau', 'Spirale'].includes(type) && (
+            {['Faisceau', 'Spirale'].includes(type ?? '') && (
               <div className="pt-5">
                 <div className="relative space-y-3 border rounded-md px-3 py-3">
                   <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
@@ -820,7 +801,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                   v as (typeof CLAMPING_TYPES)[number]
                                 )
                               }
-                              selected={field.value}
+                              selected={field.value ?? undefined}
                               isInSideADialog
                             />
                           </FormControl>
@@ -846,7 +827,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                     v as (typeof PERFORATION_TYPES)[number]
                                   )
                                 }
-                                selected={field.value}
+                                selected={field.value ?? undefined}
                                 isInSideADialog
                               />
                             </FormControl>
@@ -871,7 +852,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                   v as (typeof COLLECTOR_POSITION_TYPES)[number]
                                 )
                               }
-                              selected={field.value}
+                              selected={field.value ?? undefined}
                               isInSideADialog
                             />
                           </FormControl>
@@ -973,6 +954,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>
@@ -999,6 +981,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>

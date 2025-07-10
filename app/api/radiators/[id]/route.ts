@@ -1,8 +1,8 @@
-import { radiatorSchema } from '@/lib/validations/radiator'
 import prisma from '@/lib/db'
-import { type NextRequest, NextResponse } from 'next/server'
 import { generateRadiatorLabel } from '@/lib/utils'
+import { RadiatorSchemaType } from '@/lib/validations/radiator'
 import { revalidatePath } from 'next/cache'
+import { type NextRequest, NextResponse } from 'next/server'
 
 interface RouteParams {
   params: {
@@ -69,14 +69,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           quantity
         }))
       })),
-      Models: Models.map(
-        ({ Family: { Brand, ...Family }, Types, ...model }) => ({
+      Models: Models.map(({ Family, Types, ...model }) => {
+        return {
           ...model,
           Types,
-          Family,
-          Brand
-        })
-      ),
+          Family: {
+            id: Family?.id,
+            name: Family?.id
+          },
+          Brand: Family?.Brand
+        }
+      }),
       Clients: Orders.map(({ Client }) => ({ ...Client }))
     })
   } catch (error) {
@@ -122,36 +125,20 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
-    const body = await request.json()
-
-    // Validate the body using the new schema
-    const validated = radiatorSchema.parse(body)
+    const body = (await request.json()) as RadiatorSchemaType
 
     // Generate the label using the provided/validated data
-    const label = generateRadiatorLabel({
-      width: validated.width ?? 0,
-      betweenCollectors: validated.betweenCollectors ?? 0,
-      fins: validated.fins,
-      tubeType: validated.tubeType,
-      pitch: validated.pitch,
-      rows: validated.rows ?? 0,
-      tightening: validated.tightening,
-      position: validated.position,
-      upperCollectorWidth: validated.upperCollectorWidth ?? 0,
-      upperCollectorLength: validated.upperCollectorLength ?? 0,
-      lowerCollectorWidth: validated.lowerCollectorWidth ?? 0,
-      lowerCollectorLength: validated.lowerCollectorLength ?? 0
-    })
+    const label = generateRadiatorLabel(body)
 
-    const { Components, ...data } = validated
+    const { Components, Vehicle, ...data } = body
 
     // Start transaction for atomic update
     const radiator = await prisma.radiator.update({
       where: { id },
       data: {
         ...data,
-        pitch: Number(validated.pitch),
         label
+        // TODO: update Components
       }
     })
     // Optionally revalidate cache/path
