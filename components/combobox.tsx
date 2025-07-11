@@ -24,7 +24,7 @@ type Option = string | { label: string; value: string }
 interface Props {
   id?: string
   topic?: string
-  selected?: string
+  selected?: string | null
   onSelect: (value: string) => void
   options: Option[]
   disabled?: boolean

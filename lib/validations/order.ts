@@ -80,6 +80,7 @@ export const orderItemSchema = z.object({
   upperCollectorWidth: z.number().optional().nullable(),
   lowerCollectorWidth: z.number().optional().nullable(),
   orderId: z.string().optional().nullable(),
+  radiatorId: z.string().optional().nullable(),
   Vehicle: vehicleSchema.optional().nullable()
 })
 

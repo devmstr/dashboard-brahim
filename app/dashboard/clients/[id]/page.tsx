@@ -3,6 +3,7 @@ import { notFound, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { EditClientForm } from './one-client.form'
 import { formatPhoneNumber } from '@/lib/utils'
+import prisma from '@/lib/db'
 
 // Example of how to use the EditClientForm component
 export default async function EditClientPage({
@@ -10,9 +11,8 @@ export default async function EditClientPage({
 }: {
   params: { id: string }
 }) {
-  const record = await prisma?.client.findFirst({
-    where: { isCompany: true },
-    orderBy: { updatedAt: 'desc' },
+  const record = await prisma.client.findUnique({
+    where: { id },
     include: {
       Address: {
         include: {
@@ -40,20 +40,7 @@ export default async function EditClientPage({
       <EditClientForm
         data={{
           ...client,
-          id: client.id,
-          label: client.label ?? undefined,
-          email: client.email ?? undefined,
           phone: formatPhoneNumber(client.phone),
-          website: client.website ?? undefined,
-          tradeRegisterNumber: client.tradeRegisterNumber ?? undefined,
-          registrationArticle: client.registrationArticle ?? undefined,
-          taxIdNumber: client.taxIdNumber ?? undefined,
-          fiscalNumber: client.fiscalNumber ?? undefined,
-          approvalNumber: client.approvalNumber ?? undefined,
-          name: client.name ?? undefined,
-          statisticalIdNumber: client.statisticalIdNumber ?? undefined,
-          isCompany: client.isCompany ?? undefined,
-          addressId: client.addressId ?? undefined,
           ...(Address && {
             street: Address.street ?? undefined,
             cityId: Address.cityId ?? undefined,

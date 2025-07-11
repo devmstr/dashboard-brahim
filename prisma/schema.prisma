@@ -125,7 +125,8 @@ model Inventory {
 }
 
 model InvoiceItem {
-  id         Int       @id @default(autoincrement())
+  id         String    @id @default(cuid())
+  number     Int
   label      String?
   price      Int?
   amount     Int?

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { cn, skuId } from '@/lib/utils'
-import { useRouter } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
 import { AddOrderItemForm } from '@/components/add-order-item.form'
@@ -19,6 +19,7 @@ import { AddOrderItemFromDbFrom } from './add-order-item-from-db.form'
 import { RadiatorSearchCard } from '@/components/radiator-search.card'
 import { ApiRadiator } from '@/types'
 import ProductSearchInput from '@/components/search-product.input'
+import { fromDate } from '@internationalized/date'
 
 type Props = {}
 
@@ -113,25 +114,35 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   // Function to handle form submission and add product to order
   const handleAddProductToOrder = useCallback(
     (formData: OrderItem) => {
-      console.log(formData)
+      const isOrderItemExist = order?.OrderItems?.find(
+        ({ radiatorId }) => radiatorId === formData.radiatorId
+      )
 
-      setOrder((prev) => ({
-        ...prev,
-        OrderItems: [...(prev?.OrderItems || []), formData]
-      }))
+      if (!isOrderItemExist) {
+        setOrder((prev) => ({
+          ...prev,
+          OrderItems: [...(prev?.OrderItems || []), formData]
+        }))
 
-      toast({
-        title: 'Succès',
-        description: 'Article ajouté à la commande',
-        variant: 'success'
-      })
+        toast({
+          title: 'Succès',
+          description: 'Article ajouté à la commande',
+          variant: 'success'
+        })
+      } else {
+        toast({
+          title: 'Failed',
+          description: 'Cet article existe déjà dans la commande',
+          variant: 'destructive'
+        })
+      }
 
       // Close the dialog and reset selection
       setIsProductFormOpen(false)
       setSelectedProduct(undefined)
       setFetchedProduct(undefined)
     },
-    [setOrder]
+    [setOrder, order]
   )
 
   async function onOrderPlaced(orderItem: OrderItem) {

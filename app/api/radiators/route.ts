@@ -4,7 +4,7 @@ import prisma from '@/lib/db'
 // GET all products with optional filtering
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = request.nextUrl
 
     const isActive = searchParams.get('isActive')
     const search = searchParams.get('search') as string

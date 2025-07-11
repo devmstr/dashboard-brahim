@@ -38,7 +38,7 @@ import {
 import './print.css'
 import { toast } from '@/hooks/use-toast'
 import { Icons } from '@/components/icons'
-import { InvoiceData, InvoiceRef } from './proforma-invoice-wrapper'
+import { InvoiceRef } from './proforma-invoice-wrapper'
 import {
   Popover,
   PopoverContent,
@@ -48,6 +48,7 @@ import ClientAutocomplete, {
   type Client as AutoCompleteClient
 } from '@/components/client-autocomplete'
 import { InvoiceItem } from '@/types'
+import { InvoiceSchemaType } from '@/lib/validations/invoice'
 
 export interface InvoiceProps {
   data?: Invoice
@@ -59,6 +60,20 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     const scrollRef = useRef<HTMLDivElement>(null)
     const scrollYProgress = useScrollProgress(scrollRef)
     const componentRef = useRef<HTMLDivElement>(null)
+
+    const headerRef = useRef<HTMLDivElement>(null)
+    const footerRef = useRef<HTMLDivElement>(null)
+    const totalsRef = useRef<HTMLDivElement>(null)
+    const selectorsRef = useRef<HTMLDivElement>(null)
+    const rowRef = useRef<HTMLTableRowElement>(null)
+
+    const [itemsPerPage, setItemsPerPage] = useState(4)
+    const [itemsPerPageLast, setItemsPerPageLast] = useState(2)
+    const [showOfferValidity, setShowOfferValidity] = useState(true)
+    const [showDeliveryTime, setShowDeliveryTime] = useState(true)
+    const [showGuaranteeTime, setShowGuaranteeTime] = useState(true)
+    const [showNote, setShowNote] = useState(true)
+
     const [data, setData] = useState<Invoice>(
       input
         ? input
@@ -90,22 +105,15 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             clientId: null,
             items: [
               {
-                id: 1,
+                number: 1,
                 label: 'Désignation ...',
                 price: 0,
                 amount: 0,
-                quantity: 0
+                quantity: 1
               }
             ]
           }
     )
-    const [editedId, setEditedId] = useState<number | undefined>(undefined)
-
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => {
-      setMounted(true)
-    }, [])
 
     const billingSummary = useMemo(
       () =>
@@ -119,6 +127,71 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     )
     const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
       billingSummary
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        getInvoiceData: (): InvoiceSchemaType => data
+      }),
+      [data, totalHT, vat, totalTTC, discount, refund, stampTax]
+    )
+
+    useEffect(() => {
+      const A4_HEIGHT = 1122 // in pixels (A4 at 96dpi)
+
+      const header = headerRef.current?.offsetHeight || 0
+      const footer = footerRef.current?.offsetHeight || 0
+      const totals = totalsRef.current?.offsetHeight || 0
+      const selectors = selectorsRef.current?.offsetHeight || 0
+      const row = rowRef.current?.offsetHeight || 32
+
+      const usableHeight = A4_HEIGHT - header - footer - 92 // paddings
+      const usableHeightLastPage =
+        A4_HEIGHT - header - totals - footer - selectors - 92
+
+      const perPage = Math.floor(usableHeight / row)
+      const perLastPage = Math.floor(usableHeightLastPage / row)
+
+      if (perPage && perLastPage) {
+        setItemsPerPage(perPage)
+        setItemsPerPageLast(perLastPage)
+      }
+    }, [
+      data.items,
+      showDeliveryTime,
+      showDeliveryTime,
+      showGuaranteeTime,
+      showNote
+    ])
+
+    // Split pages dynamically
+    const pages = useMemo(() => {
+      const total = data.items.length
+      const splitIndex = Math.max(0, total - itemsPerPageLast)
+      const lastPage = data.items.slice(splitIndex)
+      const rest = data.items.slice(0, splitIndex)
+
+      const chunks: Invoice['items'][] = []
+      for (let i = 0; i < rest.length; i += itemsPerPage) {
+        chunks.push(rest.slice(i, i + itemsPerPage))
+      }
+
+      if (lastPage.length > 0) {
+        chunks.push(lastPage)
+      }
+
+      return chunks
+    }, [data.items, itemsPerPage, itemsPerPageLast])
+
+    const [editedRow, setEditedRow] = useState<number | null | undefined>(
+      undefined
+    )
+
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+      setMounted(true)
+    }, [])
 
     const renderBillHeader = () => (
       <div className="print-header">
@@ -215,14 +288,18 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           <div className="flex w-full justify-between ">
             <ClientAutocomplete
               client={{
-                name: data.name,
-                address: data.address,
+                name: data.name || '',
+                street: data.address,
                 registrationArticle: data.registrationArticle,
                 tradeRegisterNumber: data.tradeRegisterNumber,
                 taxIdNumber: data.taxIdNumber
               }}
               setClient={(client) => {
-                setData((prev) => ({ ...prev, ...client }))
+                setData((prev) => ({
+                  ...prev,
+                  ...client,
+                  address: client.street || ''
+                }))
               }}
             />
           </div>
@@ -233,11 +310,6 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
         </div>
       </div>
     )
-
-    const [showOfferValidity, setShowOfferValidity] = useState(false)
-    const [showDeliveryTime, setShowDeliveryTime] = useState(false)
-    const [showGuaranteeTime, setShowGuaranteeTime] = useState(false)
-    const [showNote, setShowNote] = useState(false)
 
     const renderSelectors = () => {
       // Define a type for selector options
@@ -329,7 +401,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   OFFRE DE PRIX VALABLE
                 </label>
                 <Select
-                  value={data.offerValidity ?? undefined}
+                  value={data.offerValidity}
                   onValueChange={(value) => {
                     setData((prev) => ({ ...prev, offerValidity: value }))
                   }}
@@ -361,7 +433,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   DELAI DE LIVRAISON
                 </label>
                 <Select
-                  value={data.deliveryTime ?? undefined}
+                  value={data.deliveryTime}
                   onValueChange={(v) =>
                     setData((prev) => ({ ...prev, deliveryTime: v }))
                   }
@@ -395,7 +467,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   DELAI DE GARANTE
                 </label>
                 <Select
-                  value={data.guaranteeTime ?? undefined}
+                  value={data.guaranteeTime}
                   onValueChange={(v) =>
                     setData((prev) => ({ ...prev, guaranteeTime: v }))
                   }
@@ -426,9 +498,9 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                 <div className="flex-1 flex-col ">
                   <h3 className="font-semibold text-xs w-full">REMARQUE</h3>
                   <Textarea
-                    className="w-full h-12 min-h-12 max-h-14 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 print:border-none print:px-0 print:py-0"
+                    className="w-full h-14 max-h-14 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 print:border-none print:px-0 print:py-0"
                     placeholder="Saisissez des remarques pour cette facture..."
-                    value={data.note ?? undefined}
+                    value={data.note}
                     onChange={(e) =>
                       setData((prev) => ({ ...prev, note: e.target.value }))
                     }
@@ -710,8 +782,6 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             <p className="capitalize">{amountToWords(totalTTC)}</p>
           </div>
         </div>
-        {/* Remove the old note/remark textarea here */}
-        {renderSelectors()}
       </div>
     )
 
@@ -751,76 +821,79 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           <TableBody>
             {pageItems.map((item: InvoiceItem, idx: number) => (
               <TableRow key={item.id} className="relative">
-                <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
+                <TableCell className="py-[3px] px-2 h-8">
+                  {item.number}
+                </TableCell>
                 <TableCell className="py-[3px] px-2 h-8 relative">
                   <Input
-                    value={item.label ?? undefined}
-                    onChange={({
-                      target: { value }
-                    }: React.ChangeEvent<HTMLInputElement>) => {
+                    value={item.label}
+                    onChange={({ target: { value } }) => {
                       setData((prev) => ({
                         ...prev,
                         items: prev.items.map((nonEditedItem) =>
-                          nonEditedItem.id === item.id
+                          nonEditedItem.number === item.number
                             ? { ...nonEditedItem, label: value }
                             : nonEditedItem
                         )
                       }))
                     }}
-                    onBlur={() => setEditedId(undefined)}
-                    className="h-6 py-1 focus-visible:ring-0 ring-0 border-none rounded-none "
+                    onBlur={() => setEditedRow(undefined)}
+                    className="min-h-6 h-6 max-h-24 py-1 focus-visible:ring-0 ring-0 border-none rounded-none resize-y "
                   />
                 </TableCell>
                 <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
                   <Input
                     type="number"
                     min={1}
-                    value={item.quantity ?? undefined}
+                    value={item.quantity}
                     onChange={({
                       target: { value: v }
                     }: React.ChangeEvent<HTMLInputElement>) => {
+                      setEditedRow(item.number)
                       setData((prev) => ({
                         ...prev,
                         items: prev.items.map((i) => {
-                          return i.id === item.id
+                          return i.number === item.number
                             ? {
                                 ...i,
-                                quantity: Number(v),
-                                price: Number(v) * Number(i.price)
+                                quantity: parseInt(v),
+                                amount: parseInt(v) * Number(i.price || 0)
                               }
                             : i
                         })
                       }))
                     }}
-                    className="h-6 py-1 w-8 max-w-10 text-xs focus-visible:ring-0 border-none rounded-none"
+                    className="h-6 py-1 max-w-10   text-xs w-full pl-0.5 pr-0 focus-visible:ring-0 border-none rounded-none"
                   />
                 </TableCell>
                 <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
                   <Input
                     type="number"
                     min={0}
-                    value={item.price ?? undefined}
+                    value={item.price}
                     onChange={({
                       target: { value: v }
                     }: React.ChangeEvent<HTMLInputElement>) => {
                       setData((prev) => ({
                         ...prev,
                         items: prev.items.map((i) => {
-                          return i.id === item.id
+                          return i.number === item.number
                             ? {
                                 ...i,
                                 price: Number(v),
-                                amont: Number(v) * Number(i.quantity)
+                                amount: Number(v) * Number(i.quantity)
                               }
                             : i
                         })
                       }))
                     }}
-                    className="h-6 py-1 w-16 max-w-20 text-xs focus-visible:ring-0 border-none rounded-none"
+                    className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-xs focus-visible:ring-0 border-none rounded-none"
                   />
                 </TableCell>
                 <TableCell className="text-left py-[3px] px-2  font-geist-sans max-w-20">
-                  {Number(item.price).toLocaleString('fr-FR', {
+                  {Number(
+                    item.amount || Number(item.price) * Number(item.quantity)
+                  ).toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
@@ -831,9 +904,16 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                     size="icon"
                     className="h-5 w-5"
                     onClick={() => {
+                      const newItems = data.items
+                        .filter((i) => i.number !== item.number) // Remove the item
+                        .map((i, index) => ({
+                          ...i,
+                          number: index + 1 // Reassign sequential number starting from 1
+                        }))
+
                       setData((prev) => ({
                         ...prev,
-                        items: prev.items.filter((i) => i.id !== item.id)
+                        items: newItems
                       }))
                     }}
                   >
@@ -849,15 +929,16 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     // Add Item handler (must be in scope for renderTable)
     const handleAddItem = () => {
       setData((prev) => {
+        const maxId =
+          prev.items.length > 0
+            ? Math.max(...prev.items.map(({ number }) => number || 0))
+            : 0
         return {
           ...prev,
           items: [
             ...prev.items,
             {
-              id:
-                prev.items.length > 0
-                  ? Math.max(...prev.items.map(({ id }) => id)) + 1
-                  : 1,
+              number: maxId + 1,
               label: 'Designation...',
               quantity: 1,
               price: 0,
@@ -869,60 +950,48 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     }
 
     return (
-      <>
-        <div
-          className={cn(
-            'flex flex-col w-[210mm] gap-8 font-geist-sans print-preview',
-            className
-          )}
-        >
-          {/* Print-only content */}
-          {(() => {
-            // Pagination constants
-            const ITEMS_PER_PAGE = 17
-            const ITEMS_ON_TOTALS_PAGE = 4
-            const totalItems = data.items.length
-            const pages: InvoiceItem[][] = []
+      <div ref={componentRef} className="flex flex-col gap-6 print:gap-0">
+        {pages.map((pageItems, pageIndex) => (
+          <div
+            key={pageIndex}
+            className="min-h-[297mm] print:h-[297mm] w-[210mm] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8 bg-white flex flex-col justify-start"
+          >
+            <div ref={pageIndex === 0 ? headerRef : null}>
+              {renderBillHeader()}
+            </div>
 
-            if (totalItems <= ITEMS_ON_TOTALS_PAGE) {
-              // All items fit on one page with totals
-              pages.push(data.items)
-            } else {
-              // Split all except the last 4 items into 17-item pages
-              const mainItems = data.items.slice(0, -ITEMS_ON_TOTALS_PAGE)
-              const lastItems = data.items.slice(-ITEMS_ON_TOTALS_PAGE)
-              let i = 0
-              while (i < mainItems.length) {
-                pages.push(mainItems.slice(i, i + ITEMS_PER_PAGE))
-                i += ITEMS_PER_PAGE
-              }
-              pages.push(lastItems)
-            }
+            {/* Table */}
+            <div className="">
+              {renderTable(
+                pageItems.map((item, i) =>
+                  pageIndex === 0 && i === 0
+                    ? { ...item, _ref: rowRef } // mark first row with ref
+                    : item
+                )
+              )}
+            </div>
 
-            return (
-              <div
-                ref={componentRef}
-                className="flex flex-col gap-6 print:gap-0 "
-              >
-                {pages.map((pageItems, pageIndex) => (
-                  <div
-                    key={pageIndex}
-                    className="h-[297mm] w-[210] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8  bg-white flex flex-col"
-                  >
-                    {renderBillHeader()}
-                    {renderTable(pageItems)}
-                    {pageIndex === pages.length - 1 && renderTotals()}
-                    {renderBillFooter({
-                      page: pageIndex + 1,
-                      pages: pages.length
-                    })}
-                  </div>
-                ))}
+            {/* Totals only on the last page */}
+            {pageIndex === pages.length - 1 && (
+              <div ref={totalsRef}>{renderTotals()}</div>
+            )}
+
+            {/* Remove the old note/remark textarea here */}
+            {pageIndex === pages.length - 1 && (
+              <div className="" ref={selectorsRef}>
+                {renderSelectors()}
               </div>
-            )
-          })()}
-        </div>
-      </>
+            )}
+
+            <div className="mt-auto" ref={pageIndex === 0 ? footerRef : null}>
+              {renderBillFooter({
+                page: pageIndex + 1,
+                pages: pages.length
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
     )
   }
 )

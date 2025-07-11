@@ -113,8 +113,9 @@ export const EditClientForm: React.FC<Props> = ({ data }: Props) => {
                     <Input
                       {...field}
                       id="phone"
-                      name="phone"
-                      placeholder={'0665238745'}
+                      name="0658769361"
+                      placeholder={'phone number'}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />

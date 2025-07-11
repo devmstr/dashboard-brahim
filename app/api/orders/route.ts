@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import type { Attachment, Order, OrderItem } from '@/lib/validations'
 import { skuId } from '@/lib/utils'
@@ -175,9 +175,9 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = request.nextUrl
     const clientId = searchParams.get('clientId')
     const limit = Number.parseInt(searchParams.get('limit') || '10')
     const page = Number.parseInt(searchParams.get('page') || '1')

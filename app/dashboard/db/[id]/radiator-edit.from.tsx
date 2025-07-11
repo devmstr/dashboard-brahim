@@ -108,7 +108,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value ?? undefined}
+                      value={field.value}
                       type="text"
                       className="w-full"
                       disabled
@@ -200,7 +200,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value ?? undefined}
+                      value={field.value}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('betweenCollectors', Number(value))
@@ -226,7 +226,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value ?? undefined}
+                      value={field.value}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('width', Number(value))
@@ -250,7 +250,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Input
                       type="number"
                       {...field}
-                      value={field.value ?? undefined}
+                      value={field.value}
                       onChange={({ target: { value } }) =>
                         form.setValue('rows', Number(value))
                       }
@@ -277,7 +277,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                       onSelect={(v) =>
                         form.setValue('fins', v as RadiatorSchemaType['fins'])
                       }
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -300,7 +300,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           v as RadiatorSchemaType['tubeType']
                         )
                       }
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -367,7 +367,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                               v as RadiatorSchemaType['tightening']
                             )
                           }
-                          selected={field.value ?? undefined}
+                          selected={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -391,7 +391,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                               v as RadiatorSchemaType['perforation']
                             )
                           }
-                          selected={field.value ?? undefined}
+                          selected={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -415,7 +415,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                               v as RadiatorSchemaType['position']
                             )
                           }
-                          selected={field.value ?? undefined}
+                          selected={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -449,7 +449,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorLength', Number(value))
                           }
-                          value={field.value ?? undefined}
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -474,7 +474,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorWidth', Number(value))
                           }
-                          value={field.value ?? undefined}
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -508,7 +508,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorLength', Number(value))
                           }
-                          value={field.value ?? undefined}
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -533,7 +533,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorWidth', Number(value))
                           }
-                          value={field.value ?? undefined}
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -561,7 +561,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     {...field}
                     placeholder="Enter Dir ID"
                     className="w-full"
-                    value={field.value ?? undefined}
+                    value={field.value}
                   />
                 </FormControl>
                 <FormMessage />

@@ -240,7 +240,7 @@ export function LedgerTable({
   const openPrintDialog = React.useCallback(async (id: string) => {
     setShowInvoice(true)
     try {
-      const res = await fetch(`/api/invoice/${id}`)
+      const res = await fetch(`/api/invoices/${id}`)
       if (res.ok) {
         const invoice = await res.json()
         setInvoice(invoice)
@@ -927,7 +927,7 @@ export function Actions({
   const handleDelete = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/invoice/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/invoices/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('Erreur lors de la suppression.')
 
       toast({

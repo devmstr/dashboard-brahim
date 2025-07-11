@@ -81,9 +81,9 @@ export default function CartSection({
                         onClick={() => toggleItemExpansion(item.id)}
                       >
                         {expandedItems[item.id]
-                          ? item.name
-                          : `${item.name.substring(0, 13)}${
-                              item.name.length > 13 ? '...' : ''
+                          ? item.label
+                          : `${item.label.substring(0, 13)}${
+                              item.label.length > 13 ? '...' : ''
                             }`}
                       </div>
                     </TableCell>

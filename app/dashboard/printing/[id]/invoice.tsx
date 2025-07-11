@@ -66,10 +66,50 @@ export default function Invoice({
   // update data on mount
   useEffect(() => setData(input), [])
 
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [editedId, setEditedId] = useState<string | undefined>(undefined)
   const componentRef = useRef<HTMLDivElement>(null)
-  const scrollYProgress = useScrollProgress(scrollRef)
-  const [editedId, setEditedId] = useState<number | undefined>(undefined)
+
+  const headerRef = useRef<HTMLDivElement>(null)
+  const footerRef = useRef<HTMLDivElement>(null)
+  const totalsRef = useRef<HTMLDivElement>(null)
+  const rowRef = useRef<HTMLTableRowElement>(null)
+
+  const [itemsPerPage, setItemsPerPage] = useState(4)
+  const [itemsPerPageLast, setItemsPerPageLast] = useState(2)
+
+  useEffect(() => {
+    const A4_HEIGHT = 1122 // in pixels (A4 at 96dpi)
+
+    const header = headerRef.current?.offsetHeight || 0
+    const footer = footerRef.current?.offsetHeight || 0
+    const totals = totalsRef.current?.offsetHeight || 0
+    const row = rowRef.current?.offsetHeight || 32
+
+    const usableHeight = A4_HEIGHT - header - footer - 92 // paddings
+    const usableHeightLastPage = A4_HEIGHT - header - totals - footer - 92
+
+    const perPage = Math.floor(usableHeight / row)
+    const perLastPage = Math.floor(usableHeightLastPage / row)
+
+    if (perPage && perLastPage) {
+      setItemsPerPage(perPage)
+      setItemsPerPageLast(perLastPage)
+    }
+  }, [data.items])
+
+  // Split pages dynamically
+  const pages = useMemo(() => {
+    const total = data.items.length
+    const lastPage = data.items.slice(-itemsPerPageLast)
+    const rest = data.items.slice(0, total - itemsPerPageLast)
+
+    const chunks: Invoice['items'][] = []
+    for (let i = 0; i < rest.length; i += itemsPerPage) {
+      chunks.push(rest.slice(i, i + itemsPerPage))
+    }
+    chunks.push(lastPage)
+    return chunks
+  }, [data.items, itemsPerPage, itemsPerPageLast])
 
   const billingSummary = useMemo(
     () =>
@@ -192,7 +232,7 @@ export default function Invoice({
             <Input
               placeholder="002171"
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={data.purchaseOrder ?? undefined}
+              value={data.purchaseOrder}
               onChange={(e) => {
                 if (readonly) return
                 setData((prev) => ({
@@ -279,7 +319,7 @@ export default function Invoice({
   )
 
   const renderBillFooter = (props?: { page?: number; pages?: number }) => (
-    <div className="print-footer  flex flex-col mt-auto font-poppins text-xs">
+    <div className="print-footer  flex flex-col font-poppins text-xs">
       <div className="text-right">
         <p>
           Page: {props?.page}|
@@ -526,7 +566,7 @@ export default function Invoice({
           <div className="space-y-1">
             <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
             <Select
-              value={data.paymentMode ?? undefined}
+              value={data.paymentMode}
               onValueChange={handlePaymentTypeChange}
               disabled={readonly}
             >
@@ -548,7 +588,7 @@ export default function Invoice({
             <Textarea
               className="w-full min-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
               placeholder="Saisissez des remarques pour cette facture..."
-              value={data.note ?? undefined}
+              value={data.note}
               onChange={({ target: { value } }) => {
                 if (readonly) return
                 setData((prev) => ({ ...prev, note: value }))
@@ -592,11 +632,11 @@ export default function Invoice({
         <TableBody>
           {pageItems.map((item) => (
             <TableRow key={item.id}>
-              <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
+              <TableCell className="py-[3px] px-2 h-8">{item.number}</TableCell>
               <TableCell className="py-[3px] px-2 h-8 relative">
                 {!readonly && editedId === item.id ? (
                   <Input
-                    value={item.label ?? undefined}
+                    value={item.label}
                     onChange={(e) => {
                       const newValue = e.target.value
                       setData((prev) => ({
@@ -643,7 +683,11 @@ export default function Invoice({
                 {item.price}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h- font-geist-sans">
-                {Number(item.price?.toFixed(2)).toLocaleString('fr-FR', {
+                {Number(
+                  (
+                    item.amount || Number(item.price) * Number(item.quantity)
+                  )?.toFixed(2)
+                ).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2
                 })}
@@ -657,7 +701,7 @@ export default function Invoice({
 
   const updateData = async () => {
     try {
-      const invoice = await fetch(`/api/invoice/${data.id}`, {
+      const invoice = await fetch(`/api/invoices/${data.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -669,6 +713,7 @@ export default function Invoice({
         )
       }
     } catch (e) {
+      console.log(e)
       // Optionally handle error (e.g., show toast)
       toast({
         title: 'Erreur',
@@ -678,101 +723,46 @@ export default function Invoice({
       })
     }
   }
+
   useEffect(() => {
-    // Update api data when the data is changed
     updateData()
   }, [data])
 
   return (
-    <>
-      <div
-        className={cn(
-          'flex flex-col w-[210mm] gap-8 font-geist-sans',
-          readonly && 'print-preview',
-          className
-        )}
-      >
-        {/* Print-only content */}
-        {(() => {
-          const pages: Invoice['items'][] = []
-          const totalItems = data.items.length
+    <div ref={componentRef} className="flex flex-col gap-6 print:gap-0">
+      {pages.map((pageItems, pageIndex) => (
+        <div
+          key={pageIndex}
+          className="h-[297mm] w-[210mm] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8 bg-white flex flex-col justify-start"
+        >
+          <div ref={pageIndex === 0 ? headerRef : null}>
+            {renderBillHeader()}
+          </div>
 
-          // If there are 2 or fewer items, simply push all on one page.
-          if (totalItems <= 4) {
-            pages.push(data.items)
-          } else {
-            // Reserve the last 2 items for the final page.
-            const mainSection = data.items.slice(0, totalItems - 2)
-            const lastPage = data.items.slice(totalItems - 2)
+          {/* Table */}
+          <div className="">
+            {renderTable(
+              pageItems.map((item, i) =>
+                pageIndex === 0 && i === 0
+                  ? { ...item, _ref: rowRef } // mark first row with ref
+                  : item
+              )
+            )}
+          </div>
 
-            // Determine the number of main pages.
-            // We want each main page to have at most ITEMS_PER_PRINT_PAGE items.
-            // Using the ideal even split:
-            const numMainPages = Math.ceil(
-              mainSection.length / ITEMS_PER_PRINT_PAGE
-            )
+          {/* Totals only on the last page */}
+          {pageIndex === pages.length - 1 && (
+            <div ref={totalsRef}>{renderTotals()}</div>
+          )}
 
-            // Helper function to split an array evenly into n chunks.
-            function chunkEvenly<T>(array: T[], n: number): T[][] {
-              const result: T[][] = []
-              const len = array.length
-              const base = Math.floor(len / n)
-              let remainder = len % n
-              let start = 0
-              for (let i = 0; i < n; i++) {
-                // Distribute the extra items (if any) among the first 'remainder' chunks.
-                const extra = remainder > 0 ? 1 : 0
-                result.push(array.slice(start, start + base + extra))
-                start += base + extra
-                if (remainder > 0) remainder--
-              }
-              return result
-            }
-
-            let mainPages = chunkEvenly(mainSection, numMainPages)
-
-            // As a safety check, if any chunk exceeds ITEMS_PER_PRINT_PAGE,
-            // fall back to simple chunking.
-            const refinedMainPages: Invoice['items'][] = []
-            mainPages.forEach((page) => {
-              if (page.length > ITEMS_PER_PRINT_PAGE) {
-                for (let i = 0; i < page.length; i += ITEMS_PER_PRINT_PAGE) {
-                  refinedMainPages.push(page.slice(i, i + ITEMS_PER_PRINT_PAGE))
-                }
-              } else {
-                refinedMainPages.push(page)
-              }
-            })
-            mainPages = refinedMainPages
-
-            // Add the main pages and then the final page (with 2 items).
-            pages.push(...mainPages)
-            pages.push(lastPage)
-          }
-
-          return (
-            <div
-              ref={componentRef}
-              className="flex flex-col gap-6 print:gap-0 "
-            >
-              {pages.map((pageItems, pageIndex) => (
-                <div
-                  key={pageIndex}
-                  className="h-[297mm] w-[210] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8  bg-white flex flex-col"
-                >
-                  {renderBillHeader()}
-                  {renderTable(pageItems)}
-                  {pageIndex === pages.length - 1 && renderTotals()}
-                  {renderBillFooter({
-                    page: pageIndex + 1,
-                    pages: pages.length
-                  })}
-                </div>
-              ))}
-            </div>
-          )
-        })()}
-      </div>
-    </>
+          <div className="mt-auto" ref={pageIndex === 0 ? footerRef : null}>
+            {renderBillFooter({
+              page: pageIndex + 1,
+              pages: pages.length
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }

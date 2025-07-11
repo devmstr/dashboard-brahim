@@ -397,7 +397,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         }
                         form.setValue('category', v as OrderItem['category'])
                       }}
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                       isInSideADialog
                     />
                   </FormControl>
@@ -421,7 +421,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                         }
                         form.setValue('type', v as OrderItem['type'])
                       }}
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                       isInSideADialog
                     />
                   </FormControl>
@@ -498,7 +498,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           form.setValue('tightening', 'Plié')
                         }
                       }}
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                       isInSideADialog
                     />
                   </FormControl>
@@ -706,7 +706,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                             }
                             form.setValue('fins', v)
                           }}
-                          selected={field.value ?? undefined}
+                          selected={field.value}
                           isInSideADialog
                         />
                       </FormControl>
@@ -724,7 +724,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                           id="tube"
                           options={TUBE_TYPES}
                           onSelect={(v) => form.setValue('tubeType', v)}
-                          selected={field.value ?? undefined}
+                          selected={field.value}
                           isInSideADialog
                         />
                       </FormControl>
@@ -801,7 +801,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                   v as (typeof CLAMPING_TYPES)[number]
                                 )
                               }
-                              selected={field.value ?? undefined}
+                              selected={field.value}
                               isInSideADialog
                             />
                           </FormControl>
@@ -827,7 +827,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                     v as (typeof PERFORATION_TYPES)[number]
                                   )
                                 }
-                                selected={field.value ?? undefined}
+                                selected={field.value}
                                 isInSideADialog
                               />
                             </FormControl>
@@ -852,7 +852,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                   v as (typeof COLLECTOR_POSITION_TYPES)[number]
                                 )
                               }
-                              selected={field.value ?? undefined}
+                              selected={field.value}
                               isInSideADialog
                             />
                           </FormControl>
@@ -954,7 +954,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value ?? undefined}
+                                  value={field.value}
                                 />
                               </FormControl>
                             </FormItem>
@@ -981,7 +981,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value ?? undefined}
+                                  value={field.value}
                                 />
                               </FormControl>
                             </FormItem>

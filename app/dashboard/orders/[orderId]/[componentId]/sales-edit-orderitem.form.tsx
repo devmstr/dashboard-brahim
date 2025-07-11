@@ -297,7 +297,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                         }
                         form.setValue('category', v)
                       }}
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -322,7 +322,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                           : FABRICATION_TYPES_ARR
                       }
                       onSelect={(v) => form.setValue('fabrication', v)}
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -343,7 +343,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                         if (value > 0) form.setValue('quantity', value)
                       }}
                       type="number"
-                      value={field.value ?? undefined}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -366,7 +366,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                           form.setValue('tightening', 'Plié')
                         }
                       }}
-                      selected={field.value ?? undefined}
+                      selected={field.value}
                     />
                   </FormControl>
                   <FormMessage />
@@ -573,7 +573,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                             }
                             form.setValue('fins', v)
                           }}
-                          selected={field.value ?? undefined}
+                          selected={field.value}
                           isInSideADialog
                         />
                       </FormControl>
@@ -591,7 +591,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                           id="tube"
                           options={TUBE_TYPES}
                           onSelect={(v) => form.setValue('tubeType', v)}
-                          selected={field.value ?? undefined}
+                          selected={field.value}
                           isInSideADialog
                         />
                       </FormControl>
@@ -663,7 +663,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                   : CLAMPING_TYPES_ARR
                               }
                               onSelect={(v) => form.setValue('tightening', v)}
-                              selected={field.value ?? undefined}
+                              selected={field.value}
                               isInSideADialog
                             />
                           </FormControl>
@@ -686,7 +686,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                 onSelect={(v) =>
                                   form.setValue('perforation', v)
                                 }
-                                selected={field.value ?? undefined}
+                                selected={field.value}
                                 isInSideADialog
                               />
                             </FormControl>
@@ -706,7 +706,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                             <Combobox
                               options={COLLECTOR_POSITION_TYPES_ARR}
                               onSelect={(v) => form.setValue('position', v)}
-                              selected={field.value ?? undefined}
+                              selected={field.value}
                               isInSideADialog
                             />
                           </FormControl>
@@ -808,7 +808,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value ?? undefined}
+                                  value={field.value}
                                 />
                               </FormControl>
                             </FormItem>
@@ -835,7 +835,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value ?? undefined}
+                                  value={field.value}
                                 />
                               </FormControl>
                             </FormItem>

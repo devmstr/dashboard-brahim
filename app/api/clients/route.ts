@@ -1,13 +1,15 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { clientSchema } from '@/app/dashboard/timeline/add-order.dialog'
 import { z } from 'zod'
 import { formatPhoneNumber, skuId } from '@/lib/utils'
+import { Client } from '@/types'
+import { ClientSchemaType } from '@/lib/validations'
+import { revalidatePath } from 'next/cache'
 
 // Update the GET function to handle empty searchTerm terms and improve search matching
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = request.nextUrl
     const searchTerm = searchParams.get('search') || ''
     const onlyCompanies = searchParams.get('onlyCompanies') === 'true'
 
@@ -77,75 +79,51 @@ export async function GET(request: Request) {
 // POST to create a new client
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    // Validate the request body using try/catch instead of safeParse
-    let data
-    try {
-      data = clientSchema.parse(body)
-    } catch (validationError) {
-      if (validationError instanceof z.ZodError) {
-        return NextResponse.json(
-          {
-            error: 'Validation failed',
-            details: validationError.format()
-          },
-          { status: 400 }
+    const body = (await request.json()) as ClientSchemaType
+    console.log('Request body:', body)
+
+    const client = await prisma.$transaction(async (tx) => {
+      if (!body.cityId || !body.provinceId || !body.countryId) {
+        throw new Error(
+          'Invalid address info: city or province or country is missing'
         )
       }
-      throw validationError // Re-throw if it's not a Zod error
-    }
 
-    // Create address if location data is provided
-    let address
-    if (data.city && data.province && data.country) {
-      try {
-        address = await prisma.address.create({
-          data: {
-            street: data.street, // Fixed: using street instead of address
-            Province: { connect: { id: data.province } },
-            City: { connect: { id: data.city } },
-            Country: { connect: { code: data.country } }
+      const newClient = await tx.client.create({
+        data: {
+          id: body.id || skuId('CL'),
+          name: body.name,
+          phone: body.phone,
+          email: body.email,
+          isCompany: body.isCompany ?? false,
+          website: body.website,
+          ...(body.isCompany && {
+            label: body.label,
+            tradeRegisterNumber: body.tradeRegisterNumber,
+            fiscalNumber: body.fiscalNumber,
+            registrationArticle: body.registrationArticle,
+            taxIdNumber: body.taxIdNumber,
+            statisticalIdNumber: body.statisticalIdNumber,
+            approvalNumber: body.approvalNumber
+          }),
+          Address: {
+            create: {
+              street: body.street,
+              Province: { connect: { id: body.provinceId } },
+              City: { connect: { id: body.cityId } },
+              Country: { connect: { code: body.countryId } }
+            }
           }
-        })
-      } catch (error) {
-        console.error('Error creating address:', error)
-        return NextResponse.json(
-          {
-            error: 'Failed to create address',
-            details: error instanceof Error ? error.message : 'Unknown error'
-          },
-          { status: 500 }
-        )
-      }
-    }
+        }
+      })
 
-    // Create client with conditional fields for company
-    const newClient = await prisma.client.create({
-      data: {
-        id: skuId('CL'),
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        isCompany: data.isCompany || false,
-        website: data.website,
-        ...(data.isCompany && {
-          label: data.label,
-          tradeRegisterNumber: data.tradeRegisterNumber,
-          fiscalNumber: data.fiscalNumber,
-          registrationArticle: data.registrationArticle,
-          taxIdNumber: data.taxIdNumber,
-          statisticalIdNumber: data.statisticalIdNumber,
-          approvalNumber: data.approvalNumber
-        }),
-        ...(address && {
-          Address: { connect: { id: address.id } }
-        })
-      }
+      return newClient
     })
 
-    return NextResponse.json(newClient, { status: 201 })
+    revalidatePath('/dashboard/clients')
+    return NextResponse.json(client, { status: 201 })
   } catch (error) {
-    console.error('Error creating client:', error)
+    console.error('❌ Error creating client:', error)
     return NextResponse.json(
       {
         error: 'Failed to create client',

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { getServerSession } from 'next-auth'
 import { UserRole } from '@/types'
@@ -270,12 +270,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = request.nextUrl
     const itemId = searchParams.get('itemId')
 
     if (itemId) {

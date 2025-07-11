@@ -160,7 +160,7 @@ export default function ReadOnlyInvoice({
             <Input
               placeholder="002171"
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={data.purchaseOrder ?? undefined}
+              value={data.purchaseOrder}
             />
           </div>
           {data.purchaseOrder && (
@@ -433,12 +433,12 @@ export default function ReadOnlyInvoice({
         <div className="space-y-2 text-sm mt-2">
           <div className="space-y-1">
             <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
-            <p> {data.paymentMode ?? undefined}</p>
+            <p> {data.paymentMode}</p>
           </div>
           {/* REMARQUE: show textarea on screen, show value in print only if not empty */}
           <div className={cn('space-y-1 print:hidden')}>
             <h3 className="font-semibold">REMARQUE</h3>
-            <p>{data.note ?? undefined}</p>
+            <p>{data.note}</p>
           </div>
           {data.note && (
             <div className="hidden print:block space-y-1">
@@ -476,7 +476,7 @@ export default function ReadOnlyInvoice({
         <TableBody>
           {pageItems.map((item) => (
             <TableRow key={item.id}>
-              <TableCell className="py-[3px] px-2 h-8">{item.id}</TableCell>
+              <TableCell className="py-[3px] px-2 h-8">{item.number}</TableCell>
               <TableCell className="py-[3px] px-2 h-8 relative">
                 <div className="flex items-center">{item.label}</div>
               </TableCell>

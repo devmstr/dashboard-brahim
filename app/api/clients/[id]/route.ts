@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { revalidatePath } from 'next/cache'
-
-const prisma = new PrismaClient()
+import { formatPhoneNumber } from '@/lib/utils'
+import prisma from '@/lib/db'
 
 // GET a specific client by ID
 export async function GET(
@@ -74,67 +73,30 @@ export async function PUT(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 })
     }
 
-    // Start a transaction to update both client and address
-    const updatedClient = await prisma.$transaction(async (tx) => {
-      // Update client information
-      const client = await tx.client.update({
-        where: { id },
-        data: {
-          name: body.name,
-          phone: body.phone,
-          email: body.email,
-          isCompany:
-            body.isCompany !== undefined
-              ? body.isCompany
-              : existingClient.isCompany,
-          label: body.label,
-          website: body.website,
-          tradeRegisterNumber: body.tradeRegisterNumber,
-          fiscalNumber: body.fiscalNumber,
-          taxIdNumber: body.taxIdNumber,
-          statisticalIdNumber: body.statisticalIdNumber,
-          registrationArticle: body.registrationArticle,
-          approvalNumber: body.approvalNumber
-        }
-      })
-
-      // Update address if provided
-      if (body.address && existingClient.Address) {
-        await tx.address.update({
-          where: { id: existingClient.Address.id },
-          data: {
-            street: body.address.street,
-            cityId: body.address.cityId,
-            provinceId: body.address.provinceId,
-            countryId: body.address.countryId // must be a valid Country.id
-          }
-        })
-      } else if (body.address && !existingClient.Address) {
-        // Create new address if client doesn't have one
-        const newAddress = await tx.address.create({
-          data: {
-            street: body.address.street,
-            cityId: body.address.cityId,
-            provinceId: body.address.provinceId,
-            countryId: body.address.countryId // must be a valid Country.id
-          }
-        })
-
-        // Link the new address to the client
-        await tx.client.update({
-          where: { id },
-          data: {
-            addressId: newAddress.id
-          }
-        })
-      }
-
-      return client
-    })
-
-    // Fetch the updated client with all relations
-    const clientWithRelations = await prisma.client.findUnique({
+    const dbRecord = await prisma.client.update({
       where: { id },
+      data: {
+        name: body.name,
+        phone: body.phone,
+        email: body.email,
+        label: body.label,
+        website: body.website,
+        tradeRegisterNumber: body.tradeRegisterNumber,
+        fiscalNumber: body.fiscalNumber,
+        taxIdNumber: body.taxIdNumber,
+        statisticalIdNumber: body.statisticalIdNumber,
+        registrationArticle: body.registrationArticle,
+        approvalNumber: body.approvalNumber,
+        isCompany: body.isCompany || existingClient.isCompany,
+        Address: {
+          update: {
+            street: body.street,
+            cityId: body.cityId,
+            provinceId: body.provinceId,
+            countryId: body.countryId
+          }
+        }
+      },
       include: {
         Address: {
           include: {
@@ -146,10 +108,32 @@ export async function PUT(
       }
     })
 
+    if (!dbRecord)
+      return NextResponse.json(
+        { error: 'Client not found after update' },
+        { status: 404 }
+      )
+
+    const { Address, ...client } = dbRecord
+
     // revalidate path
     revalidatePath('/dashboard/clients')
 
-    return NextResponse.json(clientWithRelations)
+    return NextResponse.json({
+      ...client,
+      phone: formatPhoneNumber(client.phone),
+      ...(Address && {
+        addressId: Address.id,
+        street: Address.street,
+        cityId: Address.cityId,
+        provinceId: Address.provinceId,
+        countryId: Address.countryId,
+        country: Address.Country.name,
+        province: Address.Province.name,
+        city: Address.City.name,
+        zip: Address.City.zipCode
+      })
+    })
   } catch (error) {
     console.error('Error updating client:', error)
     return NextResponse.json(

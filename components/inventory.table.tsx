@@ -58,6 +58,7 @@ import {
   DialogTrigger
 } from './ui/dialog'
 import { PrintProductLabel } from './print-product-label'
+import { useState } from 'react'
 
 export const SONERAS_COMPANY_DETAILS = {
   company: 'SARL SO.NE.RA.S',
@@ -123,6 +124,10 @@ export function InventoryTable({
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
+  const [printDialogOpen, setPrintDialogOpen] = useState(false)
+  const [selectedRow, setSelectedRow] = useState<InventoryTableEntry | null>(
+    null
+  )
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
@@ -132,6 +137,11 @@ export function InventoryTable({
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
+
+  const handlePrint = (row: InventoryTableEntry) => {
+    setSelectedRow(row)
+    setPrintDialogOpen(true)
+  }
 
   // Define a reusable function for creating sortable headers
   const createSortableHeader = (column: any, label: string) => {
@@ -209,7 +219,9 @@ export function InventoryTable({
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
       accessorFn: (row) => row.id,
-      cell: ({ row }) => <Actions userRole={userRole} row={row.original} />
+      cell: ({ row }) => (
+        <Actions onPrint={handlePrint} userRole={userRole} row={row.original} />
+      )
     }
   }
 
@@ -255,7 +267,13 @@ export function InventoryTable({
     { id: 'bulkPriceTTC', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 9 },
     {
       id: 'barcode',
-      roles: ['INVENTORY_AGENT', 'ENGINEER', 'ENGINEERING_MANAGER'],
+      roles: [
+        'INVENTORY_AGENT',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'ENGINEER',
+        'ENGINEERING_MANAGER'
+      ],
       order: 2
     },
     {
@@ -479,110 +497,123 @@ export function InventoryTable({
           </Button>
         </div>
       </div>
+      {/* Moved outside */}
+      <Dialog open={printDialogOpen} onOpenChange={setPrintDialogOpen}>
+        <DialogContent className="w-fit flex flex-col gap-3 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Imprimer l&apos;étiquette du produit</DialogTitle>
+          </DialogHeader>
+          {selectedRow && (
+            <PrintProductLabel
+              companyData={SONERAS_COMPANY_DETAILS}
+              designation={selectedRow.designation}
+              qrCode={selectedRow.id}
+              barcode={selectedRow.barcode}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
 
 function Actions({
   row,
-  userRole = 'GUEST'
+  userRole = 'GUEST',
+  onPrint
 }: {
   userRole?: UserRole
   row: InventoryTableEntry
+  onPrint: (row: InventoryTableEntry) => void
 }) {
   const { refresh } = useRouter()
   const router = useRouter()
+
   const onDelete = async (orderId: string) => {
     try {
-      const res = await fetch(`/api/stock/${orderId}`, {
-        method: 'DELETE'
-      })
+      await fetch(`/api/stock/${orderId}`, { method: 'DELETE' })
       refresh()
     } catch (error) {}
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
-        <Icons.ellipsis className="h-4 w-4" />
-        <span className="sr-only">Open</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Button
-            variant={'ghost'}
-            onClick={() => router.push(`/dashboard/inventory/${row.id}`)}
-            className={cn('flex gap-3 items-center justify-center w-12')}
-          >
-            <Icons.edit className="w-4 h-4 group-hover:text-primary" />
-          </Button>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant={'ghost'}>
-                <Icons.printer className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-full flex flex-col gap-3 max-w-2xl">
-              <DialogHeader className="">
-                <DialogTitle>Imprimer l&apos;étiquette du produit</DialogTitle>
-              </DialogHeader>
-              <div className="flex justify-center items-center">
-                <PrintProductLabel
-                  companyData={SONERAS_COMPANY_DETAILS}
-                  designation={row.designation}
-                  qrCode={row.id}
-                  barcode={row.barcode}
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </DropdownMenuItem>
-        {userRole == 'INVENTORY_AGENT' && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant={'ghost'}
-                    className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
-                  >
-                    <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you sure you want to delete this Pricing Item?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Be careful this action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction asChild>
-                      <Button
-                        className={cn(
-                          buttonVariants({ variant: 'outline' }),
-                          ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                        )}
-                        onClick={() => onDelete(row.id)}
-                      >
-                        <Icons.trash className="mr-2 h-4 w-4" />
-                        Delete
-                      </Button>
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
+          <Icons.ellipsis className="h-4 w-4" />
+          <span className="sr-only">Open</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/dashboard/inventory/${row.id}`)}
+              className="flex gap-3 items-center justify-center w-12"
+            >
+              <Icons.edit className="w-4 h-4 group-hover:text-primary" />
+            </Button>
+          </DropdownMenuItem>
+
+          {/* This only triggers dialog opening */}
+          {row.barcode && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Button
+                  variant="ghost"
+                  onClick={() => onPrint(row)}
+                  className="flex gap-3 items-center justify-center w-12"
+                >
+                  <Icons.printer className="h-4 w-4" />
+                </Button>
+              </DropdownMenuItem>
+            </>
+          )}
+
+          {userRole === 'INVENTORY_AGENT' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0"
+                    >
+                      <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you sure you want to delete this item?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction asChild>
+                        <Button
+                          className={cn(
+                            buttonVariants({ variant: 'outline' }),
+                            'text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                          )}
+                          onClick={() => onDelete(row.id)}
+                        >
+                          <Icons.trash className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   )
 }

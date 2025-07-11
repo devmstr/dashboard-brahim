@@ -26,7 +26,7 @@ interface SearchComboBoxProps {
   placeholder?: string
   onSelect: (value: string) => void
   className?: string
-  selected?: string
+  selected?: string | null
   isInSideADialog?: boolean
   isLoading?: boolean
   emptyMessage?: string

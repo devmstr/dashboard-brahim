@@ -47,24 +47,6 @@ export const PrintProductLabel: React.FC<PrintLabelProps> = ({
     ? companyData.logoSrc
     : `/${companyData.logoSrc}`
 
-  // Split designation into two parts based on PC, BC, PD, or BD pattern
-  let designationPart1 = ''
-  let designationPart2 = ''
-
-  if (designation) {
-    const match = designation.match(/(.*?)(PC|BC|PD|BD)(\s+)(.*)/)
-    if (match) {
-      // match[1] is the text before the pattern
-      // match[2] is the pattern itself (PC, BC, PD, BD)
-      // match[4] is the text after the pattern and space
-      designationPart1 = `${match[1]}${match[2]}`
-      designationPart2 = match[4]
-    } else {
-      // If no match, use the whole designation as part 1
-      designationPart1 = designation
-    }
-  }
-
   // Effect to render barcode after component mounts
   useEffect(() => {
     let isMounted = true
@@ -179,8 +161,8 @@ export const PrintProductLabel: React.FC<PrintLabelProps> = ({
       <div className="flex justify-center flex-col border-2  border-muted rounded-lg shadow-md">
         <div
           ref={componentRef}
-          className="print-container mx-auto py-2 print:px-4 print:py-2 "
-          style={{ width: 570, height: 320 }}
+          className="print-container mx-auto py-2 print:pl-5 print:pr-6 print:pt-4 print:pb-2 "
+          style={{ width: 560, height: 320 }}
         >
           {/* Label Header */}
           <div className="flex flex-col">
@@ -246,9 +228,7 @@ export const PrintProductLabel: React.FC<PrintLabelProps> = ({
               }}
               className=" font-bold text-black"
             >
-              {designationPart1}
-              <br />
-              {designationPart2}
+              {designation}
             </p>
           </div>
 

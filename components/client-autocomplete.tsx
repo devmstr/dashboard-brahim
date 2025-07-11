@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/command'
 import { Building, Loader2, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ClientSchemaType } from '@/lib/validations'
 
 export interface Client {
   name: string | null
@@ -32,9 +33,20 @@ interface ApiClient {
   tradeRegisterNumber: string
 }
 
+type AutoCompleteClient = Pick<
+  ClientSchemaType,
+  | 'name'
+  | 'label'
+  | 'street'
+  | 'isCompany'
+  | 'registrationArticle'
+  | 'taxIdNumber'
+  | 'tradeRegisterNumber'
+>
+
 interface ClientAutocompleteProps {
-  client: Client
-  setClient: (client: Client) => void
+  client: AutoCompleteClient
+  setClient: (client: AutoCompleteClient) => void
 }
 
 export default function ClientAutocomplete({
@@ -42,7 +54,7 @@ export default function ClientAutocomplete({
   setClient
 }: ClientAutocompleteProps) {
   const [query, setQuery] = useState('')
-  const [suggestions, setSuggestions] = useState<ApiClient[]>([])
+  const [suggestions, setSuggestions] = useState<AutoCompleteClient[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [loading, setLoading] = useState(false)
   const [highlightedIdx, setHighlightedIdx] = useState<number>(-1)
@@ -117,25 +129,17 @@ export default function ClientAutocomplete({
   }, [showDropdown])
 
   const handleClientSelect = ({
-    Address: { street = '' },
+    street = '',
     name,
     label,
     isCompany,
     registrationArticle = '',
     taxIdNumber = '',
     tradeRegisterNumber = ''
-  }: {
-    Address: { street: string }
-    name: string
-    label: string
-    isCompany: boolean
-    registrationArticle: string
-    taxIdNumber: string
-    tradeRegisterNumber: string
-  }) => {
+  }: AutoCompleteClient) => {
     setClient({
-      name: isCompany ? `${label} ${name}` : name,
-      address: street,
+      name,
+      street,
       tradeRegisterNumber: tradeRegisterNumber || '',
       taxIdNumber: taxIdNumber || '',
       registrationArticle: registrationArticle || ''
@@ -187,7 +191,7 @@ export default function ClientAutocomplete({
               'h-6 p-0 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base',
               !client.name && 'print:hidden'
             )}
-            value={client.name ?? undefined}
+            value={client.name}
             onChange={(e) => handleNameChange(e.target.value)}
             onFocus={() => {
               if (suggestions.length > 0) setShowDropdown(true)
@@ -251,9 +255,9 @@ export default function ClientAutocomplete({
                                 </div>
                               </div>
                             </div>
-                            {suggestion.Address?.street && (
+                            {suggestion.street && (
                               <div className="text-xs text-muted-foreground">
-                                {suggestion.Address?.street}
+                                {suggestion.street}
                               </div>
                             )}
                           </div>
@@ -272,10 +276,15 @@ export default function ClientAutocomplete({
           placeholder="Z.I. Garat taam B. P.N 46 Bounoura - 47014"
           className={cn(
             'h-6 p-0 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base',
-            !client.address && 'print:hidden'
+            !client.street && 'print:hidden'
           )}
-          value={client.address ?? undefined}
-          onChange={(e) => setClient({ ...client, address: e.target.value })}
+          value={client.street}
+          onChange={({ target: { value } }) =>
+            setClient({
+              ...client,
+              street: value
+            })
+          }
         />
       </div>
 
@@ -291,9 +300,12 @@ export default function ClientAutocomplete({
           <Input
             placeholder="97/B/0862043"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.tradeRegisterNumber ?? undefined}
-            onChange={(e) =>
-              setClient({ ...client, tradeRegisterNumber: e.target.value })
+            value={client.tradeRegisterNumber}
+            onChange={({ target: { value } }) =>
+              setClient({
+                ...client,
+                tradeRegisterNumber: value
+              })
             }
           />
         </div>
@@ -308,9 +320,12 @@ export default function ClientAutocomplete({
           <Input
             placeholder="99747086204393"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.taxIdNumber ?? undefined}
-            onChange={(e) =>
-              setClient({ ...client, taxIdNumber: e.target.value })
+            value={client.taxIdNumber}
+            onChange={({ target: { value } }) =>
+              setClient({
+                ...client,
+                taxIdNumber: value
+              })
             }
           />
         </div>
@@ -325,9 +340,12 @@ export default function ClientAutocomplete({
           <Input
             placeholder="471006003"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.registrationArticle ?? undefined}
-            onChange={(e) =>
-              setClient({ ...client, registrationArticle: e.target.value })
+            value={client.registrationArticle}
+            onChange={({ target: { value } }) =>
+              setClient({
+                ...client,
+                registrationArticle: value
+              })
             }
           />
         </div>

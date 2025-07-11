@@ -5,7 +5,7 @@ import { generateUniqueFilename } from '@/lib/utils'
 // GET all attachments
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = request.nextUrl
     const orderId = searchParams.get('orderId')
 
     // If orderId is provided, filter by order

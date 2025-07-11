@@ -22,9 +22,11 @@ import {
   type ClientSchemaType as Client
 } from '@/lib/validations/client'
 import { toast } from '@/hooks/use-toast'
+import { AddressSelector, AddressSelectorData } from './address.selector'
+import { skuId } from '@/lib/utils'
 
 interface Props {
-  data?: Partial<Client>
+  data?: Client
   onSuccess?: (client: Client) => void
 }
 
@@ -38,33 +40,29 @@ export const ClientInfoForm: React.FC<Props> = ({
   data: initialData,
   onSuccess
 }: Props) => {
-  const [countries, setCountries] = useState<LocationOption[]>([
-    { value: 'DZ', label: 'Algeria' }
-  ])
-  const [provinces, setProvinces] = useState<LocationOption[]>([])
-  const [cities, setCities] = useState<LocationOption[]>([])
-  const [isLoadingProvinces, setIsLoadingProvinces] = useState(false)
-  const [isLoadingCities, setIsLoadingCities] = useState(false)
-
   // Initialize form with React Hook Form
   const form = useForm<Client>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
       ...initialData,
+      id: initialData?.id || skuId('CL'),
       label: initialData?.label || 'SARL',
       isCompany: initialData?.isCompany || false,
       country: initialData?.country || 'DZ',
-      province: initialData?.province || 'Ghardaïa',
-      city: initialData?.city || 'Ghardaïa'
+      province: initialData?.province,
+      city: initialData?.city
     }
   })
 
   // Get form values for conditional rendering and API calls
   const isCompany = form.watch('isCompany')
-  const countryValue = form.watch('country')
-  const provinceValue = form.watch('province')
-  const cityWatch = form.watch('city')
-  const zipWatch = form.watch('zip')
+  const [address, setAddress] = useState<AddressSelectorData>({
+    country: 'DZ',
+    province: null,
+    city: null,
+    street: null,
+    zip: null
+  })
 
   // Update form when initialData changes
   useEffect(() => {
@@ -77,119 +75,34 @@ export const ClientInfoForm: React.FC<Props> = ({
     }
   }, [initialData, form])
 
-  // Fetch provinces when country changes
-  useEffect(() => {
-    if (countryValue) {
-      setIsLoadingProvinces(true)
-      fetch(`/api/locations/provinces?country=${countryValue}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setProvinces(
-            data.map((province: any) => ({
-              value: province.id,
-              label: province.name
-            }))
-          )
-          setIsLoadingProvinces(false)
-        })
-        .catch((err) => {
-          console.error('Error fetching provinces:', err)
-          setIsLoadingProvinces(false)
-        })
-    }
-  }, [countryValue])
-
-  // Fetch cities when province changes
-  useEffect(() => {
-    if (provinceValue) {
-      setIsLoadingCities(true)
-      fetch(`/api/locations/cities?province=${provinceValue}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setCities(
-            data.map((city: any) => ({
-              value: city.id,
-              label: city.name,
-              zipCode: city.zipCode
-            }))
-          )
-          setIsLoadingCities(false)
-        })
-        .catch((err) => {
-          console.error('Error fetching cities:', err)
-          setIsLoadingCities(false)
-        })
-    }
-  }, [provinceValue])
-
-  // Fetch initial provinces and cities
-  useEffect(() => {
-    // Fetch provinces for initial country (Algeria)
-    const fetchInitialProvinces = async () => {
-      try {
-        setIsLoadingProvinces(true)
-        const provinces = await fetch(`/api/locations/provinces?country=DZ`)
-        const cities = await fetch(`/api/locations/cities?provinceCode=47`)
-        const provincesData = await provinces.json()
-        setProvinces(
-          provincesData.map((province: any) => ({
-            value: province.id,
-            label: province.name
-          }))
-        )
-        const citiesData = await cities.json()
-        setCities(
-          citiesData.map((cities: any) => ({
-            value: cities.id,
-            label: cities.name
-          }))
-        )
-      } catch (error) {
-        console.error('Failed to load initial provinces:', error)
-      } finally {
-        setIsLoadingProvinces(false)
-      }
-    }
-    // fetch initial values
-    fetchInitialProvinces()
-  }, [])
-
-  useEffect(() => {
-    if (cityWatch) {
-      // Find the selected city in the cities array
-      const selectedCity = cities.find((city) => city.value === cityWatch)
-      if (selectedCity && selectedCity.zipCode) {
-        // Set the zip code field with the city's zip_code
-        form.setValue('zip', selectedCity.zipCode)
-      }
-    }
-  }, [cityWatch, cities, form])
-
   const [isLoading, beginTransition] = useTransition()
+
+  const onError = (errors: any) => {
+    console.error('Validation errors:', errors)
+    toast({
+      title: 'Erreur de validation',
+      description: 'Veuillez vérifier les champs du formulaire.',
+      variant: 'destructive'
+    })
+  }
 
   // Handle form submission
   const onSubmit = async (data: Client) => {
     beginTransition(async () => {
       try {
-        // Prepare the data for API submission
-        const clientData = {
-          ...data,
-          // Map form fields to API expected format
-          addressId: data.addressId,
-          address: {
-            street: data.street,
-            cityId: data.city,
-            provinceId: data.province,
-            countryId: data.country
-          }
-        }
-
         const res = await fetch('/api/clients/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(clientData)
+          body: JSON.stringify({
+            ...data,
+            addressId: data.addressId,
+            countryId: address.country,
+            provinceId: address.province,
+            cityId: address.city,
+            zip: address.zip
+          })
         })
 
         if (!res.ok) {
@@ -225,7 +138,10 @@ export const ClientInfoForm: React.FC<Props> = ({
 
   return (
     <Form {...form}>
-      <form className="space-y-4 pt-2" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-4 pt-2"
+        onSubmit={form.handleSubmit(onSubmit, onError)}
+      >
         <div className="relative border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
             générale
@@ -241,7 +157,7 @@ export const ClientInfoForm: React.FC<Props> = ({
                     <FormControl>
                       <Switcher
                         id="isCompany"
-                        checked={field.value}
+                        checked={field.value ?? false}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
@@ -517,128 +433,7 @@ export const ClientInfoForm: React.FC<Props> = ({
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
             adresse
           </span>
-
-          <div className="space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="capitalize">{'pays'}</FormLabel>
-                    <FormControl>
-                      <SearchComboBox
-                        options={countries}
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        placeholder="Sélectionner un pays"
-                        emptyMessage="Aucun pays trouvé."
-                        isLoading={false}
-                        isInSideADialog={true}
-                        listClassName="max-h-64"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="province"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="capitalize">{'Wilaya'}</FormLabel>
-                    <FormControl>
-                      <SearchComboBox
-                        options={provinces}
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        placeholder="Sélectionner une wilaya"
-                        emptyMessage="Aucune wilaya trouvée."
-                        isLoading={isLoadingProvinces}
-                        isInSideADialog={true}
-                        listClassName="max-h-64"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="capitalize">{'Commune'}</FormLabel>
-                    <FormControl>
-                      <SearchComboBox
-                        options={cities}
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        placeholder="Sélectionner une commune"
-                        emptyMessage="Aucune commune trouvée."
-                        isLoading={isLoadingCities}
-                        isInSideADialog={true}
-                        listClassName="max-h-64"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="street"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="capitalize">{'adresse'}</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Rue de... or BP234 Ghardaia"
-                        type="text"
-                        {...field}
-                        value={field.value as string}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="zip"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="capitalize">
-                      {'Code Postal'}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="47001"
-                        type="text"
-                        {...field}
-                        value={zipWatch}
-                        disabled
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+          <AddressSelector value={address} onChange={setAddress} />
         </div>
 
         <div className="flex justify-end">

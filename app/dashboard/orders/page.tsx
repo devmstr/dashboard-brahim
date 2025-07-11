@@ -30,7 +30,8 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       deadline: true,
       status: true,
       progress: true
-    }
+    },
+    orderBy: { createdAt: 'desc' }
   })
 
   const data = orders.map((order: any) => {

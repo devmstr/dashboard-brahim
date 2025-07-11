@@ -84,10 +84,10 @@ export function AddOrderItemFromDbFrom({
   function handleSubmit(data: FromType) {
     try {
       const firstModel = apiRadiator.Models.at(0)
-      console.log(firstModel)
       const orderItem: OrderItem = {
         ...apiRadiator,
         ...data,
+        radiatorId: apiRadiator.id,
         ...(firstModel
           ? {
               Vehicle: {

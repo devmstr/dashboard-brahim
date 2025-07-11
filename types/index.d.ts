@@ -208,7 +208,8 @@ declare type ApiRadiator = {
 }
 
 declare type InvoiceItem = {
-  id: number
+  id?: string
+  number: number
   label: string | null
   price: number | null
   amount: number | null
@@ -285,14 +286,17 @@ export interface Product {
   stockLevel: number
   price: number
   priceTTC: number
+  bulkPrice: number
+  bulkPriceTTC: number
   image?: string
 }
 
 export interface CartItem {
-  id: string
-  name: string
+  id: int
+  label: string
   price: number
   quantity: number
+  radiatorId: string
 }
 
 export interface Customer {

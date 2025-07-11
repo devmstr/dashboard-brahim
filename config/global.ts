@@ -2,6 +2,7 @@
 
 // Company types
 export const COMPANY_LABELS_TYPE = [
+  { label: 'Monsieur', value: 'MR' },
   { label: 'Société Anonyme (SA)', value: 'SA' },
   { label: 'Société Par Actions (SPA)', value: 'SPA' },
   { label: 'Société en Commandité Simple (SCS)', value: 'SCS' },

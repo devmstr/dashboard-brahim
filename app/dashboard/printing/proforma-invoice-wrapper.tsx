@@ -16,61 +16,10 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useReactToPrint } from 'react-to-print'
 import { toast } from '@/hooks/use-toast'
-
-export interface InvoiceData {
-  client: {
-    name: string
-    address: string
-    rc: string
-    nif: string
-    ai: string
-  }
-  items: Array<{
-    id: number
-    label: string
-    quantity: number
-    price: number
-    amount: number
-  }>
-  billingSummary: {
-    totalHT: number
-    vat: number
-    totalTTC: number
-    discount: number
-    refund: number
-    stampTax: number
-  }
-  note?: string
-  type?: string
-  paymentMode?: string
-  dueDate?: string
-  status?: string
-  id?: string
-  invoiceNumber?: string
-  qrAddress?: string
-  discountRate?: number
-  refundRate?: number
-  stampTaxRate?: number
-  purchaseOrder?: string
-  deliverySlip?: string
-  offerValidity?: string
-  deliveryTime?: string
-  guaranteeTime?: string
-  metadata: {
-    note?: string
-    discountRate?: number
-    refundRate?: number
-    stampTaxRate?: number
-    purchaseOrder?: string
-    deliverySlip?: string
-    offerValidity?: string
-    deliveryTime?: string
-    guaranteeTime?: string
-  }
-}
+import { InvoiceSchemaType } from '@/lib/validations/invoice'
 
 export interface InvoiceRef {
-  getInvoiceData: () => InvoiceData
+  getInvoiceData: () => InvoiceSchemaType
 }
 
 interface InvoicePrinterWrapperProps {
@@ -105,9 +54,9 @@ export const ProformaInvoicePrinterWrapper: React.FC<
       `
   })
 
-  const validateInvoiceData = (data: InvoiceData): string | null => {
+  const validateInvoiceData = (data: InvoiceSchemaType): string | null => {
     if (
-      !data.items.length ||
+      !data.items?.length ||
       data.items.every((item) => !item.label.trim() || item.quantity <= 0)
     ) {
       return 'Au moins un article valide est requis'
@@ -138,43 +87,15 @@ export const ProformaInvoicePrinterWrapper: React.FC<
 
     setIsLoading(true)
     try {
-      const apiData = {
-        customer: invoiceData.client.name.trim()
-          ? {
-              id: null,
-              name: invoiceData.client.name,
-              address: invoiceData.client.address,
-              rc: invoiceData.client.rc,
-              nif: invoiceData.client.nif,
-              ai: invoiceData.client.ai
-            }
-          : undefined,
-        items: invoiceData.items.map((item) => ({
-          id: item.id.toString(),
-          name: item.label,
-          price: item.price,
-          quantity: item.quantity
-        })),
-        subtotal: invoiceData.billingSummary.totalHT,
-        tax: invoiceData.billingSummary.vat,
-        total: invoiceData.billingSummary.totalTTC,
-        type: 'PROFORMA',
-        note: invoiceData.metadata.note,
-        metadata: {
-          ...invoiceData.metadata,
-          items: invoiceData.items,
-          discountAmount: invoiceData.billingSummary.discount,
-          refundAmount: invoiceData.billingSummary.refund,
-          stampTaxAmount: invoiceData.billingSummary.stampTax
-        }
-      }
-
-      const response = await fetch('/api/invoice', {
+      const response = await fetch('/api/invoices', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(apiData)
+        body: JSON.stringify({
+          ...invoiceData,
+          type: 'PROFORMA'
+        })
       })
 
       if (!response.ok) {
@@ -238,7 +159,7 @@ export const ProformaInvoicePrinterWrapper: React.FC<
   const hasClientData = () => {
     if (!invoiceRef.current) return false
     const data = invoiceRef.current.getInvoiceData()
-    return data.client.name.trim().length > 0
+    return !!data.name
   }
 
   return (
