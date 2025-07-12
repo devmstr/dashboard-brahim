@@ -102,14 +102,11 @@ interface DetailedOrder {
   OrdersItems: Array<{
     id: string
     quantity: number
-    Radiator: {
-      label: string
-      Models: {
-        name: string
-        Family: {
-          Brand: { name: string }
-        }
-      }[]
+    label: string
+    validatedAt: string
+    Vehicle: {
+      brand: string
+      model: string
     }
   }>
 }
@@ -196,18 +193,14 @@ export function OrderTable({
   const generateXLSXData = (orders: DetailedOrder[]): OrderItemExportData[] => {
     const exportData: OrderItemExportData[] = []
     let index = 1
-
+    console.log(orders)
     orders.forEach((order) => {
       order.OrdersItems.forEach((item) => {
-        const designation = item.Radiator?.Models?.[0]?.Family?.Brand?.name
-          ? `${item.Radiator?.label} ,${item.Radiator.Models[0].Family.Brand.name} – ${item.Radiator.Models[0].name}`
-          : item.Radiator?.label
-
         exportData.push({
           index: index++,
-          label: designation.includes('0000X0000')
-            ? `${designation} --non confirmé--`
-            : designation || 'N/A',
+          label: item.validatedAt
+            ? item.label
+            : `${item.label} --non confirmé--` || 'N/A',
           quantity: item.quantity,
           deadline: order.deadline
             ? format(new Date(order.deadline), 'dd/MM/yyyy')
