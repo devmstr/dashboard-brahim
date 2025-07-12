@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { formatPhoneNumber } from '@/lib/utils'
 import prisma from '@/lib/db'
+import { Prisma } from '@prisma/client'
 
 // GET a specific client by ID
 export async function GET(
@@ -135,9 +136,38 @@ export async function PUT(
       })
     })
   } catch (error) {
-    console.error('Error updating client:', error)
+    console.error('❌ Error creating client:', error)
+
+    let message = 'Unknown error'
+
+    // Handle known Prisma errors
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002': // Unique constraint failed
+          message = `Le client existe déjà avec le même: ${(
+            error.meta?.target as string[]
+          ).join(', ')}`
+          break
+        case 'P2025': // Record not found
+          message = `Enregistrement introuvable: ${
+            error.meta?.cause || 'Unknown cause'
+          }`
+          break
+        default:
+          message = `Prisma error: ${error.message}`
+      }
+    }
+
+    // Fallback for standard JS errors
+    else if (error instanceof Error) {
+      message = error.message
+    }
+
     return NextResponse.json(
-      { error: 'Failed to update client' },
+      {
+        error: 'Failed to create client',
+        details: message
+      },
       { status: 500 }
     )
   }

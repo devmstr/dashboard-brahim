@@ -23,6 +23,7 @@ import React from 'react'
 import { delay } from '@/lib/utils'
 import { Icons } from '@/components/icons'
 import { ClientSchemaType as Client, clientSchema } from '@/lib/validations'
+import { toast } from '@/hooks/use-toast'
 
 interface Props {
   data: Client
@@ -39,14 +40,39 @@ export const EditClientForm: React.FC<Props> = ({ data }: Props) => {
   const onSubmit = (formData: Client) => {
     // update data using react query
     updateOrderMetadata(async () => {
-      const response = await fetch(`/api/clients/${data?.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(formData)
-      })
-      const responseData = await response.json()
-      console.log('responseData : ', responseData)
+      try {
+        const response = await fetch(`/api/clients/${data?.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(formData),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!response.ok) {
+          const errorBody = await response.json()
+          throw new Error(errorBody.details || 'Client update failed')
+        }
+
+        toast({
+          title: 'Succès !',
+          description: 'Le client a été mis à jour avec succès.',
+          variant: 'success'
+        })
+      } catch (error) {
+        toast({
+          title: 'Erreur lors de la mise à jour du client',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Une erreur inconnue est survenue.',
+          variant: 'destructive'
+        })
+        console.error('Client update error:', error)
+      }
     })
   }
+
   return (
     <Form {...form}>
       <form className="space-y-6 pt-2" onSubmit={form.handleSubmit(onSubmit)}>

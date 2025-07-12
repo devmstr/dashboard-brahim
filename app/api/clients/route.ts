@@ -5,6 +5,7 @@ import { formatPhoneNumber, skuId } from '@/lib/utils'
 import { Client } from '@/types'
 import { ClientSchemaType } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
+import { Prisma } from '@prisma/client'
 
 // Update the GET function to handle empty searchTerm terms and improve search matching
 export async function GET(request: NextRequest) {
@@ -80,54 +81,75 @@ export async function GET(request: NextRequest) {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as ClientSchemaType
-    console.log('Request body:', body)
 
-    const client = await prisma.$transaction(async (tx) => {
-      if (!body.cityId || !body.provinceId || !body.countryId) {
-        throw new Error(
-          'Invalid address info: city or province or country is missing'
-        )
-      }
+    if (!body.cityId || !body.provinceId || !body.countryId) {
+      throw new Error(
+        'Invalid address info: city or province or country is missing'
+      )
+    }
 
-      const newClient = await tx.client.create({
-        data: {
-          id: body.id || skuId('CL'),
-          name: body.name,
-          phone: body.phone,
-          email: body.email,
-          isCompany: body.isCompany ?? false,
-          website: body.website,
-          ...(body.isCompany && {
-            label: body.label,
-            tradeRegisterNumber: body.tradeRegisterNumber,
-            fiscalNumber: body.fiscalNumber,
-            registrationArticle: body.registrationArticle,
-            taxIdNumber: body.taxIdNumber,
-            statisticalIdNumber: body.statisticalIdNumber,
-            approvalNumber: body.approvalNumber
-          }),
-          Address: {
-            create: {
-              street: body.street,
-              Province: { connect: { id: body.provinceId } },
-              City: { connect: { id: body.cityId } },
-              Country: { connect: { code: body.countryId } }
-            }
+    const client = await prisma.client.create({
+      data: {
+        id: body.id || skuId('CL'),
+        name: body.name,
+        phone: body.phone,
+        email: body.email,
+        isCompany: body.isCompany ?? false,
+        website: body.website,
+        ...(body.isCompany && {
+          label: body.label,
+          tradeRegisterNumber: body.tradeRegisterNumber,
+          fiscalNumber: body.fiscalNumber,
+          registrationArticle: body.registrationArticle,
+          taxIdNumber: body.taxIdNumber,
+          statisticalIdNumber: body.statisticalIdNumber,
+          approvalNumber: body.approvalNumber
+        }),
+        Address: {
+          create: {
+            street: body.street,
+            Province: { connect: { id: body.provinceId } },
+            City: { connect: { id: body.cityId } },
+            Country: { connect: { code: body.countryId } }
           }
         }
-      })
-
-      return newClient
+      }
     })
 
     revalidatePath('/dashboard/clients')
     return NextResponse.json(client, { status: 201 })
   } catch (error) {
     console.error('❌ Error creating client:', error)
+
+    let message = 'Unknown error'
+
+    // Handle known Prisma errors
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case 'P2002': // Unique constraint failed
+          message = `Le client existe déjà avec le même: ${(
+            error.meta?.target as string[]
+          ).join(', ')}`
+          break
+        case 'P2025': // Record not found
+          message = `Enregistrement introuvable: ${
+            error.meta?.cause || 'Unknown cause'
+          }`
+          break
+        default:
+          message = `Prisma error: ${error.message}`
+      }
+    }
+
+    // Fallback for standard JS errors
+    else if (error instanceof Error) {
+      message = error.message
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to create client',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: message
       },
       { status: 500 }
     )
