@@ -106,15 +106,18 @@ export const ClientInfoForm: React.FC<Props> = ({
         })
 
         if (!res.ok) {
-          const errorData = await res.json()
-          throw new Error(errorData.message || 'Failed to create client')
+          const errorBody = await res.json()
+          console.log(errorBody)
+          throw new Error(
+            errorBody.details || errorBody.error || 'Client update failed'
+          )
         }
 
         const createdClient = await res.json()
 
         toast({
-          title: 'Success',
-          description: 'Client created successfully',
+          title: 'Succès !',
+          description: 'Le client a été mis à jour avec succès.',
           variant: 'success'
         })
 
@@ -125,13 +128,16 @@ export const ClientInfoForm: React.FC<Props> = ({
 
         // Reset form
         form.reset()
-      } catch (error: any) {
-        console.error('Error creating client:', error)
+      } catch (error) {
         toast({
-          title: 'Error',
-          description: error.message || 'Failed to create client',
+          title: 'Erreur lors de la mise à jour du client',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Une erreur inconnue est survenue.',
           variant: 'destructive'
         })
+        console.error('Client update error:', error)
       }
     })
   }

@@ -31,6 +31,7 @@ interface Props {
 
 export const EditClientForm: React.FC<Props> = ({ data }: Props) => {
   const [isLoading, updateOrderMetadata] = React.useTransition()
+  const router = useRouter()
   const form = useForm<Client>({
     defaultValues: data,
     resolver: zodResolver(clientSchema)
@@ -433,14 +434,28 @@ export const EditClientForm: React.FC<Props> = ({ data }: Props) => {
             />
           </div>
         </div>
-        <div className="flex flex-col items-end gap-4">
+        <div className="space-y-4">
           <Separator />
-          <Button className="w-fit flex gap-1" type="submit">
-            <span>{'Modifier'}</span>
-            {isLoading && (
-              <Icons.spinner className=" w-auto h-5 animate-spin" />
-            )}
-          </Button>
+          <div className="flex  gap-4 justify-end">
+            <Button
+              onClick={(e) => {
+                e.preventDefault()
+                router.back()
+              }}
+              className="w-24"
+              type="submit"
+              variant="outline"
+            >
+              Retour
+            </Button>
+            <Button className="w-24 flex gap-1" type="submit">
+              <span>{'Modifier'}</span>
+              {isLoading && (
+                <Icons.spinner className=" w-auto h-5 animate-spin" />
+              )}
+            </Button>
+            <div />
+          </div>
         </div>
       </form>
     </Form>

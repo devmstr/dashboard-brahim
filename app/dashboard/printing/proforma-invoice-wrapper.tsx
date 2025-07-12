@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation'
 import { useReactToPrint } from 'react-to-print'
 import { toast } from '@/hooks/use-toast'
 import { InvoiceSchemaType } from '@/lib/validations/invoice'
+import Link from 'next/link'
 
 export interface InvoiceRef {
   getInvoiceData: () => InvoiceSchemaType
@@ -94,7 +95,9 @@ export const ProformaInvoicePrinterWrapper: React.FC<
         },
         body: JSON.stringify({
           ...invoiceData,
-          type: 'PROFORMA'
+          type: 'PROFORMA',
+          status: 'UNPAID',
+          date: new Date().toISOString()
         })
       })
 
@@ -103,13 +106,19 @@ export const ProformaInvoicePrinterWrapper: React.FC<
         throw new Error(errorData.message || 'Erreur lors de la sauvegarde')
       }
 
-      const result = await response.json()
+      const result = (await response.json()) as { id: string }
 
       toast({
         title: 'Succès',
-        description:
-          result.message || `Facture proforma sauvegardée (${result.number})`,
-        variant: 'default'
+        description: (
+          <p>
+            Facture proforma sauvegardée{' '}
+            <a className="text-blue-500 underline" href={`/dashboard/ledger`}>
+              Journal des factures
+            </a>
+          </p>
+        ),
+        variant: 'success'
       })
 
       return result.id

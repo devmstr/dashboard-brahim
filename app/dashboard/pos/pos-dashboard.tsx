@@ -61,14 +61,18 @@ export default function PosDashboard() {
           return prevCart // No stock available
         }
         const maxId =
-          prevCart.length > 0 ? Math.max(...prevCart.map((item) => item.id)) : 0
+          prevCart.length > 0
+            ? Math.max(...prevCart.map((item) => item.number))
+            : 0
         return [
           ...prevCart,
           {
-            id: maxId + 1,
+            id: product.id,
+            number: maxId + 1,
             label: product.label,
             price: product.price,
             quantity: 1,
+            amount: product.price,
             radiatorId: product.id
           }
         ]
@@ -113,15 +117,23 @@ export default function PosDashboard() {
   const router = useRouter()
   // Print receipt
   const printReceipt = async () => {
-    // call the invoice API to create the invoice
+    if (!selectedCustomer) {
+      toast({
+        title: 'Champ requis !',
+        description: 'Veuillez d’abord sélectionner un client.',
+        variant: 'destructive'
+      })
+      return
+    }
+    const { id: clientId, ...client } = selectedCustomer
     const response = await fetch('/api/invoices', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        ...selectedCustomer,
-        clientId: selectedCustomer?.id,
+        ...client,
+        clientId,
         type: 'FINAL',
         paymentMode: 'Espèces',
         dueDate: new Date().toISOString(),

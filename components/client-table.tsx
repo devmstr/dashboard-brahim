@@ -53,6 +53,7 @@ import { ClientSchemaType as Client } from '@/lib/validations'
 
 interface Props {
   data: Client[]
+  children?: React.ReactNode
   t?: {
     id: string
     columns: string
@@ -94,6 +95,7 @@ export function ClientTable({
   showPaginationButtons = true,
   renderActions,
   onDelete,
+  children,
   className
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
@@ -391,6 +393,7 @@ export function ClientTable({
               )}
             </div>
           </div>
+          {children}
         </div>
       )}
       <div className="rounded-md border">

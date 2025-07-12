@@ -78,13 +78,36 @@ export async function GET(request: NextRequest) {
 }
 
 // POST to create a new client
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ClientSchemaType
 
     if (!body.cityId || !body.provinceId || !body.countryId) {
-      throw new Error(
-        'Invalid address info: city or province or country is missing'
+      return NextResponse.json(
+        {
+          error:
+            'Informations d’adresse incomplètes (ville, wilaya ou pays manquant)'
+        },
+        { status: 400 }
+      )
+    }
+
+    const existingClient = await prisma.client.findFirst({
+      where: {
+        OR: [
+          { email: body.email ?? undefined },
+          { phone: body.phone ?? undefined }
+        ]
+      }
+    })
+
+    if (existingClient) {
+      return NextResponse.json(
+        {
+          error:
+            'Le client existe déjà avec le même email ou numéro de téléphone.'
+        },
+        { status: 409 }
       )
     }
 
@@ -117,39 +140,13 @@ export async function POST(request: Request) {
     })
 
     revalidatePath('/dashboard/clients')
+
     return NextResponse.json(client, { status: 201 })
   } catch (error) {
-    console.error('❌ Error creating client:', error)
-
-    let message = 'Unknown error'
-
-    // Handle known Prisma errors
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      switch (error.code) {
-        case 'P2002': // Unique constraint failed
-          message = `Le client existe déjà avec le même: ${(
-            error.meta?.target as string[]
-          ).join(', ')}`
-          break
-        case 'P2025': // Record not found
-          message = `Enregistrement introuvable: ${
-            error.meta?.cause || 'Unknown cause'
-          }`
-          break
-        default:
-          message = `Prisma error: ${error.message}`
-      }
-    }
-
-    // Fallback for standard JS errors
-    else if (error instanceof Error) {
-      message = error.message
-    }
-
     return NextResponse.json(
       {
-        error: 'Failed to create client',
-        details: message
+        error: 'Client update failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )

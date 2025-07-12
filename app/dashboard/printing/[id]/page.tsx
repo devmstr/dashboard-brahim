@@ -25,7 +25,7 @@ export default async function Page({ params }: { params: { id: string } }) {
     )
   }
   return (
-    <InvoicePrinterWrapper metadata={{ fileName: invoice.reference }}>
+    <InvoicePrinterWrapper data={{ reference: invoice.reference }}>
       {invoice.type === 'FINAL' ? (
         <Invoice data={invoice} />
       ) : (

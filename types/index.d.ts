@@ -292,10 +292,12 @@ export interface Product {
 }
 
 export interface CartItem {
-  id: int
+  id: string
+  number: number
   label: string
   price: number
   quantity: number
+  amount: number
   radiatorId: string
 }
 

@@ -65,6 +65,7 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import Invoice from '@/app/dashboard/printing/[id]/invoice'
+import ReadOnlyInvoice from '@/components/readonly-invoice'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -879,7 +880,7 @@ export function LedgerTable({
           {invoice ? (
             <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
               <div ref={printRef}>
-                <Invoice
+                <ReadOnlyInvoice
                   data={invoice}
                   className="max-w-[50rem] w-full"
                   readonly

@@ -35,6 +35,7 @@ interface ApiClient {
 
 type AutoCompleteClient = Pick<
   ClientSchemaType,
+  | 'id'
   | 'name'
   | 'label'
   | 'street'
@@ -129,6 +130,7 @@ export default function ClientAutocomplete({
   }, [showDropdown])
 
   const handleClientSelect = ({
+    id,
     street = '',
     name,
     label,
@@ -138,6 +140,7 @@ export default function ClientAutocomplete({
     tradeRegisterNumber = ''
   }: AutoCompleteClient) => {
     setClient({
+      id,
       name,
       street,
       tradeRegisterNumber: tradeRegisterNumber || '',

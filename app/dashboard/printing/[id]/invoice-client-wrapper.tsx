@@ -7,21 +7,19 @@ import { useRouter } from 'next/navigation'
 import { useReactToPrint } from 'react-to-print'
 
 interface InvoicePrinterWrapperProps {
-  metadata: {
-    fileName: string
-  }
   children: React.ReactNode
+  data?: { reference: string }
 }
 
 export const InvoicePrinterWrapper: React.FC<InvoicePrinterWrapperProps> = ({
   children,
-  metadata: { fileName }
+  data
 }) => {
   const printRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const handlePrint = useReactToPrint({
     contentRef: printRef,
-    documentTitle: `Facture-${fileName}`,
+    documentTitle: `Facture-${data?.reference || Date.now()}`,
     pageStyle: `
         @page { 
           size: A4;

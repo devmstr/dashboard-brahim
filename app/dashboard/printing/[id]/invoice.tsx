@@ -20,48 +20,23 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { PAYMENT_TYPES } from '@/config/global'
 import { useScrollProgress } from '@/hooks/use-scroll'
-import { amountToWords, calculateBillingSummary, cn } from '@/lib/utils'
+import { amountToWords, calculateBillingSummary, cn, delay } from '@/lib/utils'
 import { format } from 'date-fns'
-import { Pencil } from 'lucide-react'
+import { Pencil, RefreshCcw } from 'lucide-react'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './print.css'
 import { toast } from '@/hooks/use-toast'
 import { type Invoice } from '@/types'
-
-const printPreviewStyles = `
-  .print-preview .print\\:hidden {
-    display: none !important;
-  }
-  
-  .print-preview .hidden.print\\:block,
-  .print-preview .hidden.print\\:flex {
-    display: block !important;
-  }
-  
-  .print-preview .hidden.print\\:flex {
-    display: flex !important;
-  }
-  
-  .print-preview .hidden.print\\:table-header-group {
-    display: table-header-group !important;
-  }
-`
-
-const ITEMS_PER_PRINT_PAGE = 4 // Declare the ITEMS_PER_PRINT_PAGE variable
+import { update } from 'lodash'
 
 export interface InvoiceProps {
   data: Invoice
   className?: string
-  readonly?: boolean
 }
 
-export default function Invoice({
-  data: input,
-  className,
-  readonly = false
-}: InvoiceProps) {
+export default function Invoice({ data: input, className }: InvoiceProps) {
   const [data, setData] = useState<Invoice>(input)
   // update data on mount
   useEffect(() => setData(input), [])
@@ -99,15 +74,29 @@ export default function Invoice({
 
   // Split pages dynamically
   const pages = useMemo(() => {
-    const total = data.items.length
-    const lastPage = data.items.slice(-itemsPerPageLast)
-    const rest = data.items.slice(0, total - itemsPerPageLast)
-
+    const totalItems = data.items.length
     const chunks: Invoice['items'][] = []
-    for (let i = 0; i < rest.length; i += itemsPerPage) {
-      chunks.push(rest.slice(i, i + itemsPerPage))
+
+    // Step 1: Chunk all items by normal page size
+    for (let i = 0; i < totalItems; i += itemsPerPage) {
+      chunks.push(data.items.slice(i, i + itemsPerPage))
     }
-    chunks.push(lastPage)
+
+    // Step 2: Check if last page can accommodate totals
+    if (chunks.length > 1) {
+      const lastChunk = chunks[chunks.length - 1]
+
+      if (lastChunk.length > itemsPerPageLast) {
+        // Split it into a new page so totals won't overflow
+        const overflowIndex = lastChunk.length - itemsPerPageLast
+        const secondLastChunk = lastChunk.slice(0, overflowIndex)
+        const newLastChunk = lastChunk.slice(overflowIndex)
+
+        // Replace the last chunk and push the new last chunk
+        chunks.splice(chunks.length - 1, 1, secondLastChunk, newLastChunk)
+      }
+    }
+
     return chunks
   }, [data.items, itemsPerPage, itemsPerPageLast])
 
@@ -121,20 +110,6 @@ export default function Invoice({
       }),
     [data.items, data.discountRate, data.refundRate, data.stampTaxRate]
   )
-
-  useEffect(() => {
-    if (readonly) {
-      // Add the style to the document head when in readonly mode
-      const styleElement = document.createElement('style')
-      styleElement.innerHTML = printPreviewStyles
-      document.head.appendChild(styleElement)
-
-      return () => {
-        // Clean up when component unmounts
-        document.head.removeChild(styleElement)
-      }
-    }
-  }, [readonly])
 
   // Handle payment type change
   const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
@@ -158,6 +133,52 @@ export default function Invoice({
 
   const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
     billingSummary
+
+  // // send an update request on every change
+  // async function onUpdate(data?: Invoice, signal?: AbortSignal) {
+  //   try {
+  //     const response = await fetch(`/api/invoices/${data?.id}`, {
+  //       method: 'PATCH',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify(data),
+  //       signal
+  //     })
+
+  //     if (!response.ok) {
+  //       const error = await response.json()
+  //       throw new Error(
+  //         error.details || 'Erreur lors de la mise à jour de la facture.'
+  //       )
+  //     }
+  //     await delay(1500)
+  //     toast({
+  //       title: 'Succès !',
+  //       description: 'La facture a été mise à jour avec succès.',
+  //       variant: 'success'
+  //     })
+  //   } catch (error) {
+  //     toast({
+  //       title: 'Erreur',
+  //       description:
+  //         error instanceof Error
+  //           ? error.message
+  //           : 'Une erreur inconnue est survenue.',
+  //       variant: 'destructive'
+  //     })
+  //     console.error('❌ Erreur lors de la mise à jour de la facture:', error)
+  //   }
+  // }
+
+  // useEffect(() => {
+  //   const controller = new AbortController()
+  //   onUpdate(data, controller.signal)
+
+  //   return () => {
+  //     controller.abort()
+  //   }
+  // })
 
   const renderBillHeader = () => (
     <div className="print-header">
@@ -234,13 +255,11 @@ export default function Invoice({
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
               value={data.purchaseOrder}
               onChange={(e) => {
-                if (readonly) return
                 setData((prev) => ({
                   ...prev,
                   purchaseOrder: e.target.value
                 }))
               }}
-              readOnly={readonly}
             />
           </div>
           {data.purchaseOrder && (
@@ -257,13 +276,11 @@ export default function Invoice({
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
               value={data.deliverySlip || ''}
               onChange={({ target: { value } }) => {
-                if (readonly)
-                  setData((prev) => ({
-                    ...prev,
-                    deliverySlip: value
-                  }))
+                setData((prev) => ({
+                  ...prev,
+                  deliverySlip: value
+                }))
               }}
-              readOnly={readonly}
             />
           </div>
           {data.deliverySlip && (
@@ -275,7 +292,7 @@ export default function Invoice({
         </div>
         <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {data.reference?.replace(/0+/g, '')}
+            FACTURE: {data.reference?.replace(/FF|PF/g, '')}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
@@ -379,7 +396,7 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between',
-                !data.discountRate && !refund && 'print:hidden'
+                !data.discountRate && !data.refundRate && 'print:hidden'
               )}
             >
               <span>TOTAL BRUTE H.T</span>
@@ -408,23 +425,23 @@ export default function Invoice({
                   name="discount-percentage"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (readonly && Number(v) < 0) return
-                    // discount should be less then 25%
-                    if (Number(v) > 25) {
+                    let number = Math.max(0, Math.min(Number(v), 25))
+
+                    if (number !== Number(v)) {
                       toast({
                         title: 'Avertissement',
                         description:
-                          'Le taux de remise doit être inférieur à 25 %',
+                          'Le taux de remise doit être entre 1% et 25%',
                         variant: 'warning'
                       })
                       return
                     }
+
                     setData((prev) => ({
                       ...prev,
-                      discountRate: Number(v) / 100
+                      discountRate: number / 100
                     }))
                   }}
-                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -441,7 +458,7 @@ export default function Invoice({
             <div
               className={cn(
                 'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
-                !refund && 'print:hidden'
+                !data.refundRate && 'print:hidden'
               )}
             >
               <div className="flex gap-1 items-center">
@@ -456,21 +473,21 @@ export default function Invoice({
                   name="guarantee-refund"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
-                    if (readonly && Number(v) < 0) return
-                    // Le taux de remboursement doit être inférieur à 50 %
-                    if (Number(v) > 50)
+                    let number = Math.max(0, Math.min(Number(v), 50)) // clamp between 1 and 50
+
+                    if (number !== Number(v)) {
                       toast({
                         title: 'Avertissement',
-                        description:
-                          'Le taux de remboursement doit être inférieur à 50 %',
-                        variant: 'destructive'
+                        description: 'Le taux doit être entre 1% et 50%',
+                        variant: 'warning'
                       })
+                    }
+
                     setData((prev) => ({
                       ...prev,
-                      refundRate: Number(v) / 100
+                      refundRate: number / 100
                     }))
                   }}
-                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -517,16 +534,24 @@ export default function Invoice({
                   type="number"
                   name="stamp-tax"
                   placeholder="0"
-                  onChange={({ target: { value } }) => {
-                    if (readonly && Number(value) < 0 && Number(value) > 1)
+                  onChange={({ target: { value: v } }) => {
+                    let number = Math.max(0, Math.min(Number(v), 1))
+
+                    if (number !== Number(v)) {
+                      toast({
+                        title: 'Avertissement',
+                        description:
+                          'Le taux de timbre doit être entre 0% et 1%',
+                        variant: 'warning'
+                      })
                       return
+                    }
 
                     setData((prev) => ({
                       ...prev,
-                      stampTaxRate: Number(value) / 100
+                      stampTaxRate: number / 100
                     }))
                   }}
-                  readOnly={readonly}
                   className={cn(
                     'p-0 m-0 w-5 text-end  h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
@@ -568,7 +593,6 @@ export default function Invoice({
             <Select
               value={data.paymentMode}
               onValueChange={handlePaymentTypeChange}
-              disabled={readonly}
             >
               <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
                 <SelectValue placeholder="Sélectionner le mode de paiement" />
@@ -590,10 +614,8 @@ export default function Invoice({
               placeholder="Saisissez des remarques pour cette facture..."
               value={data.note}
               onChange={({ target: { value } }) => {
-                if (readonly) return
                 setData((prev) => ({ ...prev, note: value }))
               }}
-              readOnly={readonly}
             />
           </div>
           {data.note && (
@@ -634,7 +656,7 @@ export default function Invoice({
             <TableRow key={item.id}>
               <TableCell className="py-[3px] px-2 h-8">{item.number}</TableCell>
               <TableCell className="py-[3px] px-2 h-8 relative">
-                {!readonly && editedId === item.id ? (
+                {editedId === item.id ? (
                   <Input
                     value={item.label}
                     onChange={(e) => {
@@ -659,19 +681,17 @@ export default function Invoice({
                   />
                 ) : (
                   <div className="flex items-center">
-                    {!readonly && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
-                        onClick={() => {
-                          setEditedId(item.id)
-                        }}
-                      >
-                        <Pencil className="h-3 w-3" />
-                        <span className="sr-only">Edit description</span>
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
+                      onClick={() => {
+                        setEditedId(item.id)
+                      }}
+                    >
+                      <Pencil className="h-3 w-3" />
+                      <span className="sr-only">Edit description</span>
+                    </Button>
                     {item.label}
                   </div>
                 )}
@@ -699,7 +719,10 @@ export default function Invoice({
     )
   }
 
+  const [isUpdating, setIsUpdating] = useState<boolean>(false)
+
   const updateData = async () => {
+    setIsUpdating(true)
     try {
       const invoice = await fetch(`/api/invoices/${data.id}`, {
         method: 'PATCH',
@@ -712,6 +735,12 @@ export default function Invoice({
           errorData?.message || 'Erreur lors de la mise à jour de la facture'
         )
       }
+      await delay(500)
+      toast({
+        title: 'Succès !',
+        description: 'La facture a été mise à jour avec succès.',
+        variant: 'success'
+      })
     } catch (e) {
       console.log(e)
       // Optionally handle error (e.g., show toast)
@@ -721,19 +750,21 @@ export default function Invoice({
           'Une erreur est survenue lors de la mise à jour des données',
         variant: 'destructive'
       })
+    } finally {
+      setIsUpdating(false)
     }
   }
 
-  useEffect(() => {
-    updateData()
-  }, [data])
+  // useEffect(() => {
+  //   updateData()
+  // }, [data])
 
   return (
     <div ref={componentRef} className="flex flex-col gap-6 print:gap-0">
       {pages.map((pageItems, pageIndex) => (
         <div
           key={pageIndex}
-          className="h-[297mm] w-[210mm] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8 bg-white flex flex-col justify-start"
+          className="print:h-[297mm] min-h-[297mm] w-[210mm] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8 bg-white flex flex-col justify-start"
         >
           <div ref={pageIndex === 0 ? headerRef : null}>
             {renderBillHeader()}
@@ -763,6 +794,18 @@ export default function Invoice({
           </div>
         </div>
       ))}
+      <Button
+        onClick={() => updateData()}
+        className="w-full flex gap-2 rounded-xl h-12 print:hidden shadow-lg group hover:text-secondary mt-3"
+        variant="outline"
+      >
+        {isUpdating ? (
+          <RefreshCcw className={'w-4 h-4 animate-spin'} />
+        ) : (
+          <RefreshCcw className={'w-4 h-4 '} />
+        )}
+        Mise à jour
+      </Button>
     </div>
   )
 }

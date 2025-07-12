@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       clientId,
       orderId
     } = body
-    console.log(body)
+    console.log(items)
     const id = type === 'FINAL' ? skuId('FF') : skuId('FP')
 
     const reference = await generateInvoiceReference(type)
@@ -86,7 +86,6 @@ export async function POST(req: NextRequest) {
               items: {
                 createMany: {
                   data: items.map(({ id, ...item }) => ({
-                    number: id,
                     ...item
                   }))
                 }

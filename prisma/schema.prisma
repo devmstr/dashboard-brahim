@@ -182,14 +182,15 @@ model Invoice {
 }
 
 model InvoiceHistory {
-  id        String   @id @default(cuid())
-  invoiceId String
-  data      Json // Full snapshot of invoice
-  changedAt DateTime @default(now())
-  changedBy String? // optional: user ID or name who made the change
-  reason    String? // optional: "client request", "correction", etc.
+  id        String  @id @default(cuid())
+  snapshot  Json
+  changedBy String?
+  reason    String?
 
-  Invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String?
+  Invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  changedAt DateTime @default(now())
 
   @@map("invoice_histories")
 }

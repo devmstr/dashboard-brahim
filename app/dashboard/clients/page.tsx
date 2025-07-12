@@ -40,10 +40,9 @@ const Page: React.FC<Props> = async ({}: Props) => {
   }))
   return (
     <Card className="">
-      <div className="flex justify-end items-center gap-3 mb-5">
+      <ClientTable data={data}>
         <AddNewClientDialogButton />
-      </div>
-      <ClientTable data={data} />
+      </ClientTable>
     </Card>
   )
 }

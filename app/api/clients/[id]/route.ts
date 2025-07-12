@@ -64,10 +64,7 @@ export async function PUT(
 
     // Check if client exists
     const existingClient = await prisma.client.findUnique({
-      where: { id },
-      include: {
-        Address: true
-      }
+      where: { id }
     })
 
     if (!existingClient) {

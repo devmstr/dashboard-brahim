@@ -9,21 +9,14 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { useScrollProgress } from '@/hooks/use-scroll'
 import { amountToWords, calculateBillingSummary, cn } from '@/lib/utils'
-import type { Invoice, InvoiceItem } from '@/types'
+import type { Invoice } from '@/types'
 import { format } from 'date-fns'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Input } from './ui/input'
-import { toast } from '@/hooks/use-toast'
-import { Pencil } from 'lucide-react'
-import { Button } from 'react-day-picker'
-import { Select } from './ui/select'
-import { Textarea } from './ui/textarea'
-
-const ITEMS_PER_PRINT_PAGE = 4
+import { Target } from 'lucide-react'
 
 export interface ReadOnlyInvoiceProps {
   data: Invoice
@@ -55,20 +48,61 @@ export default function ReadOnlyInvoice({
   // update data on mount
   useEffect(() => setData(input), [])
 
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const scrollYProgress = useScrollProgress(scrollRef)
-  const [editedId, setEditedId] = useState<number | undefined>(undefined)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const footerRef = useRef<HTMLDivElement>(null)
+  const totalsRef = useRef<HTMLDivElement>(null)
+  const rowRef = useRef<HTMLTableRowElement>(null)
 
-  const billingSummary = useMemo(
-    () =>
-      calculateBillingSummary(data.items, {
-        discountRate: data.discountRate,
-        refundRate: data.refundRate,
-        stampTaxRate: data.stampTaxRate,
-        vatRate: 0.19
-      }),
-    [data.items, data.discountRate, data.refundRate, data.stampTaxRate]
-  )
+  const [itemsPerPage, setItemsPerPage] = useState(4)
+  const [itemsPerPageLast, setItemsPerPageLast] = useState(2)
+
+  useEffect(() => {
+    const A4_HEIGHT = 1122 // in pixels (A4 at 96dpi)
+
+    const header = headerRef.current?.offsetHeight || 0
+    const footer = footerRef.current?.offsetHeight || 0
+    const totals = totalsRef.current?.offsetHeight || 0
+    const row = rowRef.current?.offsetHeight || 32
+
+    const usableHeight = A4_HEIGHT - header - footer - 92 // paddings
+    const usableHeightLastPage = A4_HEIGHT - header - totals - footer - 92
+
+    const perPage = Math.floor(usableHeight / row)
+    const perLastPage = Math.floor(usableHeightLastPage / row)
+
+    if (perPage && perLastPage) {
+      setItemsPerPage(perPage)
+      setItemsPerPageLast(perLastPage)
+    }
+  }, [data.items])
+
+  // Split pages dynamically
+  const pages = useMemo(() => {
+    const totalItems = data.items.length
+    const chunks: Invoice['items'][] = []
+
+    // Step 1: Chunk all items by normal page size
+    for (let i = 0; i < totalItems; i += itemsPerPage) {
+      chunks.push(data.items.slice(i, i + itemsPerPage))
+    }
+
+    // Step 2: Check if last page can accommodate totals
+    if (chunks.length > 1) {
+      const lastChunk = chunks[chunks.length - 1]
+
+      if (lastChunk.length > itemsPerPageLast) {
+        // Split it into a new page so totals won't overflow
+        const overflowIndex = lastChunk.length - itemsPerPageLast
+        const secondLastChunk = lastChunk.slice(0, overflowIndex)
+        const newLastChunk = lastChunk.slice(overflowIndex)
+
+        // Replace the last chunk and push the new last chunk
+        chunks.splice(chunks.length - 1, 1, secondLastChunk, newLastChunk)
+      }
+    }
+
+    return chunks
+  }, [data.items, itemsPerPage, itemsPerPageLast])
 
   useEffect(() => {
     // Add print styles to document head
@@ -83,6 +117,17 @@ export default function ReadOnlyInvoice({
       }
     }
   }, [])
+
+  const billingSummary = useMemo(
+    () =>
+      calculateBillingSummary(data.items, {
+        discountRate: data.discountRate,
+        refundRate: data.refundRate,
+        stampTaxRate: data.stampTaxRate,
+        vatRate: 0.19
+      }),
+    [data.items, data.discountRate, data.refundRate, data.stampTaxRate]
+  )
 
   const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
     billingSummary
@@ -155,14 +200,6 @@ export default function ReadOnlyInvoice({
       <div className="w-full flex justify-between items-start">
         <div className="w-1/4 flex flex-col gap-1  text-sm font-geist-sans">
           {/* BC: always render input (screen) and value (print, if not empty) */}
-          <div className="flex gap-[.2rem] items-center print:hidden">
-            <strong className="font-medium">{'BC: '} </strong>
-            <Input
-              placeholder="002171"
-              className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={data.purchaseOrder}
-            />
-          </div>
           {data.purchaseOrder && (
             <div className="hidden print:flex gap-[.2rem] items-center">
               <strong className="font-medium">{'BC: '} </strong>
@@ -170,14 +207,6 @@ export default function ReadOnlyInvoice({
             </div>
           )}
           {/* BL: always render input (screen) and value (print, if not empty) */}
-          <div className="flex gap-[.2rem] items-center print:hidden">
-            <strong className="font-medium tracking-wider">{'BL: '} </strong>
-            <Input
-              placeholder="23-26/2025"
-              className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={data.deliverySlip || ''}
-            />
-          </div>
           {data.deliverySlip && (
             <div className="hidden print:flex gap-[.2rem] items-center">
               <strong className="font-medium tracking-widest">{'BL: '} </strong>
@@ -187,7 +216,9 @@ export default function ReadOnlyInvoice({
         </div>
         <div className="w-2/4 flex justify-center text-center ">
           <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-            FACTURE: {data.reference?.replace(/0+/g, '')}
+            {data.type === 'PROFORMA'
+              ? 'FACTURE PROFORMA'
+              : data.reference?.replace(/FF|PF/g, '')}
           </h2>
         </div>
         <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
@@ -251,7 +282,7 @@ export default function ReadOnlyInvoice({
             <strong className="">N.I.F:</strong> 99747086204393
           </p>
           <p className="font-sans">
-            <strong className="">A.I:</strong> 471006003
+            <strong className="">A.I:</strong> 4710060038
           </p>
           <p className="font-sans">
             <strong className="">N.I.S:</strong> 096947100010442
@@ -291,7 +322,7 @@ export default function ReadOnlyInvoice({
             <div
               className={cn(
                 'flex justify-between',
-                !data.discountRate && !refund && 'print:hidden'
+                !data.discountRate && 'hidden'
               )}
             >
               <span>TOTAL BRUTE H.T</span>
@@ -305,7 +336,7 @@ export default function ReadOnlyInvoice({
             <div
               className={cn(
                 'flex justify-between border-t-[1.6px] pt-[1px]',
-                !data.discountRate && 'print:hidden'
+                !data.discountRate && 'hidden'
               )}
             >
               <div className="flex gap-1 items-center">
@@ -322,6 +353,7 @@ export default function ReadOnlyInvoice({
                   className={cn(
                     'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
+                  readOnly
                 />
                 %
               </div>
@@ -335,7 +367,7 @@ export default function ReadOnlyInvoice({
             <div
               className={cn(
                 'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
-                !refund && 'print:hidden'
+                !refund && 'hidden'
               )}
             >
               <div className="flex gap-1 items-center">
@@ -383,7 +415,7 @@ export default function ReadOnlyInvoice({
             <div
               className={cn(
                 'flex justify-between border-t-[1.6px] pt-[1px]',
-                !data.stampTaxRate && 'print:hidden'
+                !data.stampTaxRate && 'hidden'
               )}
             >
               <div className="flex gap-1 items-center">
@@ -431,22 +463,39 @@ export default function ReadOnlyInvoice({
       </div>
       <div className="payment-details">
         <div className="space-y-2 text-sm mt-2">
-          <div className="space-y-1">
-            <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
-            <p> {data.paymentMode}</p>
-          </div>
-          {/* REMARQUE: show textarea on screen, show value in print only if not empty */}
-          <div className={cn('space-y-1 print:hidden')}>
-            <h3 className="font-semibold">REMARQUE</h3>
-            <p>{data.note}</p>
-          </div>
-          {data.note && (
-            <div className="hidden print:block space-y-1">
-              <h3 className="font-semibold">REMARQUE</h3>
-              <p className="">{data.note}</p>
+          {data.paymentMode && (
+            <div className="space-y-1">
+              <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
+              <p> {data.paymentMode}</p>
             </div>
           )}
         </div>
+      </div>
+      <div className="mt-2  text-xs">
+        {data.offerValidity && (
+          <div className="flex gap-1 items-center my-1">
+            <h3 className="font-semibold text-xs ">OFFRE DE PRIX VALABLE:</h3>
+            <p>{data.offerValidity}</p>
+          </div>
+        )}
+        {data.deliveryTime && (
+          <div className="flex gap-1 items-center my-1">
+            <h3 className="font-semibold text-xs ">DELAI DE LIVRAISON:</h3>
+            <p>{data.deliveryTime}</p>
+          </div>
+        )}
+        {data.guaranteeTime && (
+          <div className="flex gap-1 items-center my-1">
+            <h3 className="font-semibold text-xs ">DELAI DE GARANTE:</h3>
+            <p>{data.guaranteeTime}</p>
+          </div>
+        )}
+        {data.note && (
+          <div className="space-y-1 mt-2">
+            <h3 className="font-semibold text-xs w-full">REMARQUE:</h3>
+            <p>{data.note}</p>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -499,78 +548,41 @@ export default function ReadOnlyInvoice({
     )
   }
 
-  // Pagination logic
-  const pages: InvoiceItem[][] = useMemo(() => {
-    const result: InvoiceItem[][] = []
-    const totalItems = data.items.length
-
-    if (totalItems <= 4) {
-      result.push(data.items)
-    } else {
-      const mainSection = data.items.slice(0, totalItems - 2)
-      const lastPage = data.items.slice(totalItems - 2)
-
-      const numMainPages = Math.ceil(mainSection.length / ITEMS_PER_PRINT_PAGE)
-
-      function chunkEvenly<T>(array: T[], n: number): T[][] {
-        const chunks: T[][] = []
-        const len = array.length
-        const base = Math.floor(len / n)
-        let remainder = len % n
-        let start = 0
-        for (let i = 0; i < n; i++) {
-          const extra = remainder > 0 ? 1 : 0
-          chunks.push(array.slice(start, start + base + extra))
-          start += base + extra
-          if (remainder > 0) remainder--
-        }
-        return chunks
-      }
-
-      let mainPages = chunkEvenly(mainSection, numMainPages)
-
-      const refinedMainPages: InvoiceItem[][] = []
-      mainPages.forEach((page) => {
-        if (page.length > ITEMS_PER_PRINT_PAGE) {
-          for (let i = 0; i < page.length; i += ITEMS_PER_PRINT_PAGE) {
-            refinedMainPages.push(page.slice(i, i + ITEMS_PER_PRINT_PAGE))
-          }
-        } else {
-          refinedMainPages.push(page)
-        }
-      })
-      mainPages = refinedMainPages
-
-      result.push(...mainPages)
-      result.push(lastPage)
-    }
-
-    return result
-  }, [data.items])
-
   return (
-    <div
-      className={cn('flex flex-col w-[210mm] gap-8 font-geist-sans', className)}
-    >
-      <div ref={componentRef} className="flex flex-col gap-6 print:gap-0">
-        {pages.map((pageItems, pageIndex) => (
-          <div
-            key={pageIndex}
-            className={cn(
-              'h-[297mm] w-[210mm] font-geist-sans shadow-2xl rounded-xl pt-10 px-9 pb-8 bg-white flex flex-col',
-              pageIndex < pages.length - 1 && 'print-page'
-            )}
-          >
+    <div ref={componentRef} className="flex flex-col gap-6 print:gap-0">
+      {pages.map((pageItems, pageIndex) => (
+        <div
+          key={pageIndex}
+          className="h-[297mm] w-[210mm] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none pt-10 px-9 pb-8 bg-white flex flex-col justify-start"
+        >
+          <div ref={pageIndex === 0 ? headerRef : null}>
             {renderBillHeader()}
-            {renderTable(pageItems)}
-            {pageIndex === pages.length - 1 && renderTotals()}
+          </div>
+
+          {/* Table */}
+          <div className="">
+            {renderTable(
+              pageItems.map((item, i) =>
+                pageIndex === 0 && i === 0
+                  ? { ...item, _ref: rowRef } // mark first row with ref
+                  : item
+              )
+            )}
+          </div>
+
+          {/* Totals only on the last page */}
+          {pageIndex === pages.length - 1 && (
+            <div ref={totalsRef}>{renderTotals()}</div>
+          )}
+
+          <div className="mt-auto" ref={pageIndex === 0 ? footerRef : null}>
             {renderBillFooter({
               page: pageIndex + 1,
               pages: pages.length
             })}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   )
 }

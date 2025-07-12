@@ -20,10 +20,16 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { PAYMENT_TYPES } from '@/config/global'
 import { useScrollProgress } from '@/hooks/use-scroll'
-import { amountToWords, calculateBillingSummary, cn, skuId } from '@/lib/utils'
+import {
+  amountToWords,
+  calculateBillingSummary,
+  cn,
+  delay,
+  skuId
+} from '@/lib/utils'
 import type { Invoice } from '@/types'
 import { format } from 'date-fns'
-import { Pencil } from 'lucide-react'
+import { Pencil, RefreshCcw } from 'lucide-react'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -49,6 +55,7 @@ import ClientAutocomplete, {
 } from '@/components/client-autocomplete'
 import { InvoiceItem } from '@/types'
 import { InvoiceSchemaType } from '@/lib/validations/invoice'
+import { useParams, usePathname } from 'next/navigation'
 
 export interface InvoiceProps {
   data?: Invoice
@@ -57,8 +64,7 @@ export interface InvoiceProps {
 
 const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
   ({ className, data: input }, ref) => {
-    const scrollRef = useRef<HTMLDivElement>(null)
-    const scrollYProgress = useScrollProgress(scrollRef)
+    const pathname = usePathname()
     const componentRef = useRef<HTMLDivElement>(null)
 
     const headerRef = useRef<HTMLDivElement>(null)
@@ -125,8 +131,23 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
         }),
       [data.items, data.discountRate, data.refundRate, data.stampTaxRate]
     )
-    const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
-      billingSummary
+    const {
+      refund,
+      discount,
+      stampTax,
+      Total: TotalBrut,
+      totalHT,
+      totalTTC,
+      vat
+    } = billingSummary
+
+    useEffect(() => {
+      setData((prev) => ({
+        ...prev,
+        subtotal: totalHT,
+        total: totalTTC
+      }))
+    }, [totalHT, totalTTC])
 
     useImperativeHandle(
       ref,
@@ -166,26 +187,31 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
 
     // Split pages dynamically
     const pages = useMemo(() => {
-      const total = data.items.length
-      const splitIndex = Math.max(0, total - itemsPerPageLast)
-      const lastPage = data.items.slice(splitIndex)
-      const rest = data.items.slice(0, splitIndex)
-
+      const totalItems = data.items.length
       const chunks: Invoice['items'][] = []
-      for (let i = 0; i < rest.length; i += itemsPerPage) {
-        chunks.push(rest.slice(i, i + itemsPerPage))
+
+      // Step 1: Chunk all items by normal page size
+      for (let i = 0; i < totalItems; i += itemsPerPage) {
+        chunks.push(data.items.slice(i, i + itemsPerPage))
       }
 
-      if (lastPage.length > 0) {
-        chunks.push(lastPage)
+      // Step 2: Check if last page can accommodate totals
+      if (chunks.length > 1) {
+        const lastChunk = chunks[chunks.length - 1]
+
+        if (lastChunk.length > itemsPerPageLast) {
+          // Split it into a new page so totals won't overflow
+          const overflowIndex = lastChunk.length - itemsPerPageLast
+          const secondLastChunk = lastChunk.slice(0, overflowIndex)
+          const newLastChunk = lastChunk.slice(overflowIndex)
+
+          // Replace the last chunk and push the new last chunk
+          chunks.splice(chunks.length - 1, 1, secondLastChunk, newLastChunk)
+        }
       }
 
       return chunks
     }, [data.items, itemsPerPage, itemsPerPageLast])
-
-    const [editedRow, setEditedRow] = useState<number | null | undefined>(
-      undefined
-    )
 
     const [mounted, setMounted] = useState(false)
 
@@ -288,17 +314,19 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           <div className="flex w-full justify-between ">
             <ClientAutocomplete
               client={{
+                id: data.clientId || '',
                 name: data.name || '',
                 street: data.address,
                 registrationArticle: data.registrationArticle,
                 tradeRegisterNumber: data.tradeRegisterNumber,
                 taxIdNumber: data.taxIdNumber
               }}
-              setClient={(client) => {
+              setClient={({ id, street, ...client }) => {
                 setData((prev) => ({
                   ...prev,
                   ...client,
-                  address: client.street || ''
+                  clientId: id,
+                  address: street || ''
                 }))
               }}
             />
@@ -603,12 +631,12 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
               <div
                 className={cn(
                   'flex justify-between',
-                  !data.discountRate && !refund && 'print:hidden'
+                  !data.discountRate && !data.refundRate && 'print:hidden'
                 )}
               >
                 <span>TOTAL BRUTE H.T</span>
                 <span className="w-[6.5rem] pl-2">
-                  {Number(Total.toFixed(2)).toLocaleString('fr-FR', {
+                  {Number(TotalBrut.toFixed(2)).toLocaleString('fr-FR', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
                   })}
@@ -632,20 +660,21 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                     name="discount-percentage"
                     placeholder="0"
                     onChange={({ target: { value: v } }) => {
-                      if (Number(v) < 0) return
-                      // discount should be less then 25%
-                      if (Number(v) > 25) {
+                      let number = Math.max(0, Math.min(Number(v), 25))
+
+                      if (number !== Number(v)) {
                         toast({
                           title: 'Avertissement',
                           description:
-                            'Le taux de remise doit être inférieur à 25 %',
+                            'Le taux de remise doit être entre 1% et 25%',
                           variant: 'warning'
                         })
                         return
                       }
+
                       setData((prev) => ({
                         ...prev,
-                        discountRate: Number(v) / 100
+                        discountRate: number / 100
                       }))
                     }}
                     className={cn(
@@ -664,7 +693,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
               <div
                 className={cn(
                   'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
-                  !refund && 'print:hidden'
+                  !data.refundRate && 'print:hidden'
                 )}
               >
                 <div className="flex gap-1 items-center">
@@ -679,18 +708,19 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                     name="guarantee-refund"
                     placeholder="0"
                     onChange={({ target: { value: v } }) => {
-                      if (Number(v) < 0) return
-                      // Le taux de remboursement doit être inférieur à 50 %
-                      if (Number(v) > 50)
+                      let number = Math.max(0, Math.min(Number(v), 50)) // clamp between 1 and 50
+
+                      if (number !== Number(v)) {
                         toast({
                           title: 'Avertissement',
-                          description:
-                            'Le taux de remboursement doit être inférieur à 50 %',
-                          variant: 'destructive'
+                          description: 'Le taux doit être entre 1% et 50%',
+                          variant: 'warning'
                         })
+                      }
+
                       setData((prev) => ({
                         ...prev,
-                        refundRate: Number(v) / 100
+                        refundRate: number / 100
                       }))
                     }}
                     className={cn(
@@ -741,11 +771,22 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                     type="number"
                     name="stamp-tax"
                     placeholder="0"
-                    onChange={({ target: { value } }) => {
-                      if (Number(value) < 0 && Number(value) > 1) return
+                    onChange={({ target: { value: v } }) => {
+                      let number = Math.max(0, Math.min(Number(v), 1))
+
+                      if (number !== Number(v)) {
+                        toast({
+                          title: 'Avertissement',
+                          description:
+                            'Le taux de timbre doit être entre 0% et 1%',
+                          variant: 'warning'
+                        })
+                        return
+                      }
+
                       setData((prev) => ({
                         ...prev,
-                        stampTaxRate: Number(value) / 100
+                        stampTaxRate: number / 100
                       }))
                     }}
                     className={cn(
@@ -837,7 +878,6 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                         )
                       }))
                     }}
-                    onBlur={() => setEditedRow(undefined)}
                     className="min-h-6 h-6 max-h-24 py-1 focus-visible:ring-0 ring-0 border-none rounded-none resize-y "
                   />
                 </TableCell>
@@ -849,7 +889,6 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                     onChange={({
                       target: { value: v }
                     }: React.ChangeEvent<HTMLInputElement>) => {
-                      setEditedRow(item.number)
                       setData((prev) => ({
                         ...prev,
                         items: prev.items.map((i) => {
@@ -949,6 +988,42 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
       })
     }
 
+    const [isUpdating, setIsUpdating] = useState<boolean>(false)
+
+    const updateData = async () => {
+      setIsUpdating(true)
+      try {
+        const invoice = await fetch(`/api/invoices/${data.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        })
+        if (!invoice.ok) {
+          const errorData = await invoice.json().catch(() => ({}))
+          throw new Error(
+            errorData?.message || 'Erreur lors de la mise à jour de la facture'
+          )
+        }
+        await delay(500)
+        toast({
+          title: 'Succès !',
+          description: 'La facture a été mise à jour avec succès.',
+          variant: 'success'
+        })
+      } catch (e) {
+        console.log(e)
+        // Optionally handle error (e.g., show toast)
+        toast({
+          title: 'Erreur',
+          description:
+            'Une erreur est survenue lors de la mise à jour des données',
+          variant: 'destructive'
+        })
+      } finally {
+        setIsUpdating(false)
+      }
+    }
+
     return (
       <div ref={componentRef} className="flex flex-col gap-6 print:gap-0">
         {pages.map((pageItems, pageIndex) => (
@@ -991,6 +1066,20 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             </div>
           </div>
         ))}
+        {pathname.split('/').filter(Boolean).length > 2 && (
+          <Button
+            onClick={() => updateData()}
+            className="w-full flex gap-2 rounded-xl h-12 print:hidden shadow-lg group hover:text-secondary mt-3"
+            variant="outline"
+          >
+            {isUpdating ? (
+              <RefreshCcw className={'w-4 h-4 animate-spin'} />
+            ) : (
+              <RefreshCcw className={'w-4 h-4 '} />
+            )}
+            Mise à jour
+          </Button>
+        )}
       </div>
     )
   }
