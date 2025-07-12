@@ -118,7 +118,7 @@ async function main() {
         const radiator = await prisma.radiator.create({
           data: {
             id,
-            partNumber: radiatorData.reference,
+            // partNumber: radiatorData.reference,
             label: `${radiatorData.designation} ${radiatorData.brand} ${radiatorData.model}`,
             category: category,
             dirId: radiatorData.dirId,
