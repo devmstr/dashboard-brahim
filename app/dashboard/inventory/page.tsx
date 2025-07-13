@@ -14,12 +14,9 @@ const Page: React.FC<Props> = async ({}: Props) => {
   const data = await getInventoryTableData()
   return (
     <Card className="">
-      {['INVENTORY_AGENT'].includes(role) && (
-        <div className="flex justify-end items-center gap-3 mb-5">
-          <AddInventoryItem />
-        </div>
-      )}
-      <InventoryTable data={data} userRole={role} />
+      <InventoryTable data={data} userRole={role}>
+        {['INVENTORY_AGENT'].includes(role) && <AddInventoryItem />}
+      </InventoryTable>
     </Card>
   )
 }

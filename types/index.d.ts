@@ -54,6 +54,8 @@ export type InventoryTableEntry = {
   barcode?: string
   brand?: string
   model?: string
+  minLevel?: number
+  maxLevel?: number
   quantity: number
   price?: number
   priceTTC?: number

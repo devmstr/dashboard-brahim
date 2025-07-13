@@ -6,7 +6,8 @@ export async function getInventoryTableData() {
     include: {
       Radiators: {
         include: {
-          Price: true
+          Price: true,
+          Inventory: true
         }
       }
     }
@@ -19,6 +20,8 @@ export async function getInventoryTableData() {
       designation: rad.label || '',
       barcode: rad.barcode || '',
       quantity: inv.level,
+      minLevel: rad.Inventory?.alertAt,
+      maxLevel: rad.Inventory?.maxLevel,
       price: rad.Price?.unit ?? 0,
       priceTTC: rad.Price?.unitTTC ?? 0,
       bulkPrice: rad.Price?.bulk ?? 0,

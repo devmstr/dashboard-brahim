@@ -56,6 +56,7 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
   const form = useForm<Partial<InventoryType>>({
     resolver: zodResolver(inventorySchema),
     defaultValues: {
+      id: '',
       minStockLevel: 5,
       stockLevel: 0,
       maxStockLevel: 100,
@@ -101,19 +102,28 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
   useEffect(() => {
     if (selectedProduct?.id) {
       fetchProduct(selectedProduct.id)
+      form.setValue('id', selectedProduct.id)
     }
   }, [selectedProduct, fetchProduct])
 
   const onSubmit = (data: Partial<InventoryType>) => {
     setAddingTransition(async () => {
       setError(null)
+
       if (!selectedProduct?.id) {
-        setError('Veuillez sélectionner un produit.')
+        const message = 'Veuillez sélectionner un produit.'
+        setError(message)
+        toast({
+          title: 'Erreur',
+          description: message,
+          variant: 'destructive'
+        })
         return
       }
+
       try {
         setIsLoading(true)
-        // Prepare payload for PATCH /api/stock/[id]
+
         const payload = {
           ...data,
           radiatorId: selectedProduct.id,
@@ -122,6 +132,7 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
           maxStockLevel: Number(data.maxStockLevel),
           isActive: Boolean(data.isActive)
         }
+
         const response = await fetch(`/api/stock/${selectedProduct.id}`, {
           method: 'PATCH',
           headers: {
@@ -129,27 +140,37 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
           },
           body: JSON.stringify(payload)
         })
+
+        const result = await response.json().catch(() => null)
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
           throw new Error(
-            errorData?.message || 'Erreur lors de la mise à jour du stock'
+            result?.message || 'Erreur lors de la mise à jour du stock.'
           )
         }
-        router.refresh()
+
         toast({
           title: 'Succès',
-          description:
-            "Vous avez ajouté avec succès un nouvel article à l'inventaire"
+          description: "L'article a été mis à jour dans l'inventaire.",
+          variant: 'success'
         })
+
+        router.refresh()
         setOpen(false)
         form.reset()
       } catch (error: any) {
-        setError(error.message || 'Une erreur est survenue')
+        const message =
+          error instanceof Error ? error.message : 'Une erreur est survenue'
+
+        setError(message)
+
         toast({
           title: 'Erreur',
-          description: error.message || 'Une erreur est survenue',
+          description: message,
           variant: 'destructive'
         })
+
+        console.error('Stock update error:', error)
       } finally {
         setIsLoading(false)
       }

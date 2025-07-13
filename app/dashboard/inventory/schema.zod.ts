@@ -19,7 +19,7 @@ export const inventorySchema = z.object({
   bulkPriceThreshold: z.number().optional(),
 
   // Status
-  isActive: z.boolean().default(true)
+  isActive: z.boolean().default(true).optional()
 })
 
 export type InventoryType = z.infer<typeof inventorySchema>

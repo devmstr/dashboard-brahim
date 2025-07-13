@@ -59,6 +59,7 @@ import {
 } from './ui/dialog'
 import { PrintProductLabel } from './print-product-label'
 import { useState } from 'react'
+import { toast } from '@/hooks/use-toast'
 
 export const SONERAS_COMPANY_DETAILS = {
   company: 'SARL SO.NE.RA.S',
@@ -72,6 +73,7 @@ export const SONERAS_COMPANY_DETAILS = {
 interface Props {
   data: InventoryTableEntry[]
   userRole?: UserRole
+  children?: React.ReactNode
   t?: {
     placeholder: string
     columns: string
@@ -81,6 +83,8 @@ interface Props {
     dirId: string
     brand: string
     model: string
+    minLevel: string
+    maxLevel: string
     quantity: string
     price: string
     priceTTC: string
@@ -104,12 +108,15 @@ type ColumnOverride = Partial<ColumnDef<InventoryTableEntry>>
 export function InventoryTable({
   data,
   userRole = 'GUEST',
+  children,
   t = {
     placeholder: 'Rechercher...',
     id: 'Matricule',
     designation: 'Désignation',
     barcode: 'Code à barres',
     quantity: 'Quantity',
+    minLevel: 'Niveau Minimum',
+    maxLevel: 'Niveau Maximum',
     price: 'Prix HT',
     priceTTC: 'Prix TTC',
     bulkPrice: 'Gros HT',
@@ -252,19 +259,29 @@ export function InventoryTable({
       order: 3
     },
     {
+      id: 'minLevel',
+      roles: ['INVENTORY_AGENT'],
+      order: 4
+    },
+    {
       id: 'quantity',
       roles: ['SALES_AGENT', 'SALES_MANAGER', 'INVENTORY_AGENT'],
-      order: 4
+      order: 6
+    },
+    {
+      id: 'maxLevel',
+      roles: ['INVENTORY_AGENT'],
+      order: 5
     },
     {
       id: 'bulkPriceThreshold',
       roles: ['SALES_AGENT', 'SALES_MANAGER'],
-      order: 5
+      order: 7
     },
-    { id: 'price', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 6 },
-    { id: 'priceTTC', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 7 },
-    { id: 'bulkPrice', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 8 },
-    { id: 'bulkPriceTTC', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 9 },
+    { id: 'price', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 8 },
+    { id: 'priceTTC', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 9 },
+    { id: 'bulkPrice', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 10 },
+    { id: 'bulkPriceTTC', roles: ['SALES_AGENT', 'SALES_MANAGER'], order: 11 },
     {
       id: 'barcode',
       roles: [
@@ -286,7 +303,7 @@ export function InventoryTable({
         'ENGINEER',
         'ENGINEERING_MANAGER'
       ],
-      order: 10
+      order: 12
     }
   ]
 
@@ -418,6 +435,7 @@ export function InventoryTable({
             </DropdownMenu>
           </div>
         </div>
+        {children}
       </div>
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
@@ -531,9 +549,37 @@ function Actions({
 
   const onDelete = async (orderId: string) => {
     try {
-      await fetch(`/api/stock/${orderId}`, { method: 'DELETE' })
+      const response = await fetch(`/api/stock/${orderId}`, {
+        method: 'DELETE'
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || 'Échec de la suppression de l’inventaire.'
+        )
+      }
+
+      toast({
+        title: 'Suppression réussie',
+        description: 'L’inventaire a été supprimé avec succès.',
+        variant: 'success'
+      })
+
       refresh()
-    } catch (error) {}
+    } catch (error) {
+      toast({
+        title: 'Erreur lors de la suppression',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur inconnue est survenue.',
+        variant: 'destructive'
+      })
+
+      console.error('❌ Delete inventory error:', error)
+    }
   }
 
   return (
