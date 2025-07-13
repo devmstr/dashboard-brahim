@@ -26,6 +26,8 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
     userRoles.push('ENGINEERING_MANAGER')
   if (await useServerCheckRoles('ACCOUNTANT')) userRoles.push('ACCOUNTANT')
   if (await useServerCheckRoles('CONSULTANT')) userRoles.push('CONSULTANT')
+  if (await useServerCheckRoles('INVENTORY_AGENT'))
+    userRoles.push('INVENTORY_AGENT')
 
   // Filter links based on ROUTE_ROLE_MAP and userRoles
   let linkedList = LAYOUT_LINKS.filter((link) => {

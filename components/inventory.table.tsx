@@ -2,6 +2,7 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  Row,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -335,6 +336,30 @@ export function InventoryTable({
 
   const columns = generateColumns(userRole)
 
+  const [globalFilterValue, setGlobalFilterValue] = useState('')
+
+  function fuzzyWordMatch<TData>(
+    row: Row<TData>,
+    columnId: string,
+    searchWords: string[]
+  ) {
+    const value = String(row.getValue(columnId)).toLowerCase()
+    return searchWords.every((word) => value.includes(word))
+  }
+
+  const globalSearch = <TData extends unknown>(
+    row: Row<TData>,
+    columnId: string,
+    filterValue: string
+  ) => {
+    const searchWords = filterValue.toLowerCase().trim().split(/\s+/)
+
+    // check across all visible columns
+    return row
+      .getAllCells()
+      .some((cell) => fuzzyWordMatch(row, cell.column.id, searchWords))
+  }
+
   const table = useReactTable({
     data,
     columns,
@@ -345,10 +370,12 @@ export function InventoryTable({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    globalFilterFn: globalSearch,
     state: {
       sorting,
       columnFilters,
-      columnVisibility
+      columnVisibility,
+      globalFilter: globalFilterValue
     },
     initialState: {
       pagination: {
@@ -365,8 +392,8 @@ export function InventoryTable({
         <div className="flex gap-3">
           <Input
             placeholder={t['placeholder']}
-            value={table.getState().globalFilter ?? ''}
-            onChange={(event) => table.setGlobalFilter(event.target.value)}
+            value={globalFilterValue}
+            onChange={(e) => setGlobalFilterValue(e.target.value)}
             className="w-80"
           />
           <div className="hidden md:flex gap-3">

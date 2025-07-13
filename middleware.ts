@@ -5,6 +5,7 @@ import { UserRole } from './types'
 export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
   '/dashboard/settings': ['ADMIN'],
   '/dashboard/ledger': ['ADMIN', 'ACCOUNTANT', 'SALES_MANAGER', 'SALES_AGENT'],
+  '/dashboard/printing': ['ADMIN', 'SALES_MANAGER', 'SALES_AGENT'],
   '/dashboard/cars': ['ADMIN', 'CONSULTANT'],
   '/dashboard/new': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
   '/dashboard/pos': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],

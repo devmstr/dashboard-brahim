@@ -24,6 +24,7 @@ import { ClientTableEntry, ProductPosTableEntry } from '@/types'
 import {
   ColumnDef,
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -231,6 +232,30 @@ export function ProductPosTable({
     }
   ]
 
+  const [globalFilterValue, setGlobalFilterValue] = React.useState('')
+
+  function fuzzyWordMatch<TData>(
+    row: Row<TData>,
+    columnId: string,
+    searchWords: string[]
+  ) {
+    const value = String(row.getValue(columnId)).toLowerCase()
+    return searchWords.every((word) => value.includes(word))
+  }
+
+  const globalSearch = <TData extends unknown>(
+    row: Row<TData>,
+    columnId: string,
+    filterValue: string
+  ) => {
+    const searchWords = filterValue.toLowerCase().trim().split(/\s+/)
+
+    // check across all visible columns
+    return row
+      .getAllCells()
+      .some((cell) => fuzzyWordMatch(row, cell.column.id, searchWords))
+  }
+
   const table = useReactTable({
     data,
     columns,
@@ -241,10 +266,12 @@ export function ProductPosTable({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    globalFilterFn: globalSearch,
     state: {
       sorting,
       columnFilters,
-      columnVisibility
+      columnVisibility,
+      globalFilter: globalFilterValue
     },
     initialState: {
       pagination: {
@@ -261,8 +288,8 @@ export function ProductPosTable({
         <div className="flex gap-3 w-full">
           <Input
             placeholder={t['placeholder']}
-            value={table.getState().globalFilter ?? ''} // Use table.state.globalFilter to access the global filter value
-            onChange={(event) => table.setGlobalFilter(event.target.value)} // Use table.setGlobalFilter to update the global filter value
+            value={globalFilterValue}
+            onChange={(e) => setGlobalFilterValue(e.target.value)} // Use table.setGlobalFilter to update the global filter value
             className="min-w-56 w-full"
           />
           <div className="hidden md:flex gap-3">
