@@ -217,7 +217,7 @@ model Radiator {
   dirId                String?
   cooling              String?
   barcode              String?       @unique
-  label                String?       @unique
+  label                String?
   hash                 String?       @unique // Unique hash for the radiator
   status               String? // e.g., "active", "inactive", "draft" , "ar"
   type                 String? // e.g., "collector", "core", "tube"
@@ -310,7 +310,7 @@ model Brand {
 
 model CarFamily {
   id      String  @id @default(cuid())
-  name    String
+  name    String  @unique
   brandId String?
 
   Brand  Brand?     @relation(fields: [brandId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -321,7 +321,7 @@ model CarFamily {
 
 model CarModel {
   id   String  @id @default(cuid())
-  name String
+  name String  @unique
   year String?
   fuel String?
 
@@ -338,7 +338,7 @@ model CarModel {
 
 model CarType {
   id      String  @id @default(cuid())
-  name    String
+  name    String  @unique
   modelId String?
 
   Model CarModel? @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
