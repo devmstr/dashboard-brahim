@@ -33,7 +33,7 @@ import {
 import { toast } from '@/hooks/use-toast'
 
 import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface RadiatorEditFormProps {
   data: RadiatorSchemaType
@@ -48,6 +48,8 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
     defaultValues: data,
     resolver: zodResolver(radiatorSchema)
   })
+
+  useEffect(()=>{})
 
   // Handle form submission
   const handleSubmit = async (formData: RadiatorSchemaType) => {

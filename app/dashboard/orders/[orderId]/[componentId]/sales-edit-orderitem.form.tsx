@@ -71,7 +71,6 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
     !isContentEmpty(data.note as Content)
   )
   const router = useRouter()
-  console.log('data : ', data)
   // Form initialization with values from the existing orderItem
   const form = useForm<OrderItem>({
     defaultValues: {
@@ -234,6 +233,93 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
             )}
           />
         )}
+        {data.Model &&
+          data.Model.brand &&
+          data.Model.family &&
+          data.Model.type &&
+          data.Model.model &&
+          !data.note && (
+            <div className="relative border rounded-md px-3 py-3">
+              <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+                Véhicule
+              </span>
+              <CardGrid>
+                <FormField
+                  control={form.control}
+                  name="Model.brand"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">Marque</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value}
+                          type="text"
+                          className="w-full"
+                          placeholder="Marque"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Model.family"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">Famille</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="text"
+                          className="w-full"
+                          placeholder="Famille"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Model.model"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">Modèle</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="text"
+                          className="w-full"
+                          placeholder="Modèle"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="Model.type"
+                  render={({ field }) => (
+                    <FormItem className="group">
+                      <FormLabel className="capitalize">Type</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="text"
+                          className="w-full"
+                          placeholder="Type"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardGrid>
+            </div>
+          )}
 
         {/* Order Details Section */}
         <div className="relative border rounded-md px-3 py-3">

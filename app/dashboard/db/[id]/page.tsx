@@ -40,7 +40,6 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
 
   const data = {
     ...radiator,
-    pitch: radiator.pitch,
     Components: Components.map(({ MaterialUsages, ...component }) => ({
       ...component,
       usages: MaterialUsages.map(({ Material, quantity }) => ({
