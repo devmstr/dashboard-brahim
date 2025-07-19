@@ -6,16 +6,15 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
   '/dashboard/settings': ['ADMIN'],
   '/dashboard/ledger': ['ADMIN', 'ACCOUNTANT', 'SALES_MANAGER', 'SALES_AGENT'],
   '/dashboard/printing': ['ADMIN', 'SALES_MANAGER', 'SALES_AGENT'],
-  '/dashboard/cars': ['ADMIN', 'CONSULTANT', 'ENGINEER', 'ENGINEERING_MANAGER'],
-  '/dashboard/db': ['ADMIN', 'CONSULTANT', 'ENGINEER', 'ENGINEERING_MANAGER'],
+  '/dashboard/cars': ['ADMIN', 'CONSULTANT', 'ENGINEERING_MANAGER'],
   '/dashboard/new': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
   '/dashboard/pos': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
   '/dashboard/orders': [
     'ADMIN',
-    'ENGINEER',
-    'ENGINEERING_MANAGER',
     'SALES_AGENT',
-    'SALES_MANAGER'
+    'SALES_MANAGER',
+    'ENGINEER',
+    'ENGINEERING_MANAGER'
   ],
   '/dashboard/inventory': [
     'ADMIN',
@@ -25,10 +24,10 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
   ],
   '/dashboard/client': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
   '/dashboard/timeline': [
-    'ADMIN'
+    'ADMIN',
     // 'ENGINEER',
     // 'ENGINEERING_MANAGER',
-    // 'CONSULTANT'
+    'CONSULTANT'
   ]
   // Add more routes and roles as needed
 }

@@ -2,6 +2,7 @@ import * as z from 'zod'
 import { clientSchema } from './client'
 import { paymentSchema } from './payment'
 import { contentSchema } from './tiptap'
+import { newCarSchema } from '@/app/dashboard/cars/new-car.form'
 
 // Car-related schemas
 export const vehicleSchema = z.object({
@@ -80,8 +81,10 @@ export const orderItemSchema = z.object({
   upperCollectorWidth: z.number().optional().nullable(),
   lowerCollectorWidth: z.number().optional().nullable(),
   orderId: z.string().optional().nullable(),
+  dirId: z.string().optional().nullable(),
   radiatorId: z.string().optional().nullable(),
-  Vehicle: vehicleSchema.optional().nullable()
+  Vehicle: vehicleSchema.optional().nullable(),
+  Model: newCarSchema.optional().nullable()
 })
 
 export type OrderItem = z.infer<typeof orderItemSchema>

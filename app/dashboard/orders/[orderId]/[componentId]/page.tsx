@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation'
 import { parseMetadata } from '@/lib/utils'
 import { Ordering } from '@tanstack/react-table'
 import { Content } from '@tiptap/react'
+import { TechnicianOrderItemForm } from './component.technical.form'
 
 interface Props {
   params: {
@@ -48,7 +49,7 @@ const Page: React.FC<Props> = async ({
         }
       }
     })
-    console.log('db', orderItem)
+
     return (
       <div className="space-y-4">
         <Card>
@@ -60,16 +61,38 @@ const Page: React.FC<Props> = async ({
                 note: orderItem.note as Content,
                 modification: orderItem.modification as Content,
                 description: orderItem.description as Content,
-                Vehicle: orderItem?.Model
-                  ? ({
+                Model: orderItem?.Model
+                  ? {
                       id: orderItem.Model.id,
-                      name: orderItem.Model.name,
-                      Brand: orderItem.Model.Family?.Brand,
-                      Family: orderItem.Model.Family,
-                      Types: orderItem.Model.Types,
+                      model: orderItem.Model.name,
+                      brand: orderItem.Model.Family?.Brand?.name,
+                      family: orderItem.Model.Family?.name,
+                      type: orderItem.Model.Types[0]?.name,
                       year: orderItem.Model.year || '',
                       fuel: orderItem.Model.fuel || ''
-                    } as VehicleSchemaType)
+                    }
+                  : undefined
+              }}
+            />
+          )}
+          {isEngineerUser && (
+            <TechnicianOrderItemForm
+              data={{
+                ...orderItem,
+                id: orderItem.id,
+                note: orderItem.note as Content,
+                modification: orderItem.modification as Content,
+                description: orderItem.description as Content,
+                Model: orderItem?.Model
+                  ? {
+                      id: orderItem.Model.id,
+                      model: orderItem.Model.name,
+                      brand: orderItem.Model.Family?.Brand?.name,
+                      family: orderItem.Model.Family?.name,
+                      type: orderItem.Model.Types[0]?.name,
+                      year: orderItem.Model.year || '',
+                      fuel: orderItem.Model.fuel || ''
+                    }
                   : undefined
               }}
             />
