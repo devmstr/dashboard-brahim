@@ -2,24 +2,33 @@
 import { DialogWrapper } from '@/components/dialog-wrapper'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import { delay } from '@/lib/utils'
-import { ClientSchemaType } from '../timeline/add-order.dialog'
+import { toast } from '@/hooks/use-toast'
 import { useTransition } from 'react'
-import { z } from 'zod'
-import { VehicleSchemaType } from '@/lib/validations'
-import { CarForm } from './new-car.form'
+import { CarForm, NewCarSchemaType } from './new-car.form'
 
 interface Props {}
 
 export const AddCarButton: React.FC<Props> = ({}: Props) => {
   const [isLoading, beginTransition] = useTransition()
 
-  const handleSubmit = async (data: VehicleSchemaType) => {
+  const handleSubmit = async (data: NewCarSchemaType) => {
     beginTransition(async () => {
-      // handle adding new client here
-      await delay(1500)
-
-      return
+      try {
+        await fetch('/api/cars', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: 'Une erreur inattendue est survenue.',
+          variant: 'destructive'
+        })
+        console.error('Erreur inattendue:', error)
+      }
     })
   }
 
@@ -39,7 +48,7 @@ export const AddCarButton: React.FC<Props> = ({}: Props) => {
         </Button>
       }
     >
-      <CarForm />
+      <CarForm onSubmit={handleSubmit} />
     </DialogWrapper>
   )
 }

@@ -60,11 +60,13 @@ import { usePersistedState } from '@/hooks/use-persisted-state'
 
 interface Props {
   data: CarsTableEntry[]
+  children?: React.ReactNode
   t?: {
     id: string
-    manufacture: string
-    car: string
+    brand: string
+    family: string
     model: string
+    type: string
     fuel: string
     year: string
     columns: string
@@ -75,11 +77,13 @@ interface Props {
 
 export function CarTable({
   data,
+  children,
   t = {
     id: 'Matricule',
-    manufacture: 'Marque',
-    car: 'Véhicule',
-    model: 'model',
+    brand: 'Marque',
+    model: 'Véhicule',
+    family: 'Famille',
+    type: 'Motorisation',
     fuel: 'Énergie',
     year: 'Années',
     placeholder: 'Rechercher...',
@@ -135,7 +139,7 @@ export function CarTable({
       )
     },
     {
-      accessorKey: 'manufacture',
+      accessorKey: 'brand',
       header: ({ column }) => {
         return (
           <div
@@ -149,7 +153,7 @@ export function CarTable({
       }
     },
     {
-      accessorKey: 'car',
+      accessorKey: 'family',
       header: ({ column }) => {
         return (
           <div
@@ -177,6 +181,20 @@ export function CarTable({
       }
     },
     {
+      accessorKey: 'type',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
+    {
       accessorKey: 'fuel',
       header: ({ column }) => {
         return (
@@ -190,7 +208,6 @@ export function CarTable({
         )
       }
     },
-
     {
       accessorKey: 'year',
       header: ({ column }) => {
@@ -314,6 +331,7 @@ export function CarTable({
             </DropdownMenu>
           </div>
         </div>
+        {children}
       </div>
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">

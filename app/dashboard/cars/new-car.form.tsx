@@ -14,15 +14,16 @@ import {
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toast } from '@/components/ui/use-toast'
+import { skuId } from '@/lib/utils'
 import { VehicleSchemaType } from '@/lib/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 interface CarFormProps {
-  defaultValues?: Partial<VehicleSchemaType>
-  onSubmit?: (data: NewCarSchemaType) => void
+  onSubmit?: (data: NewCarSchemaType) => Promise<void>
 }
 
 export const newCarSchema = z.object({
@@ -37,30 +38,33 @@ export const newCarSchema = z.object({
 
 export type NewCarSchemaType = z.infer<typeof newCarSchema>
 
-export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
+export function CarForm({ onSubmit }: CarFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Initialize the form with default values
   const form = useForm<NewCarSchemaType>({
     resolver: zodResolver(newCarSchema),
     defaultValues: {
-      ...defaultValues,
-      fuel: defaultValues?.fuel || 'Diesel',
-      year: defaultValues?.year || ''
+      id: skuId('MO'),
+      fuel: 'Diesel',
+      year: ''
     }
   })
+
+  const router = useRouter()
 
   // Handle form submission
   const handleSubmit = async (data: NewCarSchemaType) => {
     setIsSubmitting(true)
     try {
-      if (onSubmit) {
-        await onSubmit(data)
-      }
+      if (onSubmit) await onSubmit(data)
+      console.log('ON SUBMTI :', data)
       toast({
         title: 'Succès',
         description: 'Informations du véhicule enregistrées avec succès'
       })
+      form.reset()
+      router.refresh()
     } catch (error) {
       toast({
         title: 'Erreur',

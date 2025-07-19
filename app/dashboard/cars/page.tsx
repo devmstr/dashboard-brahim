@@ -2,30 +2,38 @@ import { CarTable } from '@/components/car-table'
 import { Card } from '@/components/card'
 import { AddCarButton } from './add-car.button'
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
-
+import prisma from '@/lib/db'
 interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
-  const isUserRoleValidator = await useServerCheckRoles('CONSULTANT')
+  const cars = await prisma.carModel.findMany({
+    include: {
+      Types: true,
+      Family: {
+        include: {
+          Brand: true
+        }
+      }
+    }
+  })
+  const data = cars.map(
+    ({ Family, Types, familyId, radiatorId, name, ...car }) => ({
+      ...car,
+      model: name,
+      brand: Family?.Brand?.name,
+      brandId: Family?.brandId,
+      familyId,
+      family: Family?.name,
+      type: Types[0]?.name,
+      typeId: Types[0]?.id,
+      radiatorId
+    })
+  )
   return (
     <Card>
-      {true && (
-        <div className="flex justify-end items-center gap-3 mb-5">
-          <AddCarButton />
-        </div>
-      )}
-      <CarTable
-        data={[
-          {
-            id: 'vex5d7g9h',
-            manufacture: 'CAT',
-            model: 'Bulldozer',
-            car: 'D5',
-            year: 2015,
-            fuel: 'Diesel'
-          }
-        ]}
-      />
+      <CarTable data={data}>
+        <AddCarButton />
+      </CarTable>
     </Card>
   )
 }

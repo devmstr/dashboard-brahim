@@ -139,6 +139,7 @@ async function main() {
         maxLevel: faker.number.int({ min: 100, max: 200 })
       }
     })
+
     // Create price for the radiator
     const price = await prisma.price.create({
       data: {
@@ -154,7 +155,7 @@ async function main() {
         partNumber: productReference,
         label: productLabel,
         category,
-        directoryId: `C${faker.string.numeric(3)}`,
+        dirId: `C${faker.string.numeric(3)}`,
         cooling: faker.helpers.arrayElement(COOLING_TYPES),
         barcode: faker.string.numeric(13),
         isActive: true,
