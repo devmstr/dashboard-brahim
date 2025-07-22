@@ -21,7 +21,6 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { z } from 'zod'
 import { Plus, Minus } from 'lucide-react'
 import { json } from 'node:stream/consumers'
-import { useRouter } from 'next/navigation'
 import { toast } from '@/hooks/use-toast'
 
 export const newCarSchema = z.object({

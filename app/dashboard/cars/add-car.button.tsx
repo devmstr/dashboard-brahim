@@ -23,7 +23,7 @@ export const AddCarButton: React.FC<Props> = ({}: Props) => {
         </Button>
       }
     >
-      <CarForm onSubmit={handleSubmit} />
+      <CarForm />
     </DialogWrapper>
   )
 }
