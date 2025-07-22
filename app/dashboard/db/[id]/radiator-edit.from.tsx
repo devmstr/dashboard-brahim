@@ -34,6 +34,7 @@ import { toast } from '@/hooks/use-toast'
 
 import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
 import { useEffect, useState } from 'react'
+import { SelectedCar, CarSelectionForm } from '@/components/car-selection.from'
 
 interface RadiatorEditFormProps {
   data: RadiatorSchemaType
@@ -42,6 +43,22 @@ interface RadiatorEditFormProps {
 export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
   // State management
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedCar, setSelectedCar] = useState<SelectedCar | undefined>({
+    Brand: {
+      id: data.Type?.Brand?.id as string,
+      name: data.Type?.Brand?.name as string
+    },
+    Family: {
+      id: data.Type?.Family?.id as string,
+      name: data.Type?.Family?.name as string
+    },
+    Model: {
+      id: data.Type?.Model?.id as string,
+      name: data.Type?.Model?.name as string
+    },
+    name: data.Type?.name as string,
+    year: data.Type?.year as string
+  })
 
   // Form initialization with data from props
   const form = useForm<RadiatorSchemaType>({
@@ -49,14 +66,12 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
     resolver: zodResolver(radiatorSchema)
   })
 
-  useEffect(()=>{})
+  useEffect(() => {})
 
   // Handle form submission
   const handleSubmit = async (formData: RadiatorSchemaType) => {
     try {
       setIsLoading(true)
-      // delete components from formData
-
       // Default implementation - make a fetch request
       const response = await fetch(`/api/radiators/${data.id || ''}`, {
         method: 'PATCH',
@@ -100,85 +115,10 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
             Véhicule
           </span>
-          <CardGrid>
-            <FormField
-              control={form.control}
-              name="Vehicle.brand"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Marque</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value}
-                      type="text"
-                      className="w-full"
-                      disabled
-                      placeholder="Marque"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Vehicle.family"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Famille</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="text"
-                      className="w-full"
-                      disabled
-                      placeholder="Famille"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Vehicle.model"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Modèle</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="text"
-                      className="w-full"
-                      disabled
-                      placeholder="Modèle"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="Vehicle.type"
-              render={({ field }) => (
-                <FormItem className="group">
-                  <FormLabel className="capitalize">Type</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="text"
-                      className="w-full"
-                      disabled
-                      placeholder="Type"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardGrid>
+          <CarSelectionForm
+            selected={selectedCar}
+            onSelectChange={setSelectedCar}
+          />
         </div>
 
         {/* Technical Details Section - Always visible */}

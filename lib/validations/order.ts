@@ -6,31 +6,26 @@ import { newCarSchema } from '@/app/dashboard/cars/new-car.form'
 
 // Car-related schemas
 export const vehicleSchema = z.object({
-  Types: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string()
-      })
-    )
-    .nullable()
+  Model: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable()
+    })
     .optional(),
   Family: z
     .object({
       id: z.string(),
-      name: z.string()
+      name: z.string().nullable()
     })
-    .nullable()
     .optional(),
   Brand: z
     .object({
       id: z.string(),
-      name: z.string()
+      name: z.string().nullable()
     })
-    .nullable()
     .optional(),
-  id: z.string(),
-  name: z.string(),
+  id: z.string().optional(),
+  name: z.string().optional(),
   year: z.string().optional().nullable(),
   fuel: z.string().optional().nullable()
 })

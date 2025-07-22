@@ -41,7 +41,6 @@ import { cn } from '@/lib/utils'
 import { CarsTableEntry, OrderTableEntry, InventoryTableEntry } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
-import { toast } from './ui/use-toast'
 import { Progress } from './progress'
 import { StatusBudge } from './status-badge'
 import {
@@ -57,15 +56,18 @@ import {
 } from '@/components/ui/alert-dialog'
 import Cookies from 'js-cookie'
 import { usePersistedState } from '@/hooks/use-persisted-state'
+import { toast } from '@/hooks/use-toast'
 
 interface Props {
   data: CarsTableEntry[]
+  children?: React.ReactNode
   t?: {
     id: string
     manufacture: string
     car: string
     model: string
     fuel: string
+    type: string
     year: string
     columns: string
     limit: string
@@ -75,11 +77,13 @@ interface Props {
 
 export function CarTable({
   data,
+  children,
   t = {
     id: 'Matricule',
     manufacture: 'Marque',
     car: 'Véhicule',
-    model: 'model',
+    model: 'Model',
+    type: 'Motorisation',
     fuel: 'Énergie',
     year: 'Années',
     placeholder: 'Rechercher...',
@@ -100,13 +104,31 @@ export function CarTable({
 
   const { refresh } = useRouter()
 
-  const handleDelete = async (orderId: string) => {
+  const handleDelete = async (typeId: string) => {
     try {
-      //   const res = await fetch(`/api/orders/${orderId}`, {
-      //     method: 'DELETE'
-      //   })
-      refresh()
-    } catch (error) {}
+      const res = await fetch(`/api/cars/${typeId}`, {
+        method: 'DELETE'
+      })
+
+      if (!res.ok) {
+        throw new Error(`Failed to delete type. Status: ${res.status}`)
+      }
+
+      toast({
+        title: 'Succès',
+        description: 'Le type de véhicule a été supprimé avec succès.',
+        variant: 'success'
+      })
+
+      refresh() // re-fetch data or revalidate cache (you may be using SWR, React Query, etc.)
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le type de véhicule.',
+        variant: 'destructive'
+      })
+    }
   }
 
   const columns: ColumnDef<CarsTableEntry>[] = [
@@ -164,6 +186,20 @@ export function CarTable({
     },
     {
       accessorKey: 'model',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: 'type',
       header: ({ column }) => {
         return (
           <div
@@ -314,6 +350,7 @@ export function CarTable({
             </DropdownMenu>
           </div>
         </div>
+        {children}
       </div>
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">

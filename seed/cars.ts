@@ -25,9 +25,9 @@ async function main() {
 
     // Clean up existing data
     console.log('🧹 Cleaning up existing data...')
-    await prisma.carType.deleteMany()
-    await prisma.carModel.deleteMany()
-    await prisma.carFamily.deleteMany()
+    await prisma.type.deleteMany()
+    await prisma.model.deleteMany()
+    await prisma.family.deleteMany()
     await prisma.brand.deleteMany()
 
     // Group models by brand
@@ -63,7 +63,7 @@ async function main() {
         console.log(`✅ Created brand: ${brand.name}`)
 
         // Create family with same name as brand
-        const family = await prisma.carFamily.create({
+        const family = await prisma.family.create({
           data: {
             name: brandName, // Copy brand name to family name
             brandId: brand.id
@@ -76,7 +76,7 @@ async function main() {
         for (const originalModelName of models) {
           try {
             // Create model with original model name
-            const model = await prisma.carModel.create({
+            const model = await prisma.model.create({
               data: {
                 id: skuId('MO'),
                 name: originalModelName, // Copy model name to model name
@@ -84,10 +84,10 @@ async function main() {
               }
             })
             totalModelsCreated++
-            console.log(`    🚗 Created model: ${model.name}`)
+            console.log(`🚗 Created model: ${model.name}`)
 
             // Create type with same name as model
-            await prisma.carType.create({
+            await prisma.type.create({
               data: {
                 name: originalModelName, // Copy model name to type name
                 modelId: model.id

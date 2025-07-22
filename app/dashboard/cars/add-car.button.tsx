@@ -1,4 +1,3 @@
-'use client'
 import { DialogWrapper } from '@/components/dialog-wrapper'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
@@ -12,17 +11,6 @@ import { CarForm } from './new-car.form'
 interface Props {}
 
 export const AddCarButton: React.FC<Props> = ({}: Props) => {
-  const [isLoading, beginTransition] = useTransition()
-
-  const handleSubmit = async (data: VehicleSchemaType) => {
-    beginTransition(async () => {
-      // handle adding new client here
-      await delay(1500)
-
-      return
-    })
-  }
-
   return (
     <DialogWrapper
       title="Ajouter une voiture"
@@ -32,7 +20,6 @@ export const AddCarButton: React.FC<Props> = ({}: Props) => {
         <Button
           variant="default"
           className="flex gap-3 w-fit text-secondary hover:text-secondary/80"
-          onClick={(e) => e.stopPropagation()}
         >
           <Icons.car className="w-6 h-6" />
           Ajouter

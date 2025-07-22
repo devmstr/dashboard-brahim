@@ -66,13 +66,13 @@
 //             />
 //           </div>
 //           <div className=" w-full space-y-2">
-//             <Label htmlFor="carType">{'Type'}</Label>
+//             <Label htmlFor="type">{'Type'}</Label>
 //             <Input
-//               id="carType"
-//               name="carType"
-//               value={data?.carType}
+//               id="type"
+//               name="type"
+//               value={data?.type}
 //               className="w-full"
-//               onChange={({ target: { value: v } }) => onChange('carType', v)}
+//               onChange={({ target: { value: v } }) => onChange('type', v)}
 //             />
 //           </div>
 //         </div>

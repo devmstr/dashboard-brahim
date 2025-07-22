@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     // First check if the model exists and belongs to the family
-    const model = await prisma.carModel.findFirst({
+    const model = await prisma.model.findFirst({
       where: {
         id: params.modelId,
         familyId: params.familyId,
@@ -41,7 +41,7 @@ export async function PUT(
 ) {
   try {
     // First check if the model exists and belongs to the family
-    const existingModel = await prisma.carModel.findFirst({
+    const existingModel = await prisma.model.findFirst({
       where: {
         id: params.modelId,
         familyId: params.familyId,
@@ -56,14 +56,12 @@ export async function PUT(
     }
 
     const json = await request.json()
-    const updatedModel = await prisma.carModel.update({
+    const updatedModel = await prisma.model.update({
       where: {
         id: params.modelId
       },
       data: {
-        name: json.name,
-        year: json.production,
-        radiatorId: json.radiatorId
+        name: json.name
       }
     })
     return NextResponse.json(updatedModel)
@@ -82,7 +80,7 @@ export async function DELETE(
 ) {
   try {
     // First check if the model exists and belongs to the family
-    const existingModel = await prisma.carModel.findFirst({
+    const existingModel = await prisma.model.findFirst({
       where: {
         id: params.modelId,
         familyId: params.familyId,
@@ -96,7 +94,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Model not found' }, { status: 404 })
     }
 
-    await prisma.carModel.delete({
+    await prisma.model.delete({
       where: {
         id: params.modelId
       }

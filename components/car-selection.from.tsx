@@ -1,67 +1,30 @@
 'use client'
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  type SetStateAction,
-  type Dispatch,
-  ReactNode
-} from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-import { Check, ChevronsUpDown, Loader2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import type React from 'react'
 
-import { Button } from '@/components/ui/button'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList
-} from '@/components/ui/command'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CardGrid } from '@/components/card'
+import { SearchComboBox } from './search-combo-box'
+import { CardGrid } from './card'
 
 // Define types for our API responses
-interface Brand {
+interface Entity {
   id: string
   name: string
 }
 
-interface Family {
-  id: string
-  name: string
-  brandId: string
-}
-
-interface Model {
-  id: string
-  name: string
-  production?: string
-  familyId?: string
-}
-
-interface CarType {
-  id: string
-  name: string
-  modelId: string
+interface CarType extends Entity {
+  year: string
 }
 
 // Define the form schema with Zod
@@ -82,76 +45,59 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-export type CarSelection = {
-  brand?: Brand
-  model?: Model
+export type SelectedCar = {
+  id?: string
+  name?: string
+  year?: string
+  Brand?: Entity
+  Model?: Entity
+  Family?: Entity
+}
+
+interface CarSelectionFormProps {
+  children?: React.ReactNode
+  selected?: SelectedCar
+  onSelectChange: Dispatch<SetStateAction<SelectedCar | undefined>>
+  isReadOnly?: boolean
+  onSubmit?: (car: SelectedCar) => void
 }
 
 export function CarSelectionForm({
   selected,
   onSelectChange,
   children,
-  isReadOnly = false
-}: {
-  children?: React.ReactNode
-  selected?: CarSelection | undefined
-  onSelectChange: Dispatch<SetStateAction<CarSelection | undefined>>
-  isReadOnly?: boolean
-}) {
+  isReadOnly = false,
+  onSubmit
+}: CarSelectionFormProps) {
   // State for storing API data
-  const [brands, setBrands] = useState<Brand[]>([])
-  const [families, setFamilies] = useState<Family[]>([])
-  const [models, setModels] = useState<Model[]>([])
+  const [brands, setBrands] = useState<Entity[]>([])
+  const [families, setFamilies] = useState<Entity[]>([])
+  const [models, setModels] = useState<Entity[]>([])
   const [types, setTypes] = useState<CarType[]>([])
 
   // Loading states
-  const [loadingBrands, setLoadingBrands] = useState(true)
-  const [loadingFamilies, setLoadingFamilies] = useState(false)
-  const [loadingModels, setLoadingModels] = useState(false)
-  const [loadingTypes, setLoadingTypes] = useState(false)
+  const [loadingBrands, setLoadingBrands] = useState<boolean>(true)
+  const [loadingFamilies, setLoadingFamilies] = useState<boolean>(false)
+  const [loadingModels, setLoadingModels] = useState<boolean>(false)
+  const [loadingTypes, setLoadingTypes] = useState<boolean>(false)
 
   // Error states
   const [error, setError] = useState<string | null>(null)
 
-  // Selected item states for display
-  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null)
-  const [selectedFamily, setSelectedFamily] = useState<Family | null>(null)
-  const [selectedModel, setSelectedModel] = useState<Model | null>(null)
-  const [selectedType, setSelectedType] = useState<CarType | null>(null)
-
   // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
 
-  // Add these state variables and refs after the other state declarations
-  const [brandTriggerWidth, setBrandTriggerWidth] = useState(0)
-  const [familyTriggerWidth, setFamilyTriggerWidth] = useState(0)
-  const [modelTriggerWidth, setModelTriggerWidth] = useState(0)
-  const [typeTriggerWidth, setTypeTriggerWidth] = useState(0)
-
-  const [isBrandPopoverOpen, setIsBrandPopoverOpen] = useState(false)
-  const [isFamilyPopoverOpen, setIsFamilyPopoverOpen] = useState(false)
-  const [isModelPopoverOpen, setIsModelPopoverOpen] = useState(false)
-  const [isTypePopoverOpen, setIsTypePopoverOpen] = useState(false)
-
-  const brandTriggerRef = useRef<HTMLButtonElement>(null)
-  const familyTriggerRef = useRef<HTMLButtonElement>(null)
-  const modelTriggerRef = useRef<HTMLButtonElement>(null)
-  const typeTriggerRef = useRef<HTMLButtonElement>(null)
-
-  const brandInputRef = useRef<HTMLInputElement>(null)
-  const familyInputRef = useRef<HTMLInputElement>(null)
-  const modelInputRef = useRef<HTMLInputElement>(null)
-  const typeInputRef = useRef<HTMLInputElement>(null)
+  // Add after the existing state declarations
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false)
 
   // Initialize the form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      brandId: '',
-      familyId: '',
-      modelId: '',
-      typeId: ''
+      brandId: selected?.Brand?.id || '',
+      familyId: selected?.Family?.id || '',
+      modelId: selected?.Model?.id || '',
+      typeId: selected?.id || ''
     }
   })
 
@@ -159,217 +105,241 @@ export function CarSelectionForm({
   const watchBrandId = form.watch('brandId')
   const watchFamilyId = form.watch('familyId')
   const watchModelId = form.watch('modelId')
+  const watchTypeId = form.watch('typeId')
+
+  // Generic fetch function with error handling
+  const fetchData = async <T,>(
+    url: string,
+    setter: (data: T[]) => void,
+    setLoading: (loading: boolean) => void
+  ) => {
+    try {
+      setError(null)
+      setLoading(true)
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data from ${url}`)
+      }
+      const data = await response.json()
+      setter(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+      setter([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Fetch brands on component mount
   useEffect(() => {
-    const fetchBrands = async () => {
-      try {
-        setError(null)
-        setLoadingBrands(true)
-        const response = await fetch('/api/cars/brands')
-        if (!response.ok) {
-          throw new Error('Failed to fetch brands')
-        }
-        const data = await response.json()
-        setBrands(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-      } finally {
-        setLoadingBrands(false)
-      }
-    }
-
-    fetchBrands()
+    fetchData('/api/cars/brands', setBrands, setLoadingBrands)
   }, [])
 
-  // Fetch families when brand is selected
+  // Handle initial data population when brands are loaded and we have selected data
   useEffect(() => {
-    if (!watchBrandId) {
-      setFamilies([])
-      form.setValue('familyId', '')
+    if (!selected || initialDataLoaded || brands.length === 0) return
+
+    const loadInitialData = async () => {
+      try {
+        setInitialDataLoaded(true)
+
+        // If we have a pre-selected brand, load its families
+        if (selected.Brand?.id) {
+          await fetchData(
+            `/api/cars/brands/${selected.Brand.id}/families`,
+            setFamilies,
+            setLoadingFamilies
+          )
+
+          // If we have a pre-selected family, load its models
+          if (selected.Family?.id) {
+            await fetchData(
+              `/api/cars/brands/${selected.Brand.id}/families/${selected.Family.id}/models`,
+              setModels,
+              setLoadingModels
+            )
+
+            // If we have a pre-selected model, load its types
+            if (selected.Model?.id) {
+              await fetchData(
+                `/api/cars/brands/${selected.Brand.id}/families/${selected.Family.id}/models/${selected.Model.id}/types`,
+                setTypes,
+                setLoadingTypes
+              )
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading initial data:', error)
+      }
+    }
+
+    loadInitialData()
+  }, [brands, selected, initialDataLoaded])
+
+  // Fetch families when brand is selected (but not during initial load)
+  useEffect(() => {
+    if (!watchBrandId || !initialDataLoaded) {
+      if (!watchBrandId) {
+        setFamilies([])
+        form.setValue('familyId', '')
+        form.setValue('modelId', '')
+        form.setValue('typeId', '')
+      }
       return
     }
 
-    const fetchFamilies = async () => {
-      try {
-        setError(null)
-        setLoadingFamilies(true)
-        const response = await fetch(
-          `/api/cars/brands/${watchBrandId}/families`
-        )
-        if (!response.ok) {
-          throw new Error('Failed to fetch families')
-        }
-        const data = await response.json()
-        setFamilies(data)
-
-        // Find and set the selected brand for display
-        const brand = brands.find((b) => b.id === watchBrandId)
-        if (brand) {
-          setSelectedBrand(brand)
-          // return brand to parent
-          onSelectChange((prev) => {
-            return { ...prev, brand: brand }
-          })
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-      } finally {
-        setLoadingFamilies(false)
-      }
-    }
-
-    fetchFamilies()
-  }, [watchBrandId, brands, form, onSelectChange])
-
-  // Fetch models when family is selected
-  useEffect(() => {
-    if (!watchFamilyId) {
-      setModels([])
-      form.setValue('modelId', '')
+    // Skip if this is the initial brand from selected prop
+    if (selected?.Brand?.id === watchBrandId && families.length > 0) {
       return
     }
 
-    const fetchModels = async () => {
-      try {
-        setError(null)
-        setLoadingModels(true)
-        const response = await fetch(
-          `/api/cars/brands/${watchBrandId}/families/${watchFamilyId}/models`
-        )
-        if (!response.ok) {
-          throw new Error('Failed to fetch models')
-        }
-        const data = await response.json()
-        setModels(data)
+    // Clear dependent fields when brand changes
+    setModels([])
+    setTypes([])
+    form.setValue('familyId', '')
+    form.setValue('modelId', '')
+    form.setValue('typeId', '')
 
-        // Find and set the selected family for display
-        const family = families.find((f) => f.id === watchFamilyId)
-        if (family) setSelectedFamily(family)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-      } finally {
-        setLoadingModels(false)
-      }
-    }
-    fetchModels()
-  }, [watchFamilyId, watchBrandId, families, form])
+    fetchData(
+      `/api/cars/brands/${watchBrandId}/families`,
+      setFamilies,
+      setLoadingFamilies
+    )
+  }, [
+    watchBrandId,
+    form,
+    initialDataLoaded,
+    selected?.Brand?.id,
+    families.length
+  ])
 
-  // Fetch types when model is selected
+  // Fetch models when family is selected (but not during initial load)
   useEffect(() => {
-    if (!watchModelId) {
-      setTypes([])
-      form.setValue('typeId', '')
+    if (!watchFamilyId || !initialDataLoaded) {
+      if (!watchFamilyId) {
+        setModels([])
+        form.setValue('modelId', '')
+        form.setValue('typeId', '')
+      }
       return
     }
 
-    const fetchTypes = async () => {
-      try {
-        setError(null)
-        setLoadingTypes(true)
-        const response = await fetch(
-          `/api/cars/brands/${watchBrandId}/families/${watchFamilyId}/models/${watchModelId}/types`
-        )
-        if (!response.ok) {
-          throw new Error('Failed to fetch types')
-        }
-        const data = await response.json()
-        setTypes(data)
+    // Skip if this is the initial family from selected prop
+    if (selected?.Family?.id === watchFamilyId && models.length > 0) {
+      return
+    }
 
-        // Find and set the selected model for display
-        const model = models.find((m) => m.id === watchModelId)
-        if (model) {
-          setSelectedModel(model)
-          // return model to parent
-          onSelectChange((prev) => {
-            return { ...prev, model }
-          })
+    // Clear dependent fields when family changes
+    setTypes([])
+    form.setValue('modelId', '')
+    form.setValue('typeId', '')
+
+    fetchData(
+      `/api/cars/brands/${watchBrandId}/families/${watchFamilyId}/models`,
+      setModels,
+      setLoadingModels
+    )
+  }, [
+    watchFamilyId,
+    watchBrandId,
+    form,
+    initialDataLoaded,
+    selected?.Family?.id,
+    models.length
+  ])
+
+  // Fetch types when model is selected (but not during initial load)
+  useEffect(() => {
+    if (!watchModelId || !initialDataLoaded) {
+      if (!watchModelId) {
+        setTypes([])
+        form.setValue('typeId', '')
+      }
+      return
+    }
+
+    // Skip if this is the initial model from selected prop
+    if (selected?.Model?.id === watchModelId && types.length > 0) {
+      return
+    }
+
+    fetchData(
+      `/api/cars/brands/${watchBrandId}/families/${watchFamilyId}/models/${watchModelId}/types`,
+      setTypes,
+      setLoadingTypes
+    )
+  }, [
+    watchModelId,
+    watchBrandId,
+    watchFamilyId,
+    form,
+    initialDataLoaded,
+    selected?.Model?.id,
+    types.length
+  ])
+
+  // Update selected car when type changes
+  useEffect(() => {
+    if (watchTypeId && types.length > 0) {
+      const selectedType = types.find((t) => t.id === watchTypeId)
+      const selectedBrand = brands.find((b) => b.id === watchBrandId)
+      const selectedFamily = families.find((f) => f.id === watchFamilyId)
+      const selectedModel = models.find((m) => m.id === watchModelId)
+
+      if (selectedType && selectedBrand && selectedFamily && selectedModel) {
+        const newSelectedCar: SelectedCar = {
+          id: selectedType.id,
+          name: selectedType.name,
+          year: selectedType.year,
+          Brand: selectedBrand,
+          Family: selectedFamily,
+          Model: selectedModel
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-      } finally {
-        setLoadingTypes(false)
+        onSelectChange(newSelectedCar)
       }
     }
-
-    fetchTypes()
-  }, [watchModelId, watchBrandId, watchFamilyId, models, form, onSelectChange])
-
-  useEffect(() => {
-    if (isBrandPopoverOpen && brandTriggerRef.current) {
-      setBrandTriggerWidth(
-        brandTriggerRef.current.getBoundingClientRect().width
-      )
-      // Delay refocusing to the next tick
-      setTimeout(() => {
-        brandInputRef.current?.focus()
-      }, 0)
-    }
-  }, [isBrandPopoverOpen])
-
-  useEffect(() => {
-    if (isFamilyPopoverOpen && familyTriggerRef.current) {
-      setFamilyTriggerWidth(
-        familyTriggerRef.current.getBoundingClientRect().width
-      )
-      // Delay refocusing to the next tick
-      setTimeout(() => {
-        familyInputRef.current?.focus()
-      }, 0)
-    }
-  }, [isFamilyPopoverOpen])
-
-  useEffect(() => {
-    if (isModelPopoverOpen && modelTriggerRef.current) {
-      setModelTriggerWidth(
-        modelTriggerRef.current.getBoundingClientRect().width
-      )
-      // Delay refocusing to the next tick
-      setTimeout(() => {
-        modelInputRef.current?.focus()
-      }, 0)
-    }
-  }, [isModelPopoverOpen])
-
-  useEffect(() => {
-    if (isTypePopoverOpen && typeTriggerRef.current) {
-      setTypeTriggerWidth(typeTriggerRef.current.getBoundingClientRect().width)
-      // Delay refocusing to the next tick
-      setTimeout(() => {
-        typeInputRef.current?.focus()
-      }, 0)
-    }
-  }, [isTypePopoverOpen])
-
-  // Set initial values if provided
-  useEffect(() => {
-    if (selected?.brand && !selectedBrand) {
-      // Find the brand in the list or use the provided one
-      const brand =
-        brands.find((b) => b.id === selected.brand?.id) || selected.brand
-      if (brand) {
-        setSelectedBrand(brand)
-        form.setValue('brandId', brand.id)
-      }
-    }
-  }, [selected, brands, form, selectedBrand])
+  }, [
+    watchTypeId,
+    types,
+    brands,
+    families,
+    models,
+    watchBrandId,
+    watchFamilyId,
+    watchModelId,
+    onSelectChange
+  ])
 
   // Handle form submission
-  async function onSubmit(values: FormValues) {
+  async function handleSubmit(values: FormValues) {
+    if (isReadOnly) return
+
     try {
       setIsSubmitting(true)
       setError(null)
 
-      // Find the selected type for display
-      const type = types.find((t) => t.id === values.typeId)
-      if (type) setSelectedType(type)
+      // Find the selected entities
+      const selectedType = types.find((t) => t.id === values.typeId)
+      const selectedBrand = brands.find((b) => b.id === values.brandId)
+      const selectedFamily = families.find((f) => f.id === values.familyId)
+      const selectedModel = models.find((m) => m.id === values.modelId)
 
-      // In a real application, you would submit this data to your backend
+      if (selectedType && selectedBrand && selectedFamily && selectedModel) {
+        const selectedCar: SelectedCar = {
+          id: selectedType.id,
+          name: selectedType.name,
+          year: selectedType.year,
+          Brand: selectedBrand,
+          Family: selectedFamily,
+          Model: selectedModel
+        }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      setSubmitted(true)
+        // Call the onSubmit callback if provided
+        if (onSubmit) {
+          await onSubmit(selectedCar)
+        }
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -382,351 +352,104 @@ export function CarSelectionForm({
   }
 
   return (
-    <div className="space-y-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="relative border rounded-md px-3 py-3">
-            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              Véhicule
-            </span>
-            <CardGrid className="pt-2">
-              <FormField
-                control={form.control}
-                name="brandId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Marque</FormLabel>
-                    <Popover
-                      open={isBrandPopoverOpen}
-                      onOpenChange={setIsBrandPopoverOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            ref={brandTriggerRef}
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'justify-between',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                            disabled={loadingBrands}
-                          >
-                            {loadingBrands ? (
-                              <div className="flex items-center">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Loading brands...
-                              </div>
-                            ) : field.value ? (
-                              brands.find((brand) => brand.id === field.value)
-                                ?.name || 'Select brand'
-                            ) : (
-                              'Select brand'
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="p-0"
-                        style={{ width: brandTriggerWidth }}
-                        usePortal={false}
-                      >
-                        <Command>
-                          <CommandInput
-                            ref={brandInputRef}
-                            placeholder="Search brand..."
-                          />
-                          <CommandList>
-                            <CommandEmpty>No brand found.</CommandEmpty>
-                            <CommandGroup>
-                              {brands.map((brand) => (
-                                <CommandItem
-                                  key={brand.id}
-                                  value={brand.id}
-                                  onSelect={() => {
-                                    form.setValue('brandId', brand.id)
-                                    form.setValue('familyId', '')
-                                    form.setValue('modelId', '')
-                                    form.setValue('typeId', '')
-                                    setIsBrandPopoverOpen(false) // Close the popover after selection
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      brand.id === field.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                  {brand.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <CardGrid className="pt-2">
+          <FormField
+            control={form.control}
+            name="brandId"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Marque</FormLabel>
+                <SearchComboBox
+                  id="brand-id"
+                  isLoading={loadingBrands}
+                  options={brands.map(({ id, name }) => ({
+                    label: name,
+                    value: id
+                  }))}
+                  selected={field.value}
+                  onSelect={(value) => {
+                    form.setValue('brandId', value)
+                  }}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="familyId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Véhicule</FormLabel>
-                    <Popover
-                      open={isFamilyPopoverOpen}
-                      onOpenChange={setIsFamilyPopoverOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            ref={familyTriggerRef}
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'justify-between',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                            disabled={!watchBrandId || loadingFamilies}
-                          >
-                            {loadingFamilies ? (
-                              <div className="flex items-center">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Loading families...
-                              </div>
-                            ) : field.value ? (
-                              families.find(
-                                (family) => family.id === field.value
-                              )?.name || 'Select family'
-                            ) : (
-                              'Select family'
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="p-0"
-                        style={{ width: familyTriggerWidth }}
-                        usePortal={false}
-                      >
-                        <Command>
-                          <CommandInput
-                            ref={familyInputRef}
-                            placeholder="Search family..."
-                          />
-                          <CommandList>
-                            <CommandEmpty>No family found.</CommandEmpty>
-                            <CommandGroup>
-                              {families.map((family) => (
-                                <CommandItem
-                                  key={family.id}
-                                  value={family.id}
-                                  onSelect={() => {
-                                    form.setValue('familyId', family.id)
-                                    form.setValue('modelId', '')
-                                    form.setValue('typeId', '')
-                                    setIsFamilyPopoverOpen(false) // Close the popover after selection
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      family.id === field.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                  {family.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name="familyId"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Véhicule</FormLabel>
+                <SearchComboBox
+                  id="family-id"
+                  isLoading={loadingFamilies}
+                  options={families.map(({ id, name }) => ({
+                    label: name,
+                    value: id
+                  }))}
+                  selected={field.value}
+                  onSelect={(value) => {
+                    form.setValue('familyId', value)
+                  }}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="modelId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Modèle</FormLabel>
-                    <Popover
-                      open={isModelPopoverOpen}
-                      onOpenChange={setIsModelPopoverOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            ref={modelTriggerRef}
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'justify-between',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                            disabled={!watchFamilyId || loadingModels}
-                          >
-                            {loadingModels ? (
-                              <div className="flex items-center">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Loading models...
-                              </div>
-                            ) : field.value ? (
-                              models.find((model) => model.id === field.value)
-                                ?.name || 'Select model'
-                            ) : (
-                              'Select model'
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="p-0"
-                        style={{ width: modelTriggerWidth }}
-                        usePortal={false}
-                      >
-                        <Command>
-                          <CommandInput
-                            ref={modelInputRef}
-                            placeholder="Search model..."
-                          />
-                          <CommandList>
-                            <CommandEmpty>No model found.</CommandEmpty>
-                            <CommandGroup>
-                              {models.map((model) => (
-                                <CommandItem
-                                  key={model.id}
-                                  value={model.id}
-                                  onSelect={() => {
-                                    form.setValue('modelId', model.id)
-                                    form.setValue('typeId', '')
-                                    setIsModelPopoverOpen(false) // Close the popover after selection
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      model.id === field.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                  {model.name}{' '}
-                                  {model.production && `(${model.production})`}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name="modelId"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Modèle</FormLabel>
+                <SearchComboBox
+                  id="model-id"
+                  isLoading={loadingModels}
+                  options={models.map(({ id, name }) => ({
+                    label: name,
+                    value: id
+                  }))}
+                  selected={field.value}
+                  onSelect={(value) => {
+                    form.setValue('modelId', value)
+                  }}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="typeId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Type</FormLabel>
-                    <Popover
-                      open={isTypePopoverOpen}
-                      onOpenChange={setIsTypePopoverOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            ref={typeTriggerRef}
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              'justify-between',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                            disabled={!watchModelId || loadingTypes}
-                          >
-                            {loadingTypes ? (
-                              <div className="flex items-center">
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Loading types...
-                              </div>
-                            ) : field.value ? (
-                              types.find((type) => type.id === field.value)
-                                ?.name || 'Select type'
-                            ) : (
-                              'Select type'
-                            )}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="p-0"
-                        style={{ width: typeTriggerWidth }}
-                        usePortal={false}
-                      >
-                        <Command>
-                          <CommandInput
-                            ref={typeInputRef}
-                            placeholder="Search type..."
-                          />
-                          <CommandList>
-                            <CommandEmpty>No type found.</CommandEmpty>
-                            <CommandGroup>
-                              {types.map((type) => (
-                                <CommandItem
-                                  key={type.id}
-                                  value={type.id}
-                                  onSelect={() => {
-                                    form.setValue('typeId', type.id)
-                                    setIsTypePopoverOpen(false) // Close the popover after selection
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      type.id === field.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                  {type.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardGrid>
-            <div className="my-3">{children}</div>
-          </div>
-        </form>
-      </Form>
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-    </div>
+          <FormField
+            control={form.control}
+            name="typeId"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Type</FormLabel>
+                <SearchComboBox
+                  id="type-id"
+                  isLoading={loadingTypes}
+                  options={types.map(({ id, name, year }) => ({
+                    label: `${name} (${year})`,
+                    value: id
+                  }))}
+                  selected={field.value}
+                  onSelect={(value) => {
+                    form.setValue('typeId', value)
+                  }}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </CardGrid>
+
+        {children && <div className="my-3">{children}</div>}
+      </form>
+    </Form>
   )
 }

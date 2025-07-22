@@ -13,12 +13,15 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
   const record = await prisma.radiator.findUnique({
     where: { id },
     include: {
-      Models: {
+      Types: {
         include: {
-          Types: true,
-          Family: {
+          Model: {
             include: {
-              Brand: true
+              Family: {
+                include: {
+                  Brand: true
+                }
+              }
             }
           }
         }
@@ -36,10 +39,11 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
   })
   if (!record) return notFound()
 
-  const { Components, Models, ...radiator } = record
+  const { Components, Types, ...radiator } = record
 
   const data = {
     ...radiator,
+    Type: Types.at(0),
     Components: Components.map(({ MaterialUsages, ...component }) => ({
       ...component,
       usages: MaterialUsages.map(({ Material, quantity }) => ({
@@ -47,7 +51,7 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
         quantity
       }))
     }))
-  }
+  } as RadiatorSchemaType
 
   return (
     <Card>

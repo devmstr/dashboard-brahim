@@ -7,6 +7,7 @@ import { checkIsOnDemandRevalidate } from 'next/dist/server/api-utils'
 import { getUserRole } from '@/lib/session'
 import { revalidatePath } from 'next/cache'
 import { OrderItem } from '@/lib/validations'
+import { includes } from 'lodash'
 
 export async function GET(
   request: Request,
@@ -22,8 +23,10 @@ export async function GET(
         Payment: true,
         OrdersItems: {
           include: {
-            Model: {
-              include: { Family: { include: { Brand: true } } }
+            Type: {
+              include: {
+                Model: { include: { Family: { include: { Brand: true } } } }
+              }
             },
             Attachments: true
           }
@@ -41,9 +44,9 @@ export async function GET(
       OrdersItems: order.OrdersItems.map((orderItem) => ({
         ...orderItem,
         Vehicle: {
-          brand: orderItem.Model?.Family?.Brand?.name,
-          model: orderItem.Model?.name,
-          family: orderItem.Model?.Family?.name
+          brand: orderItem.Type?.Model?.Family?.Brand?.name,
+          model: orderItem.Type?.Model?.name,
+          family: orderItem.Type?.Model?.Family?.name
         }
       }))
     })
@@ -129,8 +132,10 @@ export async function PUT(
         Payment: true,
         OrdersItems: {
           include: {
-            Model: {
-              include: { Family: { include: { Brand: true } } }
+            Type: {
+              include: {
+                Model: { include: { Family: { include: { Brand: true } } } }
+              }
             },
             Attachments: true
           }
@@ -178,7 +183,7 @@ export async function PUT(
                 label: item.label,
                 status: item.status || 'Prévu',
                 delivered: existingItem.delivered ?? 0,
-                modelId: item.Vehicle?.id
+                typeId: item.Vehicle?.id
               }
             })
           } else {
@@ -215,7 +220,7 @@ export async function PUT(
                 status: item.status || 'Prévu',
                 delivered: 0,
                 orderId: id,
-                modelId: item.Vehicle?.id
+                typeId: item.Vehicle?.id
               }
             })
           }
@@ -242,10 +247,9 @@ export async function PUT(
         OrdersItems: {
           include: {
             Attachments: true,
-            Model: {
+            Type: {
               include: {
-                // Types: true,
-                Family: { include: { Brand: true } }
+                Model: { include: { Family: { include: { Brand: true } } } }
               }
             }
           }
@@ -381,10 +385,9 @@ export async function PATCH(
       where: { id },
       include: {
         Attachments: true,
-        Model: {
+        Type: {
           include: {
-            // Types: true,
-            Family: { include: { Brand: true } }
+            Model: { include: { Family: { include: { Brand: true } } } }
           }
         }
       }
@@ -438,7 +441,7 @@ export async function PATCH(
           label: body.label,
           status: body.status || 'Prévu',
           delivered: existingItem.delivered ?? 0,
-          modelId: body.Vehicle?.id,
+          typeId: body.Vehicle?.id,
           ...(isAuthorizedForValidation && {
             validatedAt: new Date().toLocaleString()
           })
@@ -468,10 +471,13 @@ export async function PATCH(
         where: { id },
         include: {
           Attachments: true,
-          Model: {
+          Type: {
             include: {
-              Types: true,
-              Family: { include: { Brand: true } }
+              Model: {
+                include: {
+                  Family: { include: { Brand: true } }
+                }
+              }
             }
           }
         }

@@ -44,8 +44,9 @@ export type CarsTableEntry = {
   manufacture: string
   car: string
   model?: string
+  type?: string
   fuel?: string
-  year?: number
+  year?: string
 }
 
 export type InventoryTableEntry = {
@@ -173,11 +174,11 @@ declare type ApiRadiator = {
     type: string | null
     radiatorId: string | null
   }[]
-  Models: {
-    Types: {
+  Types: {
+    Model: {
       id: string
       name: string
-    }[]
+    }
     Family: {
       id: string
       name: string

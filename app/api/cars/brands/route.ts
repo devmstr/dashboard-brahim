@@ -17,21 +17,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
-// POST create a new brand
-export async function POST(request: NextRequest) {
-  try {
-    const json = await request.json()
-    const brand = await prisma.brand.create({
-      data: {
-        name: json.name
-      }
-    })
-    return NextResponse.json(brand, { status: 201 })
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to create brand' },
-      { status: 500 }
-    )
-  }
-}

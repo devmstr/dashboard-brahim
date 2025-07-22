@@ -8,6 +8,7 @@ import { Content } from '@tiptap/react'
 
 export enum SKU_PREFIX {
   RA = 'RA', // radiator
+  VE = 'VE', // Véhicule
   RE = 'RE', // Radiateur renovation (typeof radiator)
   FA = 'FA', // Faisceau
   FE = 'FE', // Faisceau Empalé

@@ -99,7 +99,7 @@ async function main() {
         const category =
           radiatorData.type === 'Radiateur' ? 'Automobile' : 'Industriel'
 
-        const model = await prisma.carModel.findFirst({
+        const model = await prisma.type.findFirst({
           where: {
             name: radiatorData.model
           }
@@ -120,6 +120,10 @@ async function main() {
             id,
             // partNumber: radiatorData.reference,
             label: `${radiatorData.designation} ${radiatorData.brand} ${radiatorData.model}`,
+            partNumber: null,
+            type: radiatorData.type,
+            fabrication: radiatorData.fabrication,
+            status: 'ACTIVE',
             category: category,
             dirId: radiatorData.dirId,
             cooling: coolingType,
@@ -136,6 +140,8 @@ async function main() {
             tubeType: radiatorData.tube,
             upperCollectorLength: radiatorData.upperCollectorLength,
             upperCollectorWidth: radiatorData.upperCollectorWidth,
+            lowerCollectorLength: radiatorData.lowerCollectorLength,
+            lowerCollectorWidth: radiatorData.lowerCollectorWidth,
             position:
               radiatorData.position === 'Center' ? 'Centrer' : 'Dépassée',
             tightening:
@@ -144,7 +150,7 @@ async function main() {
             isTinned: false,
             ...(model
               ? {
-                  Models: {
+                  Types: {
                     connect: {
                       id: model.id
                     }

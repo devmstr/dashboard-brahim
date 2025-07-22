@@ -13,54 +13,75 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { toast } from '@/components/ui/use-toast'
-import { VehicleSchemaType } from '@/lib/validations'
+import type { VehicleSchemaType } from '@/lib/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { z } from 'zod'
-
-interface CarFormProps {
-  defaultValues?: Partial<VehicleSchemaType>
-  onSubmit?: (data: NewCarSchemaType) => void
-}
+import { Plus, Minus } from 'lucide-react'
+import { json } from 'node:stream/consumers'
+import { useRouter } from 'next/navigation'
+import { toast } from '@/hooks/use-toast'
 
 export const newCarSchema = z.object({
-  id: z.string(),
+  id: z.string().optional(),
   brand: z.string().optional(),
   model: z.string().optional(),
   family: z.string().optional(),
-  type: z.string().optional(),
-  fuel: z.string().optional(),
-  year: z.string().optional()
+  types: z
+    .array(
+      z.object({
+        name: z.string().optional(),
+        year: z.string().optional(),
+        fuel: z.string().optional()
+      })
+    )
+    .optional()
 })
 
 export type NewCarSchemaType = z.infer<typeof newCarSchema>
 
-export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
+export function CarForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
 
   // Initialize the form with default values
   const form = useForm<NewCarSchemaType>({
     resolver: zodResolver(newCarSchema),
     defaultValues: {
-      ...defaultValues,
-      fuel: defaultValues?.fuel || 'Diesel',
-      year: defaultValues?.year || ''
+      types: [{ name: '', year: '', fuel: 'Essence' }]
     }
   })
 
+  // Use field array for dynamic types
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'types'
+  })
+
+  // Handle form submission
   // Handle form submission
   const handleSubmit = async (data: NewCarSchemaType) => {
     setIsSubmitting(true)
     try {
-      if (onSubmit) {
-        await onSubmit(data)
+      const res = await fetch('/api/cars', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      console.log(await res.json())
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`)
       }
+
       toast({
         title: 'Succès',
-        description: 'Informations du véhicule enregistrées avec succès'
+        description: 'Informations du véhicule enregistrées avec succès',
+        variant: 'success'
       })
+      router.refresh()
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -70,6 +91,16 @@ export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
       console.error(error)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const addType = () => {
+    append({ name: '', year: '', fuel: 'Essence' })
+  }
+
+  const removeType = (index: number) => {
+    if (fields.length > 1) {
+      remove(index)
     }
   }
 
@@ -87,10 +118,7 @@ export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
               <FormItem>
                 <FormLabel>Marque</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Entrez la marque du véhicule"
-                    {...field}
-                  />
+                  <Input placeholder="Toyota" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -104,10 +132,7 @@ export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
               <FormItem>
                 <FormLabel>Famille </FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Entrez la famille du véhicule"
-                    {...field}
-                  />
+                  <Input placeholder="Corolla Series" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -123,74 +148,128 @@ export function CarForm({ defaultValues, onSubmit }: CarFormProps) {
                   Modèle <span className="text-blue-400">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Entrez le modèle du véhicule"
-                    {...field}
+                  <Input placeholder="Corolla" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="space-y-3 col-span-full">
+            <div className="flex items-center justify-between">
+              <FormLabel>Types de Véhicule</FormLabel>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addType}
+                className="flex items-center gap-1 bg-transparent"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              {fields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="space-y-3 p-4 border rounded-lg bg-gray-50/50"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">
+                      Type {index + 1}
+                    </span>
+                    {fields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeType(index)}
+                        className="flex-shrink-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name={`types.${index}.name`}
+                      render={({ field: inputField }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nom du type</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ex: Corolla 2.0L..."
+                              {...inputField}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`types.${index}.year`}
+                      render={({ field: inputField }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">
+                            Années de production
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Ex: 2018–2025 or 2018 "
+                              {...inputField}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name={`types.${index}.fuel`}
+                    render={({ field: inputField }) => (
+                      <FormItem className="space-y-2">
+                        <FormLabel className="text-xs">
+                          Type de Carburant
+                        </FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={inputField.onChange}
+                            defaultValue={inputField.value}
+                            className="flex flex-row space-x-6"
+                          >
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="Essence" />
+                              </FormControl>
+                              <FormLabel className="font-normal text-sm">
+                                Essence
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="Diesel" />
+                              </FormControl>
+                              <FormLabel className="font-normal text-sm">
+                                Diesel
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Type </FormLabel>
-                <FormControl>
-                  <Input placeholder="Entrez le type du véhicule" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Années de Production</FormLabel>
-                <FormControl>
-                  <Input placeholder="YYYY–YYYY" {...field} />
-                </FormControl>
-                <FormDescription>(ex: 2010–2020)</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardGrid>
-        <CardGrid>
-          <FormField
-            control={form.control}
-            name="fuel"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Type de Carburant </FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-col space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Essence" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Essence</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="Diesel" />
-                      </FormControl>
-                      <FormLabel className="font-normal">Diesel</FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                </div>
+              ))}
+            </div>
+            <FormDescription>
+              Ajoutez autant de types que nécessaire avec leurs spécifications
+              respectives
+            </FormDescription>
+          </div>
         </CardGrid>
         <div className="w-full flex justify-end">
           <Button type="submit" disabled={isSubmitting} className="w-fit">

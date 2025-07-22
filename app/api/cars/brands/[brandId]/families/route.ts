@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Brand not found' }, { status: 404 })
     }
 
-    const families = await prisma.carFamily.findMany({
+    const families = await prisma.family.findMany({
       where: {
         brandId: params.brandId
       },
@@ -49,7 +49,7 @@ export async function POST(
     }
 
     const json = await request.json()
-    const family = await prisma.carFamily.create({
+    const family = await prisma.family.create({
       data: {
         name: json.name,
         brandId: params.brandId

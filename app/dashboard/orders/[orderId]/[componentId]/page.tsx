@@ -37,12 +37,15 @@ const Page: React.FC<Props> = async ({
       where: { id: componentId },
       include: {
         Attachments: true,
-        Model: {
+        Type: {
           include: {
-            Types: true,
-            Family: {
+            Model: {
               include: {
-                Brand: true
+                Family: {
+                  include: {
+                    Brand: true
+                  }
+                }
               }
             }
           }
@@ -50,53 +53,30 @@ const Page: React.FC<Props> = async ({
       }
     })
 
+    const data = {
+      ...orderItem,
+      id: orderItem.id,
+      note: orderItem.note as Content,
+      modification: orderItem.modification as Content,
+      description: orderItem.description as Content,
+      Model: orderItem?.Type
+        ? {
+            id: orderItem.Type?.Model?.id as string,
+            model: orderItem.Type?.Model?.name,
+            brand: orderItem.Type?.Model?.Family?.Brand?.name,
+            family: orderItem.Type?.Model?.Family?.name,
+            type: orderItem.Type?.name,
+            year: orderItem.Type?.year as string,
+            fuel: orderItem.Type?.fuel as string
+          }
+        : undefined
+    }
+
     return (
       <div className="space-y-4">
         <Card>
-          {isSalesUser && (
-            <SalesEditOrderItemForm
-              data={{
-                ...orderItem,
-                id: orderItem.id,
-                note: orderItem.note as Content,
-                modification: orderItem.modification as Content,
-                description: orderItem.description as Content,
-                Model: orderItem?.Model
-                  ? {
-                      id: orderItem.Model.id,
-                      model: orderItem.Model.name,
-                      brand: orderItem.Model.Family?.Brand?.name,
-                      family: orderItem.Model.Family?.name,
-                      type: orderItem.Model.Types[0]?.name,
-                      year: orderItem.Model.year || '',
-                      fuel: orderItem.Model.fuel || ''
-                    }
-                  : undefined
-              }}
-            />
-          )}
-          {isEngineerUser && (
-            <TechnicianOrderItemForm
-              data={{
-                ...orderItem,
-                id: orderItem.id,
-                note: orderItem.note as Content,
-                modification: orderItem.modification as Content,
-                description: orderItem.description as Content,
-                Model: orderItem?.Model
-                  ? {
-                      id: orderItem.Model.id,
-                      model: orderItem.Model.name,
-                      brand: orderItem.Model.Family?.Brand?.name,
-                      family: orderItem.Model.Family?.name,
-                      type: orderItem.Model.Types[0]?.name,
-                      year: orderItem.Model.year || '',
-                      fuel: orderItem.Model.fuel || ''
-                    }
-                  : undefined
-              }}
-            />
-          )}
+          {isSalesUser && <SalesEditOrderItemForm data={data} />}
+          {isEngineerUser && <TechnicianOrderItemForm data={data} />}
         </Card>
       </div>
     )

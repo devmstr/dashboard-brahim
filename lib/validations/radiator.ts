@@ -42,7 +42,7 @@ export const radiatorSchema = z.object({
   upperCollectorWidth: z.number().optional().nullable(),
   lowerCollectorWidth: z.number().optional().nullable(),
   isActive: z.boolean().optional().nullable(),
-  Vehicle: newCarSchema.optional(),
+  Type: vehicleSchema.optional(),
   Components: z
     .array(
       z.object({

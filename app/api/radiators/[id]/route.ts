@@ -1,4 +1,5 @@
 import prisma from '@/lib/db'
+import { hash256, HashDataType } from '@/lib/hash-256'
 import { generateRadiatorLabel } from '@/lib/utils'
 import { RadiatorSchemaType } from '@/lib/validations/radiator'
 import { revalidatePath } from 'next/cache'
@@ -17,19 +18,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const record = await prisma.radiator.findUnique({
       where: { id },
       include: {
-        Models: {
+        Types: {
           include: {
-            Types: true,
-            Family: {
+            Model: {
               include: {
-                Brand: true
+                Family: {
+                  include: {
+                    Brand: true
+                  }
+                }
               }
             }
           }
         },
-        Orders: {
+        OrderItems: {
           include: {
-            Client: true
+            Order: {
+              include: { Client: true }
+            }
           }
         },
         Components: {
@@ -51,7 +57,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    const { Components, Inventory, Models, Orders, Price, ...radiator } = record
+    const { Components, Inventory, Types, OrderItems, Price, ...radiator } =
+      record
 
     // Format the response to include only essential fields
     return NextResponse.json({
@@ -69,18 +76,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           quantity
         }))
       })),
-      Models: Models.map(({ Family, Types, ...model }) => {
+      Models: Types.map(({ Model, ...type }) => {
         return {
-          ...model,
-          Types,
-          Family: {
-            id: Family?.id,
-            name: Family?.id
+          ...type,
+          Model: {
+            id: Model?.id,
+            name: Model?.name
           },
-          Brand: Family?.Brand
+          Family: {
+            id: Model?.Family?.id,
+            name: Model?.Family?.id
+          },
+          Brand: Model?.Family?.Brand
         }
       }),
-      Clients: Orders.map(({ Client }) => ({ ...Client }))
+      Clients: OrderItems.map(({ Order }) => ({ ...Order?.Client }))
     })
   } catch (error) {
     console.error('Error fetching product:', error)
@@ -125,19 +135,26 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
-    const body = (await request.json()) as RadiatorSchemaType
-
+    const body = await request.json()
     // Generate the label using the provided/validated data
+    console.log(body)
     const label = generateRadiatorLabel(body)
+    const hash = hash256(body)
 
-    const { Components, Vehicle, ...data } = body
+    const { Components, Type, ...data } = body as RadiatorSchemaType
 
     // Start transaction for atomic update
     const radiator = await prisma.radiator.update({
       where: { id },
       data: {
         ...data,
-        label
+        label,
+        hash,
+        Types: {
+          connect: {
+            id: Type?.id
+          }
+        }
         // TODO: update Components
       }
     })

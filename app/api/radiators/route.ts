@@ -68,23 +68,24 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        Models: {
+        Types: {
           include: {
-            Types: true,
-            Family: {
+            Model: {
               include: {
-                Brand: true
+                Family: {
+                  include: {
+                    Brand: true
+                  }
+                }
               }
             }
           }
         },
-
-        Orders: {
+        OrderItems: {
           include: {
-            Client: true
-            // OrdersItems: {
-            //   take: 3 // Limit the number of orders returned
-            // }
+            Order: {
+              include: { Client: true }
+            }
           }
         },
         Inventory: true,
@@ -102,7 +103,7 @@ export async function GET(request: NextRequest) {
 
     // Format the response to include only essential fields
     const formattedRadiators = radiators.map(
-      ({ Components, Orders, Models, Price, Inventory, ...radiator }) => ({
+      ({ Components, OrderItems, Types, Price, Inventory, ...radiator }) => ({
         ...radiator,
         inventoryLevel: Inventory?.level,
         inventoryMaxLevel: Inventory?.maxLevel,
@@ -122,18 +123,21 @@ export async function GET(request: NextRequest) {
             quantity
           }))
         })),
-        Models: Models.map(({ Family, Types, ...model }) => {
+        Models: Types.map(({ Model, ...type }) => {
           return {
-            ...model,
-            Types,
-            Family: {
-              id: Family?.id,
-              name: Family?.id
+            ...type,
+            Model: {
+              id: Model?.id,
+              name: Model?.name
             },
-            Brand: Family?.Brand
+            Family: {
+              id: Model?.Family?.id,
+              name: Model?.Family?.id
+            },
+            Brand: Model?.Family?.Brand
           }
         }),
-        Clients: Orders.map(({ Client }) => ({ ...Client }))
+        Clients: OrderItems.map(({ Order }) => ({ ...Order?.Client }))
       })
     )
 

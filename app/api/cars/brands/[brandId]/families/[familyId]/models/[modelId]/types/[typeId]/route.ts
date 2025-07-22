@@ -17,7 +17,7 @@ export async function GET(
 ) {
   try {
     // First check if the type exists and belongs to the model
-    const type = await prisma.carType.findFirst({
+    const type = await prisma.type.findFirst({
       where: {
         id: params.typeId,
         modelId: params.modelId,
@@ -56,7 +56,7 @@ export async function PUT(
 ) {
   try {
     // First check if the type exists and belongs to the model
-    const existingType = await prisma.carType.findFirst({
+    const existingType = await prisma.type.findFirst({
       where: {
         id: params.typeId,
         modelId: params.modelId,
@@ -74,12 +74,15 @@ export async function PUT(
     }
 
     const json = await request.json()
-    const updatedType = await prisma.carType.update({
+    const updatedType = await prisma.type.update({
       where: {
         id: params.typeId
       },
       data: {
-        name: json.name
+        name: json.name,
+        year: json.production,
+        fuel: json.fuel,
+        radiatorId: json.radiatorId
       }
     })
     return NextResponse.json(updatedType)
@@ -107,16 +110,10 @@ export async function DELETE(
 ) {
   try {
     // First check if the type exists and belongs to the model
-    const existingType = await prisma.carType.findFirst({
+    console.log('HiT...........')
+    const existingType = await prisma.type.findFirst({
       where: {
-        id: params.typeId,
-        modelId: params.modelId,
-        Model: {
-          familyId: params.familyId,
-          Family: {
-            brandId: params.brandId
-          }
-        }
+        id: params.typeId
       }
     })
 
@@ -124,7 +121,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Type not found' }, { status: 404 })
     }
 
-    await prisma.carType.delete({
+    await prisma.type.delete({
       where: {
         id: params.typeId
       }

@@ -236,28 +236,27 @@ export default function ProductSearchInput({
                               </div>
                               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pl-7 text-xs text-muted-foreground">
                                 {/* Display brands with their models */}
-                                {product.Models &&
-                                  product.Models.length > 0 && (
-                                    <div className="flex items-center gap-1">
-                                      <Car className="w-3 h-3" />
-                                      <span>
-                                        {product.Models.map((model, idx) => (
-                                          <span
-                                            className="flex gap-1"
-                                            key={model.id}
-                                          >
-                                            {idx > 0 && ', '}
-                                            <strong>
-                                              {highlightMatch(model.Brand.name)}
-                                            </strong>
-                                            <span>
-                                              ({highlightMatch(model.name)})
-                                            </span>
+                                {product.Types && product.Types.length > 0 && (
+                                  <div className="flex items-center gap-1">
+                                    <Car className="w-3 h-3" />
+                                    <span>
+                                      {product.Types.map((model, idx) => (
+                                        <span
+                                          className="flex gap-1"
+                                          key={model.id}
+                                        >
+                                          {idx > 0 && ', '}
+                                          <strong>
+                                            {highlightMatch(model.Brand.name)}
+                                          </strong>
+                                          <span>
+                                            ({highlightMatch(model.name)})
                                           </span>
-                                        ))}
-                                      </span>
-                                    </div>
-                                  )}
+                                        </span>
+                                      ))}
+                                    </span>
+                                  </div>
+                                )}
 
                                 {product.Clients &&
                                   product.Clients.length > 0 && (

@@ -41,7 +41,7 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { generateRadiatorLabel, skuId } from '@/lib/utils'
 import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
-import { CarSelectionForm, type CarSelection } from './car-selection.from'
+import { CarSelectionForm, type SelectedCar } from './car-selection.from'
 import { CardGrid } from './card'
 
 interface OrderItemFormProps {
@@ -54,7 +54,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   onSubmit
 }) => {
   // State management
-  const [carSelection, setCarSelection] = useState<CarSelection>()
+  const [carSelection, setCarSelection] = useState<SelectedCar>()
   const [isModelAvailable, setIsModelAvailable] = useState(true)
   const [isModificationIncluded, setIsModificationIncluded] = useState(false)
   const [isCollectorsDifferent, setIsCollectorsDifferent] = useState(false)

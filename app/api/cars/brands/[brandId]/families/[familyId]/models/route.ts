@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     // First check if the family exists and belongs to the brand
-    const family = await prisma.carFamily.findFirst({
+    const family = await prisma.family.findFirst({
       where: {
         id: params.familyId,
         brandId: params.brandId
@@ -19,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: 'Family not found' }, { status: 404 })
     }
 
-    const models = await prisma.carModel.findMany({
+    const models = await prisma.model.findMany({
       where: {
         familyId: params.familyId
       },
@@ -43,7 +43,7 @@ export async function POST(
 ) {
   try {
     // First check if the family exists and belongs to the brand
-    const family = await prisma.carFamily.findFirst({
+    const family = await prisma.family.findFirst({
       where: {
         id: params.familyId,
         brandId: params.brandId
@@ -55,12 +55,10 @@ export async function POST(
     }
 
     const json = await request.json()
-    const model = await prisma.carModel.create({
+    const model = await prisma.model.create({
       data: {
         name: json.name,
-        year: json.production,
-        familyId: params.familyId,
-        radiatorId: json.radiatorId
+        familyId: params.familyId
       }
     })
     return NextResponse.json(model, { status: 201 })

@@ -142,10 +142,14 @@ export async function POST(request: Request) {
           OrdersItems: {
             include: {
               Attachments: true,
-              Model: {
+              Type: {
                 include: {
-                  Family: {
-                    include: { Brand: true }
+                  Model: {
+                    include: {
+                      Family: {
+                        include: { Brand: true }
+                      }
+                    }
                   }
                 }
               }
@@ -193,10 +197,13 @@ export async function GET(request: NextRequest) {
         OrdersItems: {
           include: {
             Attachments: true,
-            Model: {
+            Type: {
               include: {
-                // Types: true,
-                Family: { include: { Brand: true } }
+                Model: {
+                  include: {
+                    Family: { include: { Brand: true } }
+                  }
+                }
               }
             }
           }
@@ -217,9 +224,9 @@ export async function GET(request: NextRequest) {
       OrdersItems: item.OrdersItems.map((orderItem) => ({
         ...orderItem,
         Vehicle: {
-          brand: orderItem.Model?.Family?.Brand?.name,
-          model: orderItem.Model?.name,
-          family: orderItem.Model?.Family?.name
+          brand: orderItem.Type?.Model?.Family?.Brand?.name,
+          model: orderItem.Type?.Model?.name,
+          family: orderItem.Type?.Model?.Family?.name
         }
       }))
     }))

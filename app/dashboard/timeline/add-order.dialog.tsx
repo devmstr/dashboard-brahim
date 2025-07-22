@@ -106,7 +106,7 @@ export const addOrderSchema = z.object({
   isModificationRequired: z.boolean().default(false).optional(),
   brand: z.string().optional(),
   model: z.string().optional(),
-  carType: z.string().optional(),
+  type: z.string().optional(),
   fins: z.string(),
   tubePitch: positiveNumberFromString('Tube Pitch'),
   tube: z.string(),

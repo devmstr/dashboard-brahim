@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { brandId: string; familyId: string } }
 ) {
   try {
-    const family = await prisma.carFamily.findFirst({
+    const family = await prisma.family.findFirst({
       where: {
         id: params.familyId,
         brandId: params.brandId
@@ -37,7 +37,7 @@ export async function PUT(
 ) {
   try {
     // First check if the family exists and belongs to the brand
-    const existingFamily = await prisma.carFamily.findFirst({
+    const existingFamily = await prisma.family.findFirst({
       where: {
         id: params.familyId,
         brandId: params.brandId
@@ -49,7 +49,7 @@ export async function PUT(
     }
 
     const json = await request.json()
-    const updatedFamily = await prisma.carFamily.update({
+    const updatedFamily = await prisma.family.update({
       where: {
         id: params.familyId
       },
@@ -73,7 +73,7 @@ export async function DELETE(
 ) {
   try {
     // First check if the family exists and belongs to the brand
-    const existingFamily = await prisma.carFamily.findFirst({
+    const existingFamily = await prisma.family.findFirst({
       where: {
         id: params.familyId,
         brandId: params.brandId
@@ -84,7 +84,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Family not found' }, { status: 404 })
     }
 
-    await prisma.carFamily.delete({
+    await prisma.family.delete({
       where: {
         id: params.familyId
       }
