@@ -128,8 +128,8 @@ export async function POST(request: Request) {
             status: item.status || 'Prévu',
             delivered: 0,
             Order: { connect: { id: createdOrder.id } },
-            ...(item.Vehicle?.id && {
-              Model: { connect: { id: item.Vehicle.id } }
+            ...(item.CarType?.id && {
+              CarType: { connect: { id: item.CarType.id } }
             })
           }
         })
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
           OrdersItems: {
             include: {
               Attachments: true,
-              Type: {
+              CarType: {
                 include: {
                   Model: {
                     include: {
@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
         OrdersItems: {
           include: {
             Attachments: true,
-            Type: {
+            CarType: {
               include: {
                 Model: {
                   include: {
@@ -222,12 +222,7 @@ export async function GET(request: NextRequest) {
     orders = orders.map((item) => ({
       ...item,
       OrdersItems: item.OrdersItems.map((orderItem) => ({
-        ...orderItem,
-        Vehicle: {
-          brand: orderItem.Type?.Model?.Family?.Brand?.name,
-          model: orderItem.Type?.Model?.name,
-          family: orderItem.Type?.Model?.Family?.name
-        }
+        ...orderItem
       }))
     }))
 

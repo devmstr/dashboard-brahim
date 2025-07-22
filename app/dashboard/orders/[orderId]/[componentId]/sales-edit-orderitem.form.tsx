@@ -42,9 +42,10 @@ import {
 } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
 import { generateRadiatorLabel, isContentEmpty } from '@/lib/utils'
-import { type OrderItem, orderItemSchema } from '@/lib/validations/order'
+import { orderItemSchema } from '@/lib/validations/order'
 import { Content } from '@tiptap/react'
 import { useSession } from 'next-auth/react'
+import { OrderItem } from '@/types'
 
 interface EditOrderItemFormProps {
   data: OrderItem
@@ -233,93 +234,88 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
             )}
           />
         )}
-        {data.Model &&
-          data.Model.brand &&
-          data.Model.family &&
-          data.Model.type &&
-          data.Model.model &&
-          !data.note && (
-            <div className="relative border rounded-md px-3 py-3">
-              <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-                Véhicule
-              </span>
-              <CardGrid>
-                <FormField
-                  control={form.control}
-                  name="Model.brand"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">Marque</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value}
-                          type="text"
-                          className="w-full"
-                          placeholder="Marque"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="Model.family"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">Famille</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="text"
-                          className="w-full"
-                          placeholder="Famille"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="Model.model"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">Modèle</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="text"
-                          className="w-full"
-                          placeholder="Modèle"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="Model.type"
-                  render={({ field }) => (
-                    <FormItem className="group">
-                      <FormLabel className="capitalize">Type</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="text"
-                          className="w-full"
-                          placeholder="Type"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardGrid>
-            </div>
-          )}
+        {data.CarType && !data.note ? (
+          <div className="relative border rounded-md px-3 py-3">
+            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+              Véhicule
+            </span>
+            <CardGrid>
+              <FormField
+                control={form.control}
+                name="CarType.Model.Family.Brand.name"
+                render={({ field }) => (
+                  <FormItem className="group">
+                    <FormLabel className="capitalize">Marque</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value}
+                        type="text"
+                        className="w-full"
+                        placeholder="Marque"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="CarType.Model.Family.name"
+                render={({ field }) => (
+                  <FormItem className="group">
+                    <FormLabel className="capitalize">Famille</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        className="w-full"
+                        placeholder="Famille"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="CarType.Model.name"
+                render={({ field }) => (
+                  <FormItem className="group">
+                    <FormLabel className="capitalize">Modèle</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        className="w-full"
+                        placeholder="Modèle"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="CarType.name"
+                render={({ field }) => (
+                  <FormItem className="group">
+                    <FormLabel className="capitalize">Type</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="text"
+                        className="w-full"
+                        placeholder="Type"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardGrid>
+          </div>
+        ) : null}
 
         {/* Order Details Section */}
         <div className="relative border rounded-md px-3 py-3">

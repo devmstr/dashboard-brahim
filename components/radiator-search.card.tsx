@@ -68,22 +68,16 @@ export const RadiatorSearchCard: React.FC<Props> = ({ product, children }) => {
         <div className="flex-1 pr-4">
           <div className="flex items-center gap-1.5 mb-2">
             <Car className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium">
-              Brands {product.Types?.length ? `(${product.Types?.length})` : ''}
-            </span>
+            <span className="text-sm font-medium">Brand</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {product.Types?.slice(0, 3).map((type) => (
+            {product.CarType && (
               <span
-                key={type.id}
+                key={product.CarType.id}
                 className="text-xs px-2 py-1 bg-white/80 rounded-full border border-gray-100"
               >
-                {type.Brand.name} - {type.Model.name}
-              </span>
-            ))}
-            {(product.Types?.length || 0) > 3 && (
-              <span className="text-xs px-2 py-1 bg-white/80 rounded-full border border-gray-100">
-                +{(product.Types?.length || 0) - 3} more
+                {product.CarType?.Model?.Family?.Brand.name} -{' '}
+                {product.CarType?.Model?.name}
               </span>
             )}
           </div>

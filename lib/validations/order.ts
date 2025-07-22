@@ -6,28 +6,31 @@ import { newCarSchema } from '@/app/dashboard/cars/new-car.form'
 
 // Car-related schemas
 export const vehicleSchema = z.object({
+  id: z.string().optional().nullable(),
+  name: z.string().optional().nullable(),
+  year: z.string().optional().nullable(),
+  fuel: z.string().optional().nullable(),
   Model: z
     .object({
       id: z.string(),
-      name: z.string().nullable()
+      name: z.string(),
+      Family: z
+        .object({
+          id: z.string(),
+          name: z.string(),
+          Brand: z
+            .object({
+              id: z.string(),
+              name: z.string()
+            })
+            .optional()
+            .nullable()
+        })
+        .optional()
+        .nullable()
     })
-    .optional(),
-  Family: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable()
-    })
-    .optional(),
-  Brand: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable()
-    })
-    .optional(),
-  id: z.string().optional(),
-  name: z.string().optional(),
-  year: z.string().optional().nullable(),
-  fuel: z.string().optional().nullable()
+    .optional()
+    .nullable()
 })
 
 export type VehicleSchemaType = z.infer<typeof vehicleSchema>
@@ -78,8 +81,7 @@ export const orderItemSchema = z.object({
   orderId: z.string().optional().nullable(),
   dirId: z.string().optional().nullable(),
   radiatorId: z.string().optional().nullable(),
-  Vehicle: vehicleSchema.optional().nullable(),
-  Model: newCarSchema.optional().nullable()
+  CarType: vehicleSchema.optional().nullable()
 })
 
 export type OrderItem = z.infer<typeof orderItemSchema>

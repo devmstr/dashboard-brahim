@@ -44,6 +44,7 @@ export type CarsTableEntry = {
   brand?: string | null
   brandId?: string | null
   model: string | null
+  modelId?: string | null
   family?: string | null
   familyId?: string | null
   type?: string | null
@@ -177,24 +178,24 @@ declare type ApiRadiator = {
     type: string | null
     radiatorId: string | null
   }[]
-  Types: {
+  CarType: {
+    id: string
+    name: string
+    year?: string
+    fuel?: string
     Model: {
       id: string
       name: string
+      Family: {
+        id: string
+        name: string
+        Brand: {
+          id: string
+          name: string
+        }
+      }
     }
-    Family: {
-      id: string
-      name: string
-    }
-    Brand: {
-      id: string
-      name: string
-    }
-    id: string
-    name: string
-    year: string | null
-    fuel: string | null
-  }[]
+  }
   Clients: {
     id: string
     name: string
@@ -211,6 +212,61 @@ declare type ApiRadiator = {
     approvalNumber: string | null
     addressId: string | null
   }[]
+}
+
+declare type Vehicle = {
+  id?: string | null
+  name?: string | null
+  year?: string | null
+  fuel?: string | null
+  Model?: {
+    id: string
+    name: string
+    Family?: {
+      id: string
+      name: string
+      Brand?: {
+        id: string
+        name: string
+      } | null
+    } | null
+  } | null
+}
+
+declare type OrderItem = {
+  id: string
+  type?: string | null
+  note?: any | null
+  description?: any | null
+  modification?: any | null
+  packaging?: string | null
+  fabrication?: string | null
+  label?: string | null
+  status?: string | null
+  category?: string | null
+  cooling?: string | null
+  isModified?: boolean | null
+  isTinned?: boolean | null
+  isPainted?: boolean | null
+  quantity?: number | null
+  fins?: string | null
+  pitch?: number | null
+  tubeType?: string | null
+  tubeDiameter?: number | null
+  rows?: number | null
+  betweenCollectors?: number | null
+  width?: number | null
+  position?: string | null
+  tightening?: string | null
+  perforation?: string | null
+  upperCollectorLength?: number | null
+  lowerCollectorLength?: number | null
+  upperCollectorWidth?: number | null
+  lowerCollectorWidth?: number | null
+  orderId?: string | null
+  dirId?: string | null
+  radiatorId?: string | null
+  CarType?: Vehicle | null
 }
 
 declare type InvoiceItem = {

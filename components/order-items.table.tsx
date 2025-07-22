@@ -92,14 +92,14 @@ export function OrderItemsTable({
 
   React.useEffect(() => {
     let orderItems: OrderItemsTableInput[] | undefined = order?.OrderItems?.map(
-      ({ id, Vehicle, type, label, fabrication, quantity }) => ({
+      ({ id, CarType, type, label, fabrication, quantity }) => ({
         id: id as string,
         fabrication: fabrication as string,
         quantity: quantity as number,
         type: type as string,
         label: label as string,
-        brand: Vehicle?.Brand?.name,
-        model: Vehicle?.name
+        brand: CarType?.Model?.Family?.Brand?.name,
+        model: CarType?.Model?.name
       })
     )
     if (orderItems) setData(orderItems)

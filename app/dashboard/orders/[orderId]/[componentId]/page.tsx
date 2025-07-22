@@ -37,7 +37,7 @@ const Page: React.FC<Props> = async ({
       where: { id: componentId },
       include: {
         Attachments: true,
-        Type: {
+        CarType: {
           include: {
             Model: {
               include: {
@@ -53,30 +53,11 @@ const Page: React.FC<Props> = async ({
       }
     })
 
-    const data = {
-      ...orderItem,
-      id: orderItem.id,
-      note: orderItem.note as Content,
-      modification: orderItem.modification as Content,
-      description: orderItem.description as Content,
-      Model: orderItem?.Type
-        ? {
-            id: orderItem.Type?.Model?.id as string,
-            model: orderItem.Type?.Model?.name,
-            brand: orderItem.Type?.Model?.Family?.Brand?.name,
-            family: orderItem.Type?.Model?.Family?.name,
-            type: orderItem.Type?.name,
-            year: orderItem.Type?.year as string,
-            fuel: orderItem.Type?.fuel as string
-          }
-        : undefined
-    }
-
     return (
       <div className="space-y-4">
         <Card>
-          {isSalesUser && <SalesEditOrderItemForm data={data} />}
-          {isEngineerUser && <TechnicianOrderItemForm data={data} />}
+          {isSalesUser && <SalesEditOrderItemForm data={orderItem} />}
+          {isEngineerUser && <TechnicianOrderItemForm data={orderItem} />}
         </Card>
       </div>
     )

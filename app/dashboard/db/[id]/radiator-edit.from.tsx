@@ -34,7 +34,8 @@ import { toast } from '@/hooks/use-toast'
 
 import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
 import { useEffect, useState } from 'react'
-import { SelectedCar, CarSelectionForm } from '@/components/car-selection.from'
+import { CarSelectionForm } from '@/components/car-selection.from'
+import { Vehicle } from '@/types'
 
 interface RadiatorEditFormProps {
   data: RadiatorSchemaType
@@ -43,22 +44,9 @@ interface RadiatorEditFormProps {
 export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
   // State management
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedCar, setSelectedCar] = useState<SelectedCar | undefined>({
-    Brand: {
-      id: data.Type?.Brand?.id as string,
-      name: data.Type?.Brand?.name as string
-    },
-    Family: {
-      id: data.Type?.Family?.id as string,
-      name: data.Type?.Family?.name as string
-    },
-    Model: {
-      id: data.Type?.Model?.id as string,
-      name: data.Type?.Model?.name as string
-    },
-    name: data.Type?.name as string,
-    year: data.Type?.year as string
-  })
+  const [selectedCar, setSelectedCar] = useState<Vehicle | undefined>(
+    data.CarType
+  )
 
   // Form initialization with data from props
   const form = useForm<RadiatorSchemaType>({
@@ -79,7 +67,8 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...formData
+          ...formData,
+          CarType: selectedCar
         })
       })
 

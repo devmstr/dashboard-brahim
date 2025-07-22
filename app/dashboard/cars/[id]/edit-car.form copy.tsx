@@ -13,21 +13,21 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import type { VehicleSchemaType } from '@/lib/validations'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { z } from 'zod'
-import { Plus, Minus } from 'lucide-react'
-import { json } from 'node:stream/consumers'
+import { Plus, Minus, Loader2 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 
-export const newCarSchema = z.object({
-  id: z.string().optional(),
+export const editCarSchema = z.object({
+  id: z.string(),
   brand: z.string().optional(),
+  brandId: z.string().optional(),
   model: z.string().optional(),
   family: z.string().optional(),
+  familyId: z.string().optional(),
   types: z
     .array(
       z.object({
@@ -39,56 +39,69 @@ export const newCarSchema = z.object({
     .optional()
 })
 
-export type NewCarSchemaType = z.infer<typeof newCarSchema>
+export type EditCarSchemaType = z.infer<typeof editCarSchema>
 
-export function CarForm() {
+interface EditCarFormProps {
+  data: EditCarSchemaType
+}
+
+export function EditCarForm({ data }: EditCarFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   // Initialize the form with default values
-  const form = useForm<NewCarSchemaType>({
-    resolver: zodResolver(newCarSchema),
-    defaultValues: {
-      types: [{ name: '', year: '', fuel: 'Essence' }]
-    }
+  const form = useForm<EditCarSchemaType>({
+    resolver: zodResolver(editCarSchema),
+    defaultValues: data
   })
 
   // Use field array for dynamic types
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control: form.control,
     name: 'types'
   })
 
   // Handle form submission
-  // Handle form submission
-  const handleSubmit = async (data: NewCarSchemaType) => {
+  const handleSubmit = async (data: EditCarSchemaType) => {
     setIsSubmitting(true)
+
     try {
-      const res = await fetch('/api/cars', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      console.log(await res.json())
+      const res = await fetch(
+        `/api/cars/brands/${data.brandId}/families/${data.familyId}/models/${data.id}`,
+        {
+          method: 'PATCH', // Use PATCH instead of PUT based on your API route
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        }
+      )
+
       if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`)
+        const errorData = await res.json()
+        throw new Error(errorData?.error || `HTTP error! Status: ${res.status}`)
       }
 
       toast({
         title: 'Succès',
-        description: 'Informations du véhicule enregistrées avec succès',
+        description: 'Informations du véhicule mises à jour avec succès',
         variant: 'success'
       })
-      router.refresh()
+
+      router.refresh() // Refresh the current page data
+      // router.push('/cars') // Navigate back to cars list
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: "Échec de l'enregistrement des informations du véhicule",
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Échec de la mise à jour des informations du véhicule',
         variant: 'destructive'
       })
-      console.error(error)
+
+      console.error('Update error:', error)
     } finally {
       setIsSubmitting(false)
     }
@@ -238,6 +251,7 @@ export function CarForm() {
                           <RadioGroup
                             onValueChange={inputField.onChange}
                             defaultValue={inputField.value}
+                            value={inputField.value}
                             className="flex flex-row space-x-6"
                           >
                             <FormItem className="flex items-center space-x-2 space-y-0">
@@ -271,9 +285,17 @@ export function CarForm() {
             </FormDescription>
           </div>
         </CardGrid>
-        <div className="w-full flex justify-end">
+        <div className="w-full flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={isSubmitting}
+          >
+            Retour
+          </Button>
           <Button type="submit" disabled={isSubmitting} className="w-fit">
-            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+            {isSubmitting ? 'Enregistrement...' : 'Mettre à jour'}
           </Button>
         </div>
       </form>

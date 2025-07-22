@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        Types: {
+        CarType: {
           include: {
             Model: {
               include: {
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 
     // Format the response to include only essential fields
     const formattedRadiators = radiators.map(
-      ({ Components, OrderItems, Types, Price, Inventory, ...radiator }) => ({
+      ({ Components, OrderItems, CarType, Price, Inventory, ...radiator }) => ({
         ...radiator,
         inventoryLevel: Inventory?.level,
         inventoryMaxLevel: Inventory?.maxLevel,
@@ -123,20 +123,7 @@ export async function GET(request: NextRequest) {
             quantity
           }))
         })),
-        Models: Types.map(({ Model, ...type }) => {
-          return {
-            ...type,
-            Model: {
-              id: Model?.id,
-              name: Model?.name
-            },
-            Family: {
-              id: Model?.Family?.id,
-              name: Model?.Family?.id
-            },
-            Brand: Model?.Family?.Brand
-          }
-        }),
+        CarType,
         Clients: OrderItems.map(({ Order }) => ({ ...Order?.Client }))
       })
     )

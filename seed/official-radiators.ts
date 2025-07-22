@@ -150,7 +150,7 @@ async function main() {
             isTinned: false,
             ...(model
               ? {
-                  Types: {
+                  CarType: {
                     connect: {
                       id: model.id
                     }

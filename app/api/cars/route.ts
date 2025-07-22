@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
     if (!modelRecord) {
       modelRecord = await prisma.model.create({
         data: {
+          id: skuId('MO'),
           name: model,
           familyId: familyRecord.id
         }

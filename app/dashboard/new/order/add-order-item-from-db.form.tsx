@@ -83,24 +83,10 @@ export function AddOrderItemFromDbFrom({
 
   function handleSubmit(data: FromType) {
     try {
-      const firstType = apiRadiator.Types.at(0)
       const orderItem: OrderItem = {
         ...apiRadiator,
         ...data,
-        radiatorId: apiRadiator.id,
-        ...(firstType
-          ? {
-              Vehicle: {
-                id: firstType.id as string,
-                name: firstType.name,
-                fuel: firstType.fuel as string,
-                year: firstType.year as string,
-                Brand: firstType.Brand,
-                Family: firstType.Family,
-                Model: firstType.Model
-              }
-            }
-          : { Vehicle: undefined })
+        radiatorId: apiRadiator.id
       }
       const parsed = orderItemSchema.parse(orderItem)
       onSubmit(parsed)
@@ -119,11 +105,11 @@ export function AddOrderItemFromDbFrom({
           </span>
           <div className="space-y-2">
             <div className="font-medium text-lg">{apiRadiator.label}</div>
-            {apiRadiator.Types[0]?.Brand?.name &&
-              apiRadiator.Types[0]?.name && (
+            {apiRadiator.CarType?.Model.Family.Brand.name &&
+              apiRadiator.CarType.name && (
                 <div className="text-sm text-muted-foreground">
-                  {apiRadiator.Types[0]?.Brand?.name} -{' '}
-                  {apiRadiator.Types[0]?.name}
+                  {apiRadiator.CarType?.Model.Family.Brand.name} -{' '}
+                  {apiRadiator.CarType.name}
                 </div>
               )}
           </div>

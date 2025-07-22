@@ -218,11 +218,11 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
       <div>
         <OrderItemsTable
           data={order?.OrderItems?.map(
-            ({ id, label, Vehicle, fabrication, type, quantity }) => ({
+            ({ id, label, CarType, fabrication, type, quantity }) => ({
               id: id as string,
               label: label as string,
-              brand: Vehicle?.Brand?.name,
-              model: Vehicle?.name,
+              brand: CarType?.Model?.Family?.Brand?.name,
+              model: CarType?.Model?.name,
               fabrication: fabrication as string,
               type: type as string,
               quantity: quantity as number

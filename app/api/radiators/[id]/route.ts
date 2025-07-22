@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const record = await prisma.radiator.findUnique({
       where: { id },
       include: {
-        Types: {
+        CarType: {
           include: {
             Model: {
               include: {
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    const { Components, Inventory, Types, OrderItems, Price, ...radiator } =
+    const { Components, Inventory, CarType, OrderItems, Price, ...radiator } =
       record
 
     // Format the response to include only essential fields
@@ -76,20 +76,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           quantity
         }))
       })),
-      Models: Types.map(({ Model, ...type }) => {
-        return {
-          ...type,
-          Model: {
-            id: Model?.id,
-            name: Model?.name
-          },
-          Family: {
-            id: Model?.Family?.id,
-            name: Model?.Family?.id
-          },
-          Brand: Model?.Family?.Brand
-        }
-      }),
+      CarType,
       Clients: OrderItems.map(({ Order }) => ({ ...Order?.Client }))
     })
   } catch (error) {
@@ -141,7 +128,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const label = generateRadiatorLabel(body)
     const hash = hash256(body)
 
-    const { Components, Type, ...data } = body as RadiatorSchemaType
+    const { Components, CarType, ...data } = body as RadiatorSchemaType
 
     // Start transaction for atomic update
     const radiator = await prisma.radiator.update({
@@ -150,16 +137,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         ...data,
         label,
         hash,
-        Types: {
+        CarType: {
           connect: {
-            id: Type?.id
+            id: CarType?.id ?? undefined
           }
         }
         // TODO: update Components
       }
     })
     // Optionally revalidate cache/path
-    revalidatePath('/dashboard/db')
+    revalidatePath(`/dashboard/db/${id}`)
     return NextResponse.json({
       message: 'Radiator updated',
       data: radiator

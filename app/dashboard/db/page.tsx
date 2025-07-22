@@ -20,11 +20,10 @@ const Page: React.FC<Props> = async ({}: Props) => {
           }
         }
       },
-      Types: {
+      CarType: {
         include: {
           Model: {
             include: {
-              Types: true,
               Family: {
                 include: {
                   Brand: true
@@ -37,10 +36,10 @@ const Page: React.FC<Props> = async ({}: Props) => {
     }
   })
   const data = radiators.map((radiator) => {
-    const { OrderItems, Types, ...rest } = radiator
+    const { OrderItems, CarType, ...rest } = radiator
     const company = OrderItems[0]?.Order?.Client.name || '_'
-    const model = Types[0]?.Model?.name || '_'
-    const brand = Types[0]?.Model?.Family?.Brand?.name || '_'
+    const model = CarType?.Model?.name || '_'
+    const brand = CarType?.Model?.Family?.Brand?.name || '_'
     return {
       ...rest,
       dirId: rest.directoryId || '_',

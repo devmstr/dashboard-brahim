@@ -248,7 +248,7 @@ model Radiator {
   Inventory            Inventory?    @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
   Price                Price?        @relation(fields: [priceId], references: [id], onDelete: SetNull)
   Directory            Directory?    @relation(fields: [directoryId], references: [id], onDelete: SetNull)
-  Types                Type[]
+  CarType              Type?
   OrderItems           OrderItem[]
   Components           Component[]
   invoiceId            String?
@@ -340,7 +340,7 @@ model Type {
   Model Model? @relation(fields: [modelId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   Radiator   Radiator?   @relation(fields: [radiatorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  radiatorId String?
+  radiatorId String?     @unique
   OrderItem  OrderItem[]
 
   @@map("car_type")
@@ -447,8 +447,6 @@ model OrderItem {
   lowerCollectorLength Int?
   upperCollectorWidth  Int?
   lowerCollectorWidth  Int?
-  Type                 Type?        @relation(fields: [typeId], references: [id], onDelete: SetNull)
-  typeId               String?
   createdAt            DateTime     @default(now()) // Made consistent (not optional)
   updatedAt            DateTime     @updatedAt // Made consistent (not optional)
   Order                Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
@@ -456,6 +454,8 @@ model OrderItem {
   Attachments          Attachment[]
   Radiator             Radiator?    @relation(fields: [radiatorId], references: [id])
   radiatorId           String?
+  CarType              Type?        @relation(fields: [carTypeId], references: [id])
+  carTypeId            String?      @map("typeId")
 
   @@map("orders")
 }

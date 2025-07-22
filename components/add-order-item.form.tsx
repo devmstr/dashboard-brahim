@@ -41,8 +41,9 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { generateRadiatorLabel, skuId } from '@/lib/utils'
 import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
-import { CarSelectionForm, type SelectedCar } from './car-selection.from'
+import { CarSelectionForm } from './car-selection.from'
 import { CardGrid } from './card'
+import { Vehicle } from '@/types'
 
 interface OrderItemFormProps {
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>
@@ -54,7 +55,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   onSubmit
 }) => {
   // State management
-  const [carSelection, setCarSelection] = useState<SelectedCar>()
+  const [carSelection, setCarSelection] = useState<Vehicle>()
   const [isModelAvailable, setIsModelAvailable] = useState(true)
   const [isModificationIncluded, setIsModificationIncluded] = useState(false)
   const [isCollectorsDifferent, setIsCollectorsDifferent] = useState(false)
@@ -187,17 +188,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
     const orderItem: OrderItem = {
       ...formData,
       label,
-      Vehicle:
-        isModelAvailable &&
-        carSelection?.model?.id &&
-        carSelection?.model?.name &&
-        carSelection?.brand?.name
-          ? {
-              id: carSelection.model.id,
-              name: carSelection.model.name,
-              Brand: carSelection.brand
-            }
-          : undefined
+      CarType: carSelection
     }
 
     onSubmit(orderItem)

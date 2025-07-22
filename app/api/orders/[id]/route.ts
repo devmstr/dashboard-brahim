@@ -23,7 +23,7 @@ export async function GET(
         Payment: true,
         OrdersItems: {
           include: {
-            Type: {
+            CarType: {
               include: {
                 Model: { include: { Family: { include: { Brand: true } } } }
               }
@@ -38,16 +38,11 @@ export async function GET(
     if (!order) {
       return NextResponse.json({ message: 'Order not found' }, { status: 404 })
     }
-
+    const { OrdersItems, ...orderData } = order
     return NextResponse.json({
-      ...order,
-      OrdersItems: order.OrdersItems.map((orderItem) => ({
-        ...orderItem,
-        Vehicle: {
-          brand: orderItem.Type?.Model?.Family?.Brand?.name,
-          model: orderItem.Type?.Model?.name,
-          family: orderItem.Type?.Model?.Family?.name
-        }
+      ...orderData,
+      OrdersItems: OrdersItems.map((orderItem) => ({
+        ...orderItem
       }))
     })
   } catch (error) {
@@ -132,7 +127,7 @@ export async function PUT(
         Payment: true,
         OrdersItems: {
           include: {
-            Type: {
+            CarType: {
               include: {
                 Model: { include: { Family: { include: { Brand: true } } } }
               }
@@ -183,7 +178,7 @@ export async function PUT(
                 label: item.label,
                 status: item.status || 'Prévu',
                 delivered: existingItem.delivered ?? 0,
-                typeId: item.Vehicle?.id
+                carTypeId: item.CarType?.id
               }
             })
           } else {
@@ -220,7 +215,7 @@ export async function PUT(
                 status: item.status || 'Prévu',
                 delivered: 0,
                 orderId: id,
-                typeId: item.Vehicle?.id
+                carTypeId: item.CarType?.id
               }
             })
           }
@@ -247,7 +242,7 @@ export async function PUT(
         OrdersItems: {
           include: {
             Attachments: true,
-            Type: {
+            CarType: {
               include: {
                 Model: { include: { Family: { include: { Brand: true } } } }
               }
@@ -385,7 +380,7 @@ export async function PATCH(
       where: { id },
       include: {
         Attachments: true,
-        Type: {
+        CarType: {
           include: {
             Model: { include: { Family: { include: { Brand: true } } } }
           }
@@ -441,7 +436,7 @@ export async function PATCH(
           label: body.label,
           status: body.status || 'Prévu',
           delivered: existingItem.delivered ?? 0,
-          typeId: body.Vehicle?.id,
+          carTypeId: body.CarType?.id,
           ...(isAuthorizedForValidation && {
             validatedAt: new Date().toLocaleString()
           })
@@ -471,7 +466,7 @@ export async function PATCH(
         where: { id },
         include: {
           Attachments: true,
-          Type: {
+          CarType: {
             include: {
               Model: {
                 include: {

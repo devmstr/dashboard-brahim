@@ -10,7 +10,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
   const isUserRoleValidator = await useServerCheckRoles('CONSULTANT')
 
   // Fetch car types with their model, family, and brand
-  const types = await prisma.type.findMany({
+  const carTypes = await prisma.type.findMany({
     include: {
       Model: {
         include: {
@@ -24,11 +24,12 @@ const Page: React.FC<Props> = async ({}: Props) => {
     }
   })
 
-  const cars = types.map((type) => ({
+  const cars = carTypes.map((type) => ({
     id: type.id,
-    manufacture: type.Model?.Family?.Brand?.name || 'N/A',
-    model: type.Model?.Family?.name || 'N/A',
-    car: type.Model?.name || 'N/A',
+    brand: type.Model?.Family?.Brand?.name || 'N/A',
+    family: type.Model?.Family?.name || 'N/A',
+    model: type.Model?.name || 'N/A',
+    modelId: type.modelId,
     type: type.name || 'N/A',
     year: type.year || 'N/A',
     fuel: type.fuel || 'N/A'

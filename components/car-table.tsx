@@ -68,7 +68,6 @@ interface Props {
     model: string
     type: string
     fuel: string
-    type: string
     year: string
     columns: string
     limit: string
@@ -150,7 +149,7 @@ export function CarTable({
         <div className="flex items-center">
           <Link
             className="hover:text-secondary hover:font-semibold hover:underline"
-            href={'cars/' + row.original.id}
+            href={'cars/' + row.original.modelId}
           >
             {row.original.id.toUpperCase()}
           </Link>

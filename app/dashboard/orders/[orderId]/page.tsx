@@ -44,7 +44,7 @@ const Page: React.FC<PageProps> = async ({
       OrdersItems: {
         include: {
           Attachments: true,
-          Type: {
+          CarType: {
             include: {
               Model: {
                 include: {
@@ -97,7 +97,7 @@ const Page: React.FC<PageProps> = async ({
       delivered,
       type,
       isModified,
-      Type
+      CarType
     }) => {
       return {
         id,
@@ -108,8 +108,8 @@ const Page: React.FC<PageProps> = async ({
         quantity,
         delivered,
         isModified,
-        model: Type?.Model?.name,
-        brand: Type?.Model?.Family?.Brand?.name
+        model: CarType?.Model?.name,
+        brand: CarType?.Model?.Family?.Brand?.name
       }
     }
   ) as ComponentsTableEntry[]
