@@ -23,7 +23,6 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
     'INVENTORY_AGENT'
   ],
   '/dashboard/client': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
-  '/dashboard/db': ['ADMIN', 'ENGINEER', 'ENGINEERING_MANAGER', 'CONSULTANT'],
   '/dashboard/timeline': [
     'ADMIN',
     // 'ENGINEER',

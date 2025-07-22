@@ -1,12 +1,9 @@
 import { DialogWrapper } from '@/components/dialog-wrapper'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
-import { delay } from '@/lib/utils'
-import { ClientSchemaType } from '../timeline/add-order.dialog'
+import { toast } from '@/hooks/use-toast'
 import { useTransition } from 'react'
-import { z } from 'zod'
-import { VehicleSchemaType } from '@/lib/validations'
-import { CarForm } from './new-car.form'
+import { CarForm, NewCarSchemaType } from './new-car.form'
 
 interface Props {}
 
@@ -26,7 +23,7 @@ export const AddCarButton: React.FC<Props> = ({}: Props) => {
         </Button>
       }
     >
-      <CarForm />
+      <CarForm onSubmit={handleSubmit} />
     </DialogWrapper>
   )
 }

@@ -63,9 +63,10 @@ interface Props {
   children?: React.ReactNode
   t?: {
     id: string
-    manufacture: string
-    car: string
+    brand: string
+    family: string
     model: string
+    type: string
     fuel: string
     type: string
     year: string
@@ -80,9 +81,9 @@ export function CarTable({
   children,
   t = {
     id: 'Matricule',
-    manufacture: 'Marque',
-    car: 'Véhicule',
-    model: 'Model',
+    brand: 'Marque',
+    model: 'Véhicule',
+    family: 'Famille',
     type: 'Motorisation',
     fuel: 'Énergie',
     year: 'Années',
@@ -157,7 +158,7 @@ export function CarTable({
       )
     },
     {
-      accessorKey: 'manufacture',
+      accessorKey: 'brand',
       header: ({ column }) => {
         return (
           <div
@@ -171,7 +172,7 @@ export function CarTable({
       }
     },
     {
-      accessorKey: 'car',
+      accessorKey: 'family',
       header: ({ column }) => {
         return (
           <div
@@ -226,7 +227,6 @@ export function CarTable({
         )
       }
     },
-
     {
       accessorKey: 'year',
       header: ({ column }) => {

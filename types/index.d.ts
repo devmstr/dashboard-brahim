@@ -41,12 +41,15 @@ export type OrderTableEntry = {
 }
 export type CarsTableEntry = {
   id: string
-  manufacture: string
-  car: string
-  model?: string
-  type?: string
-  fuel?: string
-  year?: string
+  brand?: string | null
+  brandId?: string | null
+  model: string | null
+  family?: string | null
+  familyId?: string | null
+  type?: string | null
+  typeId?: string | null
+  fuel?: string | null
+  year?: string | null
 }
 
 export type InventoryTableEntry = {
