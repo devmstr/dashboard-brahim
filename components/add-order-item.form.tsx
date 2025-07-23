@@ -296,11 +296,16 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         </div>
 
         {isModelAvailable ? (
-          <CarSelectionDropdowns
-            isOnDialog
-            selected={selectedCarType}
-            onSelectChange={setSelectedCarType}
-          />
+          <div className="relative border rounded-md px-3 py-3">
+            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+              véhicule
+            </span>
+            <CarSelectionDropdowns
+              isOnDialog
+              selected={selectedCarType}
+              onSelectChange={setSelectedCarType}
+            />
+          </div>
         ) : (
           <FormField
             control={form.control}

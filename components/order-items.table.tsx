@@ -129,17 +129,7 @@ export function OrderItemsTable({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </div>
         )
-      },
-      cell: ({ row }) => (
-        <div className="flex items-center">
-          <Link
-            className="hover:text-secondary hover:font-semibold hover:underline"
-            href={`${pathname}/${row.original.id}`}
-          >
-            {row.original.id}
-          </Link>
-        </div>
-      )
+      }
     },
 
     {
