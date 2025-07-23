@@ -36,6 +36,7 @@ import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
 import { useEffect, useState } from 'react'
 import { CarSelectionForm } from '@/components/car-selection.from'
 import { Vehicle } from '@/types'
+import { useRouter } from 'next/navigation'
 
 interface RadiatorEditFormProps {
   data: RadiatorSchemaType
@@ -43,6 +44,7 @@ interface RadiatorEditFormProps {
 
 export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
   // State management
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCar, setSelectedCar] = useState<Vehicle | undefined>(
     data.CarType
@@ -50,11 +52,9 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
 
   // Form initialization with data from props
   const form = useForm<RadiatorSchemaType>({
-    defaultValues: data,
+    defaultValues: { ...data, CarType: { id: '' } },
     resolver: zodResolver(radiatorSchema)
   })
-
-  useEffect(() => {})
 
   // Handle form submission
   const handleSubmit = async (formData: RadiatorSchemaType) => {
@@ -81,6 +81,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
         description: 'Le radiateur a été mis à jour avec succès.',
         variant: 'success'
       })
+      router.refresh()
     } catch (error) {
       console.error('Error updating radiator:', error)
       toast({
@@ -98,7 +99,9 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
     <Form {...form}>
       <form
         className="pt-2 space-y-6"
-        onSubmit={form.handleSubmit(handleSubmit)}
+        onSubmit={form.handleSubmit(handleSubmit, (errors) => {
+          console.log('Validation errors:', errors)
+        })}
       >
         <div className="relative border rounded-md px-3 py-3">
           <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
@@ -501,13 +504,51 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
           />
           {/* Radiator Attachment - Using Uploader component */}
         </div>
+        <div className="relative space-y-3 border rounded-md px-3 py-3">
+          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+            GSM Info
+          </span>
+          {/* DirId Field */}
+          <FormField
+            control={form.control}
+            name="barcode"
+            render={({ field }) => (
+              <FormItem className="group">
+                <FormLabel className="capitalize">Barcode</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="613248..."
+                    className="w-full"
+                    value={field.value}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Radiator Attachment - Using Uploader component */}
+        </div>
 
         {/* Form Submission */}
-        <div className="pt-3 flex flex-col items-end gap-4">
+        <div className="pt-3 flex flex-col justify-end items-end gap-4">
           <Separator />
-          <Button className="w-24" type="submit" disabled={isLoading}>
-            {isLoading ? 'Mise à jour...' : 'Mettre à jour'}
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              onClick={(e) => {
+                e.preventDefault()
+                router.back()
+              }}
+              variant={'outline'}
+              className="w-24"
+              type="button"
+            >
+              Retour
+            </Button>
+            <Button className="w-24" type="submit" disabled={isLoading}>
+              {isLoading ? 'Mise à jour...' : 'Mettre à jour'}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

@@ -9,6 +9,7 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
   '/dashboard/cars': ['ADMIN', 'CONSULTANT', 'ENGINEERING_MANAGER'],
   '/dashboard/new': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
   '/dashboard/pos': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
+  '/dashboard/db': ['ADMIN', 'ENGINEER', 'ENGINEERING_MANAGER', 'CONSULTANT'],
   '/dashboard/orders': [
     'ADMIN',
     'SALES_AGENT',

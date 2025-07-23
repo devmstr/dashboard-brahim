@@ -83,7 +83,7 @@ export type Type = 'Radiateur' | 'Spirale' | 'Faisceau' | 'Autre'
 export type Fabrication = 'Confection' | 'Rénovation'
 export type Cooling = 'Eau' | 'Air' | 'Huile'
 
-interface ProductConfig {
+export interface ProductConfig {
   type?: string | null
   fabrication?: string | null
   cooling?: string | null
@@ -161,8 +161,10 @@ export function generateRadiatorLabel({
     core,
     `${rows}${finsTube}`,
     collectors,
-    TIGHTENING_T[tightening as Tightening],
-    POSITION_T[position as Position],
+    [
+      TIGHTENING_T[tightening as Tightening],
+      POSITION_T[position as Position]
+    ].join(''),
     coolingText,
     brandModel
   ]

@@ -1,20 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import SHA256 from 'crypto-js/sha256'
+import { ProductConfig } from './utils'
 
-export interface HashDataType {
-  fins: string | null
-  coreHeight: string | null
-  coreWidth: string | null
-  collectorHeight: string | null
-  collectorWidth: string | null
-  rows: string | null
-  finsPitch: string | null
-  tube: string | null
-  collectorPosition: string | null
-  collectorTightening: string | null
-}
-
-export function hash256(data: HashDataType): string {
+export function hash256(data: ProductConfig): string {
   // Remove null values and sort the object keys
   const cleanedData = Object.fromEntries(
     Object.entries(data)

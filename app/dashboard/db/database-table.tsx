@@ -77,7 +77,7 @@ export interface DatabaseTableEntry {
   designation: string
   brand?: string
   model?: string
-  company?: string
+  type?: string
   createdAt: string
 }
 
@@ -93,7 +93,7 @@ interface DatabaseTableProps {
     designation: string
     brand: string
     model: string
-    company: string
+    type: string
     createdAt: string
     limit: string
     export: string
@@ -129,7 +129,7 @@ export function DatabaseTable({
     designation: 'Désignation',
     brand: 'Marque',
     model: 'Modèle',
-    company: 'Entreprise',
+    type: 'Motorisation',
     createdAt: 'Date de création',
     limit: 'Limite',
     export: 'Exporter',
@@ -226,31 +226,62 @@ export function DatabaseTable({
     },
     barcode: {
       cell: ({ row }) => (
-        <div className="flex items-center font-medium  truncate">
+        <div className="flex items-center   truncate">
           {row.original.barcode || '_'}
         </div>
       )
     },
     model: {
       cell: ({ row }) => (
-        <div className="flex items-center font-medium max-w-36 truncate overflow-hidden whitespace-nowrap">
+        <div className="flex items-center  max-w-36 truncate overflow-hidden whitespace-nowrap">
           {row.original.model}
         </div>
       )
     },
     brand: {
       cell: ({ row }) => (
-        <div className="flex items-center font-medium max-w-36 truncate overflow-hidden whitespace-nowrap">
+        <div className="flex items-center  max-w-36 truncate overflow-hidden whitespace-nowrap">
           {row.original.brand}
         </div>
       )
     },
     designation: {
-      cell: ({ row }) => (
-        <div className="flex items-center font-medium max-w-[300px] truncate">
-          {row.original.designation}
-        </div>
-      )
+      accessorKey: 'label',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { designation }
+        }
+      }) => {
+        const regex = /(?<=x)\d+|\d+(?=x)/gi
+        const parts = designation.split(regex)
+        const matches = designation.match(regex)
+
+        return (
+          <p className="text-muted-foreground text-base  truncate  overflow-hidden whitespace-nowrap max-w-md">
+            {parts.map((part, index) => (
+              <React.Fragment key={index}>
+                {part}
+                {matches && matches[index] && (
+                  <span className="font-bold text-primary">
+                    {matches[index]}
+                  </span>
+                )}
+              </React.Fragment>
+            ))}
+          </p>
+        )
+      }
     },
     createdAt: {
       cell: ({ row }) => (
@@ -354,7 +385,7 @@ export function DatabaseTable({
       order: 6
     },
     {
-      id: 'company',
+      id: 'type',
       roles: [
         'GUEST',
         'SALES_AGENT',
@@ -398,7 +429,7 @@ export function DatabaseTable({
         method: 'DELETE'
       })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
+        const data = await res.json()
         toast({
           title: 'Erreur',
           description: data.error || 'Erreur lors de la suppression',

@@ -36,7 +36,8 @@ import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
 import { useEffect, useState } from 'react'
 import { orderItemSchema } from '@/lib/validations'
 import { CarSelectionForm } from '@/components/car-selection.from'
-import { OrderItem } from '@/types'
+import { OrderItem, Vehicle } from '@/types'
+import { useRouter } from 'next/navigation'
 
 interface TechnicianOrderItemFormProps {
   data: OrderItem
@@ -47,6 +48,11 @@ export const TechnicianOrderItemForm: React.FC<
 > = ({ data }) => {
   // State management
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  const [selectedCar, setSelectedCar] = useState<Vehicle | undefined>(
+    data.CarType ?? undefined
+  )
 
   // Form initialization with data from props
   const form = useForm<OrderItem>({
@@ -60,21 +66,26 @@ export const TechnicianOrderItemForm: React.FC<
   const handleSubmit = async (formData: OrderItem) => {
     try {
       setIsLoading(true)
-      // delete components from formData
-
       // Default implementation - make a fetch request
       const response = await fetch(`/api/radiators/${data.id || ''}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...formData
+          ...formData,
+          CarType: selectedCar
         })
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update radiator')
+        const errorBody = await response.json()
+        console.log(errorBody)
+        throw new Error(
+          errorBody.details ||
+            errorBody.error ||
+            'Une erreur est survenue lors de la mise à jour du radiateur.'
+        )
       }
 
       toast({
@@ -82,12 +93,13 @@ export const TechnicianOrderItemForm: React.FC<
         description: 'Le radiateur a été mis à jour avec succès.',
         variant: 'success'
       })
-    } catch (error) {
+
+      router.refresh()
+    } catch (error: any) {
       console.error('Error updating radiator:', error)
       toast({
         title: 'Erreur',
-        description:
-          'Une erreur est survenue lors de la mise à jour du radiateur.',
+        description: error.message || String(error),
         variant: 'destructive'
       })
     } finally {
@@ -106,81 +118,10 @@ export const TechnicianOrderItemForm: React.FC<
             <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
               Véhicule
             </span>
-            <CardGrid>
-              <FormField
-                control={form.control}
-                name="CarType.Model.Family.Brand.name"
-                render={({ field }) => (
-                  <FormItem className="group">
-                    <FormLabel className="capitalize">Marque</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        value={field.value}
-                        type="text"
-                        className="w-full"
-                        placeholder="Marque"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="CarType.Model.Family.name"
-                render={({ field }) => (
-                  <FormItem className="group">
-                    <FormLabel className="capitalize">Famille</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        className="w-full"
-                        placeholder="Famille"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="CarType.Model.name"
-                render={({ field }) => (
-                  <FormItem className="group">
-                    <FormLabel className="capitalize">Modèle</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        className="w-full"
-                        placeholder="Modèle"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="CarType.name"
-                render={({ field }) => (
-                  <FormItem className="group">
-                    <FormLabel className="capitalize">Type</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="text"
-                        className="w-full"
-                        placeholder="Type"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardGrid>
+            <CarSelectionForm
+              selected={selectedCar}
+              onSelectChange={setSelectedCar}
+            />
           </div>
         ) : null}
 

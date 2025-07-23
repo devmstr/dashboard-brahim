@@ -37,6 +37,7 @@ const Page: React.FC<Props> = async ({
       where: { id: componentId },
       include: {
         Attachments: true,
+        Radiator: true,
         CarType: {
           include: {
             Model: {
@@ -56,8 +57,16 @@ const Page: React.FC<Props> = async ({
     return (
       <div className="space-y-4">
         <Card>
-          {isSalesUser && <SalesEditOrderItemForm data={orderItem} />}
-          {isEngineerUser && <TechnicianOrderItemForm data={orderItem} />}
+          {isSalesUser && (
+            <SalesEditOrderItemForm
+              data={{ ...orderItem, dirId: orderItem.Radiator?.dirId }}
+            />
+          )}
+          {isEngineerUser && (
+            <TechnicianOrderItemForm
+              data={{ ...orderItem, dirId: orderItem.Radiator?.dirId }}
+            />
+          )}
         </Card>
       </div>
     )

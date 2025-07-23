@@ -24,6 +24,7 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { AddressSelector, AddressSelectorData } from './address.selector'
 import { skuId } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   data?: Client
@@ -40,6 +41,7 @@ export const ClientInfoForm: React.FC<Props> = ({
   data: initialData,
   onSuccess
 }: Props) => {
+  const router = useRouter()
   // Initialize form with React Hook Form
   const form = useForm<Client>({
     resolver: zodResolver(clientSchema),
@@ -125,7 +127,7 @@ export const ClientInfoForm: React.FC<Props> = ({
         if (onSuccess) {
           onSuccess(createdClient)
         }
-
+        router.refresh()
         // Reset form
         form.reset()
       } catch (error) {

@@ -41,7 +41,7 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { generateRadiatorLabel, skuId } from '@/lib/utils'
 import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
-import { CarSelectionForm } from './car-selection.from'
+import { CarSelectionDropdowns, CarSelectionForm } from './car-selection.from'
 import { CardGrid } from './card'
 import { Vehicle } from '@/types'
 
@@ -55,7 +55,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   onSubmit
 }) => {
   // State management
-  const [carSelection, setCarSelection] = useState<Vehicle>()
+  const [selectedCarType, setSelectedCarType] = useState<Vehicle>()
   const [isModelAvailable, setIsModelAvailable] = useState(true)
   const [isModificationIncluded, setIsModificationIncluded] = useState(false)
   const [isCollectorsDifferent, setIsCollectorsDifferent] = useState(false)
@@ -173,7 +173,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       return
     }
 
-    if (!carSelection && isModelAvailable) {
+    if (!selectedCarType && isModelAvailable) {
       toast({
         title: 'Attention !',
         description:
@@ -188,7 +188,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
     const orderItem: OrderItem = {
       ...formData,
       label,
-      CarType: carSelection
+      CarType: selectedCarType
     }
 
     onSubmit(orderItem)
@@ -296,7 +296,11 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         </div>
 
         {isModelAvailable ? (
-          <CarSelectionForm onSelectChange={setCarSelection} />
+          <CarSelectionDropdowns
+            isOnDialog
+            selected={selectedCarType}
+            onSelectChange={setSelectedCarType}
+          />
         ) : (
           <FormField
             control={form.control}

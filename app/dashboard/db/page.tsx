@@ -40,12 +40,13 @@ const Page: React.FC<Props> = async ({}: Props) => {
     const company = OrderItems[0]?.Order?.Client.name || '_'
     const model = CarType?.Model?.name || '_'
     const brand = CarType?.Model?.Family?.Brand?.name || '_'
+    const type = CarType?.name || '_'
     return {
       ...rest,
-      dirId: rest.directoryId || '_',
+      dirId: rest.dirId || '_',
       barcode: rest.barcode || '_',
       designation: rest.label || '_',
-      company,
+      type,
       model,
       brand,
       createdAt: rest.createdAt.toLocaleString()
