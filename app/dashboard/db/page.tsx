@@ -33,7 +33,8 @@ const Page: React.FC<Props> = async ({}: Props) => {
           }
         }
       }
-    }
+    },
+    orderBy: { updatedAt: 'desc' }
   })
   const data = radiators.map((radiator) => {
     const { OrderItems, CarType, ...rest } = radiator
