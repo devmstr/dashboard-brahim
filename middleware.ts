@@ -25,10 +25,10 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
   ],
   '/dashboard/client': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
   '/dashboard/timeline': [
-    'ADMIN',
+    'ADMIN'
     // 'ENGINEER',
     // 'ENGINEERING_MANAGER',
-    'CONSULTANT'
+    // 'CONSULTANT'
   ]
   // Add more routes and roles as needed
 }

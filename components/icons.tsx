@@ -77,12 +77,14 @@ import { FaChartGantt } from 'react-icons/fa6'
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia'
 import { TbDeviceIpadDollar, TbFileInvoice } from 'react-icons/tb'
 import { TbPackageImport } from 'react-icons/tb'
+import { PiBuildingsBold } from 'react-icons/pi'
 
 import { cn } from '@/lib/utils'
 
 export type Icon = LucideIcon
 
 export const Icons = {
+  carBrand: PiBuildingsBold,
   deliveryPackage: TbPackageImport,
   checkCircle: CheckCircle,
   sideCar: Car,

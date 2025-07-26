@@ -23,6 +23,7 @@ import { TbCategory2, TbEngine } from 'react-icons/tb'
 import { CardGrid } from './card'
 import { SearchComboBox } from './search-combo-box'
 import { LiaCarSideSolid } from 'react-icons/lia'
+import { Icons } from './icons'
 
 interface CarSelectionFormProps {
   children?: React.ReactNode
@@ -77,7 +78,7 @@ export function CarSelectionForm({
         <CardContent className=" p-6 space-y-6">
           <div className="flex justify-around space-y-4">
             <div className="flex items-center gap-3 py-2">
-              <SiMercedes className="h-6 w-6 text-gray-400" />
+              <Icons.carBrand className="h-6 w-6 text-gray-400" />
               <div className="flex-1">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   Marque
