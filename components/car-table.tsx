@@ -149,7 +149,7 @@ export function CarTable({
         <div className="flex items-center">
           <Link
             className="hover:text-secondary hover:font-semibold hover:underline"
-            href={'cars/' + row.original.modelId}
+            href={'/dashboard/cars/' + row.original.modelId}
           >
             {row.original.id.toUpperCase()}
           </Link>

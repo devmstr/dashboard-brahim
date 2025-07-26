@@ -326,6 +326,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 1
@@ -338,6 +339,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 2
@@ -350,6 +352,7 @@ export function DatabaseTable({
         'SALES_AGENT',
         'CONSULTANT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 3
@@ -362,6 +365,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 4
@@ -374,6 +378,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 5
@@ -386,6 +391,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 6
@@ -398,6 +404,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 7
@@ -410,6 +417,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 8,
@@ -423,6 +431,7 @@ export function DatabaseTable({
         'SALES_MANAGER',
         'INVENTORY_AGENT',
         'ENGINEER',
+        'CONSULTANT',
         'ENGINEERING_MANAGER'
       ],
       order: 8
