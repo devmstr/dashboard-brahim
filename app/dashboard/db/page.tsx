@@ -38,7 +38,6 @@ const Page: React.FC<Props> = async ({}: Props) => {
   })
   const data = radiators.map((radiator) => {
     const { OrderItems, CarType, ...rest } = radiator
-    const company = OrderItems[0]?.Order?.Client.name || '_'
     const model = CarType?.Model?.name || '_'
     const brand = CarType?.Model?.Family?.Brand?.name || '_'
     const type = CarType?.name || '_'
@@ -46,7 +45,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
       ...rest,
       dirId: rest.dirId || '_',
       barcode: rest.barcode || '_',
-      designation: rest.label || '_',
+      label: rest.label || '_',
       type,
       model,
       brand,

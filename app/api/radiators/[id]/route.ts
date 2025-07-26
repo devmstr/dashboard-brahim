@@ -125,8 +125,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     })
     const hash = hash256({
       ...body,
-      brand: body.CarType.Model.Family.Brand.name,
-      model: body.CarType.name
+      brand: body.CarType?.Model?.Family?.Brand?.name,
+      model: body.CarType?.name
     })
 
     const { Components, CarType, ...data } = body as RadiatorSchemaType
@@ -138,11 +138,19 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         ...data,
         label,
         hash,
-        CarType: {
-          connect: {
-            id: CarType?.id ?? undefined
-          }
-        }
+        ...(CarType?.id
+          ? {
+              CarType: {
+                connect: {
+                  id: CarType.id
+                }
+              }
+            }
+          : {
+              CarType: {
+                disconnect: true
+              }
+            })
         // TODO: update Components
       }
     })

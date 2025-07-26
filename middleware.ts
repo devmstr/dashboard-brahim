@@ -14,6 +14,7 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
     'ADMIN',
     'SALES_AGENT',
     'SALES_MANAGER',
+    'CONSULTANT',
     'ENGINEER',
     'ENGINEERING_MANAGER'
   ],

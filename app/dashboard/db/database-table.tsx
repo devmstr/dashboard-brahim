@@ -74,7 +74,7 @@ export interface DatabaseTableEntry {
   id: string
   dirId?: string
   barcode?: string
-  designation: string
+  label: string
   brand?: string
   model?: string
   type?: string
@@ -90,7 +90,7 @@ interface DatabaseTableProps {
     id: string
     dirId: string
     barcode: string
-    designation: string
+    label: string
     brand: string
     model: string
     type: string
@@ -126,7 +126,7 @@ export function DatabaseTable({
     id: 'ID',
     dirId: 'Dossier',
     barcode: 'Code à barres',
-    designation: 'Désignation',
+    label: 'Désignation',
     brand: 'Marque',
     model: 'Modèle',
     type: 'Motorisation',
@@ -260,12 +260,12 @@ export function DatabaseTable({
       },
       cell: ({
         row: {
-          original: { designation }
+          original: { label }
         }
       }) => {
         const regex = /(?<=x)\d+|\d+(?=x)/gi
-        const parts = designation.split(regex)
-        const matches = designation.match(regex)
+        const parts = label.split(regex)
+        const matches = label.match(regex)
 
         return (
           <div className="max-w-sm overflow-x-auto scrollbar-hidden">

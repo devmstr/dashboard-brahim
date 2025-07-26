@@ -150,9 +150,9 @@ export function CarSelectionForm({
       selected={selected}
       isEditing={isEditing}
       onCancel={() => {
+        onSelectChange(undefined)
         if (selected) {
           setIsEditing(false)
-          onSelectChange(undefined)
         }
       }}
     />
