@@ -34,7 +34,7 @@ import { toast } from '@/hooks/use-toast'
 
 import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
 import { useEffect, useState } from 'react'
-import { CarSelectionForm } from '@/components/car-selection.from'
+import { CarSelectionForm } from '@/components/car-selector'
 import { Vehicle } from '@/types'
 import { useRouter } from 'next/navigation'
 
@@ -103,15 +103,10 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
           console.log('Validation errors:', errors)
         })}
       >
-        <div className="relative border rounded-md px-3 py-3">
-          <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-            Véhicule
-          </span>
-          <CarSelectionForm
-            selected={selectedCar}
-            onSelectChange={setSelectedCar}
-          />
-        </div>
+        <CarSelectionForm
+          selected={selectedCar}
+          onSelectChange={setSelectedCar}
+        />
 
         {/* Technical Details Section - Always visible */}
         <div className="relative space-y-3 border rounded-md px-3 py-3">

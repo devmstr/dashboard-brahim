@@ -1,9 +1,10 @@
 import type React from 'react'
-import { Car, Factory, Info, Tractor, Zap, Users } from 'lucide-react'
+import { Car, Factory, Info, Tractor, Zap, Users, Package } from 'lucide-react'
 import type { OrderItem } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ApiRadiator } from '@/types'
+import { SiMercedes } from 'react-icons/si'
 
 interface Props {
   product: ApiRadiator
@@ -63,54 +64,58 @@ export const RadiatorSearchCard: React.FC<Props> = ({ product, children }) => {
       </div>
 
       {/* Bottom section with brands and clients */}
-      <div className="mt-6 pt-4 border-t border-gray-100 flex">
+      <div className="mt-6 pt-4 w-full border-t border-gray-100 flex">
         {/* Brands section */}
-        <div className="flex-1 pr-4">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Car className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium">Brand</span>
+        {product.CarType && (
+          <div className="space-y-3 flex-1">
+            <div className="flex items-center gap-3">
+              <SiMercedes className="h-6 w-6 text-gray-400" />
+              <div className="flex-1">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Marque & Modèle
+                </span>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
+                  {product.CarType.Model.Family.Brand.name} -{' '}
+                  {product.CarType.Model.name}
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {product.CarType && (
-              <span
-                key={product.CarType.id}
-                className="text-xs px-2 py-1 bg-white/80 rounded-full border border-gray-100"
-              >
-                {product.CarType?.Model?.Family?.Brand.name} -{' '}
-                {product.CarType?.Model?.name}
-              </span>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Vertical separator */}
         <div className="w-px bg-gray-200 mx-2"></div>
 
         {/* Clients section */}
-        <div className="flex-1 pl-4">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Users className="h-4 w-4 text-gray-500" />
-            <span className="text-sm font-medium">
-              Clients{' '}
-              {product.Clients?.length ? `(${product.Clients?.length})` : ''}
-            </span>
+        {product.Clients && product.Clients.length > 0 && (
+          <div className="space-y-3 flex-1">
+            <div className="flex items-center gap-3">
+              <Users className="h-6 w-6 text-gray-400" />
+              <div className="flex-1">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Clients ({product.Clients.length})
+                </span>
+                <div className="mt-2 space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {product.Clients.slice(0, 3).map((client) => (
+                      <span
+                        key={client.id}
+                        className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded"
+                      >
+                        {client.name}
+                      </span>
+                    ))}
+                    {product.Clients.length > 3 && (
+                      <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded">
+                        +{product.Clients.length - 3} autres
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {product.Clients?.slice(0, 3).map((client) => (
-              <span
-                key={client.id}
-                className="text-xs px-2 py-1 bg-white/80 rounded-full border border-gray-100"
-              >
-                {client.name}
-              </span>
-            ))}
-            {(product.Clients?.length || 0) > 3 && (
-              <span className="text-xs px-2 py-1 bg-white/80 rounded-full border border-gray-100">
-                +{(product.Clients?.length || 0) - 3} more
-              </span>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

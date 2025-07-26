@@ -35,7 +35,7 @@ import { toast } from '@/hooks/use-toast'
 import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
 import { useEffect, useState } from 'react'
 import { orderItemSchema } from '@/lib/validations'
-import { CarSelectionForm } from '@/components/car-selection.from'
+import { CarSelectionForm } from '@/components/car-selector'
 import { OrderItem, Vehicle } from '@/types'
 import { useRouter } from 'next/navigation'
 

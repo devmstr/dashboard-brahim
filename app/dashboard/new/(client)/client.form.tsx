@@ -78,7 +78,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
   return (
     <CustomerSearchInput selected={customer} onSelectChange={onClientChange}>
       <div className=" flex flex-col gap-4 w-full">
-        <Label className="text-foreground">Derniers Acheteurs</Label>
+        {/* <Label className="text-foreground">Derniers Acheteurs</Label>
         <ClientTable
           className=""
           renderActions={renderRowActions}
@@ -87,7 +87,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
           showSearch={false}
           showPaginationButtons={false}
           data={data}
-        />
+        /> */}
         <Separator />
         <div className="flex w-full justify-end">
           <Button onClick={handleSubmit} className="min-w-28" type="submit">

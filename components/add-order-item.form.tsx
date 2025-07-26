@@ -41,7 +41,7 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { generateRadiatorLabel, skuId } from '@/lib/utils'
 import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
-import { CarSelectionDropdowns, CarSelectionForm } from './car-selection.from'
+import { CarSelectionDropdowns, CarSelectionForm } from './car-selector'
 import { CardGrid } from './card'
 import { Vehicle } from '@/types'
 
@@ -296,16 +296,11 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
         </div>
 
         {isModelAvailable ? (
-          <div className="relative border rounded-md px-3 py-3">
-            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              véhicule
-            </span>
-            <CarSelectionDropdowns
-              isOnDialog
-              selected={selectedCarType}
-              onSelectChange={setSelectedCarType}
-            />
-          </div>
+          <CarSelectionDropdowns
+            isOnDialog
+            selected={selectedCarType}
+            onSelectChange={setSelectedCarType}
+          />
         ) : (
           <FormField
             control={form.control}

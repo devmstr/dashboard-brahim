@@ -191,7 +191,7 @@ export default function CustomerSearchInput({
           <AddNewClientDialogButton />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
             <div className="relative w-full" ref={triggerRef}>
@@ -309,76 +309,127 @@ export default function CustomerSearchInput({
             </Command>
           </PopoverContent>
         </Popover>
-        {/* Selected Client Card */}
-        <div className="mt-4 min-h-8 flex items-center justify-center">
-          {selected && !clientDataReady && (
-            <div className="w-full flex flex-col items-center justify-center py-4">
-              <Icons.spinner className="w-8 h-8 animate-spin mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Chargement des informations client...
-              </p>
-            </div>
-          )}
 
-          {selected && clientDataReady && (
-            <div className="w-full p-3 border rounded-md relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-1 h-6 w-6"
-                onClick={clearSelectedClient}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <div className="flex gap-3">
-                {selected.label && (
-                  <div className="flex items-center text-sm">
-                    <Tag className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{selected.label}</span>
-                  </div>
-                )}
-                <div className="flex items-center text-sm">
+        {/* // Selected client state */}
+        {selected && clientDataReady ? (
+          <div className="w-full">
+            <Card className="w-full border border-gray-200 dark:border-gray-800">
+              <CardHeader className="flex flex-row items-center justify-between  py-2 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3">
                   {selected.isCompany ? (
-                    <Building className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <Building className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                   ) : (
-                    <User className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                   )}
-                  <span className="font-medium">{selected.name}</span>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                      Client Sélectionné
+                    </h3>
+                  </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelectedClient}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardHeader>
 
-                {selected.email && (
-                  <div className="flex items-center text-sm">
-                    <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{selected.email}</span>
-                  </div>
-                )}
+              <CardContent className="space-y-6">
+                <div className="flex justify-around space-y-2">
+                  {selected.label && (
+                    <div className="mt-2 flex items-center gap-3 py-2">
+                      <Tag className="h-4 w-4 text-gray-400" />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          Libellé
+                        </span>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {selected.label}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                {selected.province && (
-                  <div className="flex items-center text-sm">
-                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span>{selected.province}</span>
+                  <div className="flex items-center gap-3 py-2">
+                    {selected.isCompany ? (
+                      <Building className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <User className="h-4 w-4 text-gray-400" />
+                    )}
+                    <div className="flex-1">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {selected.isCompany ? 'Entreprise' : 'Nom'}
+                      </span>
+                      <div className="font-medium text-gray-900 dark:text-gray-100">
+                        {selected.name}
+                      </div>
+                    </div>
                   </div>
-                )}
-                {selected.phone && (
-                  <div className="flex gap-2 items-center">
-                    <Phone className="w-4 h-4  text-muted-foreground" />
-                    <span className="text-foreground ">
-                      {formatPhoneNumber(selected.phone)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
-          {!selected && !isLoading && (
-            <p className="text-sm text-muted-foreground">
-              Aucun client sélectionné
-            </p>
-          )}
-        </div>
+                  {selected.email && (
+                    <div className="flex items-center gap-3 py-2">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          Email
+                        </span>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {selected.email}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selected.province && (
+                    <div className="flex items-center gap-3 py-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          Wilaya
+                        </span>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {selected.province}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selected.phone && (
+                    <div className="flex items-center gap-3 py-2">
+                      <Phone className="h-4 w-4 text-gray-400" />
+                      <div className="flex-1">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          Téléphone
+                        </span>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {formatPhoneNumber(selected.phone)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="w-full">
+            <Card className="w-full border border-gray-200 dark:border-gray-800">
+              <CardContent className="p-4">
+                <div className="flex flex-col items-center justify-center py-6">
+                  <User className="w-8 h-8 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Aucun client sélectionné
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="w-full">{children}</CardFooter>
+      {children && <CardFooter className="w-full">{children}</CardFooter>}
     </Card>
   )
 }

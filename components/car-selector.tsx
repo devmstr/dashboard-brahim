@@ -1,11 +1,13 @@
 'use client'
 
-import type React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect, useState, useRef } from 'react'
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import type * as z from 'zod'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   Form,
   FormField,
@@ -13,14 +15,14 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { SearchComboBox } from './search-combo-box'
-import { CardGrid } from './card'
-import type { Vehicle } from '@/types'
 import { vehicleSchema } from '@/lib/validations'
-import { Edit, X } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import type { Vehicle } from '@/types'
+import { Calendar, Car, Edit, Settings, X } from 'lucide-react'
+import { SiMercedes } from 'react-icons/si'
+import { TbCategory2, TbEngine } from 'react-icons/tb'
+import { CardGrid } from './card'
+import { SearchComboBox } from './search-combo-box'
+import { LiaCarSideSolid } from 'react-icons/lia'
 
 interface CarSelectionFormProps {
   children?: React.ReactNode
@@ -49,37 +51,91 @@ export function CarSelectionForm({
   // If selected data is present and not editing, show the card
   if (selected && !isEditing) {
     return (
-      <Card className="w-full flex justify-between">
-        <CardHeader className="order-2 flex  items-center justify-between space-y-0 pb-2">
+      <Card className="w-full border border-gray-200 dark:border-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="flex items-center gap-3">
+            <Car className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Véhicule Sélectionné
+              </h3>
+            </div>
+          </div>
           {!isReadOnly && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-2"
+              className="text-gray-600 dark:text-gray-400"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-4 w-4 mr-2" />
               Modifier
             </Button>
           )}
         </CardHeader>
-        <CardContent className="order-1 space-y-2 mt-2">
-          <div>
-            <span className="font-medium">Marque:</span>{' '}
-            {selected.Model?.Family?.Brand?.name}
+
+        <CardContent className=" p-6 space-y-6">
+          <div className="flex justify-around space-y-4">
+            <div className="flex items-center gap-3 py-2">
+              <SiMercedes className="h-6 w-6 text-gray-400" />
+              <div className="flex-1">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Marque
+                </span>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
+                  {selected.Model?.Family?.Brand?.name || 'Non spécifié'}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 py-2">
+              <TbCategory2 className="h-6 w-6 text-gray-400" />
+              <div className="flex-1">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Véhicule
+                </span>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
+                  {selected.Model?.Family?.name || 'Non spécifié'}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 py-2">
+              <LiaCarSideSolid className="h-6 w-6 text-gray-400" />
+              <div className="flex-1">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Modèle
+                </span>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
+                  {selected.Model?.name || 'Non spécifié'}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 py-2">
+              <TbEngine className="h-6 w-6 text-gray-400" />
+              <div className="flex-1">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Motorization
+                </span>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
+                  {selected.name}
+                  {selected.year && (
+                    <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 rounded">
+                      <Calendar className="h-3 w-3" />
+                      {selected.year}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="font-medium">Véhicule:</span>{' '}
-            {selected.Model?.Family?.name}
-          </div>
-          <div>
-            <span className="font-medium">Modèle:</span> {selected.Model?.name}
-          </div>
-          <div>
-            <span className="font-medium">Type:</span> {selected.name}
-            {selected.year && ` (${selected.year})`}
-          </div>
-          {children}
+
+          {children && (
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+              {children}
+            </div>
+          )}
         </CardContent>
       </Card>
     )
@@ -363,126 +419,131 @@ export function CarSelectionDropdowns({
   }, [watchTypeId, watchModelId, watchFamilyId, watchBrandId])
 
   return (
-    <Form {...form}>
-      <div className="space-y-6">
-        {error && (
-          <div className="p-3 text-red-600 bg-red-50 border border-red-200 rounded-md">
-            {error}
-          </div>
-        )}
+    <div className="relative border rounded-md px-3 py-3">
+      <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
+        Véhicule
+      </span>
+      <Form {...form}>
+        <div className="space-y-6">
+          {error && (
+            <div className="p-3 text-red-600 bg-red-50 border border-red-200 rounded-md">
+              {error}
+            </div>
+          )}
 
-        <CardGrid className="pt-2">
-          <FormField
-            control={form.control}
-            name="Model.Family.Brand.id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Marque</FormLabel>
-                <SearchComboBox
-                  id="brand-id"
-                  isLoading={loadingBrands}
-                  isInSideADialog={isOnDialog}
-                  options={brands.map(({ id, name }) => ({
-                    label: name,
-                    value: id
-                  }))}
-                  selected={field.value}
-                  onSelect={(value) => {
-                    form.setValue('Model.Family.Brand.id', value)
-                  }}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <CardGrid className="pt-2">
+            <FormField
+              control={form.control}
+              name="Model.Family.Brand.id"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Marque</FormLabel>
+                  <SearchComboBox
+                    id="brand-id"
+                    isLoading={loadingBrands}
+                    isInSideADialog={isOnDialog}
+                    options={brands.map(({ id, name }) => ({
+                      label: name,
+                      value: id
+                    }))}
+                    selected={field.value}
+                    onSelect={(value) => {
+                      form.setValue('Model.Family.Brand.id', value)
+                    }}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="Model.Family.id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Véhicule</FormLabel>
-                <SearchComboBox
-                  id="family-id"
-                  isLoading={loadingFamilies}
-                  isInSideADialog={isOnDialog}
-                  options={families.map(({ id, name }) => ({
-                    label: name,
-                    value: id
-                  }))}
-                  selected={field.value}
-                  onSelect={(value) => {
-                    form.setValue('Model.Family.id', value)
-                  }}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="Model.Family.id"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Véhicule</FormLabel>
+                  <SearchComboBox
+                    id="family-id"
+                    isLoading={loadingFamilies}
+                    isInSideADialog={isOnDialog}
+                    options={families.map(({ id, name }) => ({
+                      label: name,
+                      value: id
+                    }))}
+                    selected={field.value}
+                    onSelect={(value) => {
+                      form.setValue('Model.Family.id', value)
+                    }}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="Model.id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Modèle</FormLabel>
-                <SearchComboBox
-                  id="model-id"
-                  isLoading={loadingModels}
-                  isInSideADialog={isOnDialog}
-                  options={models.map(({ id, name }) => ({
-                    label: name,
-                    value: id
-                  }))}
-                  selected={field.value}
-                  onSelect={(value) => {
-                    form.setValue('Model.id', value)
-                  }}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="Model.id"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Modèle</FormLabel>
+                  <SearchComboBox
+                    id="model-id"
+                    isLoading={loadingModels}
+                    isInSideADialog={isOnDialog}
+                    options={models.map(({ id, name }) => ({
+                      label: name,
+                      value: id
+                    }))}
+                    selected={field.value}
+                    onSelect={(value) => {
+                      form.setValue('Model.id', value)
+                    }}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="id"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Type</FormLabel>
-                <SearchComboBox
-                  id="type-id"
-                  isLoading={loadingTypes}
-                  isInSideADialog={isOnDialog}
-                  options={types?.map(({ id, name, year }) => ({
-                    label: `${name}${year ? ` (${year})` : ''}`,
-                    value: id
-                  }))}
-                  selected={field.value}
-                  onSelect={(value) => {
-                    form.setValue('id', value)
-                  }}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </CardGrid>
+            <FormField
+              control={form.control}
+              name="id"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Type</FormLabel>
+                  <SearchComboBox
+                    id="type-id"
+                    isLoading={loadingTypes}
+                    isInSideADialog={isOnDialog}
+                    options={types?.map(({ id, name, year }) => ({
+                      label: `${name}${year ? ` (${year})` : ''}`,
+                      value: id
+                    }))}
+                    selected={field.value}
+                    onSelect={(value) => {
+                      form.setValue('id', value)
+                    }}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardGrid>
 
-        {/* Action buttons when editing */}
-        {selected && isEditing && !isOnDialog && (
-          <div className="flex gap-2 justify-end">
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              className="flex items-center gap-2 bg-transparent"
-            >
-              <X className="h-4 w-4" />
-              {'Annuler'}
-            </Button>
-          </div>
-        )}
-      </div>
-    </Form>
+          {/* Action buttons when editing */}
+          {selected && isEditing && !isOnDialog && (
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                className="flex items-center gap-2 bg-transparent"
+              >
+                <X className="h-4 w-4" />
+                {'Annuler'}
+              </Button>
+            </div>
+          )}
+        </div>
+      </Form>
+    </div>
   )
 }

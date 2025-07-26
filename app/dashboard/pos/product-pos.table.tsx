@@ -148,18 +148,24 @@ export function ProductPosTable({
         const matches = label.match(regex)
 
         return (
-          <p className="text-muted-foreground  truncate  overflow-hidden whitespace-nowrap max-w-sm">
-            {parts.map((part, index) => (
-              <React.Fragment key={index}>
-                {part}
-                {matches && matches[index] && (
-                  <span className="font-bold text-primary">
-                    {matches[index]}
-                  </span>
-                )}
-              </React.Fragment>
-            ))}
-          </p>
+          <div className="max-w-sm overflow-x-auto scrollbar-hidden">
+            <p
+              className="text-foreground/85 min-w-fit whitespace-nowrap"
+              style={{
+                fontSize: '1.05rem',
+                lineHeight: '1.65rem'
+              }}
+            >
+              {parts.map((part, index) => (
+                <React.Fragment key={index}>
+                  {part}
+                  {matches && matches[index] && (
+                    <span className="font-semibold">{matches[index]}</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </p>
+          </div>
         )
       }
     },

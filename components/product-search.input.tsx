@@ -193,7 +193,7 @@ export default function ProductSearchInput({
           </PopoverContent>
         </Popover>
       </CardContent>
-      <CardFooter className="w-full">{children}</CardFooter>
+      {children && <CardFooter className="w-full">{children}</CardFooter>}
     </Card>
   )
 }
