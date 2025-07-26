@@ -591,7 +591,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
           <div className="space-y-1">
             <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
             <Select
-              value={data.paymentMode}
+              value={data.paymentMode ?? undefined}
               onValueChange={handlePaymentTypeChange}
             >
               <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">

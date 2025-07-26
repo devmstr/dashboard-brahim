@@ -429,7 +429,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   OFFRE DE PRIX VALABLE
                 </label>
                 <Select
-                  value={data.offerValidity}
+                  value={data.offerValidity ?? undefined}
                   onValueChange={(value) => {
                     setData((prev) => ({ ...prev, offerValidity: value }))
                   }}
@@ -461,7 +461,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   DELAI DE LIVRAISON
                 </label>
                 <Select
-                  value={data.deliveryTime}
+                  value={data.deliveryTime ?? undefined}
                   onValueChange={(v) =>
                     setData((prev) => ({ ...prev, deliveryTime: v }))
                   }
@@ -495,7 +495,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   DELAI DE GARANTE
                 </label>
                 <Select
-                  value={data.guaranteeTime}
+                  value={data.guaranteeTime ?? undefined}
                   onValueChange={(v) =>
                     setData((prev) => ({ ...prev, guaranteeTime: v }))
                   }
