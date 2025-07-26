@@ -121,14 +121,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { id } = params
     const body = await request.json()
     const label = generateRadiatorLabel({
-      ...body,
-      brand: body.CarType.Model.Family.Brand.name,
-      model: body.CarType.Model.name
+      ...body
     })
     const hash = hash256({
       ...body,
       brand: body.CarType.Model.Family.Brand.name,
-      model: body.CarType.Model.name
+      model: body.CarType.name
     })
 
     const { Components, CarType, ...data } = body as RadiatorSchemaType
