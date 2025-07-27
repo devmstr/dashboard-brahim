@@ -60,7 +60,7 @@ export default function CartSection({
         ) : (
           <ScrollArea className="rounded-md border max-h-[400px] overflow-y-scroll">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead className="w-full">Article</TableHead>
                   <TableHead className="text-right w-fit whitespace-nowrap">

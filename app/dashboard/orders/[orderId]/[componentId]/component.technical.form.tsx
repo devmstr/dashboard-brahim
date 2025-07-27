@@ -38,6 +38,7 @@ import { orderItemSchema } from '@/lib/validations'
 import { CarSelectionForm } from '@/components/car-selector'
 import { OrderItem, Vehicle } from '@/types'
 import { useRouter } from 'next/navigation'
+import { FormAlert } from '@/components/form-alert'
 
 interface TechnicianOrderItemFormProps {
   data: OrderItem
@@ -113,16 +114,18 @@ export const TechnicianOrderItemForm: React.FC<
         className="pt-2 space-y-6"
         onSubmit={form.handleSubmit(handleSubmit)}
       >
+        {(data.radiatorId || data.dirId) && (
+          <FormAlert
+            type={'warning'}
+            title="Avertissement"
+            message={`Ce radiateur a déjà été validé. Vous n'avez pas besoin de le valider à nouveau.`}
+          />
+        )}
         {data.CarType && !data.note ? (
-          <div className="relative border rounded-md px-3 py-3">
-            <span className="absolute -top-4 left-2 bg-background text-xs text-muted-foreground/50 p-2 uppercase">
-              Véhicule
-            </span>
-            <CarSelectionForm
-              selected={selectedCar}
-              onSelectChange={setSelectedCar}
-            />
-          </div>
+          <CarSelectionForm
+            selected={selectedCar}
+            onSelectChange={setSelectedCar}
+          />
         ) : null}
 
         {/* Technical Details Section - Always visible */}
@@ -501,11 +504,11 @@ export const TechnicianOrderItemForm: React.FC<
             name="dirId"
             render={({ field }) => (
               <FormItem className="group">
-                <FormLabel className="capitalize">Dir ID</FormLabel>
+                <FormLabel className="capitalize">Numéro de dossier</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    placeholder="Enter Dir ID"
+                    placeholder="C245"
                     className="w-full"
                     value={field.value}
                   />

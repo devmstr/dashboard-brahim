@@ -1,10 +1,12 @@
 import prisma from '@/lib/db'
 import { hash256 } from '@/lib/hash-256'
-import { generateRadiatorLabel, skuId } from '@/lib/utils'
+import { generateRadiatorLabel, ProductConfig, skuId } from '@/lib/utils'
 import { OrderItem } from '@/lib/validations'
 import { RadiatorSchemaType } from '@/lib/validations/radiator'
+import { isExists } from 'date-fns'
 import { revalidatePath } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 
 interface RouteParams {
   params: {
@@ -120,13 +122,47 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = params
     const body = await request.json()
+    const {
+      betweenCollectors,
+      cooling,
+      fabrication,
+      fins,
+      lowerCollectorLength,
+      lowerCollectorWidth,
+      pitch,
+      position,
+      rows,
+      tightening,
+      tubeDiameter,
+      tubeType,
+      type,
+      upperCollectorLength,
+      upperCollectorWidth,
+      width
+    } = body as ProductConfig
+    const brand = body.CarType?.Model?.Family?.Brand?.name
+    const model = body.CarType?.name
     const label = generateRadiatorLabel({
-      ...body
+      betweenCollectors,
+      cooling,
+      fabrication,
+      fins,
+      lowerCollectorLength,
+      lowerCollectorWidth,
+      pitch,
+      position,
+      rows,
+      tightening,
+      tubeDiameter,
+      tubeType,
+      type,
+      upperCollectorLength,
+      upperCollectorWidth,
+      width
     })
     const hash = hash256({
       ...body,
-      brand: body.CarType.Model.Family.Brand.name,
-      model: body.CarType.name
+      ...(brand && model ? { brand, model } : undefined)
     })
 
     const { Components, CarType, ...data } = body as RadiatorSchemaType
@@ -171,30 +207,58 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     if (!body.dirId) {
       return NextResponse.json(
-        {
-          error: 'Required',
-          details: 'Directory is required'
-        },
+        { error: 'Required', details: 'Directory is required' },
         { status: 400 }
       )
     }
-
+    const {
+      betweenCollectors,
+      cooling,
+      fabrication,
+      fins,
+      lowerCollectorLength,
+      lowerCollectorWidth,
+      pitch,
+      position,
+      rows,
+      tightening,
+      tubeDiameter,
+      tubeType,
+      type,
+      upperCollectorLength,
+      upperCollectorWidth,
+      width
+    } = body as ProductConfig
+    const brand = body.CarType?.Model?.Family?.Brand?.name
+    const model = body.CarType?.name
     const label = generateRadiatorLabel({
-      ...body,
-      brand: body.CarType?.Model?.Family?.Brand?.name,
-      model: body.CarType?.Model?.name
-    }).replace(/FAI\s/, 'FEM ')
+      betweenCollectors,
+      cooling,
+      fabrication,
+      fins,
+      lowerCollectorLength,
+      lowerCollectorWidth,
+      pitch,
+      position,
+      rows,
+      tightening,
+      tubeDiameter,
+      tubeType,
+      type,
+      upperCollectorLength,
+      upperCollectorWidth,
+      width
+    })
     const hash = hash256({
       ...body,
-      brand: body.CarType?.Model?.Family?.Brand?.name,
-      model: body.CarType?.Model?.name
+      ...(brand && model ? { brand, model } : undefined)
     })
 
     const {
       id: orderItemId,
       CarType,
       packaging,
-      fabrication,
+      fabrication: f,
       note,
       modification,
       description,
@@ -215,60 +279,49 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       Number(data.width) < 1
     ) {
       return NextResponse.json(
-        {
-          error: 'Required',
-          details: 'The dimensions is required'
-        },
+        { error: 'Required', details: 'The dimensions are required' },
         { status: 400 }
       )
     }
 
-    // Start transaction for atomic update
-    const radiator = await prisma.radiator.upsert({
-      where: { hash },
-      create: {
-        ...data,
-        id: skuId('RA'),
-        label,
-        hash,
-        status: 'VALIDATED',
-        dirId,
-        OrderItems: {
-          connect: {
-            id: orderItemId
-          }
-        },
-        ...(CarType?.id && {
-          CarType: {
-            connect: {
-              id: CarType?.id
+    let radiator
+
+    try {
+      radiator = await prisma.radiator.create({
+        data: {
+          ...data,
+          id: skuId('RA'),
+          label,
+          hash,
+          status: 'VALIDATED',
+          dirId,
+          OrderItems: {
+            connect: { id: orderItemId }
+          },
+          ...(CarType?.id && {
+            CarType: {
+              connect: { id: CarType.id }
             }
-          }
-        })
-        // TODO: update Components
-      },
-      update: {
-        ...data,
-        label,
-        hash,
-        dirId,
-        status: 'VALIDATED',
-        OrderItems: {
-          connect: {
-            id: orderItemId
-          }
-        },
-        ...(CarType?.id && {
-          CarType: {
-            connect: {
-              id: CarType?.id
-            }
-          }
-        })
-        // TODO: update Components
+          })
+        }
+      })
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        return NextResponse.json(
+          {
+            error: 'Already Exists',
+            details: 'This radiator has already been validated'
+          },
+          { status: 400 }
+        )
       }
-    })
-    // update the orderItem
+
+      throw err
+    }
+
     await prisma.orderItem.update({
       where: { id: orderItemId },
       data: {
@@ -278,23 +331,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         isModified,
         quantity,
         label,
-        status: 'VALIDATED',
-        ...(orderId && {
-          Order: { connect: { id: orderId } }
-        }),
-        ...(radiator.id && {
-          Radiator: {
-            connect: { id: radiator.id }
-          }
-        })
+        status: 'Valide',
+        ...(orderId && { Order: { connect: { id: orderId } } }),
+        Radiator: { connect: { id: radiator.id } }
       }
     })
-    // Optionally revalidate cache/path
+
     revalidatePath(`/dashboard/orders`)
-    return NextResponse.json({
-      message: 'Radiator updated',
-      data: radiator
-    })
+    return NextResponse.json({ message: 'Radiator created', data: radiator })
   } catch (error) {
     console.error('Error updating radiator:', error)
     return NextResponse.json(

@@ -62,6 +62,7 @@ import { ScrollArea } from './ui/scroll-area'
 import { Label } from './ui/label'
 import { toast } from '@/hooks/use-toast'
 import { StatusBudge } from './status-badge'
+import { STATUS_TYPE_ARR, STATUS_TYPES } from '@/config/global'
 
 export type ComponentsTableEntry = {
   id: string
@@ -70,6 +71,7 @@ export type ComponentsTableEntry = {
   fabrication: string
   category: string
   label: string
+  status: string
   quantity: number
   delivered?: number
 }
@@ -244,7 +246,7 @@ export function OrderComponentsTable({
       },
       cell: ({
         row: {
-          original: { label }
+          original: { label, status }
         }
       }) => {
         const regex = /(?<=x)\d+|\d+(?=x)/gi
@@ -269,6 +271,17 @@ export function OrderComponentsTable({
                 </React.Fragment>
               ))}
             </p>
+            <StatusBudge
+              variant={
+                status as
+                  | 'Livré'
+                  | 'Annuler'
+                  | 'Prévu'
+                  | 'Encours'
+                  | 'Fini'
+                  | 'Valide'
+              }
+            />
           </div>
         )
       }
@@ -493,7 +506,7 @@ export function OrderComponentsTable({
             </Badge>
           </div>
         </div>
-        <div className="">
+        {/* <div className="">
           <Dialog>
             <DialogTrigger asChild>
               <Button
@@ -566,11 +579,11 @@ export function OrderComponentsTable({
               </ScrollArea>
             </DialogContent>
           </Dialog>
-        </div>
+        </div> */}
       </div>
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
-          <TableHeader>
+          <TableHeader className="bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {

@@ -3,6 +3,7 @@ import { Card } from '@/components/card'
 import { OrderTable } from '@/components/orders-table'
 import prisma from '@/lib/db'
 import { OrderTableEntry } from '@/types'
+import { OrderItem } from '@prisma/client'
 
 interface PageProps {}
 
@@ -24,6 +25,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       },
       OrdersItems: {
         select: {
+          status: true,
           _count: true
         }
       },
@@ -39,13 +41,15 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
     const total = order.OrdersItems.reduce((sum: number, item: any) => {
       return sum + (item.Radiator?.Price?.unit || 0)
     }, 0)
-
+    const allItemsValid: boolean =
+      order.OrderItems?.every((item: OrderItem) => item.status === 'Valide') ||
+      false
     return {
       id: order.id,
       customer: order.Client?.name || '—',
       phone: order.Client?.phone || '—',
       deadline: order.deadline.toISOString(),
-      status: 'Prévu',
+      status: allItemsValid ? 'Valide' : order.status ?? 'Prévu',
       progress: order.progress || 0,
       state: order.Client?.Address?.Province.name || '—',
       items,
