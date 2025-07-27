@@ -41,9 +41,9 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
     const total = order.OrdersItems.reduce((sum: number, item: any) => {
       return sum + (item.Radiator?.Price?.unit || 0)
     }, 0)
-    const allItemsValid: boolean =
-      order.OrderItems?.every((item: OrderItem) => item.status === 'Valide') ||
-      false
+    const allItemsValid = order.OrdersItems?.every(
+      (item: { status: string }) => item.status === 'Valide'
+    )
     return {
       id: order.id,
       customer: order.Client?.name || '—',

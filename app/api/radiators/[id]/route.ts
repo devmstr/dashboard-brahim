@@ -346,6 +346,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     })
 
     revalidatePath(`/dashboard/orders`)
+
     return NextResponse.json({ message: 'Radiator created', data: radiator })
   } catch (error) {
     console.error('Error updating radiator:', error)
