@@ -21,6 +21,10 @@ const STATUS_CONFIG: Record<
     iconKey: 'planned',
     className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]' // Brighter blue
   },
+  Valide: {
+    iconKey: 'checkCircle', // or 'verified' depending on your Icons object
+    className: 'bg-[#e8f5e8] text-[#2e7d32] border-[#2e7d32]' // Dark green for validation
+  },
   Encours: {
     iconKey: 'ongoing',
     className: 'bg-[#fff0d4] text-[#ffa500] border-[#ffa500]' // Vibrant orange

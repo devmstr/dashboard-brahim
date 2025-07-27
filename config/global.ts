@@ -33,6 +33,7 @@ export const STATUS_TYPES = [
   'Prévu',
   'Encours',
   'Fini',
+  'Valide',
   'Livré'
 ] as const
 export const STATUS_TYPE_ARR: string[] = [...STATUS_TYPES]

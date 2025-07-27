@@ -96,6 +96,7 @@ const Page: React.FC<PageProps> = async ({
       quantity,
       delivered,
       type,
+      status,
       isModified,
       CarType
     }) => {
@@ -105,6 +106,7 @@ const Page: React.FC<PageProps> = async ({
         type,
         category,
         fabrication,
+        status,
         quantity,
         delivered,
         isModified,
@@ -129,11 +131,9 @@ const Page: React.FC<PageProps> = async ({
           />
         </Card>
       )}
-      {true && (
-        <Card className="">
-          <OrderComponentsTable orderId={orderId} data={data} />
-        </Card>
-      )}
+      <Card className="">
+        <OrderComponentsTable orderId={orderId} data={data} />
+      </Card>
       {/* {(isUserRoleSales || isUserRoleProduction) && (
         <Card className="">
           <Tabs defaultValue="table" className="space-y-4">

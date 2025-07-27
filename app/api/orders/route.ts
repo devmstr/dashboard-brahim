@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       OrderItems,
       Attachments
     } = body
+
     // Validate inputs
     if (!clientId) {
       return NextResponse.json(
@@ -125,11 +126,16 @@ export async function POST(request: Request) {
             lowerCollectorWidth: item.lowerCollectorWidth ?? null,
             tightening: item.tightening ?? null,
             label: item.label,
-            status: item.status || 'Prévu',
+            status: item.radiatorId ? 'Valide' : 'Prévu',
             delivered: 0,
             Order: { connect: { id: createdOrder.id } },
             ...(item.CarType?.id && {
               CarType: { connect: { id: item.CarType.id } }
+            }),
+            ...(item.radiatorId && {
+              Radiator: {
+                connect: { id: item.radiatorId }
+              }
             })
           }
         })
