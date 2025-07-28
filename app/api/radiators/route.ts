@@ -21,28 +21,17 @@ export async function GET(request: NextRequest) {
         { partNumber: { contains: search, mode: 'insensitive' } },
         { hash: { contains: search, mode: 'insensitive' } },
         {
-          Models: {
-            some: {
-              name: { contains: search, mode: 'insensitive' }
-            }
+          CarType: {
+            name: { contains: search, mode: 'insensitive' }
           }
         },
         {
-          Models: {
+          OrderItems: {
             some: {
-              Family: {
-                Brand: {
+              Order: {
+                Client: {
                   name: { contains: search, mode: 'insensitive' }
                 }
-              }
-            }
-          }
-        },
-        {
-          Orders: {
-            some: {
-              Client: {
-                name: { contains: search, mode: 'insensitive' }
               }
             }
           }
