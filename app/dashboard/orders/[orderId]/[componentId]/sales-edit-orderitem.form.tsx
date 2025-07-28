@@ -304,6 +304,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                     <FormControl>
                       <Input
                         {...field}
+                        value={field.value ?? undefined}
                         type="text"
                         className="w-full"
                         placeholder="Type"
@@ -425,7 +426,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                         if (value > 0) form.setValue('quantity', value)
                       }}
                       type="number"
-                      value={field.value}
+                      value={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />
@@ -890,7 +891,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value}
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>
@@ -917,7 +918,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value}
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>

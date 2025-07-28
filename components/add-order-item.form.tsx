@@ -949,7 +949,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value}
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>
@@ -976,7 +976,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                                       Number(value)
                                     )
                                   }
-                                  value={field.value}
+                                  value={field.value ?? undefined}
                                 />
                               </FormControl>
                             </FormItem>

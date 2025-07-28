@@ -149,7 +149,7 @@ export const TechnicianOrderItemForm: React.FC<
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value}
+                      value={field.value ?? undefined}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('betweenCollectors', Number(value))
@@ -175,7 +175,7 @@ export const TechnicianOrderItemForm: React.FC<
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value}
+                      value={field.value ?? undefined}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('width', Number(value))
@@ -199,7 +199,7 @@ export const TechnicianOrderItemForm: React.FC<
                     <Input
                       type="number"
                       {...field}
-                      value={field.value}
+                      value={field.value ?? undefined}
                       onChange={({ target: { value } }) =>
                         form.setValue('rows', Number(value))
                       }
@@ -398,7 +398,7 @@ export const TechnicianOrderItemForm: React.FC<
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorLength', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -423,7 +423,7 @@ export const TechnicianOrderItemForm: React.FC<
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorWidth', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -457,7 +457,7 @@ export const TechnicianOrderItemForm: React.FC<
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorLength', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -482,7 +482,7 @@ export const TechnicianOrderItemForm: React.FC<
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorWidth', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -510,7 +510,7 @@ export const TechnicianOrderItemForm: React.FC<
                     {...field}
                     placeholder="C245"
                     className="w-full"
-                    value={field.value}
+                    value={field.value ?? undefined}
                   />
                 </FormControl>
                 <FormMessage />

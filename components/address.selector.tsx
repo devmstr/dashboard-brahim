@@ -149,7 +149,7 @@ export const AddressSelector: React.FC<Props> = ({ value, onChange }) => {
           <FormLabel>Adresse</FormLabel>
           <FormControl>
             <Input
-              value={value.street}
+              value={value.street ?? undefined}
               onChange={(e) => onChange({ ...value, street: e.target.value })}
               placeholder="Rue, BP..."
             />
@@ -161,7 +161,11 @@ export const AddressSelector: React.FC<Props> = ({ value, onChange }) => {
         <FormItem>
           <FormLabel>Code Postal</FormLabel>
           <FormControl>
-            <Input value={value.zip} disabled placeholder="47000" />
+            <Input
+              value={value.zip ?? undefined}
+              disabled
+              placeholder="47000"
+            />
           </FormControl>
         </FormItem>
       </div>

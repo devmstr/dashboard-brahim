@@ -867,7 +867,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                 </TableCell>
                 <TableCell className="py-[3px] px-2 h-8 relative">
                   <Input
-                    value={item.label}
+                    value={item.label ?? undefined}
                     onChange={({ target: { value } }) => {
                       setData((prev) => ({
                         ...prev,
@@ -885,7 +885,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   <Input
                     type="number"
                     min={1}
-                    value={item.quantity}
+                    value={item.quantity ?? undefined}
                     onChange={({
                       target: { value: v }
                     }: React.ChangeEvent<HTMLInputElement>) => {
@@ -909,7 +909,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   <Input
                     type="number"
                     min={0}
-                    value={item.price}
+                    value={item.price ?? undefined}
                     onChange={({
                       target: { value: v }
                     }: React.ChangeEvent<HTMLInputElement>) => {

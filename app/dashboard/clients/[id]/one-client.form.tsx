@@ -142,7 +142,7 @@ export const EditClientForm: React.FC<Props> = ({ data }: Props) => {
                       id="phone"
                       name="0658769361"
                       placeholder={'phone number'}
-                      value={field.value}
+                      value={field.value ?? undefined}
                     />
                   </FormControl>
                   <FormMessage />

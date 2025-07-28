@@ -37,6 +37,7 @@ import { useEffect, useState } from 'react'
 import { CarSelectionForm } from '@/components/car-selector'
 import { Vehicle } from '@/types'
 import { useRouter } from 'next/navigation'
+import { useDateField } from 'react-aria'
 
 interface RadiatorEditFormProps {
   data: RadiatorSchemaType
@@ -129,7 +130,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value}
+                      value={field.value ?? undefined}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('betweenCollectors', Number(value))
@@ -155,7 +156,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                   <FormControl>
                     <Input
                       {...field}
-                      value={field.value}
+                      value={field.value ?? undefined}
                       type="number"
                       onChange={({ target: { value } }) =>
                         form.setValue('width', Number(value))
@@ -179,7 +180,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     <Input
                       type="number"
                       {...field}
-                      value={field.value}
+                      value={field.value ?? undefined}
                       onChange={({ target: { value } }) =>
                         form.setValue('rows', Number(value))
                       }
@@ -378,7 +379,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorLength', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -403,7 +404,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('upperCollectorWidth', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -437,7 +438,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorLength', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -462,7 +463,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                           onChange={({ target: { value } }) =>
                             form.setValue('lowerCollectorWidth', Number(value))
                           }
-                          value={field.value}
+                          value={field.value ?? undefined}
                         />
                       </FormControl>
                       <FormMessage />
@@ -490,7 +491,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     {...field}
                     placeholder="Enter Dir ID"
                     className="w-full"
-                    value={field.value}
+                    value={field.value ?? undefined}
                   />
                 </FormControl>
                 <FormMessage />
@@ -515,7 +516,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
                     {...field}
                     placeholder="613248..."
                     className="w-full"
-                    value={field.value}
+                    value={field.value ?? undefined}
                   />
                 </FormControl>
                 <FormMessage />

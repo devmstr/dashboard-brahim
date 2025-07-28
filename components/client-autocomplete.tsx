@@ -281,7 +281,7 @@ export default function ClientAutocomplete({
             'h-6 p-0 border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base',
             !client.street && 'print:hidden'
           )}
-          value={client.street}
+          value={client.street ?? undefined}
           onChange={({ target: { value } }) =>
             setClient({
               ...client,
@@ -303,7 +303,7 @@ export default function ClientAutocomplete({
           <Input
             placeholder="97/B/0862043"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.tradeRegisterNumber}
+            value={client.tradeRegisterNumber ?? undefined}
             onChange={({ target: { value } }) =>
               setClient({
                 ...client,
@@ -323,7 +323,7 @@ export default function ClientAutocomplete({
           <Input
             placeholder="99747086204393"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.taxIdNumber}
+            value={client.taxIdNumber ?? undefined}
             onChange={({ target: { value } }) =>
               setClient({
                 ...client,
@@ -343,7 +343,7 @@ export default function ClientAutocomplete({
           <Input
             placeholder="471006003"
             className="h-6 border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 flex-1"
-            value={client.registrationArticle}
+            value={client.registrationArticle ?? undefined}
             onChange={({ target: { value } }) =>
               setClient({
                 ...client,

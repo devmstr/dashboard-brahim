@@ -253,7 +253,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
             <Input
               placeholder="002171"
               className="h-3 border-none focus-visible:ring-0 focus-visible:ring-offset-0  "
-              value={data.purchaseOrder}
+              value={data.purchaseOrder ?? undefined}
               onChange={(e) => {
                 setData((prev) => ({
                   ...prev,
@@ -658,7 +658,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               <TableCell className="py-[3px] px-2 h-8 relative">
                 {editedId === item.id ? (
                   <Input
-                    value={item.label}
+                    value={item.label ?? undefined}
                     onChange={(e) => {
                       const newValue = e.target.value
                       setData((prev) => ({
