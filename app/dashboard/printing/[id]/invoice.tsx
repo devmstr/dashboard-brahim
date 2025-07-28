@@ -612,7 +612,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
             <Textarea
               className="w-full min-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
               placeholder="Saisissez des remarques pour cette facture..."
-              value={data.note}
+              value={data.note ?? undefined}
               onChange={({ target: { value } }) => {
                 setData((prev) => ({ ...prev, note: value }))
               }}

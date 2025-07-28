@@ -528,7 +528,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                   <Textarea
                     className="w-full h-14 max-h-14 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 print:border-none print:px-0 print:py-0"
                     placeholder="Saisissez des remarques pour cette facture..."
-                    value={data.note}
+                    value={data.note ?? undefined}
                     onChange={(e) =>
                       setData((prev) => ({ ...prev, note: e.target.value }))
                     }
