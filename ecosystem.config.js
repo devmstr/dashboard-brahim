@@ -12,7 +12,7 @@ module.exports = {
         NEXTAUTH_URL: 'http://soneras.local',
         NEXTAUTH_SECRET: 'YyG3BFojymCKIA0zGx3ekgK8oDL9fdumypp6ernEwuE=',
         DATABASE_URL:
-          'postgres://soneras-server:12345@localhost:5432/sonerasflowdb'
+          'postgres://sonerasserver:iYKzC3xpiaWece3Pmi29SD@localhost:5432/sonerasflowdb'
       }
     }
   ]
