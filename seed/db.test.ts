@@ -1,7 +1,7 @@
 import prisma from '../lib/db' // or wherever your prisma client is
 
 async function main() {
-  await prisma.invoiceHistory.deleteMany()
+  await prisma.order.deleteMany()
   console.log('done !')
 }
 

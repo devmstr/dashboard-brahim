@@ -23,7 +23,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
           }
         }
       },
-      OrdersItems: {
+      OrderItems: {
         select: {
           status: true,
           _count: true
@@ -37,19 +37,17 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
   })
 
   const data = orders.map((order: any) => {
-    const items = order.OrdersItems.length || 0
-    const total = order.OrdersItems.reduce((sum: number, item: any) => {
+    const items = order.OrderItems.length || 0
+    const total = order.OrderItems.reduce((sum: number, item: any) => {
       return sum + (item.Radiator?.Price?.unit || 0)
     }, 0)
-    const allItemsValid = order.OrdersItems?.every(
-      (item: { status: string }) => item.status === 'Valide'
-    )
+
     return {
       id: order.id,
       customer: order.Client?.name || '—',
       phone: order.Client?.phone || '—',
       deadline: order.deadline.toISOString(),
-      status: allItemsValid ? 'Valide' : order.status ?? 'Prévu',
+      status: order.status,
       progress: order.progress || 0,
       state: order.Client?.Address?.Province.name || '—',
       items,
@@ -57,6 +55,7 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       createdAt: order.createdAt
     } as OrderTableEntry
   })
+  console.log(data)
 
   return (
     <Card className="">

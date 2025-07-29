@@ -119,7 +119,8 @@ model Inventory {
   maxLevel Int     @default(500) // Maximum level for inventory
   location String?
 
-  Radiators Radiator[]
+  Radiator   Radiator? @relation(fields: [radiatorId], references: [id])
+  radiatorId String?   @unique
 
   @@map("inventories")
 }
@@ -205,7 +206,8 @@ model Price {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  Radiators Radiator[]
+  Radiator   Radiator? @relation(fields: [radiatorId], references: [id])
+  radiatorId String?   @unique
 
   @@map("prices")
 }
@@ -241,12 +243,12 @@ model Radiator {
   lowerCollectorWidth  Int?
   isActive             Boolean?      @default(false)
   inventoryId          String?
-  priceId              String?
   directoryId          String?
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
-  Inventory            Inventory?    @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
-  Price                Price?        @relation(fields: [priceId], references: [id], onDelete: SetNull)
+  validatedAt          DateTime?
+  Inventory            Inventory?
+  Price                Price?
   Directory            Directory?    @relation(fields: [directoryId], references: [id], onDelete: SetNull)
   CarType              Type?
   OrderItems           OrderItem[]
@@ -398,7 +400,7 @@ model Order {
   deadline       DateTime     @default(now())
   status         String?
   progress       Int          @default(0)
-  OrdersItems    OrderItem[]
+  OrderItems     OrderItem[]
   totalItems     Int          @default(0)
   totalAmount    Float? // Added to store the total order value
   deliveredItems Int          @default(0)
@@ -408,9 +410,10 @@ model Order {
   Client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   Attachments    Attachment[]
 
-  createdAt DateTime  @default(now()) // Added for consistency
-  updatedAt DateTime  @updatedAt // Added for consistency
-  Invoice   Invoice[]
+  createdAt   DateTime  @default(now()) // Added for consistency
+  updatedAt   DateTime  @updatedAt // Added for consistency
+  validatedAt DateTime?
+  Invoice     Invoice[]
 
   @@map("order_batches") // Added map directive for consistency
 }

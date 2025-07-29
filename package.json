@@ -18,7 +18,8 @@
     "seed:locations": "npm run script seed/locations.ts",
     "seed:radiators": "npm run script seed/radiators.ts",
     "seed:radiators:official": "npm run script seed/official-radiators.ts",
-    "seed:clients:official": "npm run script seed/client-official.ts"
+    "seed:clients:official": "npm run script seed/client-official.ts",
+    "seed:test": "npm run script seed/db.test.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",

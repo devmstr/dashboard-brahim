@@ -160,7 +160,6 @@ async function main() {
         barcode: faker.string.numeric(13),
         isActive: true,
         inventoryId: inventory.id,
-        priceId: price.id,
         betweenCollectors: 0,
         width: 0,
         rows: 0,

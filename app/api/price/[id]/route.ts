@@ -31,55 +31,37 @@ export async function PATCH(
 
   try {
     // Find the radiator
-    const radiator = await prisma.radiator.findUnique({
+    const radiator = await prisma.radiator.update({
       where: { id },
+      data: {
+        Price: {
+          upsert: {
+            create: {
+              unit: price,
+              unitTTC: priceTTC,
+              bulk: bulkPrice,
+              bulkTTC: bulkPriceTTC,
+              bulkThreshold: bulkPriceThreshold
+            },
+            update: {
+              unit: price,
+              unitTTC: priceTTC,
+              bulk: bulkPrice,
+              bulkTTC: bulkPriceTTC,
+              bulkThreshold: bulkPriceThreshold
+            }
+          }
+        }
+      },
       include: { Price: true }
     })
-    if (!radiator) {
-      return NextResponse.json(
-        { message: 'Radiator not found' },
-        { status: 404 }
-      )
-    }
-    let priceId = radiator.priceId
-    // If radiator has no price, create one
-    if (!priceId) {
-      const newPrice = await prisma.price.create({
-        data: {
-          unit: price ?? 0,
-          unitTTC: priceTTC ?? 0,
-          bulk: bulkPrice ?? 0,
-          bulkTTC: bulkPriceTTC ?? 0,
-          bulkThreshold: bulkPriceThreshold ?? 0,
-          Radiators: { connect: { id } }
-        }
-      })
-      await prisma.radiator.update({
-        where: { id },
-        data: { priceId: newPrice.id }
-      })
-      return NextResponse.json({ message: 'Price created', price: newPrice })
-    } else {
-      // Update existing price
-      const updatedPrice = await prisma.price.update({
-        where: { id: priceId },
-        data: {
-          ...(price !== undefined ? { unit: price } : {}),
-          ...(priceTTC !== undefined ? { unitTTC: priceTTC } : {}),
-          ...(bulkPrice !== undefined ? { bulk: bulkPrice } : {}),
-          ...(bulkPriceTTC !== undefined ? { bulkTTC: bulkPriceTTC } : {}),
-          ...(bulkPriceThreshold !== undefined
-            ? { bulkThreshold: bulkPriceThreshold }
-            : {})
-        }
-      })
-      // revalidate the path
-      revalidatePath(`/dashboard/inventory/${id}`)
-      return NextResponse.json({
-        message: 'Price updated',
-        price: updatedPrice
-      })
-    }
+
+    // revalidate the path
+    revalidatePath(`/dashboard/inventory/${id}`)
+    return NextResponse.json({
+      message: 'Price updated',
+      price: radiator.Price?.unit
+    })
   } catch (error: any) {
     return NextResponse.json(
       { message: error.message || 'Server error' },
