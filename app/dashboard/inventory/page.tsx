@@ -11,10 +11,9 @@ const Page: React.FC<Props> = async ({}: Props) => {
   const role = await getUserRole()
   if (!role) return notFound()
 
-  const data = await getInventoryTableData()
   return (
     <Card className="">
-      <InventoryTable data={data} userRole={role}>
+      <InventoryTable data={[]} userRole={role}>
         {['INVENTORY_AGENT'].includes(role) && <AddInventoryItem />}
       </InventoryTable>
     </Card>

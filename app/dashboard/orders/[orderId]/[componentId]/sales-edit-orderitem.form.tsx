@@ -963,11 +963,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
             </Button>
             <Button className="flex gap-1" type="submit">
               {isLoading && <Icons.spinner className="w-4 h-4 animate-spin" />}
-              {['PRODUCTION_WORKER', 'PRODUCTION_MANAGER'].includes(
-                session?.user?.role || 'UNKNOWN'
-              )
-                ? 'Valider'
-                : 'Modifier'}
+              Modifier
             </Button>
           </div>
         </div>

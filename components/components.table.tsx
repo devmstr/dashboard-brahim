@@ -63,6 +63,7 @@ import { Label } from './ui/label'
 import { toast } from '@/hooks/use-toast'
 import { StatusBudge } from './status-badge'
 import { STATUS_TYPE_ARR, STATUS_TYPES } from '@/config/global'
+import { OrderItem } from '@/types'
 
 export type ComponentsTableEntry = {
   id: string
@@ -274,12 +275,12 @@ export function OrderComponentsTable({
             <StatusBudge
               variant={
                 status as
-                  | 'Livré'
-                  | 'Annuler'
-                  | 'Prévu'
-                  | 'Encours'
-                  | 'Fini'
-                  | 'Valide'
+                  | 'ANNULER'
+                  | 'PRÉVU'
+                  | 'ENCOURS'
+                  | 'FINI'
+                  | 'VALIDÉ'
+                  | 'LIVRÉ'
               }
             />
           </div>
@@ -548,8 +549,8 @@ export function OrderComponentsTable({
                         )
                       }
                       const updatedOrder = await response.json()
-                      // Find the new item in the updated order's OrdersItems
-                      const newItem = updatedOrder.OrdersItems?.find(
+                      // Find the new item in the updated order's OrderItems
+                      const newItem = updatedOrder.OrderItems?.find(
                         (item: any) => item.id === id
                       )
                       if (newItem) {

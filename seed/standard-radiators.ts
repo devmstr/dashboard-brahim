@@ -31,8 +31,8 @@ async function main() {
       fins,
       pitch,
       rows,
-      coreHeight,
-      coreWidth,
+      betweenCollectors,
+      width,
       upperCollectorLength,
       upperCollectorWidth,
       lowerCollectorLength,
@@ -52,17 +52,6 @@ async function main() {
       }
     })
 
-    // Create price for the radiator
-    const price = await prisma.price.create({
-      data: {
-        unit: 0,
-        unitTTC: 0,
-        bulk: 0,
-        bulkTTC: 0,
-        bulkThreshold: 100
-      }
-    })
-
     // Create the radiator
     const createdRadiator = await prisma.radiator.create({
       data: {
@@ -75,9 +64,8 @@ async function main() {
         label: designation || null,
         isActive: true,
         inventoryId: inventory.id,
-        priceId: price.id,
-        betweenCollectors: coreHeight,
-        width: coreWidth,
+        betweenCollectors: betweenCollectors,
+        width: width,
         rows: rows,
         fins: fins,
         pitch: pitch,
@@ -87,7 +75,16 @@ async function main() {
         position: position === 'Center' ? 'Centrer' : 'Dépassée',
         tightening: tightening === 'Plié' ? 'Plié' : 'Boulonné',
         perforation: 'Non Perforé',
-        isTinned: false
+        isTinned: false,
+        Price: {
+          create: {
+            unit: 0,
+            unitTTC: 0,
+            bulk: 0,
+            bulkTTC: 0,
+            bulkThreshold: 100
+          }
+        }
       }
     })
 

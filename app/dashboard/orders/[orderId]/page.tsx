@@ -41,7 +41,7 @@ const Page: React.FC<PageProps> = async ({
     include: {
       Client: true,
       Payment: true,
-      OrdersItems: {
+      OrderItems: {
         include: {
           Attachments: true,
           CarType: {
@@ -87,7 +87,7 @@ const Page: React.FC<PageProps> = async ({
     remaining: payment?.remaining || 0
   }
 
-  const data = order?.OrdersItems.map(
+  const data = order?.OrderItems.map(
     ({
       id,
       category,

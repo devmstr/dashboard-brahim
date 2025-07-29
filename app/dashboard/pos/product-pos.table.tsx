@@ -90,6 +90,32 @@ export function ProductPosTable({
   const [columnVisibility, setColumnVisibility] =
     usePersistedState<VisibilityState>('pos-table-columns-visibility', {})
 
+  const [products, setProducts] = React.useState<ProductPosTableEntry[]>(data)
+  const [page, setPage] = React.useState(1)
+  const [totalPages, setTotalPages] = React.useState(1)
+  const [isLoading, setIsLoading] = React.useState(false)
+
+  async function fetchProducts(page = 1, limit = 8, search = '') {
+    setIsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString()
+      })
+      if (search.trim()) params.append('search', search.trim())
+
+      const res = await fetch(`/api/pos?${params.toString()}`)
+      const json = await res.json()
+
+      setProducts(json.data)
+      setTotalPages(json.meta.totalPages)
+    } catch (err) {
+      console.error('Failed to fetch products:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
@@ -263,7 +289,7 @@ export function ProductPosTable({
   }
 
   const table = useReactTable({
-    data,
+    data: products,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -288,6 +314,10 @@ export function ProductPosTable({
     }
   })
 
+  React.useEffect(() => {
+    fetchProducts(page, limit, globalFilterValue)
+  }, [page, limit, globalFilterValue])
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between pb-4">
@@ -295,7 +325,10 @@ export function ProductPosTable({
           <Input
             placeholder={t['placeholder']}
             value={globalFilterValue}
-            onChange={(e) => setGlobalFilterValue(e.target.value)} // Use table.setGlobalFilter to update the global filter value
+            onChange={(e) => {
+              setGlobalFilterValue(e.target.value)
+              setPage(1)
+            }} // Use table.setGlobalFilter to update the global filter value
             className="min-w-56 w-full"
           />
           <div className="hidden md:flex gap-3">
@@ -421,13 +454,16 @@ export function ProductPosTable({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
+              <TableRow className="w-full flex">
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center flex items-center justify-center gap-1"
+                  className="h-24  text-center flex justify-center items-center  gap-1"
                 >
-                  <Icons.spinner className="w-4 h-4 animate-spin" />
-                  Fetching Result...
+                  {isLoading ? (
+                    <Icons.spinner className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Aucune résultat trouvé'
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -439,18 +475,18 @@ export function ProductPosTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            disabled={page === 1}
           >
-            Previous
+            Précédent
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+            disabled={page === totalPages}
           >
-            Next
+            Suivant
           </Button>
         </div>
       </div>

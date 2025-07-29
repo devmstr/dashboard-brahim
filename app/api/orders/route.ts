@@ -72,13 +72,16 @@ export async function POST(request: Request) {
         uniqueName: attachment.uniqueName || ''
       }))
 
+      const allItemsValid = OrderItems?.every((item) => item.radiatorId)
+
       // Step 3: Create order (needed before linking order items)
       const createdOrder = await tx.order.create({
         data: {
           id,
           clientId,
           deadline: deadline,
-          status: status,
+          status: allItemsValid ? 'VALIDÉ' : 'PRÉVU',
+          validatedAt: allItemsValid ? new Date().toISOString() : null,
           progress: progress || 0,
           paymentId: createdPayment.id,
           totalItems: OrderItems.reduce(
@@ -126,7 +129,8 @@ export async function POST(request: Request) {
             lowerCollectorWidth: item.lowerCollectorWidth ?? null,
             tightening: item.tightening ?? null,
             label: item.label,
-            status: item.radiatorId ? 'Valide' : 'Prévu',
+            status: item.radiatorId ? 'VALIDÉ' : 'PRÉVU',
+            validatedAt: item.radiatorId ? new Date().toISOString() : null,
             delivered: 0,
             Order: { connect: { id: createdOrder.id } },
             ...(item.CarType?.id && {
@@ -145,7 +149,7 @@ export async function POST(request: Request) {
       const fullOrder = await tx.order.findUnique({
         where: { id: createdOrder.id },
         include: {
-          OrdersItems: {
+          OrderItems: {
             include: {
               Attachments: true,
               CarType: {
@@ -200,7 +204,7 @@ export async function GET(request: NextRequest) {
       include: {
         Client: true,
         Payment: true,
-        OrdersItems: {
+        OrderItems: {
           include: {
             Attachments: true,
             CarType: {
@@ -227,7 +231,7 @@ export async function GET(request: NextRequest) {
     // make the models
     orders = orders.map((item) => ({
       ...item,
-      OrdersItems: item.OrdersItems.map((orderItem) => ({
+      OrderItems: item.OrderItems.map((orderItem) => ({
         ...orderItem
       }))
     }))

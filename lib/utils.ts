@@ -100,8 +100,7 @@ export interface ProductConfig {
   lowerCollectorWidth?: number | null
   tightening?: string | null
   position?: string | null
-  brand?: string | null
-  model?: string | null
+  dirId?: string | null
 }
 
 const pad = (n?: number | null): string =>
@@ -124,8 +123,6 @@ export function generateRadiatorLabel({
   type,
   fabrication,
   cooling = 'Eau',
-  brand = '',
-  model = '',
   betweenCollectors = 0,
   width,
   fins = 'Normale',
@@ -154,7 +151,6 @@ export function generateRadiatorLabel({
 
   const coolingText =
     cooling !== 'Eau' ? ` ${coolingDec[cooling as Cooling]}` : ''
-  const brandModel = `${brand} ${model}`.trim()
 
   return [
     prefix,
@@ -165,8 +161,7 @@ export function generateRadiatorLabel({
       TIGHTENING_T[tightening as Tightening],
       POSITION_T[position as Position]
     ].join(''),
-    coolingText,
-    brandModel
+    coolingText
   ]
     .filter(Boolean)
     .join(' ')
