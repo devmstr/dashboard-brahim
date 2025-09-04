@@ -23,7 +23,7 @@ import {
 } from '@/lib/validations/client'
 import { toast } from '@/hooks/use-toast'
 import { AddressSelector, AddressSelectorData } from './address.selector'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 import { useRouter } from 'next/navigation'
 
 interface Props {
@@ -47,7 +47,7 @@ export const ClientInfoForm: React.FC<Props> = ({
     resolver: zodResolver(clientSchema),
     defaultValues: {
       ...initialData,
-      id: initialData?.id || skuId('CL'),
+      id: initialData?.id || generateId('CL'),
       label: initialData?.label || 'SARL',
       isCompany: initialData?.isCompany || false,
       country: initialData?.country || 'DZ',

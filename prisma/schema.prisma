@@ -37,7 +37,8 @@ model Session {
 model User {
   id           String       @id @default(cuid())
   role         String?
-  username     String       @unique
+  username     String?      @unique
+  phone        String?      @unique
   email        String?      @unique
   passwordHash String
   employeeId   Int          @unique

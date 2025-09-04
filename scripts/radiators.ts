@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
+import data from '../seed/2025.json'
 import crypto from 'crypto'
-import { skuId } from '../lib/utils'
+import { generateId } from '../helpers/id-generator'
 
 const prisma = new PrismaClient()
 
@@ -46,11 +47,11 @@ async function main() {
 
   try {
     // Read the JSON file
-    const jsonPath = path.join(process.cwd(), 'seed', 'data', '2025.json')
-    const jsonData = fs.readFileSync(jsonPath, 'utf-8')
-    const radiatorDataArray: RadiatorData[] = JSON.parse(jsonData)
+    // const jsonPath = path.join(process.cwd(), 'seed', 'data', '2025.json')
+    // const jsonData = fs.readFileSync(jsonPath, 'utf-8')
+    // const radiatorDataArray: RadiatorData[] = JSON.parse(jsonData)
 
-    console.log(`📄 Found ${radiatorDataArray.length} radiators in 2025.json`)
+    // console.log(`📄 Found ${radiatorDataArray.length} radiators in 2025.json`)
 
     // Clean up existing data if needed
     console.log('🧹 Cleaning up existing data...')
@@ -63,7 +64,7 @@ async function main() {
     let processedCount = 0
     let skippedCount = 0
 
-    for (const radiatorData of radiatorDataArray) {
+    for (const radiatorData of data) {
       try {
         // Create inventory for the radiator
         const inventory = await prisma.inventory.create({
@@ -106,7 +107,7 @@ async function main() {
         })
 
         // generate a unique ID for the radiator
-        const id = skuId(
+        const id = generateId(
           radiatorData.designation?.substring(0, 2) as
             | 'RA'
             | 'FA'
@@ -220,7 +221,7 @@ async function main() {
 
         processedCount++
         console.log(
-          `✅ Processed radiator ${processedCount}/${radiatorDataArray.length}: ${radiatorData.reference}`
+          `✅ Processed radiator ${processedCount}/${data.length}: ${radiatorData.reference}`
         )
       } catch (error) {
         skippedCount++

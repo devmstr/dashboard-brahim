@@ -134,6 +134,7 @@ export const userRoles = [
   'sales_manager',
   'production_worker',
   'production_manager',
+  'data_agent',
   'engineer',
   'engineering_manager',
   'consultant',

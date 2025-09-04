@@ -1,4 +1,4 @@
-import { skuId } from '../lib/utils'
+import { generateId } from '../helpers/id-generator'
 import { PrismaClient } from '@prisma/client'
 import fs from 'fs'
 import path from 'path'
@@ -332,7 +332,7 @@ async function seedClientsFromJson() {
       // Create client with real data
       await prisma.client.create({
         data: {
-          id: skuId('CL'),
+          id: generateId('CL'),
           name: clientData.name,
           phone: formattedPhone,
           label: clientData.label || null,

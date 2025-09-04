@@ -1,12 +1,11 @@
 import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
-import { COMPANY_LABELS_TYPE } from '@/config/global'
 
 const prisma = new PrismaClient()
 
 let counter = 1
 
-function skuId() {
+function generateId() {
   return `CLX${String(counter++).padStart(4, '0')}`
 }
 
@@ -73,7 +72,7 @@ async function seedClients() {
     // Create client with address relation
     return prisma.client.create({
       data: {
-        id: skuId(),
+        id: generateId(),
         name: faker.company.name(),
         phone: `+213${faker.string.numeric(9)}`,
         label: faker.helpers.arrayElement(LABELS),

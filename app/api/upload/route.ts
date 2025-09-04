@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { existsSync } from 'fs'
-import { generateUniqueFilename } from '@/lib/utils'
+import { generateUniqueFilename } from '@/helpers/unique-name-file'
 
 // Define the base uploads directory for physical storage
 const BASE_UPLOADS_DIR = path.join(process.cwd(), 'uploads')

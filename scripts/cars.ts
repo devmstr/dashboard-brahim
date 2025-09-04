@@ -1,25 +1,17 @@
-import { skuId } from '../lib/utils'
-import { PrismaClient } from '@prisma/client'
-import fs from 'fs'
-import path from 'path'
-
-const prisma = new PrismaClient()
+import { generateId } from '../helpers/id-generator'
+import prisma from '../lib/db'
+import json from '../seed/cars.json'
 
 interface BrandModelData {
   model: string
   brand: string
 }
 
-let counter = 1
-
 async function main() {
   console.log('🌱 Starting simple seeding: Brand → Family, Model → Type...')
 
   try {
-    // Read the JSON file
-    const jsonPath = path.join(process.cwd(), 'seed', 'data', 'cars.json')
-    const jsonData = fs.readFileSync(jsonPath, 'utf-8')
-    const brandModelData: BrandModelData[] = JSON.parse(jsonData)
+    const brandModelData = json as BrandModelData[]
 
     console.log(`📄 Found ${brandModelData.length} brand-model combinations`)
 
@@ -78,7 +70,7 @@ async function main() {
             // Create model with original model name
             const model = await prisma.model.create({
               data: {
-                id: skuId('MO'),
+                id: generateId('MO'),
                 name: originalModelName, // Copy model name to model name
                 familyId: family.id
               }
@@ -111,10 +103,10 @@ async function main() {
 
     console.log(`✨ Simple seeding completed successfully!`)
     console.log(`📊 Summary:`)
-    console.log(`   - Brands created: ${totalBrandsCreated}`)
-    console.log(`   - Families created: ${totalFamiliesCreated}`)
-    console.log(`   - Models created: ${totalModelsCreated}`)
-    console.log(`   - Types created: ${totalTypesCreated}`)
+    console.log(`- Brands created: ${totalBrandsCreated}`)
+    console.log(`- Families created: ${totalFamiliesCreated}`)
+    console.log(`- Models created: ${totalModelsCreated}`)
+    console.log(`- Types created: ${totalTypesCreated}`)
   } catch (error) {
     console.error('❌ Error reading or parsing models-with-brands.json:', error)
     throw error

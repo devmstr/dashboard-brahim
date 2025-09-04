@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { EditCarSchemaType } from '@/app/dashboard/cars/[id]/edit-car.form copy'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 
 // GET a single model by ID within a family
 export async function GET(
@@ -139,7 +139,7 @@ export async function PATCH(
           fuel: type.fuel || ''
         },
         create: {
-          id: skuId('VE'),
+          id: generateId('VE'),
           name: type.name || '',
           year: type.year || '',
           fuel: type.fuel || '',

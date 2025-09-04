@@ -1,6 +1,6 @@
 'use client'
 import { toast } from '@/hooks/use-toast'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 import { ClientSchemaType as Client } from '@/lib/validations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -67,7 +67,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
     // setup an order id
     setOrder((prev) => ({
       ...prev,
-      id: order?.id || skuId('CO')
+      id: order?.id || generateId('CO')
     }))
 
     router.push('new/order')

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 
 export async function DELETE(
   request: NextRequest,

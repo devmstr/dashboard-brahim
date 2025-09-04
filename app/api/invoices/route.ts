@@ -3,7 +3,7 @@ import prisma from '@/lib/db'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { InvoiceSchemaType } from '@/lib/validations/invoice'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 import { generateInvoiceReference } from '@/lib/helpers'
 
 export async function POST(req: NextRequest) {
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       orderId
     } = body
     console.log(items)
-    const id = type === 'FINAL' ? skuId('FF') : skuId('FP')
+    const id = type === 'FINAL' ? generateId('FF') : generateId('FP')
 
     const reference = await generateInvoiceReference(type)
     // Create invoice

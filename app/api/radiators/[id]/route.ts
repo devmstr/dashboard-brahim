@@ -1,12 +1,13 @@
 import prisma from '@/lib/db'
 import { hash256 } from '@/lib/hash-256'
-import { generateRadiatorLabel, ProductConfig, skuId } from '@/lib/utils'
 import { OrderItem } from '@/lib/validations'
 import { RadiatorSchemaType } from '@/lib/validations/radiator'
 import { isExists } from 'date-fns'
 import { revalidatePath } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
+import { generateLabel, ProductConfig } from '@/helpers/radiator-label'
+import { generateId } from '@/helpers/id-generator'
 
 interface RouteParams {
   params: {
@@ -142,7 +143,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     } = body as ProductConfig
     const brand = body.CarType?.Model?.Family?.Brand?.name
     const model = body.CarType?.name
-    const label = generateRadiatorLabel({
+    const label = generateLabel({
       betweenCollectors,
       cooling,
       fabrication,
@@ -239,7 +240,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     } = body as ProductConfig
     const brand = body.CarType?.Model?.Family?.Brand?.name
     const model = body.CarType?.name
-    const label = generateRadiatorLabel({
+    const label = generateLabel({
       betweenCollectors,
       cooling,
       fabrication,
@@ -298,7 +299,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       radiator = await prisma.radiator.create({
         data: {
           ...data,
-          id: skuId('RA'),
+          id: generateId('RA'),
           label,
           hash,
           status: 'VALIDATED',

@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { cn, skuId } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 import { redirect, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from '@/hooks/use-toast'
@@ -146,7 +147,7 @@ export const AddOrderItemsView: React.FC<Props> = ({}: Props) => {
   )
 
   async function onOrderPlaced(orderItem: OrderItem) {
-    orderItem.id = skuId('AR')
+    orderItem.id = generateId('AR')
     setOrder((prev) => ({
       ...prev,
       OrderItems: [...(prev?.OrderItems || []), orderItem]

@@ -41,11 +41,12 @@ import {
   TUBE_TYPES
 } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
-import { generateRadiatorLabel, isContentEmpty } from '@/lib/utils'
+import { isContentEmpty } from '@/lib/utils'
 import { orderItemSchema } from '@/lib/validations/order'
 import { Content } from '@tiptap/react'
 import { useSession } from 'next-auth/react'
 import { OrderItem } from '@/types'
+import { generateLabel } from '@/helpers/radiator-label'
 
 interface EditOrderItemFormProps {
   data: OrderItem
@@ -113,7 +114,7 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
   const onSubmitHandler = async (orderItem: OrderItem) => {
     try {
       setIsLoading(true)
-      const label = generateRadiatorLabel(orderItem)
+      const label = generateLabel(orderItem)
 
       const updatedOrderItem: OrderItem = {
         ...orderItem,

@@ -1,12 +1,15 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "commonjs",
     "outDir": "./dist",
-    "noEmit": false
-  },
-  "paths": {
-    "@/*": ["./*"]
+    "noEmit": false,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
   "include": ["./scripts/**/*.ts"],
   "exclude": ["node_modules"]

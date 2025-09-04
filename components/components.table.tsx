@@ -15,7 +15,8 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { cn, skuId } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 
 import {
   type ColumnDef,
@@ -522,7 +523,7 @@ export function OrderComponentsTable({
                 <AddOrderItemForm
                   onSubmit={async (orderItem) => {
                     try {
-                      const id = skuId('AR')
+                      const id = generateId('AR')
 
                       // Use the /api/orders/[id] API to add the item
                       const response = await fetch(`/api/orders/${orderId}`, {

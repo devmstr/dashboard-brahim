@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { z } from 'zod'
-import { formatPhoneNumber, skuId } from '@/lib/utils'
+import { formatPhoneNumber } from '@/lib/utils'
 import { Client } from '@/types'
 import { ClientSchemaType } from '@/lib/validations'
 import { revalidatePath } from 'next/cache'
 import { Prisma } from '@prisma/client'
+import { generateId } from '@/helpers/id-generator'
 
 // Update the GET function to handle empty searchTerm terms and improve search matching
 export async function GET(request: NextRequest) {
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     const client = await prisma.client.create({
       data: {
-        id: body.id || skuId('CL'),
+        id: body.id || generateId('CL'),
         name: body.name,
         phone: body.phone,
         email: body.email,

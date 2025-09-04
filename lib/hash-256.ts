@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { ProductConfig } from '@/helpers/radiator-label'
 import SHA256 from 'crypto-js/sha256'
-import { ProductConfig } from './utils'
 
 export function hash256(data: ProductConfig): string {
   // Remove null values and sort the object keys

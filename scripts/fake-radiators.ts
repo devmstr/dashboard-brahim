@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from '../lib/db'
 import { faker } from '@faker-js/faker'
-
-const prisma = new PrismaClient()
 
 const mockSkuId = (
   prefix: 'RA' | 'FA' | 'AU' | 'CO' | 'CB' | 'CL' | 'VE' | 'PA'
@@ -97,15 +95,15 @@ async function main() {
     const productReference = `${id}`
 
     // Generate core dimensions
-    const coreWidth = faker.number.int({ min: 100, max: 800 })
-    const coreHeight = faker.number.int({ min: 100, max: 800 })
+    const width = faker.number.int({ min: 600, max: 1000 })
+    const betweenCollectors = faker.number.int({ min: 400, max: 1500 })
 
     // Generate collector dimensions
-    const collectorWidth = faker.number.int({ min: 100, max: 1500 })
-    const collectorHeight = faker.number.int({ min: 100, max: 1500 })
+    const collectorWidth = faker.number.int({ min: 30, max: 100 })
+    const collectorLength = faker.number.int({ min: 600, max: 1000 })
 
     // Generate other properties
-    const rows = faker.number.int({ min: 1, max: 6 })
+    const rows = faker.number.int({ min: 2, max: 8 })
     const fins = faker.helpers.arrayElement(FINS_TYPES)
     const tube = faker.helpers.arrayElement(TUBE_TYPES)
     const finsPitch = faker.helpers.arrayElement(FINS_PITCHES)
@@ -116,12 +114,12 @@ async function main() {
     const productLabel = generateProductTitle({
       type: type === 'Faisceau' ? 'Faisceau' : 'Radiateur',
       core: {
-        width: coreWidth,
-        height: coreHeight
+        width: width,
+        height: betweenCollectors
       },
       collector: {
         width: collectorWidth,
-        height: collectorHeight
+        height: collectorLength
       },
       rows,
       fins: fins[0] as any,
@@ -157,21 +155,21 @@ async function main() {
         category,
         dirId: `C${faker.string.numeric(3)}`,
         cooling: faker.helpers.arrayElement(COOLING_TYPES),
-        barcode: faker.string.numeric(13),
+        barcode: faker.string.numeric(12),
         isActive: true,
         inventoryId: inventory.id,
         priceId: price.id,
-        betweenCollectors: 0,
-        width: 0,
-        rows: 0,
-        fins: 'Zigzag',
-        pitch: 0,
-        tubeType: 'ET7',
-        upperCollectorLength: 0,
-        upperCollectorWidth: 0,
-        position: '',
-        tightening: '',
-        perforation: '',
+        betweenCollectors,
+        width,
+        rows,
+        fins,
+        pitch: faker.helpers.arrayElement(FINS_PITCHES),
+        tubeType: faker.helpers.arrayElement(TUBE_TYPES),
+        upperCollectorLength: collectorLength,
+        upperCollectorWidth: collectorWidth,
+        position: faker.helpers.arrayElement(POSITIONS),
+        tightening: faker.helpers.arrayElement(TIGHTENING_TYPES),
+        perforation: faker.helpers.arrayElement(PERFORATION),
         isTinned: true
       }
     })

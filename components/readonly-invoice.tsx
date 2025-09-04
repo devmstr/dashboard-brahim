@@ -9,7 +9,9 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { amountToWords, calculateBillingSummary, cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { amountToWords } from '@/helpers/price-to-string'
+import { calculateBillingSummary } from '@/helpers/invoice'
 import type { Invoice } from '@/types'
 import { format } from 'date-fns'
 import Image from 'next/image'

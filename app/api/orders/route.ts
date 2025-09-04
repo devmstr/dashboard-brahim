@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import type { Attachment, Order, OrderItem } from '@/lib/validations'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 import { TypeOf } from 'zod'
 import { STATUS_TYPES } from '@/config/global'
 
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       for (const item of OrderItems) {
         await tx.orderItem.create({
           data: {
-            id: skuId('AR'),
+            id: generateId('AR'),
             note: item.note || undefined,
             description: item.description || undefined,
             modification: item.modification || undefined,
