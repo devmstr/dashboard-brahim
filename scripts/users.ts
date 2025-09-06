@@ -1,8 +1,6 @@
-'use client'
-import { UserRole } from '@/types'
+import { generateId } from '../helpers/id-generator'
 import prisma from '../lib/db'
-
-// const prisma = new PrismaClient()
+import { UserRole } from '../types'
 
 type User = {
   email: string
@@ -66,7 +64,6 @@ const users: User[] = [
 ]
 
 async function main() {
-  const { generateId } = await import('../helpers/id-generator')
   console.log(`Start seeding ...`)
   // Clear existing users
   await prisma.user.deleteMany()

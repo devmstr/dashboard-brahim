@@ -1,15 +1,16 @@
-import { customAlphabet } from 'nanoid'
+import ShortUniqueId from 'short-unique-id'
 
 export enum SKU_PREFIX {
   EM = 'EM', // employee
   RA = 'RA', // radiator
-  VE = 'VE', // Véhicule
+  FM = 'FM', // Véhicule
   RE = 'RE', // Radiateur renovation (typeof radiator)
   FA = 'FA', // Faisceau
   FE = 'FE', // Faisceau Empalé
   SP = 'SP', // Spirale
   MO = 'MO', // model
-  BR = 'BR', // brand
+  VE = 'VE', // model type (vehicle)
+  MR = 'MR', // brand
   AR = 'AR', // order item (article)
   AU = 'AU', // Other (typeof order item)
   CO = 'CO', // order
@@ -23,9 +24,12 @@ export enum SKU_PREFIX {
 
 export type PREFIX = keyof typeof SKU_PREFIX
 
+const uid = new ShortUniqueId({
+  length: 6,
+  shuffle: true,
+  dictionary: 'ABCDEFGHJKLMNPQRSTUVWYZ123456789'.split('')
+})
+
 export function generateId(prefix: PREFIX): string {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWYZ123456789'
-  const generateId = customAlphabet(alphabet, 6)
-  const uniqueId = generateId()
-  return `${prefix}X${uniqueId}`
+  return `${SKU_PREFIX[prefix]}X${uid.rnd()}` // fixed 6 chars
 }

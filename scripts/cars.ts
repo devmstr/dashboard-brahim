@@ -48,6 +48,7 @@ async function main() {
         // Create the brand
         const brand = await prisma.brand.create({
           data: {
+            id: generateId('MR'),
             name: brandName
           }
         })
@@ -57,6 +58,7 @@ async function main() {
         // Create family with same name as brand
         const family = await prisma.family.create({
           data: {
+            id: generateId('FM'),
             name: brandName, // Copy brand name to family name
             brandId: brand.id
           }
@@ -81,6 +83,7 @@ async function main() {
             // Create type with same name as model
             await prisma.type.create({
               data: {
+                id: generateId('VE'),
                 name: originalModelName, // Copy model name to type name
                 modelId: model.id
               }

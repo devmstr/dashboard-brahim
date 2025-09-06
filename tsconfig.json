@@ -10,7 +10,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "./types/*.d.ts",
-    "scripts/locations.ts"
+    "scripts/locations.ts",
+    "scripts/users.mjs"
   ],
   "exclude": ["node_modules", "components/minimal-tiptap"]
 }

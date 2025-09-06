@@ -14,10 +14,10 @@ export const authOptions: AuthOptions = {
       id: 'singIn',
       name: 'singIn',
       credentials: {
-        username: {
+        input: {
           label: "Nom d'utilisateur /Phone / Email / ID Employé",
           type: 'text',
-          placeholder: 'Username...'
+          placeholder: '...'
         },
         password: {
           label: 'Password',

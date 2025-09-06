@@ -14,14 +14,13 @@
     "studio:prod": "dotenv -e .env.production -- npx prisma studio",
     "migrate:dev": "dotenv -e .env.production -- npx prisma migrate dev",
     "script": "ts-node -P tsconfig.seed.json",
+    "seed:build": "tsc -p tsconfig.seed.json",
     "seed:clients": "npm run script scripts/clients.ts",
     "seed:cars": "npm run script scripts/cars.ts",
     "seed:users": "npm run script scripts/users.ts",
     "seed:materials": "npm run script scripts/materials.ts",
     "seed:locations": "npm run script scripts/locations.ts",
-    "seed:radiators": "npm run script scripts/radiators.ts",
-    "seed:radiators:fake": "npm run script scripts/fake-radiators.ts",
-    "seed:clients:fake": "npm run script scripts/fake-clients.ts"
+    "seed:radiators": "npm run script scripts/radiators.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",
@@ -102,6 +101,7 @@
     "react-medium-image-zoom": "^5.2.11",
     "react-stately": "^3.29.1",
     "react-to-print": "^3.0.5",
+    "short-unique-id": "^5.3.2",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "xlsx": "^0.18.5",
