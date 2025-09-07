@@ -20,13 +20,10 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { PAYMENT_TYPES } from '@/config/global'
 import { useScrollProgress } from '@/hooks/use-scroll'
-import {
-  amountToWords,
-  calculateBillingSummary,
-  cn,
-  delay,
-  skuId
-} from '@/lib/utils'
+import { cn, delay } from '@/lib/utils'
+import { calculateBillingSummary } from '@/helpers/invoice'
+import { amountToWords } from '@/helpers/price-to-string'
+import { generateId } from '@/helpers/id-generator'
 import type { Invoice } from '@/types'
 import { format } from 'date-fns'
 import { Pencil, RefreshCcw } from 'lucide-react'
@@ -84,7 +81,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
       input
         ? input
         : {
-            id: skuId('FP'),
+            id: generateId('FP'),
             reference: '',
             date: null,
             name: null,

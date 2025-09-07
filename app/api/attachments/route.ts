@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { generateUniqueFilename } from '@/lib/utils'
+import { generateUniqueFilename } from '@/helpers/unique-name-file'
 
 // GET all attachments
 export async function GET(request: NextRequest) {

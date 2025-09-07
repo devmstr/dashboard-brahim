@@ -29,12 +29,12 @@ export const COMPANY_LABELS_TYPE_ARR: string[] = COMPANY_LABELS_TYPE.map(
 export const FABRICATION_TYPES = ['Confection', 'Rénovation'] as const
 export const FABRICATION_TYPES_ARR: string[] = [...FABRICATION_TYPES]
 export const STATUS_TYPES = [
-  'ANNULER',
-  'PRÉVU',
-  'ENCOURS',
-  'FINI',
-  'VALIDÉ',
-  'LIVRÉ'
+  'Annuler',
+  'Prévu',
+  'Encours',
+  'Fini',
+  'Valide',
+  'Livré'
 ] as const
 export const STATUS_TYPE_ARR: string[] = [...STATUS_TYPES]
 // Orders
@@ -134,6 +134,7 @@ export const userRoles = [
   'sales_manager',
   'production_worker',
   'production_manager',
+  'data_agent',
   'engineer',
   'engineering_manager',
   'consultant',

@@ -485,11 +485,11 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
             name="dirId"
             render={({ field }) => (
               <FormItem className="group">
-                <FormLabel className="capitalize">Numero de dossier</FormLabel>
+                <FormLabel className="capitalize">Dir ID</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    placeholder="Enter Numero de dossier"
+                    placeholder="Enter Dir ID"
                     className="w-full"
                     value={field.value ?? undefined}
                   />

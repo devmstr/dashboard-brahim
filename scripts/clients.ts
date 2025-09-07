@@ -1,7 +1,6 @@
-import { skuId } from '../lib/utils'
-import { PrismaClient } from '@prisma/client'
-import fs from 'fs'
-import path from 'path'
+import { generateId } from '../helpers/id-generator'
+import { PrismaClient, Province } from '@prisma/client'
+import data from '../seed/clients.json'
 
 const prisma = new PrismaClient()
 
@@ -172,7 +171,7 @@ function findMatchingProvince(wilaya: string, provinces: any[]): any | null {
   }
 
   // 3. Try fuzzy matching with similarity threshold
-  let bestMatch = null
+  let bestMatch: Province | null = null
   let bestSimilarity = 0
   const threshold = 70 // 70% similarity threshold
 
@@ -239,17 +238,7 @@ async function seedClientsFromJson() {
 
   console.log('📖 Reading client data from JSON file...')
 
-  // Read the JSON file
-  const jsonFilePath = path.join(process.cwd(), 'seed/data/clients.json')
-
-  if (!fs.existsSync(jsonFilePath)) {
-    throw new Error(
-      'clients-db.json file not found. Please ensure the file exists in the project root.'
-    )
-  }
-
-  const jsonData = fs.readFileSync(jsonFilePath, 'utf-8')
-  const clientsData: ClientData[] = JSON.parse(jsonData)
+  const clientsData = data as ClientData[]
 
   console.log(`📊 Found ${clientsData.length} clients in JSON file`)
 
@@ -332,7 +321,7 @@ async function seedClientsFromJson() {
       // Create client with real data
       await prisma.client.create({
         data: {
-          id: skuId('CL'),
+          id: generateId('CL'),
           name: clientData.name,
           phone: formattedPhone,
           label: clientData.label || null,

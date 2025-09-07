@@ -15,7 +15,8 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { cn, skuId } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 
 import {
   type ColumnDef,
@@ -63,7 +64,6 @@ import { Label } from './ui/label'
 import { toast } from '@/hooks/use-toast'
 import { StatusBudge } from './status-badge'
 import { STATUS_TYPE_ARR, STATUS_TYPES } from '@/config/global'
-import { OrderItem } from '@/types'
 
 export type ComponentsTableEntry = {
   id: string
@@ -275,12 +275,12 @@ export function OrderComponentsTable({
             <StatusBudge
               variant={
                 status as
-                  | 'ANNULER'
-                  | 'PRÉVU'
-                  | 'ENCOURS'
-                  | 'FINI'
-                  | 'VALIDÉ'
-                  | 'LIVRÉ'
+                  | 'Livré'
+                  | 'Annuler'
+                  | 'Prévu'
+                  | 'Encours'
+                  | 'Fini'
+                  | 'Valide'
               }
             />
           </div>
@@ -523,7 +523,7 @@ export function OrderComponentsTable({
                 <AddOrderItemForm
                   onSubmit={async (orderItem) => {
                     try {
-                      const id = skuId('AR')
+                      const id = generateId('AR')
 
                       // Use the /api/orders/[id] API to add the item
                       const response = await fetch(`/api/orders/${orderId}`, {
@@ -549,8 +549,8 @@ export function OrderComponentsTable({
                         )
                       }
                       const updatedOrder = await response.json()
-                      // Find the new item in the updated order's OrderItems
-                      const newItem = updatedOrder.OrderItems?.find(
+                      // Find the new item in the updated order's OrdersItems
+                      const newItem = updatedOrder.OrdersItems?.find(
                         (item: any) => item.id === id
                       )
                       if (newItem) {

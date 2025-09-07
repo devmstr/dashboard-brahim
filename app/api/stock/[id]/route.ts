@@ -25,32 +25,53 @@ export async function PATCH(
     const { stockLevel, minStockLevel, maxStockLevel, isActive } = body
 
     // Find the radiator and its inventory
-    const radiator = await prisma.radiator.update({
+    const radiator = await prisma.radiator.findUnique({
       where: { id: radiatorId },
-      data: {
-        Inventory: {
-          upsert: {
-            create: {
-              level: stockLevel ?? 0,
-              alertAt: minStockLevel ?? 0,
-              maxLevel: maxStockLevel ?? 0
-            },
-            update: {
-              level: stockLevel ?? 0,
-              alertAt: minStockLevel ?? 0,
-              maxLevel: maxStockLevel ?? 0
-            }
-          }
-        }
-      },
       include: { Inventory: true }
     })
 
+    if (!radiator) {
+      return NextResponse.json(
+        { message: 'Radiator not found' },
+        { status: 404 }
+      )
+    }
+
+    let inventory
+    if (!radiator.inventoryId) {
+      // Create new inventory and link to radiator
+      inventory = await prisma.inventory.create({
+        data: {
+          level: stockLevel ?? 0,
+          alertAt: minStockLevel ?? 0,
+          maxLevel: maxStockLevel ?? 0,
+          Radiators: { connect: { id: radiatorId } }
+        }
+      })
+      await prisma.radiator.update({
+        where: { id: radiatorId },
+        data: {
+          inventoryId: inventory.id,
+          isActive: isActive ?? radiator.isActive
+        }
+      })
+    } else {
+      // Update existing inventory
+      inventory = await prisma.inventory.update({
+        where: { id: radiator.inventoryId },
+        data: {
+          level: stockLevel ?? undefined,
+          alertAt: minStockLevel ?? undefined,
+          maxLevel: maxStockLevel ?? undefined
+        }
+      })
+      await prisma.radiator.update({
+        where: { id: radiatorId },
+        data: { isActive: isActive ?? radiator.isActive }
+      })
+    }
     revalidatePath('/dashboard/inventory')
-    return NextResponse.json({
-      message: 'Inventory updated',
-      inventory: radiator.Inventory
-    })
+    return NextResponse.json({ message: 'Inventory updated', inventory })
   } catch (error) {
     console.error('Error updating inventory:', error)
     return NextResponse.json(

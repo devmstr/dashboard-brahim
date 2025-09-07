@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (!modelRecord) {
       modelRecord = await prisma.model.create({
         data: {
-          id: skuId('MO'),
+          id: generateId('MO'),
           name: model,
           familyId: familyRecord.id
         }
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       if (!existingType) {
         await prisma.type.create({
           data: {
-            id: skuId('VE'),
+            id: generateId('VE'),
             name: type.name,
             year: type.year,
             fuel: type.fuel,

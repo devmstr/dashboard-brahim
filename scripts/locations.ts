@@ -1,8 +1,5 @@
-import { PrismaClient } from '@prisma/client'
-import fs from 'fs/promises'
-import path from 'path'
-
-const prisma = new PrismaClient()
+import prisma from '../lib/db'
+import json from '../seed/algeria_postcodes.json'
 
 interface AlgerianCity {
   post_code: string
@@ -22,10 +19,7 @@ interface AlgerianCity {
 
 async function main() {
   console.log('🔄 Starting location seeding process...')
-
-  const filePath = path.join(__dirname, 'data', 'algeria_postcodes.json')
-  const rawData = await fs.readFile(filePath, 'utf-8')
-  const cities: AlgerianCity[] = JSON.parse(rawData)
+  const cities = json as AlgerianCity[]
 
   console.log(`📊 Loaded ${cities.length} cities from data file`)
 

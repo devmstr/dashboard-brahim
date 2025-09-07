@@ -13,29 +13,29 @@ const STATUS_CONFIG: Record<
     className: string
   }
 > = {
-  ANNULER: {
+  Annuler: {
     iconKey: 'abandoned',
-    className: 'bg-[#f8f9fa] text-[#6c757d] border-[#6c757d]' // Gray - cancelled/neutral
+    className: 'bg-[#f8f9fa] text-[#a0a0a0] border-[#a0a0a0]' // Lighter gray
   },
-  PRÉVU: {
+  Prévu: {
     iconKey: 'planned',
-    className: 'bg-[#fffbeb] text-[#d97706] border-[#d97706]' // Yellow - planned/warning
+    className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]' // Brighter blue
   },
-  ENCOURS: {
+  Valide: {
+    iconKey: 'checkCircle', // or 'verified' depending on your Icons object
+    className: 'bg-[#e8f5e8] text-[#2e7d32] border-[#2e7d32]' // Dark green for validation
+  },
+  Encours: {
     iconKey: 'ongoing',
-    className: 'bg-[#fff7ed] text-[#ea580c] border-[#ea580c]' // Orange - validated/active
+    className: 'bg-[#fff0d4] text-[#ffa500] border-[#ffa500]' // Vibrant orange
   },
-  VALIDÉ: {
-    iconKey: 'checkCircle',
-    className: 'bg-[#f0fdf4] text-[#16a34a] border-[#16a34a]' // Green - in progress/success
-  },
-  FINI: {
+  Fini: {
     iconKey: 'done',
-    className: 'bg-[#eff6ff] text-[#2563eb] border-[#2563eb]' // Blue - finished/complete
+    className: 'bg-[#f0f8e0] text-[#6ba800] border-[#6ba800]' // Brighter green
   },
-  LIVRÉ: {
+  Livré: {
     iconKey: 'deliveryPackage',
-    className: 'bg-[#faf5ff] text-[#9333ea] border-[#9333ea]' // Purple - delivered/final
+    className: 'bg-[#e6f9ed] text-[#1aaa55] border-[#1aaa55]' // Greenish teal for delivery
   }
 }
 

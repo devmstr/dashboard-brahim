@@ -37,8 +37,8 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
     startTransaction(async () => {
       try {
         const res = await signIn('singIn', {
-          username: input,
-          password: password,
+          input,
+          password,
           redirect: false,
           callbackUrl: '/dashboard'
         })
@@ -76,8 +76,9 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="E-mail ou Nom D'utilisateur ou Number Employee Ici..."
                     {...field}
+                    placeholder="E-mail ou Nom D'utilisateur ou Number Employee Ici..."
+                    type="text"
                   />
                 </FormControl>
                 <FormMessage />

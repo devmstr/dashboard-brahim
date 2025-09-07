@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { FileUploadArea } from '@/components/upload-file-area'
 import { toast } from '@/hooks/use-toast'
 import type { Attachment } from '@/lib/validations/order'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 
 interface OrderUploaderProps {
   uploadPath: string
@@ -89,7 +89,7 @@ export const OrderUploader: React.FC<OrderUploaderProps> = ({
       if (result.success) {
         // Create new attachment
         const newAttachment: Attachment = {
-          id: skuId('FL'),
+          id: generateId('FL'),
           name: file.name,
           uniqueName: result.uniqueFileName || file.name,
           path: result.storedPath || '',

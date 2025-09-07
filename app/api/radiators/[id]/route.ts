@@ -1,12 +1,13 @@
 import prisma from '@/lib/db'
-import { generateHash } from '@/lib/hash-256'
-import { generateRadiatorLabel, ProductConfig, skuId } from '@/lib/utils'
+import { hash256 } from '@/lib/hash-256'
 import { OrderItem } from '@/lib/validations'
 import { RadiatorSchemaType } from '@/lib/validations/radiator'
 import { isExists } from 'date-fns'
 import { revalidatePath } from 'next/cache'
 import { type NextRequest, NextResponse } from 'next/server'
 import { Prisma } from '@prisma/client'
+import { generateLabel, ProductConfig } from '@/helpers/radiator-label'
+import { generateId } from '@/helpers/id-generator'
 
 interface RouteParams {
   params: {
@@ -138,12 +139,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       type,
       upperCollectorLength,
       upperCollectorWidth,
-      width,
-      dirId
+      width
     } = body as ProductConfig
     const brand = body.CarType?.Model?.Family?.Brand?.name
     const model = body.CarType?.name
-    const label = generateRadiatorLabel({
+    const label = generateLabel({
       betweenCollectors,
       cooling,
       fabrication,
@@ -161,24 +161,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       upperCollectorWidth,
       width
     })
-    const hash = generateHash({
-      betweenCollectors,
-      cooling,
-      fabrication,
-      fins,
-      lowerCollectorLength,
-      lowerCollectorWidth,
-      pitch,
-      position,
-      rows,
-      tightening,
-      tubeDiameter,
-      tubeType,
-      type,
-      upperCollectorLength,
-      upperCollectorWidth,
-      width,
-      dirId,
+    const hash = hash256({
+      ...body,
       ...(brand && model ? { brand, model } : undefined)
     })
 
@@ -189,7 +173,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       where: { id },
       data: {
         ...data,
-        // label,
+        label,
         hash,
         ...(CarType?.id
           ? {
@@ -227,6 +211,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = params
     const body = await request.json()
 
     if (!body.dirId) {
@@ -236,20 +221,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       )
     }
     const {
-      id: orderItemId,
-      CarType,
-      packaging,
-      fabrication,
-      label,
-      note,
-      modification,
-      description,
-      isModified,
-      quantity,
-      orderId,
-      radiatorId,
       betweenCollectors,
       cooling,
+      fabrication,
       fins,
       lowerCollectorLength,
       lowerCollectorWidth,
@@ -262,15 +236,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       type,
       upperCollectorLength,
       upperCollectorWidth,
-      width,
-      dirId,
-      category,
-      perforation,
-      status
-    } = body as OrderItem
+      width
+    } = body as ProductConfig
     const brand = body.CarType?.Model?.Family?.Brand?.name
     const model = body.CarType?.name
-    const newLabel = generateRadiatorLabel({
+    const label = generateLabel({
       betweenCollectors,
       cooling,
       fabrication,
@@ -288,34 +258,34 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       upperCollectorWidth,
       width
     })
-    const hash = generateHash({
-      betweenCollectors,
-      cooling,
-      fabrication,
-      fins,
-      lowerCollectorLength,
-      lowerCollectorWidth,
-      pitch,
-      position,
-      rows,
-      tightening,
-      tubeDiameter,
-      tubeType,
-      type,
-      upperCollectorLength,
-      upperCollectorWidth,
-      width,
-      dirId,
+    const hash = hash256({
+      ...body,
       ...(brand && model ? { brand, model } : undefined)
     })
 
+    const {
+      id: orderItemId,
+      CarType,
+      packaging,
+      fabrication: f,
+      note,
+      modification,
+      description,
+      isModified,
+      quantity,
+      orderId,
+      radiatorId,
+      dirId,
+      ...data
+    } = body as OrderItem
+
     if (
-      Number(upperCollectorLength) < 1 ||
-      Number(upperCollectorWidth) < 1 ||
-      Number(lowerCollectorLength) < 1 ||
-      Number(lowerCollectorWidth) < 1 ||
-      Number(betweenCollectors) < 1 ||
-      Number(width) < 1
+      Number(data.upperCollectorLength) < 1 ||
+      Number(data.upperCollectorWidth) < 1 ||
+      Number(data.lowerCollectorLength) < 1 ||
+      Number(data.lowerCollectorWidth) < 1 ||
+      Number(data.betweenCollectors) < 1 ||
+      Number(data.width) < 1
     ) {
       return NextResponse.json(
         { error: 'Required', details: 'The dimensions are required' },
@@ -328,30 +298,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     try {
       radiator = await prisma.radiator.create({
         data: {
-          id: skuId('RA'),
+          ...data,
+          id: generateId('RA'),
           label,
           hash,
-          status: 'ACTIVE',
-          isActive: true,
+          status: 'VALIDATED',
           dirId,
-          fabrication,
-          betweenCollectors,
-          cooling,
-          fins,
-          lowerCollectorLength,
-          lowerCollectorWidth,
-          pitch,
-          position,
-          rows,
-          tightening,
-          tubeDiameter,
-          tubeType,
-          type,
-          upperCollectorLength,
-          upperCollectorWidth,
-          width,
-          category,
-          perforation,
           OrderItems: {
             connect: { id: orderItemId }
           },
@@ -362,34 +314,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           })
         }
       })
-
-      await prisma.orderItem.update({
-        where: { id: orderItemId },
-        data: {
-          label,
-          status: 'VALIDÉ',
-          Radiator: { connect: { id: radiator.id } }
-        }
-      })
-
-      // If all items are validated, update order status
-      if (orderId) {
-        const order = await prisma.order.findUnique({
-          where: { id: orderId },
-          include: { OrderItems: true }
-        })
-
-        const allItemsValid = order?.OrderItems?.every(
-          (item) => item.status === 'VALIDÉ'
-        )
-
-        if (allItemsValid) {
-          await prisma.order.update({
-            where: { id: orderId },
-            data: { status: 'VALIDÉ' }
-          })
-        }
-      }
     } catch (err) {
       if (
         err instanceof Prisma.PrismaClientKnownRequestError &&
@@ -406,6 +330,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
       throw err
     }
+
+    await prisma.orderItem.update({
+      where: { id: orderItemId },
+      data: {
+        ...data,
+        packaging,
+        fabrication,
+        isModified,
+        quantity,
+        label,
+        status: 'Valide',
+        ...(orderId && { Order: { connect: { id: orderId } } }),
+        Radiator: { connect: { id: radiator.id } }
+      }
+    })
 
     revalidatePath(`/dashboard/orders`)
 

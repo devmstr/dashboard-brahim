@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import type { Attachment, Order, OrderItem } from '@/lib/validations'
-import { skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
 import { TypeOf } from 'zod'
 import { STATUS_TYPES } from '@/config/global'
 
@@ -72,16 +72,13 @@ export async function POST(request: Request) {
         uniqueName: attachment.uniqueName || ''
       }))
 
-      const allItemsValid = OrderItems?.every((item) => item.radiatorId)
-
       // Step 3: Create order (needed before linking order items)
       const createdOrder = await tx.order.create({
         data: {
           id,
           clientId,
           deadline: deadline,
-          status: allItemsValid ? 'VALIDÉ' : 'PRÉVU',
-          validatedAt: allItemsValid ? new Date().toISOString() : null,
+          status: status,
           progress: progress || 0,
           paymentId: createdPayment.id,
           totalItems: OrderItems.reduce(
@@ -101,7 +98,7 @@ export async function POST(request: Request) {
       for (const item of OrderItems) {
         await tx.orderItem.create({
           data: {
-            id: skuId('AR'),
+            id: generateId('AR'),
             note: item.note || undefined,
             description: item.description || undefined,
             modification: item.modification || undefined,
@@ -129,8 +126,7 @@ export async function POST(request: Request) {
             lowerCollectorWidth: item.lowerCollectorWidth ?? null,
             tightening: item.tightening ?? null,
             label: item.label,
-            status: item.radiatorId ? 'VALIDÉ' : 'PRÉVU',
-            validatedAt: item.radiatorId ? new Date().toISOString() : null,
+            status: item.radiatorId ? 'Valide' : 'Prévu',
             delivered: 0,
             Order: { connect: { id: createdOrder.id } },
             ...(item.CarType?.id && {
@@ -149,7 +145,7 @@ export async function POST(request: Request) {
       const fullOrder = await tx.order.findUnique({
         where: { id: createdOrder.id },
         include: {
-          OrderItems: {
+          OrdersItems: {
             include: {
               Attachments: true,
               CarType: {
@@ -204,7 +200,7 @@ export async function GET(request: NextRequest) {
       include: {
         Client: true,
         Payment: true,
-        OrderItems: {
+        OrdersItems: {
           include: {
             Attachments: true,
             CarType: {
@@ -231,7 +227,7 @@ export async function GET(request: NextRequest) {
     // make the models
     orders = orders.map((item) => ({
       ...item,
-      OrderItems: item.OrderItems.map((orderItem) => ({
+      OrdersItems: item.OrdersItems.map((orderItem) => ({
         ...orderItem
       }))
     }))

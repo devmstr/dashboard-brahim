@@ -93,10 +93,8 @@ export function ProductPosTable({
   const [products, setProducts] = React.useState<ProductPosTableEntry[]>(data)
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
-  const [isLoading, setIsLoading] = React.useState(false)
 
   async function fetchProducts(page = 1, limit = 8, search = '') {
-    setIsLoading(true)
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -111,8 +109,6 @@ export function ProductPosTable({
       setTotalPages(json.meta.totalPages)
     } catch (err) {
       console.error('Failed to fetch products:', err)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -454,16 +450,13 @@ export function ProductPosTable({
                 </TableRow>
               ))
             ) : (
-              <TableRow className="w-full flex">
+              <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24  text-center flex justify-center items-center  gap-1"
+                  className="h-24 text-center flex items-center justify-center gap-1"
                 >
-                  {isLoading ? (
-                    <Icons.spinner className="w-4 h-4 animate-spin" />
-                  ) : (
-                    'Aucune résultat trouvé'
-                  )}
+                  <Icons.spinner className="w-4 h-4 animate-spin" />
+                  Fetching Result...
                 </TableCell>
               </TableRow>
             )}

@@ -1,4 +1,4 @@
-// import { skuId } from '@/lib/utils'
+// import { generateId } from '@/helpers/id-generator'
 // import { Client  } from '@prisma/client'
 // import { Content } from '@tiptap/react'
 // import { create } from 'zustand'
@@ -141,7 +141,7 @@
 //   persist(
 //     (set, get) => ({
 //       // Order metadata
-//       id: skuId('CB'),
+//       id: generateId('CB'),
 //       createdAt: new Date(),
 //       updatedAt: new Date(),
 //       status: 'draft',
@@ -257,7 +257,7 @@
 
 //       resetOrder: () =>
 //         set({
-//           id: skuId('CB'),
+//           id: generateId('CB'),
 //           createdAt: new Date(),
 //           updatedAt: new Date(),
 //           status: 'draft',
@@ -286,7 +286,7 @@
 //         if (articleToDuplicate) {
 //           const duplicatedArticle = {
 //             ...articleToDuplicate,
-//             id: skuId('CB')
+//             id: generateId('CB')
 //           }
 
 //           state.addArticle(duplicatedArticle)

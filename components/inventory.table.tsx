@@ -142,32 +142,6 @@ export function InventoryTable({
   const [columnVisibility, setColumnVisibility] =
     usePersistedState<VisibilityState>('stock-table-columns-visibility', {})
 
-  const [records, setRecords] = React.useState<InventoryTableEntry[]>(data)
-  const [page, setPage] = React.useState(1)
-  const [totalPages, setTotalPages] = React.useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-
-  async function fetchProducts(page = 1, limit = 8, search = '') {
-    setIsLoading(true)
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString()
-      })
-      if (search.trim()) params.append('search', search.trim())
-
-      const res = await fetch(`/api/inventory?${params.toString()}`)
-      const json = await res.json()
-
-      setRecords(json.data)
-      setTotalPages(json.meta.totalPages)
-    } catch (err) {
-      console.error('Failed to fetch products:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
@@ -387,7 +361,7 @@ export function InventoryTable({
   }
 
   const table = useReactTable({
-    data: records,
+    data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -412,10 +386,6 @@ export function InventoryTable({
     }
   })
 
-  React.useEffect(() => {
-    fetchProducts(page, limit, globalFilterValue)
-  }, [page, limit, globalFilterValue])
-
   return (
     <div className="w-full">
       <div className="flex items-center justify-between pb-4">
@@ -423,10 +393,7 @@ export function InventoryTable({
           <Input
             placeholder={t['placeholder']}
             value={globalFilterValue}
-            onChange={(e) => {
-              setGlobalFilterValue(e.target.value)
-              setPage(1)
-            }}
+            onChange={(e) => setGlobalFilterValue(e.target.value)}
             className="w-80"
           />
           <div className="hidden md:flex gap-3">
@@ -543,16 +510,12 @@ export function InventoryTable({
                 </TableRow>
               ))
             ) : (
-              <TableRow className="w-full flex">
+              <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24  text-center flex justify-center items-center  gap-1"
+                  className="h-24 text-center"
                 >
-                  {isLoading ? (
-                    <Icons.spinner className="w-4 h-4 animate-spin" />
-                  ) : (
-                    'Aucune résultat trouvé'
-                  )}
+                  No results.
                 </TableCell>
               </TableRow>
             )}
@@ -564,18 +527,18 @@ export function InventoryTable({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
           >
-            Précédent
+            Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-            disabled={page === totalPages}
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
           >
-            Suivant
+            Next
           </Button>
         </div>
       </div>

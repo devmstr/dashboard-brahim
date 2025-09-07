@@ -99,7 +99,7 @@ interface OrderItemExportData {
 interface DetailedOrder {
   id: string
   deadline: string
-  OrderItems: Array<{
+  OrdersItems: Array<{
     id: string
     quantity: number
     label: string
@@ -195,7 +195,7 @@ export function OrderTable({
     let index = 1
     console.log(orders)
     orders.forEach((order) => {
-      order.OrderItems.forEach((item) => {
+      order.OrdersItems.forEach((item) => {
         exportData.push({
           index: index++,
           label: item.validatedAt

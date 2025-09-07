@@ -21,7 +21,7 @@ export async function GET(
       include: {
         Client: true,
         Payment: true,
-        OrderItems: {
+        OrdersItems: {
           include: {
             CarType: {
               include: {
@@ -38,10 +38,10 @@ export async function GET(
     if (!order) {
       return NextResponse.json({ message: 'Order not found' }, { status: 404 })
     }
-    const { OrderItems, ...orderData } = order
+    const { OrdersItems, ...orderData } = order
     return NextResponse.json({
       ...orderData,
-      OrderItems: OrderItems.map((orderItem) => ({
+      OrdersItems: OrdersItems.map((orderItem) => ({
         ...orderItem
       }))
     })
@@ -125,7 +125,7 @@ export async function PUT(
       include: {
         Client: true,
         Payment: true,
-        OrderItems: {
+        OrdersItems: {
           include: {
             CarType: {
               include: {
@@ -239,7 +239,7 @@ export async function PUT(
       include: {
         Client: true,
         Payment: true,
-        OrderItems: {
+        OrdersItems: {
           include: {
             Attachments: true,
             CarType: {
@@ -288,7 +288,6 @@ export async function DELETE(
           { status: 404 }
         )
       }
-
       const orderId = existingItem.orderId
       await prisma.orderItem.delete({ where: { id: itemId } })
       // Recalculate totalItems after deletion

@@ -39,7 +39,8 @@ import {
   TUBE_TYPES
 } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
-import { generateRadiatorLabel, skuId } from '@/lib/utils'
+import { generateId } from '@/helpers/id-generator'
+import { generateLabel } from '@/helpers/radiator-label'
 import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
 import { CarSelectionDropdowns, CarSelectionForm } from './car-selector'
 import { CardGrid } from './card'
@@ -64,7 +65,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
   // Form initialization with default values
   const form = useForm<OrderItem>({
     defaultValues: {
-      id: skuId('AR'),
+      id: generateId('AR'),
       type: 'Radiateur',
       fabrication: 'Confection',
       cooling: 'Eau',
@@ -183,7 +184,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
       return
     }
 
-    const label = generateRadiatorLabel(formData)
+    const label = generateLabel(formData)
 
     const orderItem: OrderItem = {
       ...formData,

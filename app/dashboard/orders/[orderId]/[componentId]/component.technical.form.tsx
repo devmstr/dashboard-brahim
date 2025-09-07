@@ -524,7 +524,7 @@ export const TechnicianOrderItemForm: React.FC<
         <div className="pt-3 flex flex-col items-end gap-4">
           <Separator />
           <Button className="w-24" type="submit" disabled={isLoading}>
-            {isLoading ? 'Mise à jour...' : 'Validé'}
+            {isLoading ? 'Mise à jour...' : 'Mettre à jour'}
           </Button>
         </div>
       </form>

@@ -9,7 +9,7 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         MODE: 'production',
-        NEXTAUTH_URL: 'http://soneras.local',
+        NEXTAUTH_URL: 'http://sonerasflow.local',
         NEXTAUTH_SECRET: 'YyG3BFojymCKIA0zGx3ekgK8oDL9fdumypp6ernEwuE=',
         DATABASE_URL:
           'postgres://sonerasserver:iYKzC3xpiaWece3Pmi29SD@localhost:5432/sonerasflowdb'

@@ -5,6 +5,7 @@ import prisma from '@/lib/db'
 import { User } from 'next-auth'
 import { JWT } from 'next-auth/jwt'
 import { UserRole } from '@/types'
+import { userLoginSchema } from './validations'
 
 export const authOptions: AuthOptions = {
   // Configure one or more authentication providers
@@ -13,10 +14,10 @@ export const authOptions: AuthOptions = {
       id: 'singIn',
       name: 'singIn',
       credentials: {
-        username: {
-          label: 'Username',
+        input: {
+          label: "Nom d'utilisateur /Phone / Email / ID Employé",
           type: 'text',
-          placeholder: 'Username...'
+          placeholder: '...'
         },
         password: {
           label: 'Password',
@@ -28,91 +29,49 @@ export const authOptions: AuthOptions = {
         /*  
             TODO: add encryption to this function to encrypt the user password this require a decryption function in the reading password process (bcrypt or argon library will be more then enough to fill this need ! )
         */
-        if (!credentials) return null
-        const { username: input, password } = credentials
-        const isEmail = input.includes('@')
-        const isEmployeeId = !isNaN(Number(input))
+        const validationFields = userLoginSchema.safeParse(credentials)
 
-        try {
-          const { createdAt, passwordHash, updatedAt, ...user } =
-            await prisma.user.findFirstOrThrow({
-              where: {
-                OR: [
-                  { email: isEmail ? input : undefined },
-                  { username: !isEmail && !isEmployeeId ? input : undefined },
-                  { employeeId: isEmployeeId ? Number(input) : undefined }
-                ]
-              }
-            })
-          // TODO: need decryption check here
-          if (password !== passwordHash) throw new Error('Wrong Credentials')
-          // the use is authorized
-          return { ...user, sub: user.id, role: user.role as UserRole }
-        } catch (error) {
-          console.log(error)
+        if (!validationFields.success) {
+          console.log(validationFields.error)
           return null
         }
-      }
-    }),
-    CredentialsProvider({
-      id: 'register',
-      name: 'register',
-      credentials: {
-        username: {
-          label: 'Username',
-          type: 'text',
-          placeholder: 'Username'
-        },
-        password: { label: 'Password', type: 'password' },
-        role: {
-          label: 'Role',
-          type: 'text'
-        },
-        email: {
-          label: 'Email',
-          type: 'text',
-          placeholder: 'email@example.com'
-        },
-        employeeId: {
-          label: 'EmployeeId',
-          type: 'text',
-          placeholder: '999'
-        }
-      },
-      async authorize(credentials) {
-        if (!credentials) return null
+        const { input, password } = validationFields.data
+
+        const isEmail = input.includes('@')
+        const isNumber = /^\d+$/.test(input)
+
+        const isPhoneNumber =
+          isNumber && input.length >= 8 && input.length <= 15
+        const isEmployeeId = isNumber && input.length <= 5
+
         try {
-          const isEmployeeIdExist = await prisma.user.findFirst({
+          const user = await prisma.user.findFirstOrThrow({
             where: {
-              employeeId: !isNaN(Number(credentials?.employeeId))
-                ? Number(credentials?.employeeId)
-                : undefined
+              OR: [
+                { email: isEmail ? input : undefined },
+                { username: !isEmail && !isNumber ? input : undefined },
+                { employeeId: isEmployeeId ? Number(input) : undefined },
+                { phone: isPhoneNumber ? input : undefined }
+              ]
             }
           })
+          // TODO: need decryption check here
+          if (password !== user.passwordHash) {
+            console.log('Invalid password')
+            return null
+          }
 
-          if (isEmployeeIdExist) throw new Error('This User Already Existe')
-
-          const isUsernameExist = await prisma.user.findFirst({
-            where: { username: credentials?.username }
-          })
-
-          if (isUsernameExist)
-            throw new Error(
-              'Sorry! Chose another username cause this username already existe'
-            )
-
-          const { passwordHash, createdAt, updatedAt, ...user } =
-            await prisma.user.create({
-              data: {
-                email: credentials?.email || null,
-                username: credentials.username,
-                employeeId: Number(credentials?.employeeId),
-                passwordHash: credentials.password,
-                role: credentials.role,
-                image: '/images/default-pfp.svg'
-              }
-            })
-          return { ...user, sub: user.id, role: user.role as UserRole }
+          // the use is authorized
+          return {
+            id: user.id,
+            sub: user.id,
+            email: user.email,
+            username: user.username as string,
+            role: user.role as UserRole,
+            employeeId: user.employeeId,
+            image: user.image,
+            phone: user.phone
+          }
         } catch (error) {
           console.log(error)
           return null
