@@ -20,7 +20,6 @@ const users: User[] = [
     employeeId: 210,
     phone: '0770536564'
   },
-
   {
     email: 'saiti.nesrine@gmail.com',
     username: 'Saiti Nesrine',

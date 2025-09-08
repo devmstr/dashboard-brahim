@@ -744,7 +744,6 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         variant: 'success'
       })
     } catch (e) {
-      console.log(e)
       // Optionally handle error (e.g., show toast)
       toast({
         title: 'Erreur',

@@ -71,7 +71,7 @@ export function CarForm() {
         },
         body: JSON.stringify(data)
       })
-      console.log(await res.json())
+
       if (!res.ok) {
         throw new Error(`HTTP error! Status: ${res.status}`)
       }

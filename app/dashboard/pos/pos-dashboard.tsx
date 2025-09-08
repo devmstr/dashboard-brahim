@@ -23,7 +23,7 @@ export default function PosDashboard() {
   useEffect(() => {
     fetch('/api/pos')
       .then((res) => res.json())
-      .then((data) => setProducts(data))
+      .then((data) => setProducts(data.data))
       .catch(() => setProducts([]))
   }, [])
 
@@ -89,8 +89,9 @@ export default function PosDashboard() {
   const updateQuantity = (id: string, quantity: number) => {
     if (quantity < 1) return
     // Check if quantity exceeds available stock
-    const product = products.find((p) => p.id === id)
-    const availableStock = product?.stockLevel ?? Infinity
+    const product = products.find(({ id }) => id == id)
+    // const availableStock = product?.stockLevel ?? Infinity
+    const availableStock = Infinity
     if (quantity > availableStock) {
       // inform the user that they can't add more than available stock
       toast({

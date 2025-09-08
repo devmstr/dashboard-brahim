@@ -81,7 +81,7 @@ export const TechnicianOrderItemForm: React.FC<
 
       if (!response.ok) {
         const errorBody = await response.json()
-        console.log(errorBody)
+
         throw new Error(
           errorBody.details ||
             errorBody.error ||

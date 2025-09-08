@@ -45,7 +45,7 @@ export const ClientForm: React.FC<Props> = ({ data }: Props) => {
 
   function onClientChange(client: Client | undefined) {
     setCustomer(client)
-    console.log('Client : ', client)
+
     setOrder((prev) => ({
       ...prev,
       Client: client

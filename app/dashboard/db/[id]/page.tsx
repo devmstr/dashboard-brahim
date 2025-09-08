@@ -53,8 +53,6 @@ const Page: React.FC<Props> = async ({ params: { id } }: Props) => {
     }))
   } as RadiatorSchemaType
 
-  console.log(data)
-
   return (
     <Card>
       <RadiatorEditForm data={data} />

@@ -540,7 +540,7 @@ export function OrderComponentsTable({
                           ]
                         })
                       })
-                      console.log(response)
+                      
                       if (!response.ok) {
                         const error = await response.json()
                         console.error('Error adding order item:', error)

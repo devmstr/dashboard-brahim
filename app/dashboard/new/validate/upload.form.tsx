@@ -63,7 +63,7 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ): Promise<void> {
     event.preventDefault()
-    console.log(order)
+
     if (!order) {
       toast({
         title: 'Erreur',

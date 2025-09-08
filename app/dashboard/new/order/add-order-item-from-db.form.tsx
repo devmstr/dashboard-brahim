@@ -90,9 +90,7 @@ export function AddOrderItemFromDbFrom({
       }
       const parsed = orderItemSchema.parse(orderItem)
       onSubmit(parsed)
-    } catch (e) {
-      console.log(e)
-    }
+    } catch (e) {}
   }
 
   return (

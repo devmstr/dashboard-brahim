@@ -90,7 +90,6 @@ export default function ClientAutocomplete({
         )
         if (!response.ok) throw new Error('Failed to fetch')
         const data = await response.json()
-        console.log('Fetched clients:', data)
 
         setSuggestions(data || [])
         setShowDropdown(true)

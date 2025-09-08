@@ -109,7 +109,7 @@ export const ClientInfoForm: React.FC<Props> = ({
 
         if (!res.ok) {
           const errorBody = await res.json()
-          console.log(errorBody)
+
           throw new Error(
             errorBody.details || errorBody.error || 'Client update failed'
           )

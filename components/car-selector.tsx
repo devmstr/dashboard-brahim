@@ -414,7 +414,7 @@ export function CarSelectionDropdowns({
             }
           }
         }
-        console.log('vehicle', vehicle)
+
         onSelectChange(vehicle)
       }
     }

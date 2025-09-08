@@ -110,7 +110,7 @@ export async function DELETE(
 ) {
   try {
     // First check if the type exists and belongs to the model
-    console.log('HiT...........')
+
     const existingType = await prisma.type.findFirst({
       where: {
         id: params.typeId

@@ -193,7 +193,7 @@ export function OrderTable({
   const generateXLSXData = (orders: DetailedOrder[]): OrderItemExportData[] => {
     const exportData: OrderItemExportData[] = []
     let index = 1
-    console.log(orders)
+
     orders.forEach((order) => {
       order.OrdersItems.forEach((item) => {
         exportData.push({

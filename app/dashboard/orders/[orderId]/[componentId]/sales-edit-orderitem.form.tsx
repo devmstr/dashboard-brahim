@@ -182,13 +182,11 @@ export const SalesEditOrderItemForm: React.FC<EditOrderItemFormProps> = ({
       const isValid = await form.trigger()
 
       if (!isValid) {
-        console.log(form.formState.errors)
         throw new Error('Form validation failed')
       }
 
       form.handleSubmit(onSubmitHandler)(e)
     } catch (error: any) {
-      console.log(error)
       toast({
         title: 'Erreurs de validation',
         description: error.message || 'Erreur inconnue',

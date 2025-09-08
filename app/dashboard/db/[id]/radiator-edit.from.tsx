@@ -100,9 +100,7 @@ export const RadiatorEditForm: React.FC<RadiatorEditFormProps> = ({ data }) => {
     <Form {...form}>
       <form
         className="pt-2 space-y-6"
-        onSubmit={form.handleSubmit(handleSubmit, (errors) => {
-          console.log('Validation errors:', errors)
-        })}
+        onSubmit={form.handleSubmit(handleSubmit, (errors) => {})}
       >
         <CarSelectionForm
           selected={selectedCar}
