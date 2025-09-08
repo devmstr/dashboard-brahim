@@ -1,9 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import type { Attachment, Order, OrderItem } from '@/lib/validations'
 import { generateId } from '@/helpers/id-generator'
-import { TypeOf } from 'zod'
-import { STATUS_TYPES } from '@/config/global'
+import type { Order } from '@/lib/validations'
+import { PrismaClient } from '@prisma/client'
+import { NextRequest, NextResponse } from 'next/server'
 
 const prisma = new PrismaClient()
 

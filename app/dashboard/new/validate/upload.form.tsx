@@ -101,7 +101,7 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
         id: order.id,
         clientId: order.Client?.id || order.clientId,
         deadline: order.deadline || new Date().toISOString(),
-        state: 'PENDING',
+        state: 'PLANNED',
         progress: 0,
         Payment: order.Payment || null,
         totalItems: order.OrderItems?.length || 0, // Add total items
