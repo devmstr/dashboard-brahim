@@ -72,7 +72,7 @@ export type ComponentsTableEntry = {
   fabrication: string
   category: string
   label: string
-  status: string
+  status: (typeof STATUS_TYPES)[number]
   quantity: number
   delivered?: number
 }
@@ -272,17 +272,7 @@ export function OrderComponentsTable({
                 </React.Fragment>
               ))}
             </p>
-            <StatusBudge
-              variant={
-                status as
-                  | 'Livré'
-                  | 'Annuler'
-                  | 'Prévu'
-                  | 'Encours'
-                  | 'Fini'
-                  | 'Valide'
-              }
-            />
+            <StatusBudge variant={status} />
           </div>
         )
       }

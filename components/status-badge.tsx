@@ -6,6 +6,15 @@ interface StatusBudgeProps {
   variant?: (typeof STATUS_TYPES)[number]
 }
 
+const FrStatus: Record<(typeof STATUS_TYPES)[number], string> = {
+  CANCELLED: 'Annuler',
+  PLANNED: 'Prévu',
+  VALIDATED: 'Valide',
+  ONGOING: 'Encours',
+  FINISHED: 'Fini',
+  DELIVERED: 'Livré'
+} as const
+
 const STATUS_CONFIG: Record<
   (typeof STATUS_TYPES)[number],
   {
@@ -13,27 +22,27 @@ const STATUS_CONFIG: Record<
     className: string
   }
 > = {
-  Annuler: {
+  CANCELLED: {
     iconKey: 'abandoned',
     className: 'bg-[#f8f9fa] text-[#a0a0a0] border-[#a0a0a0]' // Lighter gray
   },
-  Prévu: {
+  PLANNED: {
     iconKey: 'planned',
     className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]' // Brighter blue
   },
-  Valide: {
+  VALIDATED: {
     iconKey: 'checkCircle', // or 'verified' depending on your Icons object
     className: 'bg-[#e8f5e8] text-[#2e7d32] border-[#2e7d32]' // Dark green for validation
   },
-  Encours: {
+  ONGOING: {
     iconKey: 'ongoing',
     className: 'bg-[#fff0d4] text-[#ffa500] border-[#ffa500]' // Vibrant orange
   },
-  Fini: {
+  FINISHED: {
     iconKey: 'done',
     className: 'bg-[#f0f8e0] text-[#6ba800] border-[#6ba800]' // Brighter green
   },
-  Livré: {
+  DELIVERED: {
     iconKey: 'deliveryPackage',
     className: 'bg-[#e6f9ed] text-[#1aaa55] border-[#1aaa55]' // Greenish teal for delivery
   }
@@ -56,7 +65,7 @@ export const StatusBudge: React.FC<StatusBudgeProps> = ({ variant }) => {
         'pl-1 pr-2 flex gap-1 w-fit text-md rounded-full capitalize border-2 py-[0.08rem] scale-[85%]'
       )}
     >
-      <Icon className="w-5 h-5  p-[0.12rem]" /> {variant}
+      <Icon className="w-5 h-5  p-[0.12rem]" /> {FrStatus[variant]}
     </div>
   )
 }

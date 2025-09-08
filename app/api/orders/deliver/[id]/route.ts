@@ -11,6 +11,7 @@ export async function POST(
   try {
     const id = params.id
     const { quantity } = await request.json()
+
     if (!id || !quantity || isNaN(quantity) || quantity < 1) {
       return NextResponse.json(
         { message: 'Quantité invalide.' },
@@ -24,6 +25,12 @@ export async function POST(
       return NextResponse.json(
         { message: 'Order item not found.' },
         { status: 404 }
+      )
+    }
+    if (orderItem.status != 'Valide') {
+      return NextResponse.json(
+        { message: 'Seuls les articles validé peuvent être livrés.' },
+        { status: 400 }
       )
     }
 
@@ -49,7 +56,7 @@ export async function POST(
     // Calculate new delivered count
     const totalDelivered = prevDelivered + quantity
     const isFullyDelivered = totalDelivered >= (orderItem.quantity || 0)
-    const newStatus = isFullyDelivered ? 'delivered' : 'in_progress'
+    const newStatus = isFullyDelivered ? 'Livré' : 'Prévu'
 
     // Update delivered count and status on OrderItem
     const updated = await prisma.orderItem.update({

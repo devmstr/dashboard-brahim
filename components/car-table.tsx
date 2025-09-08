@@ -42,7 +42,6 @@ import { CarsTableEntry, OrderTableEntry, InventoryTableEntry } from '@/types'
 // import useClientApi from '@/hooks/use-axios-auth'
 import { useRouter } from 'next/navigation'
 import { Progress } from './progress'
-import { StatusBudge } from './status-badge'
 import {
   AlertDialog,
   AlertDialogAction,
