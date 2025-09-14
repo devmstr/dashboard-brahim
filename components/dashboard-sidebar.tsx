@@ -8,6 +8,8 @@ import React from 'react'
 import Fade from './Fade'
 import { Icons } from './icons'
 import { useSidebarState } from './open-sidebar-provider'
+import { getCurrentUser } from '@/lib/session'
+import { useSession } from 'next-auth/react'
 
 interface DashboardSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   items?: SidebarNavItem[]
@@ -19,6 +21,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   ...props
 }: DashboardSidebarProps) => {
   const { open } = useSidebarState()
+  const { data: session } = useSession()
+  const userRole = session?.user?.role
   const pathname = usePathname()
   return (
     <div
@@ -48,7 +52,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         )}
       </div>
       <div className="h-full flex flex-col justify-start mt-6 w-full">
-        {items?.length && (
+        {items && items.length > 0 && (
           <nav
             className={cn(
               'flex flex-col gap-2 w-full',
@@ -56,10 +60,9 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             )}
           >
             {items
-              ?.filter((item) => item.title !== 'Paramètres')
+              .filter((item) => item.title !== 'Paramètres')
               .map((item, index) => {
-                const Icon = Icons[item.icon || 'arrowRight']
-                const delay = (index = 0 ? 80 : index * 80)
+                const delay = index === 0 ? 80 : index * 80
 
                 const active =
                   item.href === '/dashboard'
@@ -68,17 +71,27 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                         item.href?.split('/').slice(0, 3).join('/') as string
                       )
 
+                // derive a new item if user role is sales
+                const adjustedItem =
+                  item.key === 'inventory' &&
+                  userRole &&
+                  ['SALES_AGENT', 'SALES_MANAGER'].includes(userRole)
+                    ? { ...item, title: 'Tarifications', icon: 'pricingTag' }
+                    : item
+
+                const Icon = Icons[adjustedItem.icon as keyof typeof Icons]
+
                 return (
-                  item.href && (
+                  adjustedItem.href && (
                     <Link
                       key={index}
-                      href={item.disabled ? '#' : item.href!}
+                      href={adjustedItem.disabled ? '#' : adjustedItem.href}
                       className={cn(
-                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3   rounded-lg',
+                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
                         active
                           ? 'text-primary bg-secondary opacity-100'
                           : 'opacity-80 hover:opacity-100 hover:text-secondary',
-                        item.disabled && 'cursor-not-allowed opacity-80'
+                        adjustedItem.disabled && 'cursor-not-allowed opacity-80'
                       )}
                     >
                       <Icon
@@ -89,29 +102,24 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       />
                       {open ? (
                         <Fade
-                          className={cn(
-                            'text-md sm:text-sm'
-                            // showSidebar
-                            //   ? 'flex transition-all duration-300 ease-in'
-                            //   : 'hidden transition-all duration-500 ease-out'
-                          )}
-                          from={'top'}
+                          className="text-md sm:text-sm"
+                          from="top"
                           amount={0.4}
                           duration={300}
                           delay={delay}
-                          easing={'easeOut'}
+                          easing="easeOut"
                         >
-                          <span>{item.title}</span>
+                          <span>{adjustedItem.title}</span>
                         </Fade>
                       ) : (
                         <span
                           className={cn(
-                            'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg text-nowrap ',
+                            'absolute z-40 scale-0 group-hover:scale-100 transition-all duration-300 ease-in-out ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100 shadow-lg text-nowrap',
                             active &&
                               'bg-secondary text-primary group-hover:text-primary'
                           )}
                         >
-                          {item.title}
+                          {adjustedItem.title}
                         </span>
                       )}
                     </Link>

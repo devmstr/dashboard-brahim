@@ -338,109 +338,53 @@ export function LedgerTable({
   const columnAccessRules: ColumnAccess[] = [
     {
       id: 'id',
-      roles: [
-        'GUEST',
-        'SALES_AGENT',
-        'SALES_MANAGER',
-        'INVENTORY_AGENT',
-        'ENGINEER',
-        'ENGINEERING_MANAGER',
-        'ACCOUNTANT'
-      ],
+      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 1
     },
     {
       id: 'billId',
-      roles: [
-        'GUEST',
-        'SALES_AGENT',
-        'SALES_MANAGER',
-        'INVENTORY_AGENT',
-        'ENGINEER',
-        'ENGINEERING_MANAGER',
-        'ACCOUNTANT'
-      ],
+      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 2
     },
     {
       id: 'type',
-      roles: [
-        'GUEST',
-        'SALES_AGENT',
-        'SALES_MANAGER',
-        'INVENTORY_AGENT',
-        'ENGINEER',
-        'ENGINEERING_MANAGER',
-        'ACCOUNTANT'
-      ],
+      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 3
     },
     {
       id: 'total',
-      roles: [
-        'GUEST',
-        'SALES_AGENT',
-        'SALES_MANAGER',
-        'INVENTORY_AGENT',
-        'ENGINEER',
-        'ENGINEERING_MANAGER',
-        'ACCOUNTANT'
-      ],
+      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 4
     },
     {
       id: 'items',
-      roles: [
-        'GUEST',
-        'SALES_AGENT',
-        'SALES_MANAGER',
-        'INVENTORY_AGENT',
-        'ENGINEER',
-        'ENGINEERING_MANAGER',
-        'ACCOUNTANT'
-      ],
+      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 5
     },
     {
       id: 'createdAt',
-      roles: [
-        'GUEST',
-        'SALES_AGENT',
-        'SALES_MANAGER',
-        'INVENTORY_AGENT',
-        'ENGINEER',
-        'ENGINEERING_MANAGER',
-        'ACCOUNTANT'
-      ],
+      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 6
     },
     {
       id: 'company',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'ACCOUNTANT'],
+      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 7
     },
     {
       id: 'phone',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'ACCOUNTANT'],
+      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 8
     },
     {
       id: 'location',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'ACCOUNTANT'],
+      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 9,
       responsiveClass: 'hidden lg:table-cell'
     },
     {
       id: 'actions',
-      roles: [
-        'GUEST',
-        'SALES_AGENT',
-        'SALES_MANAGER',
-        'INVENTORY_AGENT',
-        'ENGINEER',
-        'ENGINEERING_MANAGER',
-        'ACCOUNTANT'
-      ],
+      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
       order: 10
     }
   ]
@@ -982,7 +926,7 @@ export function Actions({
             </Button>
           </DropdownMenuItem>
 
-          {userRole === 'ACCOUNTANT' && (
+          {userRole === 'FINANCE' && (
             <DropdownMenuItem asChild>
               <Button
                 variant={'ghost'}

@@ -24,7 +24,7 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
   if (await useServerCheckRoles('ENGINEER')) userRoles.push('ENGINEER')
   if (await useServerCheckRoles('ENGINEERING_MANAGER'))
     userRoles.push('ENGINEERING_MANAGER')
-  if (await useServerCheckRoles('ACCOUNTANT')) userRoles.push('ACCOUNTANT')
+  if (await useServerCheckRoles('FINANCE_MANAGER')) userRoles.push('FINANCE_MANAGER')
   if (await useServerCheckRoles('CONSULTANT')) userRoles.push('CONSULTANT')
   if (await useServerCheckRoles('INVENTORY_AGENT'))
     userRoles.push('INVENTORY_AGENT')

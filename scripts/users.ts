@@ -59,6 +59,15 @@ const users: User[] = [
     role: 'SALES_AGENT',
     employeeId: 804,
     phone: '0665650862'
+  },
+  // testing accounts
+  {
+    email: 'test@test.com',
+    username: 'Finance Manager',
+    passwordHash: '0666666666',
+    role: 'FINANCE_MANAGER',
+    employeeId: 100,
+    phone: '0666666666'
   }
 ]
 

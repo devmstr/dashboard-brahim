@@ -138,6 +138,6 @@ export const userRoles = [
   'engineer',
   'engineering_manager',
   'consultant',
-  'accountant'
+  'finance'
 ] as const
 export const userRolesArr: string[] = [...userRoles]

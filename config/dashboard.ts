@@ -1,12 +1,12 @@
 import { SidebarNavItem } from '@/types'
 
 export const LAYOUT_LINKS: SidebarNavItem[] = [
-  {
-    title: 'Tableau De Board',
-    href: '/dashboard',
-    icon: 'dashboard',
-    key: 'dashboard'
-  },
+  // {
+  //   title: 'Tableau De Board',
+  //   href: '/dashboard',
+  //   icon: 'dashboard',
+  //   key: 'dashboard'
+  // },
   {
     title: 'Nouveau',
     href: '/dashboard/new',

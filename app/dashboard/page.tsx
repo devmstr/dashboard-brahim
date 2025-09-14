@@ -6,6 +6,11 @@ interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
   const isUserRoleAdmin = await useServerCheckRoles('ADMIN')
+  const isUserRoleFinance = await useServerCheckRoles([
+    'FINANCE',
+    'FINANCE_MANAGER'
+  ])
+
   const isUserRoleSales = await useServerCheckRoles([
     'SALES_MANAGER',
     'SALES_AGENT'
@@ -23,6 +28,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
   if (isInventoryAgent) redirect('/dashboard/inventory')
   if (isUserRoleSales) redirect('/dashboard/new')
   if (isUserRoleProduction || isUserRoleEngineer) redirect('/dashboard/db')
+  if (isUserRoleFinance) redirect('/dashboard/ledger')
   return notFound()
 }
 

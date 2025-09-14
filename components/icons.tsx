@@ -78,12 +78,14 @@ import { LiaFileInvoiceDollarSolid } from 'react-icons/lia'
 import { TbDeviceIpadDollar, TbFileInvoice } from 'react-icons/tb'
 import { TbPackageImport } from 'react-icons/tb'
 import { PiBuildingsBold } from 'react-icons/pi'
+import { IoPricetagsOutline } from 'react-icons/io5'
 
 import { cn } from '@/lib/utils'
 
 export type Icon = LucideIcon
 
 export const Icons = {
+  pricingTag: IoPricetagsOutline,
   carBrand: PiBuildingsBold,
   deliveryPackage: TbPackageImport,
   checkCircle: CheckCircle,

@@ -27,7 +27,7 @@ interface InvoiceLedgerTabsProps {
 export default function InvoiceLedgerTabs({
   draftInvoices = [],
   normalInvoices = [],
-  userRole = 'ACCOUNTANT'
+  userRole = 'FINANCE'
 }: InvoiceLedgerTabsProps) {
   const [activeTab, setActiveTab] = useState('normal')
 

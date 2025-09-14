@@ -1,8 +1,12 @@
 import { Card } from '@/components/card'
 import { LedgerTable } from './ledger.table'
 import prisma from '@/lib/db'
+import { getCurrentUser } from '@/lib/session'
+import { UserRole } from '@/types'
+import FinanceMetadataCard from '@/components/finance-stats.card'
 
 const Page = async () => {
+  const user = await getCurrentUser()
   // Fetch all invoices with client and address info
   const invoices = await prisma.invoice.findMany({
     where: { deletedAt: null },
@@ -26,9 +30,14 @@ const Page = async () => {
   }))
 
   return (
-    <Card>
-      <LedgerTable userRole="ACCOUNTANT" data={formattedData} />
-    </Card>
+    <div className="space-y-6">
+      {['FINANCE', 'FINANCE_MANAGER'].includes(user?.role as UserRole) && (
+        <FinanceMetadataCard />
+      )}
+      <Card>
+        <LedgerTable userRole={user?.role} data={formattedData} />
+      </Card>
+    </div>
   )
 }
 

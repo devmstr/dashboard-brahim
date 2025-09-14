@@ -530,7 +530,7 @@ export function InventoryTable({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            Previous
+            President
           </Button>
           <Button
             variant="outline"
@@ -538,7 +538,7 @@ export function InventoryTable({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Next
+            Suivant
           </Button>
         </div>
       </div>
