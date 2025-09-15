@@ -37,12 +37,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     icon: 'orders',
     key: 'orders'
   },
-  {
-    title: 'Stock',
-    href: '/dashboard/inventory',
-    icon: 'inventory',
-    key: 'inventory'
-  },
+
   {
     title: 'Base De Données',
     href: '/dashboard/db',
@@ -54,6 +49,19 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     href: '/dashboard/ledger',
     icon: 'ledger',
     key: 'ledger'
+  },
+
+  {
+    title: 'Les Marges',
+    href: '/dashboard/pricing',
+    icon: 'priceMargin',
+    key: 'pricing'
+  },
+  {
+    title: 'Stock',
+    href: '/dashboard/inventory',
+    icon: 'inventory',
+    key: 'inventory'
   },
   {
     title: 'Clients',

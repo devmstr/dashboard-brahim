@@ -4,6 +4,7 @@ import { SidebarStateProvider } from '@/components/open-sidebar-provider'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LAYOUT_LINKS } from '@/config/dashboard'
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
+import { getCurrentUser } from '@/lib/session'
 import { ROUTE_ROLE_MAP } from '@/middleware'
 import { ReactNode } from 'react'
 
@@ -12,22 +13,8 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
-  const userRoles: string[] = []
-  if (await useServerCheckRoles('ADMIN')) userRoles.push('ADMIN')
-  if (await useServerCheckRoles('SALES_MANAGER'))
-    userRoles.push('SALES_MANAGER')
-  if (await useServerCheckRoles('SALES_AGENT')) userRoles.push('SALES_AGENT')
-  if (await useServerCheckRoles('PRODUCTION_WORKER'))
-    userRoles.push('PRODUCTION_WORKER')
-  if (await useServerCheckRoles('PRODUCTION_MANAGER'))
-    userRoles.push('PRODUCTION_MANAGER')
-  if (await useServerCheckRoles('ENGINEER')) userRoles.push('ENGINEER')
-  if (await useServerCheckRoles('ENGINEERING_MANAGER'))
-    userRoles.push('ENGINEERING_MANAGER')
-  if (await useServerCheckRoles('FINANCE_MANAGER')) userRoles.push('FINANCE_MANAGER')
-  if (await useServerCheckRoles('CONSULTANT')) userRoles.push('CONSULTANT')
-  if (await useServerCheckRoles('INVENTORY_AGENT'))
-    userRoles.push('INVENTORY_AGENT')
+  const user = await getCurrentUser()
+  const userRoles: string[] = [user?.role || '']
 
   // Filter links based on ROUTE_ROLE_MAP and userRoles
   let linkedList = LAYOUT_LINKS.filter((link) => {
@@ -38,6 +25,22 @@ const Layout: React.FC<LayoutProps> = async ({ children }: LayoutProps) => {
     if (!allowedRoles) return true // If not protected, show to all
     return allowedRoles.some((role) => userRoles.includes(role))
   })
+
+  // If the user is a sales manager, remove the printing link
+  if (user?.role == 'SALES_MANAGER')
+    linkedList = linkedList.filter((link) => link.key != 'printing')
+  // If the user is a sales agent, change the inventory link to "Tarifications"
+  if (['SALES_AGENT', 'SALES_MANAGER'].includes(user?.role || '')) {
+    linkedList = linkedList.map((link) =>
+      link.key == 'inventory'
+        ? {
+            ...link,
+            title: 'Tarifications',
+            icon: 'pricingTag'
+          }
+        : link
+    )
+  }
 
   return (
     <SidebarStateProvider>

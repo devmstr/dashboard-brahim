@@ -36,7 +36,7 @@ const Layout: React.FC<Props> = ({ children }: Props) => {
 
   return (
     <NewOrderProvider>
-      <LinkLineList items={items} t={{}} />
+      <LinkLineList disableLink items={items} t={{}} />
       {children}
     </NewOrderProvider>
   )

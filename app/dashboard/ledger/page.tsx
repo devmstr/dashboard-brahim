@@ -31,9 +31,9 @@ const Page = async () => {
 
   return (
     <div className="space-y-6">
-      {['FINANCE', 'FINANCE_MANAGER'].includes(user?.role as UserRole) && (
-        <FinanceMetadataCard />
-      )}
+      {['FINANCE_MANAGER', 'SALES_MANAGER'].includes(
+        user?.role as UserRole
+      ) && <FinanceMetadataCard />}
       <Card>
         <LedgerTable userRole={user?.role} data={formattedData} />
       </Card>

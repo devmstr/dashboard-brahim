@@ -59,7 +59,7 @@ export const WorkstationTracker: React.FC<Props> = ({}: Props) => {
           <span className="text-3xl sm:text-5xl  font-bold">{progress}% </span>
           <Badge
             className="w-full flex justify-center text-md"
-            variant={isDone ? 'default' : 'secondary'}
+            variant={isDone ? 'primary' : 'secondary'}
           >
             {isDone ? 'Achevé' : 'En cours'}
           </Badge>

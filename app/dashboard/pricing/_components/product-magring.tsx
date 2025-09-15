@@ -1,0 +1,709 @@
+'use client'
+import {
+  type ColumnDef,
+  type ColumnFiltersState,
+  Row,
+  type SortingState,
+  type VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from '@tanstack/react-table'
+import { ArrowUpDown, ChevronDown, Download, Filter } from 'lucide-react'
+import * as React from 'react'
+import { format } from 'date-fns'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
+import Link from 'next/link'
+import { Icons } from '@/components/icons'
+import { cn, hasUserRole } from '@/lib/utils'
+import type { UserRole } from '@/types'
+import { useRouter } from 'next/navigation'
+import { usePersistedState } from '@/hooks/use-persisted-state'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@/components/ui/alert-dialog'
+import { useToast } from '@/hooks/use-toast'
+
+export interface Entry {
+  id: string
+  label: string
+  brand?: string
+  model?: string
+  type?: string
+  margin?: {
+    type: 'percentage' | 'fixed'
+    value: number
+  }
+  createdAt: string
+}
+
+interface TableProps {
+  data: Entry[] | []
+  t?: {
+    placeholder: string
+    columns: string
+    id: string
+    margin: string
+    label: string
+    brand: string
+    model: string
+    type: string
+    createdAt: string
+    limit: string
+    export: string
+  }
+}
+
+export function ProductMarginTable({
+  data,
+  t = {
+    placeholder: 'Rechercher...',
+    columns: 'Colonnes',
+    id: 'Matricule',
+    label: 'Désignation',
+    brand: 'Marque',
+    model: 'Modèle',
+    type: 'Motorisation',
+    createdAt: 'Date de création',
+    limit: 'Limite',
+    margin: 'Marge (% | Dzd)',
+    export: 'Exporter'
+  }
+}: TableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [limit, setLimit] = React.useState(10)
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+  const [columnVisibility, setColumnVisibility] =
+    usePersistedState<VisibilityState>('product-table-columns-visibility', {})
+  const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
+    {}
+  )
+
+  React.useEffect(() => {
+    table.setPageSize(limit)
+  }, [limit])
+
+  const router = useRouter()
+  const { toast } = useToast()
+
+  // Define a reusable function for creating sortable headers
+  const createSortableHeader = (column: any, label: string) => {
+    return (
+      <div
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="flex gap-2 hover:text-primary cursor-pointer"
+      >
+        {label}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </div>
+    )
+  }
+
+  // Create default column definition
+  const createDefaultColumnDef = (columnId: string): ColumnDef<Entry> => {
+    return {
+      accessorKey: columnId,
+      header: ({ column }) =>
+        createSortableHeader(column, t[columnId as keyof typeof t] || columnId),
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {String(row.getValue(columnId) || '')}
+        </div>
+      )
+    }
+  }
+
+  async function handleDelete(id: string): Promise<void> {
+    try {
+      const res = await fetch(`/api/pricing/${id}`, {
+        method: 'DELETE'
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        toast({
+          title: 'Erreur',
+          description: data.error || 'Erreur lors de la suppression',
+          variant: 'destructive'
+        })
+        throw new Error(data.error || 'Erreur lors de la suppression')
+      }
+      toast({
+        title: 'Suppression réussie',
+        description: 'Le radiateur a été supprimé avec succès.',
+        variant: 'success'
+      })
+      if (router.refresh) router.refresh()
+      else window.location.reload()
+    } catch (err: any) {
+      console.error('Delete failed:', err)
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Erreur lors de la suppression',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  const columns: ColumnDef<Entry>[] = [
+    {
+      accessorKey: 'id',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { id }
+        }
+      }) => (
+        <div className="flex items-center">
+          <Link
+            className="hover:text-secondary hover:font-semibold hover:underline"
+            href={`dashboard/pricing/products/${id}`}
+          >
+            {id}
+          </Link>
+        </div>
+      )
+    },
+    {
+      accessorKey: 'label',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({
+        row: {
+          original: { label }
+        }
+      }) => {
+        const regex = /(?<=x)\d+|\d+(?=x)/gi
+        const parts = label.split(regex)
+        const matches = label.match(regex)
+
+        return (
+          <div className="w-full overflow-x-auto scrollbar-hidden">
+            <p
+              className="text-foreground/85 whitespace-nowrap"
+              style={{
+                fontSize: '1.05rem',
+                lineHeight: '1.65rem'
+              }}
+            >
+              {parts.map((part, index) => (
+                <React.Fragment key={index}>
+                  {part}
+                  {matches && matches[index] && (
+                    <span className="font-semibold">{matches[index]}</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </p>
+          </div>
+        )
+      },
+      meta: { className: 'w-md' }
+    },
+    {
+      accessorKey: 'brand',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center  max-w-36 truncate overflow-hidden whitespace-nowrap">
+          {row.original.brand}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'model',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center  max-w-36 truncate overflow-hidden whitespace-nowrap">
+          {row.original.model}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'type',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center  max-w-36 truncate overflow-hidden whitespace-nowrap">
+          {row.original.type}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'margin',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center  max-w-36 truncate overflow-hidden whitespace-nowrap">
+          +{row.original.margin?.value}
+          {row.original.margin?.type === 'percentage' ? ' %' : ' Dzd'}
+        </div>
+      )
+    },
+    {
+      accessorKey: 'actions',
+      enableHiding: false,
+      accessorFn: (row) => row.id,
+      header: ({ column }) => (
+        <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
+      ),
+      cell: ({
+        row: {
+          original: { id }
+        }
+      }) => <Actions id={id} onDelete={(id) => handleDelete(id)} />,
+      meta: { className: 'w-16' }
+    }
+  ]
+
+  const [globalFilterValue, setGlobalFilterValue] = React.useState('')
+
+  function fuzzyWordMatch<TData>(
+    row: Row<TData>,
+    columnId: string,
+    searchWords: string[]
+  ) {
+    const value = String(row.getValue(columnId)).toLowerCase()
+    return searchWords.every((word) => value.includes(word))
+  }
+
+  const globalSearch = <TData extends unknown>(
+    row: Row<TData>,
+    columnId: string,
+    filterValue: string
+  ) => {
+    const searchWords = filterValue.toLowerCase().trim().split(/\s+/)
+
+    // check across all visible columns
+    return row
+      .getAllCells()
+      .some((cell) => fuzzyWordMatch(row, cell.column.id, searchWords))
+  }
+
+  const table = useReactTable({
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    globalFilterFn: globalSearch,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      globalFilter: globalFilterValue
+    },
+    initialState: {
+      pagination: {
+        pageSize: limit,
+        pageIndex: 0
+      },
+      columnVisibility
+    }
+  })
+
+  // Apply date range filter if set
+  React.useEffect(() => {
+    if (dateRange.from && dateRange.to) {
+      const fromDate = dateRange.from
+      const toDate = new Date(dateRange.to)
+      // Set the time to end of day to include the entire day
+      toDate.setHours(23, 59, 59, 999)
+
+      table
+        .getColumn('createdAt')
+        ?.setFilterValue([fromDate.toISOString(), toDate.toISOString()])
+    } else {
+      table.getColumn('createdAt')?.setFilterValue(undefined)
+    }
+  }, [dateRange, table])
+
+  // Export to CSV function
+  const exportToCSV = () => {
+    const visibleColumns = table
+      .getVisibleFlatColumns()
+      .filter((column) => column.id !== 'actions')
+    const headers = visibleColumns.map(
+      (column) => t[column.id as keyof typeof t] || column.id
+    )
+
+    const rows = table.getFilteredRowModel().rows.map((row) => {
+      return visibleColumns.map((column) => {
+        const value = row.getValue(column.id)
+        if (column.id === 'createdAt' && value) {
+          return format(new Date(value as string), 'dd/MM/yyyy')
+        }
+        return value
+      })
+    })
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute(
+      'download',
+      `products-export-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    )
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  return (
+    <div className="w-full space-y-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Input
+            placeholder={t.placeholder}
+            value={globalFilterValue}
+            onChange={(e) => setGlobalFilterValue(e.target.value)}
+            className="w-full sm:w-80"
+          />
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="ml-auto text-muted-foreground hover:text-foreground"
+              >
+                {t.columns}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize text-muted-foreground hover:text-foreground"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {t[column.id as keyof typeof t] || column.id}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {t.limit} ({limit})
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="">
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup
+                value={limit.toString()}
+                onValueChange={(value) => setLimit(Number.parseInt(value))}
+              >
+                {['10', '25', '50', '100'].map((value) => (
+                  <DropdownMenuRadioItem
+                    className={cn(
+                      'text-muted-foreground font-medium hover:text-primary',
+                      limit === Number.parseInt(value) && 'text-primary'
+                    )}
+                    key={value}
+                    value={value}
+                  >
+                    {value}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="outline"
+            className="flex gap-2"
+            onClick={exportToCSV}
+          >
+            <Download className="h-4 w-4" />
+            {t.export}
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-md border ">
+        <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
+          <TableHeader className="bg-muted/50">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        'px-2 py-1 whitespace-nowrap',
+                        header.column.columnDef.meta?.className
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          'py-[0.5rem] pl-2 pr-0',
+                          cell.column.columnDef.meta?.className
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    )
+                  })}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Aucun résultat.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex items-center justify-between pt-4">
+        <div className="text-sm text-muted-foreground">
+          Affichage de {table.getFilteredRowModel().rows.length} sur{' '}
+          {data.length} produits
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Précédent
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Suivant
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Actions({
+  id,
+  onDelete
+}: {
+  id: string
+  onDelete: (id: string) => void
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
+        <Icons.ellipsis className="h-4 w-4" />
+        <span className="sr-only">Open</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link
+            className={cn(
+              buttonVariants({ variant: 'ghost' }),
+              'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
+            )}
+            href={`/dashboard/db/${id}`}
+          >
+            <Icons.edit className="w-4 h-4 group-hover:text-primary" />
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant={'ghost'}
+                className="flex group gap-3 items-center justify-center w-12 cursor-pointer focus:text-destructive ring-0 "
+              >
+                <Icons.trash className="w-4 h-4 group-hover:text-destructive" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Êtes-vous sûr de vouloir supprimer cette commande ?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Attention, cette action est irréversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button
+                    className={cn(
+                      buttonVariants({ variant: 'outline' }),
+                      ' text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                    )}
+                    onClick={() => onDelete(id)}
+                  >
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}

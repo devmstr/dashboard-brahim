@@ -4,6 +4,26 @@
 
 @layer base {
   :root {
+    /* destructive */
+    --destructive-border: 0 70% 60%; /* red-400 */
+    --destructive-bg: 0 100% 95%; /* red-100 */
+    --destructive-text: 0 80% 30%; /* red-800 */
+
+    /* warning */
+    --warning-border: 45 97% 60%; /* yellow-400 */
+    --warning-bg: 55 92% 90%; /* yellow-100 */
+    --warning-text: 35 92% 30%; /* yellow-800 */
+
+    /* success */
+    --success-border: 142 70% 45%; /* green-400 */
+    --success-bg: 142 77% 90%; /* green-100 */
+    --success-text: 142 71% 25%; /* green-800 */
+
+    /* information */
+    --information-border: 220 13% 91%; /* gray-200 */
+    --information-bg: 0 0% 100%; /* white */
+    --information-text: 220 9% 20%; /* gray-800 */
+
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
     --card: 0 0% 100%;
@@ -27,6 +47,26 @@
   }
 
   .dark {
+    /* destructive */
+    --destructive-border: 0 70% 55%; /* red-400 stays close */
+    --destructive-bg: 0 80% 15%; /* deeper red for bg */
+    --destructive-text: 0 100% 90%; /* light red text */
+
+    /* warning */
+    --warning-border: 45 97% 55%;
+    --warning-bg: 45 100% 15%; /* darker yellow */
+    --warning-text: 50 100% 85%; /* light yellow text */
+
+    /* success */
+    --success-border: 142 70% 40%;
+    --success-bg: 142 75% 15%; /* deep green */
+    --success-text: 142 80% 85%; /* light green */
+
+    /* information */
+    --information-border: 220 10% 40%; /* muted gray */
+    --information-bg: 220 15% 10%; /* near-dark background */
+    --information-text: 220 15% 90%; /* light gray text */
+
     --background: 20 14.3% 4.1%;
     --foreground: 60 9.1% 97.8%;
     --card: 20 14.3% 4.1%;

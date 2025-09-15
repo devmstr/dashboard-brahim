@@ -7,7 +7,7 @@ const stats = [
     title: 'brute h/t',
     value: 122380000,
     delta: 15.1,
-    lastMonth: 105922,
+    lastMonth: 106324500, // Fixed: 122380000 / (1 + 15.1/100)
     positive: true,
     prefix: '',
     suffix: ''
@@ -16,7 +16,7 @@ const stats = [
     title: 'net commercial',
     value: 100238000,
     delta: -2.0,
-    lastMonth: 2002098,
+    lastMonth: 102283673.47, // Fixed: 100238000 / (1 - 2.0/100)
     positive: false,
     prefix: '',
     suffix: ''
@@ -25,18 +25,18 @@ const stats = [
     title: 'tva 19%',
     value: 12100000,
     delta: 0.4,
-    lastMonth: 97800000,
+    lastMonth: 12051792.83, // Fixed: 12100000 / (1 + 0.4/100)
     positive: true,
     prefix: '$',
     suffix: 'M',
-    format: (v: number) => `$${(v / 1_000_000).toFixed(1)}M`,
-    lastFormat: (v: number) => `$${(v / 1_000_000).toFixed(1)}M`
+    format: (v: number) => `$${(v / 1e6).toFixed(1)}M`,
+    lastFormat: (v: number) => `$${(v / 1e6).toFixed(1)}M`
   },
   {
     title: 'TTC',
     value: 150380000,
     delta: 3.7,
-    lastMonth: 46480,
+    lastMonth: 145014464.8, // Fixed: 150380000 / (1 + 3.7/100)
     positive: true,
     prefix: '',
     suffix: ''
@@ -74,8 +74,8 @@ export default function FinanceMetadataCards() {
                 {stat.delta}%
               </Badge>
             </div>
-            <div className="text-xs text-muted-foreground mt-2 border-t pt-2.5">
-              Vs last month:{' '}
+            <div className="text-md text-muted-foreground mt-2 border-t-2 pt-2.5">
+              Mois précédent:{' '}
               <span className="font-medium text-foreground">
                 {stat.lastFormat
                   ? stat.lastFormat(stat.lastMonth)

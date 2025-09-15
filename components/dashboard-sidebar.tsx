@@ -71,27 +71,19 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                         item.href?.split('/').slice(0, 3).join('/') as string
                       )
 
-                // derive a new item if user role is sales
-                const adjustedItem =
-                  item.key === 'inventory' &&
-                  userRole &&
-                  ['SALES_AGENT', 'SALES_MANAGER'].includes(userRole)
-                    ? { ...item, title: 'Tarifications', icon: 'pricingTag' }
-                    : item
-
-                const Icon = Icons[adjustedItem.icon as keyof typeof Icons]
+                const Icon = Icons[item.icon as keyof typeof Icons]
 
                 return (
-                  adjustedItem.href && (
+                  item.href && (
                     <Link
                       key={index}
-                      href={adjustedItem.disabled ? '#' : adjustedItem.href}
+                      href={item.disabled ? '#' : item.href}
                       className={cn(
                         'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
                         active
                           ? 'text-primary bg-secondary opacity-100'
                           : 'opacity-80 hover:opacity-100 hover:text-secondary',
-                        adjustedItem.disabled && 'cursor-not-allowed opacity-80'
+                        item.disabled && 'cursor-not-allowed opacity-80'
                       )}
                     >
                       <Icon
@@ -109,7 +101,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                           delay={delay}
                           easing="easeOut"
                         >
-                          <span>{adjustedItem.title}</span>
+                          <span>{item.title}</span>
                         </Fade>
                       ) : (
                         <span
@@ -119,7 +111,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                               'bg-secondary text-primary group-hover:text-primary'
                           )}
                         >
-                          {adjustedItem.title}
+                          {item.title}
                         </span>
                       )}
                     </Link>

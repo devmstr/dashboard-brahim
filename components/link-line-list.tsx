@@ -1,20 +1,27 @@
 'use client'
 import { SidebarNavItem } from '@/types'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { ScrollArea, ScrollBar } from './ui/scroll-area'
 import React, { useEffect } from 'react'
 import { Skeleton } from './ui/skeleton'
 import { Icons } from './icons'
+import { Button } from './ui/button'
 interface Props {
   items: SidebarNavItem[]
+  disableLink?: boolean
   t: Record<string, string>
 }
 
-export const LinkLineList: React.FC<Props> = ({ items, t }: Props) => {
+export const LinkLineList: React.FC<Props> = ({
+  items,
+  disableLink,
+  t
+}: Props) => {
   const [isLoading, setIsLoading] = React.useState(true)
   const pathname = usePathname()
+  const router = useRouter()
   //   const { width } = useWindowSize()
 
   useEffect(() => {
@@ -41,7 +48,15 @@ export const LinkLineList: React.FC<Props> = ({ items, t }: Props) => {
 
             const Icon = Icons[item.icon as keyof typeof Icons]
             return (
-              <div key={index} className="relative group">
+              <Button
+                variant={'ghost'}
+                onClick={() => {
+                  if (disableLink) return
+                  router.push(item.href as string)
+                }}
+                key={index}
+                className="relative group hover:bg-transparent"
+              >
                 <div className="flex group gap-1 items-center">
                   <Icon
                     className={cn(
@@ -69,7 +84,7 @@ export const LinkLineList: React.FC<Props> = ({ items, t }: Props) => {
                     active ? 'scale-100' : 'scale-0'
                   )}
                 />
-              </div>
+              </Button>
             )
           })}
           <div className="absolute z-10 bottom-0 bg-gray-400/15 w-full h-[2px]" />

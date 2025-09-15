@@ -94,7 +94,7 @@ export type FooterConfig = {
 }
 
 export type SidebarNavItem = {
-  title: string | string[]
+  title: string
   disabled?: boolean
   external?: boolean
   key?: string

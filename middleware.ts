@@ -4,6 +4,7 @@ import { UserRole } from './types'
 // Define protected routes and their required roles
 export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
   '/dashboard/settings': ['ADMIN'],
+  '/dashboard/pricing': ['ADMIN', 'SALES_MANAGER'],
   '/dashboard/ledger': [
     'ADMIN',
     'FINANCE',
@@ -13,13 +14,19 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
   ],
   '/dashboard/printing': ['ADMIN', 'SALES_MANAGER', 'SALES_AGENT'],
   '/dashboard/cars': ['ADMIN', 'CONSULTANT', 'ENGINEERING_MANAGER'],
-  '/dashboard/new': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
-  '/dashboard/pos': ['ADMIN', 'SALES_AGENT', 'SALES_MANAGER'],
-  '/dashboard/db': ['ADMIN', 'ENGINEER', 'ENGINEERING_MANAGER', 'CONSULTANT'],
+  '/dashboard/new': ['ADMIN', 'SALES_AGENT'],
+  '/dashboard/pos': ['ADMIN', 'SALES_AGENT'],
+  '/dashboard/db': [
+    'ADMIN',
+    'ENGINEER',
+    'ENGINEERING_MANAGER',
+    'CONSULTANT',
+    'DATA_AGENT'
+  ],
   '/dashboard/orders': [
     'ADMIN',
+    'DATA_AGENT',
     'SALES_AGENT',
-    'SALES_MANAGER',
     'CONSULTANT',
     'ENGINEER',
     'ENGINEERING_MANAGER'

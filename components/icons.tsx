@@ -58,6 +58,7 @@ import {
   UserPlus,
   UploadCloud,
   Database,
+  Globe,
   Car
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
@@ -79,12 +80,17 @@ import { TbDeviceIpadDollar, TbFileInvoice } from 'react-icons/tb'
 import { TbPackageImport } from 'react-icons/tb'
 import { PiBuildingsBold } from 'react-icons/pi'
 import { IoPricetagsOutline } from 'react-icons/io5'
+import { RiOrganizationChart } from 'react-icons/ri'
+import { HiOutlineChartPie } from 'react-icons/hi2'
 
 import { cn } from '@/lib/utils'
 
 export type Icon = LucideIcon
 
 export const Icons = {
+  priceMargin: HiOutlineChartPie,
+  category: RiOrganizationChart,
+  globe: Globe,
   pricingTag: IoPricetagsOutline,
   carBrand: PiBuildingsBold,
   deliveryPackage: TbPackageImport,

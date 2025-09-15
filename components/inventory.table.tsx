@@ -266,7 +266,7 @@ export function InventoryTable({
     },
     {
       id: 'quantity',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'INVENTORY_AGENT'],
+      roles: ['SALES_AGENT', 'INVENTORY_AGENT'],
       order: 6
     },
     {
@@ -288,7 +288,7 @@ export function InventoryTable({
       roles: [
         'INVENTORY_AGENT',
         'SALES_AGENT',
-        'SALES_MANAGER',
+
         'ENGINEER',
         'ENGINEERING_MANAGER'
       ],

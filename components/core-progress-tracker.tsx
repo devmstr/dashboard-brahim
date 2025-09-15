@@ -142,7 +142,7 @@ export function CoreProgressTracker({ data }: Props) {
               </span>
               <Badge
                 className="w-full flex justify-center text-md"
-                variant={isReady ? 'default' : 'secondary'}
+                variant={isReady ? 'primary' : 'secondary'}
               >
                 {isReady ? 'Terminé' : 'En Cours'}
               </Badge>

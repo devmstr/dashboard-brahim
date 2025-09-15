@@ -35,7 +35,7 @@ import {
 import { ArrowUpDown, Building, Building2, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
-import { Icons } from './icons'
+import { Icons } from '@/components/icons'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,8 +51,15 @@ import { usePersistedState } from '@/hooks/use-persisted-state'
 import { useRouter } from 'next/navigation'
 import { ClientSchemaType as Client } from '@/lib/validations'
 
+type ClientMargin = Client & {
+  margin: number
+  _count: {
+    Orders: number
+  }
+}
+
 interface Props {
-  data: Client[]
+  data: ClientMargin[]
   children?: React.ReactNode
   t?: {
     id: string
@@ -62,21 +69,14 @@ interface Props {
     label: string
     name: string
     phone: string
+    margin: string
     province: string
     _count: string
   }
-  // New props for configurable UI elements
-  showSearch?: boolean
-  showColumnSelector?: boolean
-  showLimitSelector?: boolean
-  showPaginationButtons?: boolean
-  // Replace customActions with renderActions
-  renderActions?: (rowData: Client) => React.ReactNode
-  onDelete?: (id: string) => Promise<void>
   className?: string
 }
 
-export function ClientTable({
+export function ClientMarginTable({
   data,
   t = {
     _count: 'Commandes',
@@ -87,14 +87,9 @@ export function ClientTable({
     label: 'F.Juridique',
     name: 'Client',
     phone: 'Tél',
+    margin: 'Marge (%)',
     province: 'Location'
   },
-  showSearch = true,
-  showColumnSelector = true,
-  showLimitSelector = true,
-  showPaginationButtons = true,
-  renderActions,
-  onDelete,
   children,
   className
 }: Props) {
@@ -113,20 +108,15 @@ export function ClientTable({
   const { refresh } = useRouter()
 
   const handleDelete = async (orderId: string) => {
-    if (onDelete) {
-      await onDelete(orderId)
-      return
-    }
-
     try {
-      const res = await fetch(`/api/clients/${orderId}`, {
+      const res = await fetch(`/api/pricing/${orderId}`, {
         method: 'DELETE'
       })
       refresh()
     } catch (error) {}
   }
 
-  const columns: ColumnDef<Client>[] = [
+  const columns: ColumnDef<ClientMargin>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -148,7 +138,7 @@ export function ClientTable({
         <div className="flex items-center">
           <Link
             className="hover:text-secondary hover:font-semibold hover:underline"
-            href={`clients/${id}`}
+            href={`/dashboard/pricing/clients/${id}`}
           >
             {id}
           </Link>
@@ -183,7 +173,6 @@ export function ClientTable({
         )
       }
     },
-
     {
       accessorKey: 'label',
       header: ({ column }) => {
@@ -205,25 +194,7 @@ export function ClientTable({
         return <div className="flex items-center">{label || '/'}</div>
       }
     },
-    {
-      accessorKey: 'province',
-      header: ({ column }) => {
-        return (
-          <div
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            className=" flex gap-2 hover:text-primary  cursor-pointer "
-          >
-            {t[column.id as keyof typeof t]}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </div>
-        )
-      },
-      cell: ({ row }) => {
-        return (
-          <div className="flex items-center gap-1">{row.original.province}</div>
-        )
-      }
-    },
+
     {
       accessorKey: 'phone',
       header: ({ column }) => {
@@ -247,7 +218,25 @@ export function ClientTable({
         </div>
       )
     },
-
+    {
+      accessorKey: 'province',
+      header: ({ column }) => {
+        return (
+          <div
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            className=" flex gap-2 hover:text-primary  cursor-pointer "
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-1">{row.original.province}</div>
+        )
+      }
+    },
     {
       accessorKey: '_count',
       header: ({ column }) => {
@@ -270,18 +259,34 @@ export function ClientTable({
       }
     },
     {
+      accessorKey: 'margin',
+      header: ({ column }) => {
+        return (
+          <div
+            className="flex gap-2 hover:text-primary  cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            {t[column.id as keyof typeof t]}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </div>
+        )
+      },
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-1">+{row.original.margin}%</div>
+        )
+      }
+    },
+    {
       id: 'actions',
       enableHiding: false,
       header: () => (
         <div className="flex gap-2 hover:text-primary cursor-pointer">Menu</div>
       ),
       cell: ({ row: { original } }) => {
-        // If renderActions is provided, call it with the row data
-        if (renderActions) return renderActions(original)
-
-        // Otherwise, use the default Actions component
         return <Actions id={original.id} onDelete={handleDelete} />
-      }
+      },
+      meta: { className: 'w-16' }
     }
   ]
 
@@ -311,92 +316,82 @@ export function ClientTable({
 
   return (
     <div className={cn('w-full', className)}>
-      {(showSearch || showColumnSelector || showLimitSelector) && (
-        <div className="flex items-center justify-between pb-4">
-          <div className="flex gap-3">
-            {showSearch && (
-              <Input
-                placeholder={t['placeholder']}
-                value={table.getState().globalFilter ?? ''}
-                onChange={(event) => table.setGlobalFilter(event.target.value)}
-                className="w-80"
-              />
-            )}
-            <div className="hidden md:flex gap-3">
-              {showColumnSelector && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="ml-auto text-muted-foreground hover:text-foreground"
-                    >
-                      {t['columns'] || 'Columns'}{' '}
-                      <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {table
-                      .getAllColumns()
-                      .filter((column) => column.getCanHide())
-                      .map((column) => {
-                        return (
-                          <DropdownMenuCheckboxItem
-                            key={column.id}
-                            className="capitalize text-muted-foreground hover:text-foreground "
-                            checked={column.getIsVisible()}
-                            onCheckedChange={(value) =>
-                              column.toggleVisibility(!!value)
-                            }
-                          >
-                            {t[column.id as keyof typeof t]}
-                          </DropdownMenuCheckboxItem>
-                        )
-                      })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              {showLimitSelector && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="
+      <div className="flex items-center justify-between pb-4">
+        <div className="flex gap-3">
+          <Input
+            placeholder={t['placeholder']}
+            value={table.getState().globalFilter ?? ''}
+            onChange={(event) => table.setGlobalFilter(event.target.value)}
+            className="w-80"
+          />
+          <div className="hidden md:flex gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="ml-auto text-muted-foreground hover:text-foreground"
+                >
+                  {t['columns'] || 'Columns'}{' '}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize text-muted-foreground hover:text-foreground "
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {t[column.id as keyof typeof t]}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="
                     text-muted-foreground hover:text-foreground
                   "
+                >
+                  {t['limit'] || 'Limit'} ({limit}){' '}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="">
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup
+                  value={limit.toString()}
+                  onValueChange={(value) => setLimit(Number.parseInt(value))}
+                >
+                  {['10', '25', '50', '100'].map((value) => (
+                    <DropdownMenuRadioItem
+                      className={cn(
+                        'text-muted-foreground font-medium hover:text-primary',
+                        limit === Number.parseInt(value) && 'text-primary'
+                      )}
+                      key={value}
+                      value={value}
                     >
-                      {t['limit'] || 'Limit'} ({limit}){' '}
-                      <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="">
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup
-                      value={limit.toString()}
-                      onValueChange={(value) =>
-                        setLimit(Number.parseInt(value))
-                      }
-                    >
-                      {['10', '25', '50', '100'].map((value) => (
-                        <DropdownMenuRadioItem
-                          className={cn(
-                            'text-muted-foreground font-medium hover:text-primary',
-                            limit === Number.parseInt(value) && 'text-primary'
-                          )}
-                          key={value}
-                          value={value}
-                        >
-                          {value}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+                      {value}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          {children}
         </div>
-      )}
+        {children}
+      </div>
       <div className="rounded-md border">
         <Table className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-white overflow-auto">
           <TableHeader className="bg-muted/50">
@@ -408,10 +403,7 @@ export function ClientTable({
                       key={header.id}
                       className={cn(
                         'px-2 py-1 whitespace-nowrap',
-                        header.id === 'customer' && 'hidden sm:table-cell',
-                        header.id === 'status' && 'hidden md:table-cell',
-                        header.id === 'subParts' && 'hidden md:table-cell',
-                        header.id === 'deadline' && 'hidden md:table-cell'
+                        header.column.columnDef.meta?.className
                       )}
                     >
                       {header.isPlaceholder
@@ -439,12 +431,8 @@ export function ClientTable({
                         key={cell.id}
                         className={cn(
                           'py-[0.5rem] pl-2 pr-0',
-                          cell.column.id == 'subParts' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'deadline' &&
-                            'hidden md:table-cell',
-                          cell.column.id == 'status' && 'hidden md:table-cell',
-                          cell.column.id == 'customer' && 'hidden sm:table-cell'
+
+                          cell.column.columnDef.meta?.className // 👈 apply it
                         )}
                       >
                         {flexRender(
@@ -469,28 +457,26 @@ export function ClientTable({
           </TableBody>
         </Table>
       </div>
-      {showPaginationButtons && (
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </Button>
-          </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -515,7 +501,7 @@ function Actions({
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={`/dashboard/clients/${id}`}
+            href={`/dashboard/pricing/clients/${id}`}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>

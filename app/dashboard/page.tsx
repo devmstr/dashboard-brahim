@@ -1,35 +1,37 @@
 import { useServerCheckRoles } from '@/hooks/useServerCheckRoles'
-import { isEngineer } from '@/lib/session'
+import { getCurrentUser, isEngineer } from '@/lib/session'
 import { notFound, redirect } from 'next/navigation'
 
 interface Props {}
 
 const Page: React.FC<Props> = async ({}: Props) => {
-  const isUserRoleAdmin = await useServerCheckRoles('ADMIN')
-  const isUserRoleFinance = await useServerCheckRoles([
-    'FINANCE',
-    'FINANCE_MANAGER'
-  ])
-
-  const isUserRoleSales = await useServerCheckRoles([
-    'SALES_MANAGER',
-    'SALES_AGENT'
-  ])
-  const isUserRoleProduction = await useServerCheckRoles([
-    'PRODUCTION_WORKER',
-    'PRODUCTION_MANAGER'
-  ])
-  const isUserRoleEngineer = await useServerCheckRoles([
-    'ENGINEER',
-    'ENGINEERING_MANAGER',
-    'CONSULTANT'
-  ])
-  const isInventoryAgent = await useServerCheckRoles(['INVENTORY_AGENT'])
-  if (isInventoryAgent) redirect('/dashboard/inventory')
-  if (isUserRoleSales) redirect('/dashboard/new')
-  if (isUserRoleProduction || isUserRoleEngineer) redirect('/dashboard/db')
-  if (isUserRoleFinance) redirect('/dashboard/ledger')
-  return notFound()
+  const user = await getCurrentUser()
+  switch (user?.role) {
+    case 'ADMIN':
+      redirect('/dashboard/admin')
+    case 'SALES_MANAGER':
+      redirect('/dashboard/ledger')
+    case 'CONSULTANT':
+      redirect('/dashboard/orders')
+    case 'DATA_AGENT':
+      redirect('/dashboard/orders')
+    case 'ENGINEERING_MANAGER':
+      redirect('/dashboard/db')
+    case 'PRODUCTION_MANAGER':
+      redirect('/dashboard/timeline')
+    case 'FINANCE_MANAGER':
+      redirect('/dashboard/ledger')
+    case 'INVENTORY_AGENT':
+      redirect('/dashboard/inventory')
+    case 'SALES_AGENT':
+      redirect('/dashboard/new')
+    case 'INVENTORY_AGENT':
+      redirect('/dashboard/inventory')
+    case 'ENGINEER':
+      redirect('/dashboard/db')
+    default:
+      return notFound()
+  }
 }
 
 export default Page
