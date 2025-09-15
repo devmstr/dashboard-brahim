@@ -112,7 +112,7 @@ export function ProductMarginTable({
     type: 'Motorisation',
     createdAt: 'Date de création',
     limit: 'Limite',
-    margin: 'Marge (% | Dzd)',
+    margin: 'Marge (%)',
     export: 'Exporter'
   }
 }: TableProps) {

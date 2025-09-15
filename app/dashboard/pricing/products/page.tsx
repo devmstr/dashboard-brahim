@@ -36,18 +36,6 @@ const Page: React.FC<Props> = ({}: Props) => {
             model: 'Yaris',
             type: '1.4 D-4D 90 cv',
             createdAt: ''
-          },
-          {
-            id: 'FEX112L3U',
-            label: 'RAD 0480X0590 5DM 10 0600X0130 PC',
-            margin: {
-              type: 'fixed',
-              value: 4500
-            },
-            brand: 'Toyota',
-            model: 'Hilux',
-            type: '2.2 D 4x4 pickup 66cv',
-            createdAt: ''
           }
         ]}
       />
