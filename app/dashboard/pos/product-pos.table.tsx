@@ -455,8 +455,8 @@ export function ProductPosTable({
                   colSpan={columns.length}
                   className="h-24 text-center flex items-center justify-center gap-1"
                 >
-                  <Icons.spinner className="w-4 h-4 animate-spin" />
-                  Fetching Result...
+                  {/* <Icons.spinner className="w-4 h-4 animate-spin" /> */}
+                  Pad de Résultat...
                 </TableCell>
               </TableRow>
             )}
