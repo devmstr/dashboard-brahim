@@ -6,14 +6,30 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = parseInt(searchParams.get('limit') || '10', 10)
+    const search = searchParams.get('search')
 
     const skip = (page - 1) * limit
 
+    const filter: any = {}
+    if (search) {
+      filter.OR = [
+        {
+          CarType: {
+            Model: {
+              name: { contains: search }
+            }
+          }
+        },
+        {
+          label: {
+            contains: search
+          }
+        }
+      ]
+    }
     const [radiators, total] = await Promise.all([
       prisma.radiator.findMany({
-        where: {
-          isActive: true
-        },
+        where: filter,
         include: {
           Inventory: true,
           Price: true
@@ -22,9 +38,7 @@ export async function GET(req: NextRequest) {
         take: limit
       }),
       prisma.radiator.count({
-        where: {
-          isActive: true
-        }
+        where: filter
       })
     ])
 
