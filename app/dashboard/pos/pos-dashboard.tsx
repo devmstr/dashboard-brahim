@@ -10,7 +10,13 @@ import { ClientSchemaType } from '@/lib/validations'
 import { toast } from '@/hooks/use-toast'
 import { rest } from 'lodash'
 
-export default function PosDashboard() {
+export default function PosDashboard({
+  radiators = [],
+  total: count = 0
+}: {
+  radiators?: Product[]
+  total?: number
+}) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
@@ -18,14 +24,7 @@ export default function PosDashboard() {
   const [selectedCustomer, setSelectedCustomer] = useState<
     ClientSchemaType | undefined
   >(undefined)
-  const [products, setProducts] = useState<Product[]>([])
-
-  useEffect(() => {
-    fetch('/api/pos')
-      .then((res) => res.json())
-      .then((data) => setProducts(data.data))
-      .catch(() => setProducts([]))
-  }, [])
+  const [products, setProducts] = useState<Product[]>(radiators)
 
   // Toggle item expansion in cart
   const toggleItemExpansion = (itemId: string) => {
@@ -195,7 +194,7 @@ export default function PosDashboard() {
           removeFromCart={removeFromCart}
           subtotal={subtotal}
           tax={tax}
-          total={total}
+          total={count}
           printReceipt={printReceipt}
         />
       </div>

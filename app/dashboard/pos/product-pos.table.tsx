@@ -20,7 +20,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { ClientTableEntry, ProductPosTableEntry } from '@/types'
+import { ClientTableEntry, PosTableEntry } from '@/types'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -54,7 +54,7 @@ import { usePersistedState } from '@/hooks/use-persisted-state'
 import { useRouter } from 'next/navigation'
 
 interface Props {
-  data: ProductPosTableEntry[]
+  data: PosTableEntry[]
   addToCart: (product: any) => void
   t?: {
     columns: string
@@ -90,27 +90,27 @@ export function ProductPosTable({
   const [columnVisibility, setColumnVisibility] =
     usePersistedState<VisibilityState>('pos-table-columns-visibility', {})
 
-  const [products, setProducts] = React.useState<ProductPosTableEntry[]>(data)
+  const [products, setProducts] = React.useState<PosTableEntry[]>(data)
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
 
-  async function fetchProducts(page = 1, limit = 8, search = '') {
-    try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString()
-      })
-      if (search.trim()) params.append('search', search.trim())
+  // async function fetchProducts(page = 1, limit = 8, search = '') {
+  //   try {
+  //     const params = new URLSearchParams({
+  //       page: page.toString(),
+  //       limit: limit.toString()
+  //     })
+  //     if (search.trim()) params.append('search', search.trim())
 
-      const res = await fetch(`/api/pos?${params.toString()}`)
-      const json = await res.json()
+  //     const res = await fetch(`/api/pos?${params.toString()}`)
+  //     const json = await res.json()
 
-      setProducts(json.data)
-      setTotalPages(json.meta.totalPages)
-    } catch (err) {
-      console.error('Failed to fetch products:', err)
-    }
-  }
+  //     setProducts(json.data)
+  //     setTotalPages(json.meta.totalPages)
+  //   } catch (err) {
+  //     console.error('Failed to fetch products:', err)
+  //   }
+  // }
 
   React.useEffect(() => {
     table.setPageSize(limit)
@@ -118,7 +118,7 @@ export function ProductPosTable({
 
   const { refresh } = useRouter()
 
-  const columns: ColumnDef<ProductPosTableEntry>[] = [
+  const columns: ColumnDef<PosTableEntry>[] = [
     {
       accessorKey: 'id',
       header: ({ column }) => {
@@ -310,9 +310,9 @@ export function ProductPosTable({
     }
   })
 
-  React.useEffect(() => {
-    fetchProducts(page, limit, globalFilterValue)
-  }, [page, limit, globalFilterValue])
+  // React.useEffect(() => {
+  //   fetchProducts(page, limit, globalFilterValue)
+  // }, [page, limit, globalFilterValue])
 
   return (
     <div className="w-full">
@@ -463,7 +463,7 @@ export function ProductPosTable({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
+      {/* <div className="flex items-center justify-end space-x-2 py-4">
         <div className="space-x-2">
           <Button
             variant="outline"
@@ -482,7 +482,7 @@ export function ProductPosTable({
             Suivant
           </Button>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }

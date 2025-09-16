@@ -79,7 +79,7 @@ export type ClientTableEntry = {
   orderCount: number
   isCompany: boolean
 }
-export type ProductPosTableEntry = {
+export type PosTableEntry = {
   id: string
   label: string
   stockLevel: number

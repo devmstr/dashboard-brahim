@@ -22,7 +22,7 @@ export default function ProductsSection({
           Produits
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-auto py-1">
+      <CardContent className="flex-1 overflow-auto py-1 pb-6">
         <ProductPosTable data={products} addToCart={addToCart} />
       </CardContent>
     </Card>

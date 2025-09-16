@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get('isActive')
     const search = searchParams.get('search') as string
 
+    console.log('search : ', search)
+
     // Build the filter object
     const filter: any = {}
 
