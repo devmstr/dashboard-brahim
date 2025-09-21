@@ -1,7 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import fs from 'fs'
-import path from 'path'
-import data from '../seed/2025.json'
+import data from '../seed/data-2025.json'
 import crypto from 'crypto'
 import { generateId } from '../helpers/id-generator'
 
@@ -24,8 +22,8 @@ interface RadiatorData {
   fins: string
   pitch: number
   rows: number
-  coreHeight: number
-  coreWidth: number
+  betweenCollectors: number
+  width: number
   upperCollectorLength: number
   upperCollectorWidth: number
   lowerCollectorLength: number
@@ -38,7 +36,7 @@ interface RadiatorData {
 }
 
 function generateHash(data: RadiatorData): string {
-  const hashString = `${data.reference}-${data.designation}-${data.coreHeight}-${data.coreWidth}`
+  const hashString = `${data.reference}-${data.designation}-${data.betweenCollectors}-${data.width}`
   return crypto.createHash('sha256').update(hashString).digest('hex')
 }
 
@@ -54,12 +52,12 @@ async function main() {
     // console.log(`📄 Found ${radiatorDataArray.length} radiators in 2025.json`)
 
     // Clean up existing data if needed
-    console.log('🧹 Cleaning up existing data...')
-    await prisma.orderItem.deleteMany()
-    await prisma.component.deleteMany()
-    await prisma.radiator.deleteMany()
-    await prisma.inventory.deleteMany()
-    await prisma.price.deleteMany()
+    // console.log('🧹 Cleaning up existing data...')
+    // await prisma.orderItem.deleteMany()
+    // await prisma.component.deleteMany()
+    // await prisma.radiator.deleteMany()
+    // await prisma.inventory.deleteMany()
+    // await prisma.price.deleteMany()
 
     let processedCount = 0
     let skippedCount = 0
@@ -133,8 +131,8 @@ async function main() {
             isActive: radiatorData.production === 'Fini',
             inventoryId: inventory.id,
             priceId: price.id,
-            betweenCollectors: radiatorData.coreHeight,
-            width: radiatorData.coreWidth,
+            betweenCollectors: radiatorData.betweenCollectors,
+            width: radiatorData.width,
             rows: radiatorData.rows,
             fins: radiatorData.fins,
             pitch: radiatorData.pitch,
