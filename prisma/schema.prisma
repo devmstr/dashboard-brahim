@@ -157,6 +157,7 @@ model Invoice {
   discountRate        Float?    @default(0)
   refundRate          Float?    @default(0)
   stampTaxRate        Float?    @default(0)
+  vat                 Float?    @default(0)
   offerValidity       String?
   guaranteeTime       String?
   deliveryTime        String?

@@ -323,6 +323,7 @@ declare type Invoice = {
   discountRate: number | null
   refundRate: number | null
   stampTaxRate: number | null
+  vat: number | null
   offerValidity: string | null
   guaranteeTime: string | null
   deliveryTime: string | null

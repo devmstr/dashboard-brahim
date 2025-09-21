@@ -11,7 +11,7 @@ import {
 import { cn, toCapitalize, toScreamingSnakeCase } from '@/lib/utils'
 
 interface MartialStatusSelectorProms
-  extends React.HTMLAttributes<HTMLDivElement> {
+  extends React.HTMLAttributes<HTMLButtonElement> {
   value: string
   setValue: (value: string) => void
   items: string[]
@@ -22,7 +22,9 @@ export function Selector({
   setValue,
   value,
   items,
-  disabled = false
+  disabled = false,
+  className,
+  ...props
 }: MartialStatusSelectorProms) {
   return (
     <Select
@@ -32,8 +34,9 @@ export function Selector({
       value={value}
     >
       <SelectTrigger
+        {...props}
         disabled={disabled}
-        className={cn('w-full border-primary bg-white text-primary')}
+        className={cn('w-full border-primary bg-white text-primary', className)}
       >
         <SelectValue placeholder={value} />
       </SelectTrigger>
