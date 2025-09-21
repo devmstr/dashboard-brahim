@@ -31,7 +31,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import './print.css'
 import { toast } from '@/hooks/use-toast'
 import { type Invoice } from '@/types'
-import { update } from 'lodash'
+import { set, update } from 'lodash'
 import { Selector } from '@/components/selector'
 
 export interface InvoiceProps {
@@ -144,51 +144,48 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
   const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
     billingSummary
 
+  // update total
+  useEffect(() => {
+    setData((prev) => ({
+      ...prev,
+      total: Total
+    }))
+  }, [data.total])
+
   // // send an update request on every change
-  // async function onUpdate(data?: Invoice, signal?: AbortSignal) {
-  //   try {
-  //     const response = await fetch(`/api/invoices/${data?.id}`, {
-  //       method: 'PATCH',
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify(data),
-  //       signal
-  //     })
-
-  //     if (!response.ok) {
-  //       const error = await response.json()
-  //       throw new Error(
-  //         error.details || 'Erreur lors de la mise à jour de la facture.'
-  //       )
-  //     }
-  //     await delay(1500)
-  //     toast({
-  //       title: 'Succès !',
-  //       description: 'La facture a été mise à jour avec succès.',
-  //       variant: 'success'
-  //     })
-  //   } catch (error) {
-  //     toast({
-  //       title: 'Erreur',
-  //       description:
-  //         error instanceof Error
-  //           ? error.message
-  //           : 'Une erreur inconnue est survenue.',
-  //       variant: 'destructive'
-  //     })
-  //     console.error('❌ Erreur lors de la mise à jour de la facture:', error)
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   const controller = new AbortController()
-  //   onUpdate(data, controller.signal)
-
-  //   return () => {
-  //     controller.abort()
-  //   }
-  // })
+  async function onUpdate() {
+    setIsUpdating(true)
+    try {
+      const invoice = await fetch(`/api/invoices/${data?.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      if (!invoice.ok) {
+        const errorData = await invoice.json().catch(() => ({}))
+        throw new Error(
+          errorData?.message || 'Erreur lors de la mise à jour de la facture'
+        )
+      }
+      toast({
+        title: 'Succès !',
+        description: 'La facture a été mise à jour avec succès.',
+        variant: 'success'
+      })
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur inconnue est survenue.',
+        variant: 'destructive'
+      })
+      console.error('❌ Erreur lors de la mise à jour de la facture:', error)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   const renderBillHeader = () => (
     <div className="print-header">
@@ -726,7 +723,52 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                 {item.quantity}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
-                {item.price}
+                <Input
+                  type="number"
+                  min={0}
+                  value={item.price ?? undefined}
+                  onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                    // If the value is "0", clear it when user starts editing
+                    if (e.target.value === '0') {
+                      e.target.value = ''
+                    }
+                  }}
+                  onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                    const value = e.target.value.trim()
+                    // If empty after editing, restore to 0
+                    const num = value === '' ? 0 : Number(value)
+
+                    setData((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i) =>
+                        i.number === item.number
+                          ? {
+                              ...i,
+                              price: num,
+                              amount: num * Number(i.quantity)
+                            }
+                          : i
+                      )
+                    }))
+                  }}
+                  onChange={({
+                    target: { value: v }
+                  }: React.ChangeEvent<HTMLInputElement>) => {
+                    setData((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i) => {
+                        return i.number === item.number
+                          ? {
+                              ...i,
+                              price: Number(v),
+                              amount: Number(v) * Number(i.quantity)
+                            }
+                          : i
+                      })
+                    }))
+                  }}
+                  className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-xs focus-visible:ring-0 border-none rounded-none"
+                />
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h- font-geist-sans">
                 {Number(
@@ -747,38 +789,38 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
 
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
 
-  const updateData = async () => {
-    setIsUpdating(true)
-    try {
-      const invoice = await fetch(`/api/invoices/${data.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-      if (!invoice.ok) {
-        const errorData = await invoice.json().catch(() => ({}))
-        throw new Error(
-          errorData?.message || 'Erreur lors de la mise à jour de la facture'
-        )
-      }
-      await delay(500)
-      toast({
-        title: 'Succès !',
-        description: 'La facture a été mise à jour avec succès.',
-        variant: 'success'
-      })
-    } catch (e) {
-      // Optionally handle error (e.g., show toast)
-      toast({
-        title: 'Erreur',
-        description:
-          'Une erreur est survenue lors de la mise à jour des données',
-        variant: 'destructive'
-      })
-    } finally {
-      setIsUpdating(false)
-    }
-  }
+  // const updateData = async () => {
+  //   setIsUpdating(true)
+  //   try {
+  //     const invoice = await fetch(`/api/invoices/${data.id}`, {
+  //       method: 'PATCH',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(data)
+  //     })
+  //     if (!invoice.ok) {
+  //       const errorData = await invoice.json().catch(() => ({}))
+  //       throw new Error(
+  //         errorData?.message || 'Erreur lors de la mise à jour de la facture'
+  //       )
+  //     }
+  //     await delay(500)
+  //     toast({
+  //       title: 'Succès !',
+  //       description: 'La facture a été mise à jour avec succès.',
+  //       variant: 'success'
+  //     })
+  //   } catch (e) {
+  //     // Optionally handle error (e.g., show toast)
+  //     toast({
+  //       title: 'Erreur',
+  //       description:
+  //         'Une erreur est survenue lors de la mise à jour des données',
+  //       variant: 'destructive'
+  //     })
+  //   } finally {
+  //     setIsUpdating(false)
+  //   }
+  // }
 
   // useEffect(() => {
   //   updateData()
@@ -820,7 +862,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         </div>
       ))}
       <Button
-        onClick={() => updateData()}
+        onClick={() => onUpdate()}
         className="w-full flex gap-2 rounded-xl h-12 print:hidden shadow-lg group hover:text-secondary mt-3"
         variant="outline"
       >

@@ -76,8 +76,15 @@ export async function PATCH(
     }
 
     // Step 2: Compare items (by label only — TODO: make deeper if needed)
-    const oldItems = existingInvoice.items.map((i) => i.label)
-    const newItems = items?.map((i) => i.label) ?? []
+    const oldItems = existingInvoice.items.map(
+      ({ label, price, quantity }) => ({ label, price, quantity })
+    )
+    const newItems =
+      items?.map(({ label, price, quantity }) => ({
+        label,
+        price,
+        quantity
+      })) ?? []
 
     const itemsChanged = !isEqual(oldItems, newItems)
 
