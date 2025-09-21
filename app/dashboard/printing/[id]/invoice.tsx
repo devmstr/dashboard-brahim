@@ -32,6 +32,7 @@ import './print.css'
 import { toast } from '@/hooks/use-toast'
 import { type Invoice } from '@/types'
 import { update } from 'lodash'
+import { Selector } from '@/components/selector'
 
 export interface InvoiceProps {
   data: Invoice
@@ -39,9 +40,10 @@ export interface InvoiceProps {
 }
 
 export default function Invoice({ data: input, className }: InvoiceProps) {
-  const [data, setData] = useState<Invoice>(input)
-  // update data on mount
-  useEffect(() => setData(input), [])
+  const [data, setData] = useState<Invoice>({
+    ...input,
+    vat: 0.19
+  })
 
   const [editedId, setEditedId] = useState<string | undefined>(undefined)
   const componentRef = useRef<HTMLDivElement>(null)
@@ -108,9 +110,15 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         discountRate: data.discountRate,
         refundRate: data.refundRate,
         stampTaxRate: data.stampTaxRate,
-        vatRate: 0.19
+        vatRate: data.vat
       }),
-    [data.items, data.discountRate, data.refundRate, data.stampTaxRate]
+    [
+      data.items,
+      data.discountRate,
+      data.refundRate,
+      data.stampTaxRate,
+      data.vat
+    ]
   )
 
   // Handle payment type change
@@ -358,7 +366,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
             <strong className="">N.I.F:</strong> 99747086204393
           </p>
           <p className="font-sans">
-            <strong className="">A.I:</strong> 471006003
+            <strong className="">A.I:</strong> 4710060038
           </p>
           <p className="font-sans">
             <strong className="">N.I.S:</strong> 096947100010442
@@ -513,7 +521,23 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               </span>
             </div>
             <div className="flex justify-between border-t-[1.6px] pt-[1px]">
-              <span>TVA 19%</span>
+              <div className="flex items-center gap-2">
+                <span>TVA </span>
+                <Selector
+                  className={cn(
+                    'p-0 m-0 w-10 text-end h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                  )}
+                  value={`${Number(data.vat) * 100}%`}
+                  items={['19%', '0%']}
+                  setValue={(v) => {
+                    setData((prev) => ({
+                      ...prev,
+                      vat: Number(v.replace(/\%/g, '')) / 100
+                    }))
+                  }}
+                />
+              </div>
+
               <span className="w-[6.5rem] pl-2">
                 {Number(vat.toFixed(2)).toLocaleString('fr-FR', {
                   minimumFractionDigits: 2,
