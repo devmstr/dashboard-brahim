@@ -85,9 +85,7 @@ export async function POST(req: NextRequest) {
           ? {
               items: {
                 createMany: {
-                  data: items.map(({ id, ...item }) => ({
-                    ...item
-                  }))
+                  data: items.map(({ id, ...item }) => item)
                 }
               }
             }

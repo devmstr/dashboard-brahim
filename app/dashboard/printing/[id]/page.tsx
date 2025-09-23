@@ -17,6 +17,7 @@ export default async function Page({ params }: { params: { id: string } }) {
       items: true
     }
   })
+  // console.log(invoice)
   if (!invoice) {
     return (
       <div className="text-red-500">

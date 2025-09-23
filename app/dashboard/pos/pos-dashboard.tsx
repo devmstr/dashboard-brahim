@@ -11,11 +11,9 @@ import { toast } from '@/hooks/use-toast'
 import { rest } from 'lodash'
 
 export default function PosDashboard({
-  radiators = [],
-  total: count = 0
+  radiators = []
 }: {
   radiators?: Product[]
-  total?: number
 }) {
   const [cart, setCart] = useState<CartItem[]>([])
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
@@ -52,7 +50,11 @@ export default function PosDashboard({
         }
         return prevCart.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: item.quantity + 1,
+                amount: item.price * (item.quantity + 1)
+              }
             : item
         )
       } else {
@@ -71,7 +73,7 @@ export default function PosDashboard({
             label: product.label,
             price: product.price,
             quantity: 1,
-            amount: product.price,
+            amount: product.price, // always keep in sync
             radiatorId: product.id
           }
         ]
@@ -85,13 +87,13 @@ export default function PosDashboard({
   }
 
   // Update item quantity
-  const updateQuantity = (id: string, quantity: number) => {
-    if (quantity < 1) return
+  const updateQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity < 1) return
     // Check if quantity exceeds available stock
-    const product = products.find(({ id }) => id == id)
+    const product = products.find((p) => p.id == id)
     // const availableStock = product?.stockLevel ?? Infinity
     const availableStock = Infinity
-    if (quantity > availableStock) {
+    if (newQuantity > availableStock) {
       // inform the user that they can't add more than available stock
       toast({
         title: 'Limite de stock atteinte',
@@ -102,7 +104,15 @@ export default function PosDashboard({
     }
 
     setCart((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prevCart.map((item) => {
+        if (item.id === id)
+          return {
+            ...item,
+            quantity: newQuantity,
+            amount: item.price * newQuantity
+          }
+        else return item
+      })
     )
   }
 
@@ -155,6 +165,7 @@ export default function PosDashboard({
       })
       return
     }
+
     const data = await response.json()
 
     if (!data) {
@@ -194,7 +205,7 @@ export default function PosDashboard({
           removeFromCart={removeFromCart}
           subtotal={subtotal}
           tax={tax}
-          total={count}
+          total={total}
           printReceipt={printReceipt}
         />
       </div>

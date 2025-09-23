@@ -1,4 +1,5 @@
 'use client'
+import { Selector } from '@/components/selector'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -19,20 +20,17 @@ import {
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { PAYMENT_TYPES } from '@/config/global'
-import { useScrollProgress } from '@/hooks/use-scroll'
-import { cn, delay } from '@/lib/utils'
-import { amountToWords } from '@/helpers/price-to-string'
 import { calculateBillingSummary } from '@/helpers/invoice'
+import { amountToWords } from '@/helpers/price-to-string'
+import { toast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
+import { type Invoice } from '@/types'
 import { format } from 'date-fns'
 import { Pencil, RefreshCcw } from 'lucide-react'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './print.css'
-import { toast } from '@/hooks/use-toast'
-import { type Invoice } from '@/types'
-import { set, update } from 'lodash'
-import { Selector } from '@/components/selector'
 
 export interface InvoiceProps {
   data: Invoice
@@ -727,30 +725,30 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                   type="number"
                   min={0}
                   value={item.price ?? undefined}
-                  onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                    // If the value is "0", clear it when user starts editing
-                    if (e.target.value === '0') {
-                      e.target.value = ''
-                    }
-                  }}
-                  onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                    const value = e.target.value.trim()
-                    // If empty after editing, restore to 0
-                    const num = value === '' ? 0 : Number(value)
+                  // onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                  //   // If the value is "0", clear it when user starts editing
+                  //   if (e.target.value === '0') {
+                  //     e.target.value = ''
+                  //   }
+                  // }}
+                  // onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                  //   const value = e.target.value.trim()
+                  //   // If empty after editing, restore to 0
+                  //   const num = value === '' ? 0 : Number(value)
 
-                    setData((prev) => ({
-                      ...prev,
-                      items: prev.items.map((i) =>
-                        i.number === item.number
-                          ? {
-                              ...i,
-                              price: num,
-                              amount: num * Number(i.quantity)
-                            }
-                          : i
-                      )
-                    }))
-                  }}
+                  //   setData((prev) => ({
+                  //     ...prev,
+                  //     items: prev.items.map((i) =>
+                  //       i.number === item.number
+                  //         ? {
+                  //             ...i,
+                  //             price: num,
+                  //             amount: num * Number(i.quantity)
+                  //           }
+                  //         : i
+                  //     )
+                  //   }))
+                  // }}
                   onChange={({
                     target: { value: v }
                   }: React.ChangeEvent<HTMLInputElement>) => {

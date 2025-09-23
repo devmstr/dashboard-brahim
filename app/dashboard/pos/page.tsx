@@ -30,7 +30,6 @@ const Page: React.FC<Props> = async ({}: Props) => {
         bulkPrice: Number(i.Price?.bulk),
         bulkPriceTTC: Number(i.Price?.bulkTTC)
       }))}
-      total={total}
     />
   )
 }
