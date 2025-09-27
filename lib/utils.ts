@@ -2,6 +2,7 @@ import { UserRole } from '@/types'
 import { Content } from '@tiptap/react'
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import thousands from 'format-thousands'
 
 export const formatPhoneNumber = (phone: string | null | undefined) => {
   if (!phone) return ''
@@ -107,4 +108,12 @@ export function isContentEmpty(note: Content): boolean {
   }
 
   return true
+}
+
+export function formatPrice(value: number | string | undefined | null): string {
+  if (!value) return '0'
+  return thousands(Number(value).toFixed(2), {
+    separator: ' ',
+    formatFourDigits: true
+  })
 }

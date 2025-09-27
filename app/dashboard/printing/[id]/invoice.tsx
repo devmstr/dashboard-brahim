@@ -23,7 +23,7 @@ import { PAYMENT_TYPES } from '@/config/global'
 import { calculateBillingSummary } from '@/helpers/invoice'
 import { amountToWords } from '@/helpers/price-to-string'
 import { toast } from '@/hooks/use-toast'
-import { cn } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 import { type Invoice } from '@/types'
 import { format } from 'date-fns'
 import { Pencil, RefreshCcw } from 'lucide-react'
@@ -405,27 +405,20 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               )}
             >
               <span>TOTAL BRUTE H.T</span>
-              <span className="w-[6.5rem] pl-2">
-                {Number(Total.toFixed(2)).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
+              <span className="w-[6.5rem] pl-2 text-end px-2">
+                {formatPrice(Total)}
               </span>
             </div>
             <div
               className={cn(
-                'flex justify-between border-t-[1.6px] pt-[1px]',
+                'flex justify-between  border-t-[1.6px] pt-[1px]',
                 !data.discountRate && 'print:hidden'
               )}
             >
               <div className="flex gap-1 items-center">
                 <span>REMISE </span>
                 <Input
-                  value={
-                    data.discountRate
-                      ? (data.discountRate * 100).toFixed()
-                      : undefined
-                  }
+                  value={Number(data.discountRate) * 100}
                   type="number"
                   name="discount-percentage"
                   placeholder="0"
@@ -448,16 +441,13 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                     }))
                   }}
                   className={cn(
-                    'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                    'p-0 m-0 w-5  text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
                 />
                 %
               </div>
-              <span className="w-[6.5rem] pl-2 font-geist-sans">
-                {Number(discount.toFixed(2)).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
+              <span className="w-[6.5rem] pl-2 text-end font-geist-sans px-2">
+                {formatPrice(discount)}
               </span>
             </div>
             <div
@@ -469,11 +459,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               <div className="flex gap-1 items-center">
                 <span>R.G</span>
                 <Input
-                  value={
-                    data.refundRate
-                      ? (data.refundRate * 100).toFixed()
-                      : undefined
-                  }
+                  value={Number(data.refundRate) * 100}
                   type="number"
                   name="guarantee-refund"
                   placeholder="0"
@@ -499,20 +485,14 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                 />
                 %
               </div>
-              <span className="w-[6.5rem] pl-2 font-geist-sans">
-                {Number(refund.toFixed(2)).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
+              <span className="w-[6.5rem] px-2 pl-2 text-end font-geist-sans">
+                {formatPrice(refund)}
               </span>
             </div>
             <div className="flex justify-between border-t-[1.6px] pt-[1px]">
               <span>TOTAL NET H.T</span>
-              <span className="w-[6.5rem] pl-2">
-                {Number(totalHT.toFixed(2)).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
+              <span className="w-[6.5rem] px-2 pl-2 text-end">
+                {formatPrice(totalHT)}
               </span>
             </div>
             <div className="flex justify-between border-t-[1.6px] pt-[1px]">
@@ -520,7 +500,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                 <span>TVA </span>
                 <Selector
                   className={cn(
-                    'p-0 m-0 w-10 text-end h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                    'p-0 m-0 w-12  h-6 text-muted-foreground print:text-foreground focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
                   value={`${Number(data.vat) * 100}%`}
                   items={['19%', '0%']}
@@ -533,11 +513,8 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                 />
               </div>
 
-              <span className="w-[6.5rem] pl-2">
-                {Number(vat.toFixed(2)).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
+              <span className="text-end px-2 w-[6.5rem] pl-2">
+                {formatPrice(vat)}
               </span>
             </div>
             <div
@@ -549,15 +526,12 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               <div className="flex gap-1 items-center">
                 <span>TIMBRE</span>
                 <Input
-                  value={
-                    data.stampTaxRate ? (data.stampTaxRate * 100).toFixed() : 0
-                  }
+                  value={Number(data.stampTaxRate) * 100}
                   type="number"
                   name="stamp-tax"
                   placeholder="0"
                   onChange={({ target: { value: v } }) => {
                     let number = Math.max(0, Math.min(Number(v), 1))
-
                     if (number !== Number(v)) {
                       toast({
                         title: 'Avertissement',
@@ -574,27 +548,21 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                     }))
                   }}
                   className={cn(
-                    'p-0 m-0 w-5 text-end  h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                    'p-0 m-0 w-5  text-end h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                   )}
                 />
                 %
               </div>
 
-              <span className="w-24 ">
-                {Number(stampTax.toFixed(2)).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
+              <span className="w-24 px-2 text-end ">
+                {formatPrice(stampTax)}
               </span>
             </div>
           </div>
           <div className="flex justify-between font-bold bg-gray-100  py-2 pl-2 w-[15.4rem] border-y font-geist-sans">
             <span>TOTAL TTC</span>
-            <span className="w-[6.5rem] pl-2 ">
-              {Number(totalTTC.toFixed(2)).toLocaleString('fr-FR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}
+            <span className="w-[6.5rem] px-2 pl-2 text-right ">
+              {formatPrice(totalTTC)}
             </span>
           </div>
         </div>
@@ -717,38 +685,13 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                   </div>
                 )}
               </TableCell>
-              <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
+              <TableCell className="text-center py-[3px] px-2 h-8 font-geist-sans">
                 {item.quantity}
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
                 <Input
-                  type="number"
                   min={0}
-                  value={item.price ?? undefined}
-                  // onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                  //   // If the value is "0", clear it when user starts editing
-                  //   if (e.target.value === '0') {
-                  //     e.target.value = ''
-                  //   }
-                  // }}
-                  // onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                  //   const value = e.target.value.trim()
-                  //   // If empty after editing, restore to 0
-                  //   const num = value === '' ? 0 : Number(value)
-
-                  //   setData((prev) => ({
-                  //     ...prev,
-                  //     items: prev.items.map((i) =>
-                  //       i.number === item.number
-                  //         ? {
-                  //             ...i,
-                  //             price: num,
-                  //             amount: num * Number(i.quantity)
-                  //           }
-                  //         : i
-                  //     )
-                  //   }))
-                  // }}
+                  value={formatPrice(item.price)}
                   onChange={({
                     target: { value: v }
                   }: React.ChangeEvent<HTMLInputElement>) => {
@@ -765,18 +708,13 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                       })
                     }))
                   }}
-                  className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-xs focus-visible:ring-0 border-none rounded-none"
+                  className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-[.9rem] text-right focus-visible:ring-0 border-none rounded-none"
                 />
               </TableCell>
-              <TableCell className="text-left py-[3px] px-2 h- font-geist-sans">
-                {Number(
-                  (
-                    item.amount || Number(item.price) * Number(item.quantity)
-                  )?.toFixed(2)
-                ).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
+              <TableCell className="text-right py-[3px] px-2 h- font-geist-sans">
+                {formatPrice(
+                  item.amount ? item.amount : item.price! * item.quantity!
+                )}
               </TableCell>
             </TableRow>
           ))}

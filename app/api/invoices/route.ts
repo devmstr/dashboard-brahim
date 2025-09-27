@@ -90,8 +90,12 @@ export async function POST(req: NextRequest) {
               }
             }
           : {})
+      },
+      include: {
+        items: true
       }
     })
+    console.log(invoice.items)
 
     revalidatePath('/dashboard/ledger')
     return NextResponse.json({ id: invoice.id })

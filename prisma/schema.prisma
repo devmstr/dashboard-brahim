@@ -129,8 +129,8 @@ model InvoiceItem {
   id         String    @id @default(cuid())
   number     Int
   label      String?
-  price      Int?
-  amount     Int?
+  price      Float?
+  amount     Float?
   quantity   Int?
   radiatorId String?
   Radiator   Radiator? @relation(fields: [radiatorId], references: [id])
