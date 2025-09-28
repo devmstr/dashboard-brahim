@@ -45,7 +45,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
-import type { InvoiceProps } from '@/app/dashboard/printing/[id]/invoice'
+
 import { toast } from '@/hooks/use-toast'
 import {
   AlertDialog,
@@ -64,7 +64,6 @@ import { useReactToPrint } from 'react-to-print'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import Invoice from '@/app/dashboard/printing/[id]/invoice'
 import ReadOnlyInvoice from '@/components/readonly-invoice'
 
 // Define the LedgerEntry type
@@ -264,7 +263,7 @@ export function LedgerTable({
         }
       }) => (
         <Link
-          href={`/dashboard/printing/${id}`}
+          href={`/dashboard/ledger/${id}`}
           className="hover:text-secondary hover:font-bold hover:underline hover:cursor-pointer"
         >
           {id}
@@ -904,7 +903,7 @@ export function Actions({
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
             <Link
-              href={`/dashboard/printing/${id}`}
+              href={`/dashboard/ledger/${id}`}
               className={cn(
                 buttonVariants({ variant: 'ghost' }),
                 'flex gap-3 items-center w-full cursor-pointer group focus:text-primary ring-0 focus-visible:ring-0 focus-visible:ring-offset-0'

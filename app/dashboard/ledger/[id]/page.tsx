@@ -1,7 +1,8 @@
-import { InvoicePrinterWrapper } from '@/app/dashboard/printing/[id]/invoice-client-wrapper'
+
 import Invoice from './invoice'
 import prisma from '@/lib/db'
-import ProformaInvoice from '../proforma-invoice'
+import { InvoicePrinterWrapper } from './invoice-client-wrapper'
+import ProformaInvoice from '../../printing/proforma-invoice'
 
 export default async function Page({ params }: { params: { id: string } }) {
   const { id } = params

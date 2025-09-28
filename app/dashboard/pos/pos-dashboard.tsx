@@ -183,7 +183,7 @@ export default function PosDashboard({
       description: 'La facture a été créée avec succès.',
       variant: 'success'
     })
-    router.push(`/dashboard/printing/${data.id}`)
+    router.push(`/dashboard/ledger/${data.id}`)
   }
 
   return (
