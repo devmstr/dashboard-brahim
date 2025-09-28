@@ -35,7 +35,7 @@ import './print.css'
 export interface InvoiceProps {
   data: Invoice
   className?: string
-}
+}   
 
 export default function Invoice({ data: input, className }: InvoiceProps) {
   const [data, setData] = useState<Invoice>({
@@ -53,6 +53,8 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
 
   const [itemsPerPage, setItemsPerPage] = useState(4)
   const [itemsPerPageLast, setItemsPerPageLast] = useState(2)
+  const [prices, setPrices] = useState<Record<string, string>>({});
+
 
   useEffect(() => {
     const A4_HEIGHT = 1122 // in pixels (A4 at 96dpi)
@@ -73,6 +75,19 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
       setItemsPerPageLast(perLastPage)
     }
   }, [data.items])
+
+  const handlePriceChange = (id:string,price:string)=> {
+        setData(prev=>({...prev,items: prev.items.map((i) => {
+          return i.id === id
+            ? {
+                ...i,
+                price: Number(price),
+                amount: Number(price) * Number(i.quantity)
+              }
+            : i
+        })}))
+                  
+  }
 
   // Split pages dynamically
   const pages = useMemo(() => {
@@ -690,24 +705,33 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
                 <Input
-                  min={0}
-                  value={formatPrice(item.price)}
-                  onChange={({
-                    target: { value: v }
-                  }: React.ChangeEvent<HTMLInputElement>) => {
-                    setData((prev) => ({
-                      ...prev,
-                      items: prev.items.map((i) => {
-                        return i.number === item.number
-                          ? {
-                              ...i,
-                              price: Number(v),
-                              amount: Number(v) * Number(i.quantity)
-                            }
-                          : i
-                      })
-                    }))
-                  }}
+                  type='txt'
+            value={prices[item.number] ?? item.price?.toString() ?? ""}
+                  onChange={(e) =>
+      setPrices((prev) => ({
+        ...prev,
+        [item.number]: e.target.value,
+      }))
+    }
+     onBlur={() => {
+      const raw = prices[item.number] ?? item.price?.toString() ?? "0";
+      const num = Number(raw) || 0;
+
+      setData((prev) => ({
+        ...prev,
+        items: prev.items.map((i) =>
+          i.number === item.number
+            ? { ...i, price: num, amount: num * Number(i.quantity) }
+            : i
+        ),
+      }));
+
+      // replace raw input with formatted version
+      setPrices((prev) => ({
+        ...prev,
+        [item.id ?? item.number.toString()]: formatPrice(num),
+      }));
+    }}
                   className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-[.9rem] text-right focus-visible:ring-0 border-none rounded-none"
                 />
               </TableCell>
