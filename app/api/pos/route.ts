@@ -8,8 +8,6 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10', 10)
     const search = searchParams.get('search')
 
-    console.log(search)
-
     const skip = (page - 1) * limit
 
     const filter: any = {}
