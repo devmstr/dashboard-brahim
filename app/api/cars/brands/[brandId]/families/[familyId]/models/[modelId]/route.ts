@@ -102,10 +102,10 @@ export async function PATCH(
     // Existing types in DB
     const existingTypes = existingModel.Types
 
-    // Get list of types to delete
-    const existingTypeKeys = existingTypes.map(
-      (type) => `${type.name}-${type.year}-${type.fuel}`
-    )
+    // // Get list of types to delete
+    // const existingTypeKeys = existingTypes.map(
+    //   (type) => `${type.name}-${type.year}-${type.fuel}`
+    // )
     const incomingTypeKeys = newTypes.map(
       (t) => `${t.name}-${t.year}-${t.fuel}`
     )
