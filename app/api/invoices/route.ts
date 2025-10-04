@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
     revalidatePath('/dashboard/ledger')
     return NextResponse.json({ id: invoice.id })
   } catch (error: any) {
+    console.log(error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

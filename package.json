@@ -20,7 +20,8 @@
     "seed:users": "npm run script scripts/users.ts",
     "seed:materials": "npm run script scripts/materials.ts",
     "seed:locations": "npm run script scripts/locations.ts",
-    "seed:radiators": "npm run script scripts/radiators.ts"
+    "seed:radiators": "npm run script scripts/radiators.ts",
+    "trancate": "npm run script scripts/trancate-dynamic-tables.ts"
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.2",

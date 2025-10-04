@@ -35,7 +35,7 @@ import './print.css'
 export interface InvoiceProps {
   data: Invoice
   className?: string
-}   
+}
 
 export default function Invoice({ data: input, className }: InvoiceProps) {
   const [data, setData] = useState<Invoice>({
@@ -51,10 +51,17 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
   const totalsRef = useRef<HTMLDivElement>(null)
   const rowRef = useRef<HTMLTableRowElement>(null)
 
+  const refudRef = useRef<HTMLTableRowElement>(null)
+  const discoutRef = useRef<HTMLTableRowElement>(null)
+  const stampTaxRef = useRef<HTMLTableRowElement>(null)
+  const totalBruteRef = useRef<HTMLTableRowElement>(null)
+  const totalNetRef = useRef<HTMLTableRowElement>(null)
+  const vatRef = useRef<HTMLTableRowElement>(null)
+  const totalTtcRef = useRef<HTMLTableRowElement>(null)
+
   const [itemsPerPage, setItemsPerPage] = useState(4)
   const [itemsPerPageLast, setItemsPerPageLast] = useState(2)
-  const [prices, setPrices] = useState<Record<string, string>>({});
-
+  const [prices, setPrices] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const A4_HEIGHT = 1122 // in pixels (A4 at 96dpi)
@@ -75,19 +82,6 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
       setItemsPerPageLast(perLastPage)
     }
   }, [data.items])
-
-  const handlePriceChange = (id:string,price:string)=> {
-        setData(prev=>({...prev,items: prev.items.map((i) => {
-          return i.id === id
-            ? {
-                ...i,
-                price: Number(price),
-                amount: Number(price) * Number(i.quantity)
-              }
-            : i
-        })}))
-                  
-  }
 
   // Split pages dynamically
   const pages = useMemo(() => {
@@ -165,7 +159,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
     }))
   }, [data.total])
 
-  // // send an update request on every change
+  // send an update request on every change
   async function onUpdate() {
     setIsUpdating(true)
     try {
@@ -174,12 +168,14 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
+
       if (!invoice.ok) {
         const errorData = await invoice.json().catch(() => ({}))
         throw new Error(
           errorData?.message || 'Erreur lors de la mise à jour de la facture'
         )
       }
+
       toast({
         title: 'Succès !',
         description: 'La facture a été mise à jour avec succès.',
@@ -684,11 +680,11 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                     className="h-6 py-1 focus-visible:ring-0 ring-0 border-none rounded-none "
                   />
                 ) : (
-                  <div className="flex items-center">
+                  <div className="flex items-center  ">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 mr-1 opacity-50 hover:opacity-100"
+                      className="h-6 w-6 mr-1 opacity-50 print:hidden hover:opacity-100"
                       onClick={() => {
                         setEditedId(item.id)
                       }}
@@ -705,33 +701,38 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               </TableCell>
               <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
                 <Input
-                  type='txt'
-            value={prices[item.number] ?? item.price?.toString() ?? ""}
+                  type="txt"
+                  value={prices[item.number] ?? item.price?.toString() ?? ''}
                   onChange={(e) =>
-      setPrices((prev) => ({
-        ...prev,
-        [item.number]: e.target.value,
-      }))
-    }
-     onBlur={() => {
-      const raw = prices[item.number] ?? item.price?.toString() ?? "0";
-      const num = Number(raw) || 0;
+                    setPrices((prev) => ({
+                      ...prev,
+                      [item.number]: e.target.value
+                    }))
+                  }
+                  onBlur={() => {
+                    const raw =
+                      prices[item.number] ?? item.price?.toString() ?? '0'
+                    const num = Number(raw) || 0
 
-      setData((prev) => ({
-        ...prev,
-        items: prev.items.map((i) =>
-          i.number === item.number
-            ? { ...i, price: num, amount: num * Number(i.quantity) }
-            : i
-        ),
-      }));
+                    setData((prev) => ({
+                      ...prev,
+                      items: prev.items.map((i) =>
+                        i.number === item.number
+                          ? {
+                              ...i,
+                              price: num,
+                              amount: num * Number(i.quantity)
+                            }
+                          : i
+                      )
+                    }))
 
-      // replace raw input with formatted version
-      setPrices((prev) => ({
-        ...prev,
-        [item.id ?? item.number.toString()]: formatPrice(num),
-      }));
-    }}
+                    // replace raw input with formatted version
+                    setPrices((prev) => ({
+                      ...prev,
+                      [item.id ?? item.number.toString()]: formatPrice(num)
+                    }))
+                  }}
                   className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-[.9rem] text-right focus-visible:ring-0 border-none rounded-none"
                 />
               </TableCell>

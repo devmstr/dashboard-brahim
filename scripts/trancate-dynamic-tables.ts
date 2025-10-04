@@ -8,11 +8,15 @@ async function resetUsersTable() {
   await prisma.$executeRawUnsafe(
     `TRUNCATE TABLE "order_batches" RESTART IDENTITY CASCADE`
   )
+  await prisma.$executeRawUnsafe(
+    `TRUNCATE TABLE "InvoiceItem" RESTART IDENTITY CASCADE`
+  )
 }
 
 resetUsersTable()
   .then(() => {
     console.log('Invoices table reset successfully ✅')
+    console.log('Invoice Items table reset successfully ✅')
     console.log('Orders table reset successfully ✅')
   })
   .catch((err) => {
