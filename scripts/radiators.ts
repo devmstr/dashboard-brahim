@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import data from '../seed/data-2025.json'
+import STD25 from '../seed/STD-25.json'
 import crypto from 'crypto'
 import { generateId } from '../helpers/id-generator'
 
@@ -62,12 +63,12 @@ async function main() {
     let processedCount = 0
     let skippedCount = 0
 
-    for (const radiatorData of data) {
+    for (const radiatorData of STD25) {
       try {
         // Create inventory for the radiator
         const inventory = await prisma.inventory.create({
           data: {
-            level: radiatorData.quantity || 1,
+            level:  1,
             alertAt: 5,
             maxLevel: 100
           }
@@ -124,10 +125,10 @@ async function main() {
             fabrication: radiatorData.fabrication,
             status: 'ACTIVE',
             category: category,
-            dirId: radiatorData.dirId,
+            dirId: undefined,
             cooling: coolingType,
             barcode: radiatorData.barcode || undefined,
-            hash: radiatorData.hash || generateHash(radiatorData),
+            hash: radiatorData.hash,
             isActive: radiatorData.production === 'Fini',
             inventoryId: inventory.id,
             priceId: price.id,
