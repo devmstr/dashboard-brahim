@@ -1,5 +1,55 @@
 [
   {
+    "id": "8",
+    "barcode": "6132481620089",
+    "reference": "RABE01023-12 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "BERLIET",
+    "model": "GAK 30",
+    "fins": "Normale",
+    "pitch": 12,
+    "rows": 3,
+    "betweenCollectors": 440,
+    "width": 480,
+    "upperCollectorLength": 480,
+    "upperCollectorWidth": 95,
+    "lowerCollectorLength": 480,
+    "lowerCollectorWidth": 70,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0440X0480 3D7 12 0480X0095/0070 PC",
+    "hash": "f32319b229abf70d3a0cab72990a0660c46324d143da056821a21d68be1138dc"
+  },
+  {
+    "id": "9",
+    "barcode": "6132481620096",
+    "reference": "RABE01023-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "BERLIET",
+    "model": "GAK 30",
+    "fins": "Normale",
+    "pitch": 10,
+    "rows": 3,
+    "betweenCollectors": 440,
+    "width": 480,
+    "upperCollectorLength": 480,
+    "upperCollectorWidth": 95,
+    "lowerCollectorLength": 480,
+    "lowerCollectorWidth": 70,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0440X0480 3D7 10 0480X0095/0070 PC",
+    "hash": "9dcd615aa5cfeb6f8002e4ec6ff270ecf2dda7abbbaf432e312ebafe04bf84dc"
+  },
+  {
     "id": "10",
     "barcode": "6132481600579",
     "reference": "RABE01013-12",
@@ -51,7 +101,7 @@
   },
   {
     "id": "12",
-    "barcode": "",
+    "barcode": "6132481626876",
     "reference": "RABE02114-12 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -76,7 +126,7 @@
   },
   {
     "id": "13",
-    "barcode": "",
+    "barcode": "6132481626883",
     "reference": "RABE02124-10 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -325,6 +375,31 @@
     "hash": "1d64d8a708ef7e4aa6d8953a7ab1a3bf6e628a18fea3d22e4d7b723594f66998"
   },
   {
+    "id": "",
+    "barcode": "6132481622588",
+    "reference": "RABE05213-12 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "BERLIET",
+    "model": "GLR190",
+    "fins": "Zigzag",
+    "pitch": 12,
+    "rows": 3,
+    "betweenCollectors": 655,
+    "width": 640,
+    "upperCollectorLength": 650,
+    "upperCollectorWidth": 85,
+    "lowerCollectorLength": 650,
+    "lowerCollectorWidth": 85,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0655X0640 3Z7 12 0650X0085 PC",
+    "hash": "52f7690ef0fa7f6651f015d0ea0f8f54b88ea259c2b22b47e4e87391723425bd"
+  },
+  {
     "id": "23",
     "barcode": "6132481622250",
     "reference": "RABE05224-10 E7",
@@ -340,14 +415,14 @@
     "betweenCollectors": 655,
     "width": 640,
     "upperCollectorLength": 650,
-    "upperCollectorWidth": 85,
+    "upperCollectorWidth": 90,
     "lowerCollectorLength": 650,
-    "lowerCollectorWidth": 85,
+    "lowerCollectorWidth": 90,
     "tightening": "Plié",
     "position": "Center",
     "tube": "ET7",
-    "designation": "RAD 0655X0640 4D7 10 0650X0085 PC",
-    "hash": "e5b84613b9697d6e901d14d7fd4f0fbc1ff8d9da491c322da56e4e4c6c115e0a"
+    "designation": "RAD 0655X0640 4D7 10 0650X0090 PC",
+    "hash": "0b81743895ae8b7989ac9e353247f3cf8c3d31544facea2d5431daae615c42c4"
   },
   {
     "id": "24",
@@ -365,14 +440,14 @@
     "betweenCollectors": 655,
     "width": 640,
     "upperCollectorLength": 650,
-    "upperCollectorWidth": 85,
+    "upperCollectorWidth": 90,
     "lowerCollectorLength": 650,
-    "lowerCollectorWidth": 85,
+    "lowerCollectorWidth": 90,
     "tightening": "Plié",
     "position": "Center",
     "tube": "ET7",
-    "designation": "RAD 0655X0640 4Z7 12 0650X0085 PC",
-    "hash": "0772805c988eee66f464184b513f396247cb526c75d791be6e502b74638975bb"
+    "designation": "RAD 0655X0640 4Z7 12 0650X0090 PC",
+    "hash": "aa4c08d2ceb62a5a13b801734bdebdaa28ad029b62f2807cd2d5746f03ecc57e"
   },
   {
     "id": "25",
@@ -1026,6 +1101,56 @@
   },
   {
     "id": "51",
+    "barcode": "6132481623028",
+    "reference": "RAIS01013-12 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "ISUZU",
+    "model": "MD 27",
+    "fins": "Zigzag",
+    "pitch": 12,
+    "rows": 3,
+    "betweenCollectors": 520,
+    "width": 480,
+    "upperCollectorLength": 490,
+    "upperCollectorWidth": 80,
+    "lowerCollectorLength": 490,
+    "lowerCollectorWidth": 80,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0520X0480 3Z7 12 0490X0080 PC",
+    "hash": "db8ad29aac433adbbb6f23ca5459ec702a8736cfcdbbbb33a2f08ed762a2bf0d"
+  },
+  {
+    "id": "52",
+    "barcode": "",
+    "reference": "RAIS01023-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "ISUZU",
+    "model": "MD 27",
+    "fins": "Normale",
+    "pitch": 10,
+    "rows": 3,
+    "betweenCollectors": 520,
+    "width": 480,
+    "upperCollectorLength": 490,
+    "upperCollectorWidth": 80,
+    "lowerCollectorLength": 490,
+    "lowerCollectorWidth": 80,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0520X0480 3D7 10 0490X0080 PC",
+    "hash": "23e1a62f047e15e510e91710cdb9aecb9b9cd9ce48c4ce1142b14ccc61f657dc"
+  },
+  {
+    "id": "53",
     "barcode": "",
     "reference": "RAIS02013-12 E7",
     "cooling": "Eau",
@@ -1050,7 +1175,7 @@
     "hash": "e6675ce86e365ccc99dcb3956905de462e415ea156cf263cbef9ebb928114086"
   },
   {
-    "id": "52",
+    "id": "54",
     "barcode": "",
     "reference": "RAIS02023-10 E7",
     "cooling": "Eau",
@@ -1075,7 +1200,7 @@
     "hash": "ef0fab45420ffabd5eb0c8e4386e967e13bf8564451b9e686b2e3255f247e23b"
   },
   {
-    "id": "54",
+    "id": "56",
     "barcode": "6132481601668",
     "reference": "RAKO01022-10",
     "cooling": "Eau",
@@ -1100,7 +1225,7 @@
     "hash": "9d69986891bb3ad032f3a132f1ff7faf0594c24cb1568100058fe595a7b4286b"
   },
   {
-    "id": "55",
+    "id": "57",
     "barcode": "6132481601729",
     "reference": "RAKO01023-10",
     "cooling": "Eau",
@@ -1125,7 +1250,7 @@
     "hash": "2c2eca5b8d1856df93e6f9756267e758006ee68ad39cf66562c317cbe672e562"
   },
   {
-    "id": "56",
+    "id": "58",
     "barcode": "",
     "reference": "RAKO01022-10 E7",
     "cooling": "Eau",
@@ -1150,7 +1275,7 @@
     "hash": "eeeb0a53539bf188b5b4e479aa8a44478650d7bcd5bae2d1be38615ff1358ea5"
   },
   {
-    "id": "57",
+    "id": "59",
     "barcode": "6132481622410",
     "reference": "RAKO01023-10 E7",
     "cooling": "Eau",
@@ -1175,7 +1300,7 @@
     "hash": "9e4f4b102c88ed8bbd89a657d35c9d3f5f6095e23260f198d9db702585defcd2"
   },
   {
-    "id": "58",
+    "id": "60",
     "barcode": "6132481620188",
     "reference": "RAKO01013-12 E7",
     "cooling": "Eau",
@@ -1200,7 +1325,7 @@
     "hash": "3d85457c87c45ebf84b7f7a7413fc25605f0f97257199516807e7e394a68d3f7"
   },
   {
-    "id": "59",
+    "id": "61",
     "barcode": "",
     "reference": "RAKO02026-10 E7",
     "cooling": "Eau",
@@ -1225,7 +1350,7 @@
     "hash": "2dd82f8d54538aa97d22ebcc6652022eeca19dee61ac396a7b8282ca14aed075"
   },
   {
-    "id": "60",
+    "id": "62",
     "barcode": "6132481618253",
     "reference": "RAKO12024-10 E7",
     "cooling": "Eau",
@@ -1250,7 +1375,7 @@
     "hash": "ba3955c0d2e12c807ffd417cef3ed75b5eec573f02f255c91c5b81a4593a2c10"
   },
   {
-    "id": "61",
+    "id": "63",
     "barcode": "6132481622892",
     "reference": "RALD02012-10 E7",
     "cooling": "Eau",
@@ -1275,7 +1400,7 @@
     "hash": "b2a55436ab73c5429178bf7774563a3da789072343cd2d9251118d25a1a66456"
   },
   {
-    "id": "62",
+    "id": "64",
     "barcode": "",
     "reference": "RALD02022-10 E7",
     "cooling": "Eau",
@@ -1300,7 +1425,7 @@
     "hash": "1f049e385e576bc036909f8b58fe946d4895d0f6e0d82c8556b052fee97dd55c"
   },
   {
-    "id": "63",
+    "id": "65",
     "barcode": "6132481621420",
     "reference": "RAMA02024-10 E7",
     "cooling": "Eau",
@@ -1325,8 +1450,8 @@
     "hash": "564aa9858c9716e5b505c919e927033c2917a5c016d94d2391e582bee1d3fd4b"
   },
   {
-    "id": "64",
-    "barcode": "",
+    "id": "66",
+    "barcode": "6132481626791",
     "reference": "RAMA02014-12 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -1350,7 +1475,7 @@
     "hash": "667db7ce358dd3f548527aab6f4e4f0a8c33cbec444d688daa6cb124d56b6ae2"
   },
   {
-    "id": "65",
+    "id": "67",
     "barcode": "6132481621437",
     "reference": "RAMA02025-10 E7",
     "cooling": "Eau",
@@ -1375,8 +1500,8 @@
     "hash": "b1666eaf68c7819d7734ed0b1143cc412c52ec519cd71b76c723b5f62c35b098"
   },
   {
-    "id": "66",
-    "barcode": "",
+    "id": "68",
+    "barcode": "6132481626807",
     "reference": "RAMA02015-12 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -1400,7 +1525,7 @@
     "hash": "ed0c4a76029f7ee91af7d4bd6d710d48bdfcdf60f6593005b160e87fe912f211"
   },
   {
-    "id": "67",
+    "id": "69",
     "barcode": "6132481622144",
     "reference": "RAME13023-10 E7",
     "cooling": "Eau",
@@ -1425,7 +1550,7 @@
     "hash": "7d0c6f6a0ee6d5a2f60164eeb76f537e4ac6c3380e71d717ca62a27284964f8f"
   },
   {
-    "id": "68",
+    "id": "70",
     "barcode": "6132481600227",
     "reference": "RAMZ01022-10",
     "cooling": "Eau",
@@ -1450,7 +1575,7 @@
     "hash": "589bd88f17849aa12e7dfc640bf7156b2f85c3ce2ae7aa4ffec7bd491d62572f"
   },
   {
-    "id": "69",
+    "id": "71",
     "barcode": "6132481620010",
     "reference": "RAMZ01012-10 E7",
     "cooling": "Eau",
@@ -1475,7 +1600,7 @@
     "hash": "7feadbd4a65c53660ff0a6d651d2fff926d4940e1527080d820f8c47f4184772"
   },
   {
-    "id": "70",
+    "id": "72",
     "barcode": "6132481600227",
     "reference": "RAMZ01022-10 E7",
     "cooling": "Eau",
@@ -1500,7 +1625,7 @@
     "hash": "094a468c366c2d71c1b4fcc2fcbe7f104e05372cec855f6c0f9b8d6f5d6292f3"
   },
   {
-    "id": "71",
+    "id": "73",
     "barcode": "",
     "reference": "RAMZ01122-10",
     "cooling": "Eau",
@@ -1525,7 +1650,7 @@
     "hash": "730d4f29fd2721f8b99bd12733f8cd095e2970d3064fb2adc4bdf42b2353318f"
   },
   {
-    "id": "72",
+    "id": "74",
     "barcode": "6132481620003",
     "reference": "RAMZ01122-10 E7",
     "cooling": "Eau",
@@ -1550,7 +1675,32 @@
     "hash": "46667ec08d2a77b51307bff302a9fd5c0b78f0c759f3bb730f8a5b8ba3f651f2"
   },
   {
-    "id": "73",
+    "id": "75",
+    "barcode": "6132481624872",
+    "reference": "RAMZ01112-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "MAZDA",
+    "model": "B1600 II",
+    "fins": "Zigzag",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 370,
+    "width": 570,
+    "upperCollectorLength": 580,
+    "upperCollectorWidth": 50,
+    "lowerCollectorLength": 580,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0370X0570 2Z7 10 0580X0050 PC",
+    "hash": "ca8f1be4190ad89e9cb0b393e4652a6da63f3ed10339fa9aa840bf2bd667d13c"
+  },
+  {
+    "id": "76",
     "barcode": "",
     "reference": "RAMZ04012-10",
     "cooling": "Eau",
@@ -1575,7 +1725,7 @@
     "hash": "17eed5ecc521d1665a8acdcfe629fb7011ad39a726c4bbd5e1a4c022213f9288"
   },
   {
-    "id": "74",
+    "id": "77",
     "barcode": "6132481600265",
     "reference": "RAMZ04022-10",
     "cooling": "Eau",
@@ -1600,8 +1750,8 @@
     "hash": "7a3e69abd7bd04d0c187b7d3c884cc0eee224834d74c7252d434343926b52530"
   },
   {
-    "id": "75",
-    "barcode": "",
+    "id": "78",
+    "barcode": "6132481624865",
     "reference": "RAMZ04012-10 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -1625,7 +1775,7 @@
     "hash": "370334d04d4605e9a76468225ef19d7069f3e1d5a7625632160654d95a2df4de"
   },
   {
-    "id": "76",
+    "id": "79",
     "barcode": "6132481622380",
     "reference": "RAMZ04022-10 E7",
     "cooling": "Eau",
@@ -1650,7 +1800,7 @@
     "hash": "e1e4249023d07921e1b841095a59943b9fe50dd91f56cbde1b88e4751f2097ef"
   },
   {
-    "id": "77",
+    "id": "80",
     "barcode": "",
     "reference": "RAMZ05011-08 E7",
     "cooling": "Eau",
@@ -1675,7 +1825,7 @@
     "hash": "103b55b5e91190be2afc37f32d9a609dc07f957a04f14ddad36ebac71f2d623b"
   },
   {
-    "id": "78",
+    "id": "81",
     "barcode": "6132481619014",
     "reference": "RAMZ07012-10 E7",
     "cooling": "Eau",
@@ -1700,7 +1850,207 @@
     "hash": "c8abb514c04ad3652a90bc6f4e2e6be730fc2d9e63716fb3bafef9f7729d3589"
   },
   {
-    "id": "79",
+    "id": "82",
+    "barcode": "",
+    "reference": "RAPE03311-08 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 BX",
+    "fins": "Zigzag",
+    "pitch": 8,
+    "rows": 1,
+    "betweenCollectors": 390,
+    "width": 325,
+    "upperCollectorLength": 340,
+    "upperCollectorWidth": 50,
+    "lowerCollectorLength": 340,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0390X0325 Z7 8 0340X0050 PC",
+    "hash": "bc42180592d89495ffa015e6e738ab740f279567be881d4594a42bc28ca579e8"
+  },
+  {
+    "id": "83",
+    "barcode": "6132481622564",
+    "reference": "RAPE03312-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 BX",
+    "fins": "Zigzag",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 390,
+    "width": 325,
+    "upperCollectorLength": 340,
+    "upperCollectorWidth": 50,
+    "lowerCollectorLength": 340,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0390X0325 2Z7 10 0340X0050 PC",
+    "hash": "c57d73920558951c074497acda662ffc76356e35384834f417dd6b6ed289f74e"
+  },
+  {
+    "id": "84",
+    "barcode": "",
+    "reference": "RAPE03211-08 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 DIESEL",
+    "fins": "Zigzag",
+    "pitch": 8,
+    "rows": 1,
+    "betweenCollectors": 640,
+    "width": 325,
+    "upperCollectorLength": 340,
+    "upperCollectorWidth": 50,
+    "lowerCollectorLength": 340,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0640X0325 Z7 8 0340X0050 PC",
+    "hash": "dac6b4cf66f167e7891d60fb67897e81e01e76f8ece57a64682dbb280745f482"
+  },
+  {
+    "id": "85",
+    "barcode": "6132481622526",
+    "reference": "RAPE03212-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 DIESEL",
+    "fins": "Zigzag",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 640,
+    "width": 325,
+    "upperCollectorLength": 340,
+    "upperCollectorWidth": 50,
+    "lowerCollectorLength": 340,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0640X0325 2Z7 10 0340X0050 PC",
+    "hash": "9de5242c6b7fe92d10a9062d941bc8c45633538184480012ad776b670cb6fc10"
+  },
+  {
+    "id": "86",
+    "barcode": "",
+    "reference": "RAPE03111-08 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 GM II",
+    "fins": "Zigzag",
+    "pitch": 8,
+    "rows": 1,
+    "betweenCollectors": 345,
+    "width": 470,
+    "upperCollectorLength": 480,
+    "upperCollectorWidth": 70,
+    "lowerCollectorLength": 480,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0345X0470 Z7 8 0480X0070/0050 PC",
+    "hash": "5fe385d0127da855415c4dc5c136d16212caaf45e32d682916b624e1cffa6581"
+  },
+  {
+    "id": "87",
+    "barcode": "6132481622533",
+    "reference": "RAPE03112-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 GM II",
+    "fins": "Zigzag",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 345,
+    "width": 470,
+    "upperCollectorLength": 480,
+    "upperCollectorWidth": 70,
+    "lowerCollectorLength": 480,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0345X0470 2Z7 10 0480X0070/0050 PC",
+    "hash": "61aa10afce0dba603dfca320f16dffba3df29c24bc7d7e9fd5f73b7b34816c96"
+  },
+  {
+    "id": "88",
+    "barcode": "",
+    "reference": "RAPE03122-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 GM II",
+    "fins": "Normale",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 345,
+    "width": 470,
+    "upperCollectorLength": 480,
+    "upperCollectorWidth": 70,
+    "lowerCollectorLength": 480,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0345X0470 2D7 10 0480X0070/0050 PC",
+    "hash": "0aa8328a0651812db7224cc47cdbac4bb83a159cfe5cfd98c5c1861224382d91"
+  },
+  {
+    "id": "89",
+    "barcode": "",
+    "reference": "RAPE03011-08 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "305 PM",
+    "fins": "Zigzag",
+    "pitch": 8,
+    "rows": 1,
+    "betweenCollectors": 320,
+    "width": 355,
+    "upperCollectorLength": 360,
+    "upperCollectorWidth": 70,
+    "lowerCollectorLength": 360,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0320X0355 Z7 8 0360X0070/0050 PC",
+    "hash": "adad80ded6e6e3fc5dd1c474d6aa08251af49e0d547e141844604c1be98adb1f"
+  },
+  {
+    "id": "90",
     "barcode": "6132481622557",
     "reference": "RAPE04012-10 E7",
     "cooling": "Eau",
@@ -1725,7 +2075,32 @@
     "hash": "eda2230139e676eca5f14fbe490eeffc8d0ed226faa25816ebe129e62439070d"
   },
   {
-    "id": "80",
+    "id": "91",
+    "barcode": "6132481622557",
+    "reference": "RAPE04022-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "PEUGEOT",
+    "model": "404 ESS",
+    "fins": "Normale",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 320,
+    "width": 355,
+    "upperCollectorLength": 360,
+    "upperCollectorWidth": 70,
+    "lowerCollectorLength": 360,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0320X0355 2D7 10 0360X0070/0050 PC",
+    "hash": "24a39038c8e6c3af29cabbabebcf70307fd51d2b8ea4e0d1e595d972ac103f2a"
+  },
+  {
+    "id": "92",
     "barcode": "",
     "reference": "RAPE04013-12 E7",
     "cooling": "Eau",
@@ -1750,7 +2125,7 @@
     "hash": "12c8e48193de6bef136c38c37eb2f9a8b80ce424da15d3912ec1586639f4a57a"
   },
   {
-    "id": "81",
+    "id": "93",
     "barcode": "",
     "reference": "RAPE04023-10 E7",
     "cooling": "Eau",
@@ -1775,7 +2150,7 @@
     "hash": "64d5bc4e11898b82023ea110dc5c79648d2f87f5dd2fc650523a495bbceb74c7"
   },
   {
-    "id": "82",
+    "id": "94",
     "barcode": "6132481622991",
     "reference": "RAPE06112-10 E7",
     "cooling": "Eau",
@@ -1800,7 +2175,7 @@
     "hash": "cea7d1c5b18c0f54e94ea7fec8ffd501fb121bd29a18242ed4ffff3a9e1e6fa1"
   },
   {
-    "id": "83",
+    "id": "95",
     "barcode": "6132481623004",
     "reference": "RAPE06212-10 E7",
     "cooling": "Eau",
@@ -1825,7 +2200,7 @@
     "hash": "70e069bd88ea20ec614f4d849386fe0e7c976f4dd8cc5f4b2ccc2c844cc0ef79"
   },
   {
-    "id": "84",
+    "id": "96",
     "barcode": "6132481619984",
     "reference": "RAPE09012-12",
     "cooling": "Eau",
@@ -1837,8 +2212,8 @@
     "fins": "Zigzag",
     "pitch": 12,
     "rows": 2,
-    "betweenCollectors": 465,
-    "width": 470,
+    "betweenCollectors": 470,
+    "width": 480,
     "upperCollectorLength": 480,
     "upperCollectorWidth": 70,
     "lowerCollectorLength": 480,
@@ -1846,12 +2221,12 @@
     "tightening": "Plié",
     "position": "Center",
     "tube": "MP",
-    "designation": "RAD 0465X0470 2ZM 12 0480X0070 PC",
-    "hash": "6345b39abb3904dc7b1184817af43a965c895bd75bbbe7dc21939af7710ec009"
+    "designation": "RAD 0470X0480 2ZM 12 0480X0070 PC",
+    "hash": "ccd44363dd74de4d263e1b7fbed8ed35b40d05152a279c7539259b820fa7760e"
   },
   {
-    "id": "85",
-    "barcode": "",
+    "id": "97",
+    "barcode": "6132481624742",
     "reference": "RAPE09012-10 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -1862,8 +2237,8 @@
     "fins": "Zigzag",
     "pitch": 10,
     "rows": 2,
-    "betweenCollectors": 465,
-    "width": 470,
+    "betweenCollectors": 470,
+    "width": 480,
     "upperCollectorLength": 480,
     "upperCollectorWidth": 70,
     "lowerCollectorLength": 480,
@@ -1871,11 +2246,11 @@
     "tightening": "Plié",
     "position": "Center",
     "tube": "ET7",
-    "designation": "RAD 0465X0470 2Z7 10 0480X0070 PC",
-    "hash": "47dea2dd301eb57f22ca080c19e3091af2d2d8a7323f01eaa7598a132cfe6653"
+    "designation": "RAD 0470X0480 2Z7 10 0480X0070 PC",
+    "hash": "2d1651014e637d881f60c96d1a55fafd7149889578c84198da0281c908ffb0ea"
   },
   {
-    "id": "86",
+    "id": "98",
     "barcode": "6132481622519",
     "reference": "RAPE09013-12 E7",
     "cooling": "Eau",
@@ -1900,7 +2275,7 @@
     "hash": "9d6f00bf3a12227de4d19d1783c25ac25e5fffd65e1fad4067df92ae04d5b191"
   },
   {
-    "id": "87",
+    "id": "99",
     "barcode": "",
     "reference": "RAPE09023-10 E7",
     "cooling": "Eau",
@@ -1912,8 +2287,8 @@
     "fins": "Normale",
     "pitch": 10,
     "rows": 3,
-    "betweenCollectors": 465,
-    "width": 470,
+    "betweenCollectors": 470,
+    "width": 480,
     "upperCollectorLength": 480,
     "upperCollectorWidth": 70,
     "lowerCollectorLength": 480,
@@ -1921,11 +2296,11 @@
     "tightening": "Plié",
     "position": "Center",
     "tube": "ET7",
-    "designation": "RAD 0465X0470 3D7 10 0480X0070 PC",
-    "hash": "18c9a2b2bcd519f08e5b2a57b4a058fee5cecd710dbabbaaaf3aa6fcc0a14dc3"
+    "designation": "RAD 0470X0480 3D7 10 0480X0070 PC",
+    "hash": "f1aafbf8cc5f7f973465043923f298f9e079f78fea9c95c2778bb7434032f4ff"
   },
   {
-    "id": "88",
+    "id": "100",
     "barcode": "6132481621406",
     "reference": "RARE01012-10 E7",
     "cooling": "Eau",
@@ -1950,7 +2325,7 @@
     "hash": "d52f19dad7470a269df6132b19d7b06b438083d17989b3d64c870ce29ef3862a"
   },
   {
-    "id": "89",
+    "id": "101",
     "barcode": "6132481621390",
     "reference": "RARE01112-10 E7",
     "cooling": "Eau",
@@ -1975,7 +2350,132 @@
     "hash": "4063a6fd6b14b28eaa8972409cbeebf8fe2046ca03bc01d7e6ef7c2c13b8557f"
   },
   {
-    "id": "90",
+    "id": "102",
+    "barcode": "6132481626890",
+    "reference": "RARE01111-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "RENAULT",
+    "model": "R4 GTL F6",
+    "fins": "Zigzag",
+    "pitch": 10,
+    "rows": 1,
+    "betweenCollectors": 430,
+    "width": 280,
+    "upperCollectorLength": 280,
+    "upperCollectorWidth": 50,
+    "lowerCollectorLength": 280,
+    "lowerCollectorWidth": 50,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0430X0280 Z7 10 0280X0050 PC",
+    "hash": "a70b2d0ae3058e38965fa4d6c5a3c673f0891f3489700d67df69dc979715098c"
+  },
+  {
+    "id": "103",
+    "barcode": "",
+    "reference": "RARE03011-08 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "RENAULT",
+    "model": "R12 TL",
+    "fins": "Zigzag",
+    "pitch": 8,
+    "rows": 1,
+    "betweenCollectors": 404,
+    "width": 300,
+    "upperCollectorLength": 314,
+    "upperCollectorWidth": 61,
+    "lowerCollectorLength": 314,
+    "lowerCollectorWidth": 61,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0404X0300 Z7 8 0314X0061 PC",
+    "hash": "164645c8fccaafbae342e74968e497d9e6ed6689d007468b4832236b415ee062"
+  },
+  {
+    "id": "104",
+    "barcode": "",
+    "reference": "RARE03111-08 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "RENAULT",
+    "model": "R12 DACIA",
+    "fins": "Zigzag",
+    "pitch": 8,
+    "rows": 1,
+    "betweenCollectors": 465,
+    "width": 300,
+    "upperCollectorLength": 314,
+    "upperCollectorWidth": 66,
+    "lowerCollectorLength": 314,
+    "lowerCollectorWidth": 66,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0465X0300 Z7 8 0314X0066 PC",
+    "hash": "ca7215f248c0346787285537038998ee7417defe206a64819090de20833b7eb1"
+  },
+  {
+    "id": "105",
+    "barcode": "6132481622878",
+    "reference": "RARE03112-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "RENAULT",
+    "model": "R12 DACIA",
+    "fins": "Zigzag",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 465,
+    "width": 300,
+    "upperCollectorLength": 314,
+    "upperCollectorWidth": 66,
+    "lowerCollectorLength": 314,
+    "lowerCollectorWidth": 66,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0465X0300 2Z7 10 0314X0066 PC",
+    "hash": "ee62b10e059348e154ef80fac56d33e7a779304d7299affa5601329668e294b7"
+  },
+  {
+    "id": "106",
+    "barcode": "",
+    "reference": "RARE03122-10 E7",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "RENAULT",
+    "model": "R12 DACIA",
+    "fins": "Normale",
+    "pitch": 10,
+    "rows": 2,
+    "betweenCollectors": 465,
+    "width": 300,
+    "upperCollectorLength": 314,
+    "upperCollectorWidth": 66,
+    "lowerCollectorLength": 314,
+    "lowerCollectorWidth": 66,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0465X0300 2D7 10 0314X0066 PC",
+    "hash": "e30862cc405190d51c4c3a7ee5d6d5f39d6596af5ccad303770f80325ced30d0"
+  },
+  {
+    "id": "107",
     "barcode": "6132481623790",
     "reference": "RARE04012-10 E7",
     "cooling": "Eau",
@@ -2000,7 +2500,7 @@
     "hash": "7570fbf6a754fec8ca542ebb33c773a55c7b73fac5a706069eacc9f91ea5566e"
   },
   {
-    "id": "91",
+    "id": "108",
     "barcode": "6132481622861",
     "reference": "RARE04011-08 E7",
     "cooling": "Eau",
@@ -2025,7 +2525,7 @@
     "hash": "f031a6cad9f83ae084ff37b9e44b664cb3c26a87b6d82ac49984c642fecded2d"
   },
   {
-    "id": "92",
+    "id": "109",
     "barcode": "6132481623745",
     "reference": "RARE07012-10 E7",
     "cooling": "Eau",
@@ -2050,7 +2550,7 @@
     "hash": "1ad0ecbcb590647c48a0069d502ccd8eda1757d4f7ec4dbf7f44836bced487d9"
   },
   {
-    "id": "93",
+    "id": "110",
     "barcode": "6132481622472",
     "reference": "RARE08012-10 E7",
     "cooling": "Eau",
@@ -2075,7 +2575,7 @@
     "hash": "9e9f862a026b985b83f537802df7be6d5dca1cd2899a3b405d65972c8fe3e937"
   },
   {
-    "id": "94",
+    "id": "111",
     "barcode": "",
     "reference": "RARV08022-10 E7",
     "cooling": "Eau",
@@ -2100,7 +2600,7 @@
     "hash": "5be5a18c572a377fb309718d8c863574772984c31a28d16d83a9609bbe89c91a"
   },
   {
-    "id": "95",
+    "id": "112",
     "barcode": "6132481622625",
     "reference": "RARV01014-12 E7",
     "cooling": "Eau",
@@ -2125,7 +2625,7 @@
     "hash": "632a093c43cfe3856a085e9502ab346a7c8d1f02ee32b4749b24e56582287299"
   },
   {
-    "id": "96",
+    "id": "113",
     "barcode": "",
     "reference": "RARV01024-10 E7",
     "cooling": "Eau",
@@ -2150,7 +2650,7 @@
     "hash": "9eabb5dc9180c6e6f43762ef516a9f2ec1d7addf61c2f7a474525126963e3499"
   },
   {
-    "id": "97",
+    "id": "115",
     "barcode": "",
     "reference": "RARV01123-10 E7",
     "cooling": "Eau",
@@ -2175,7 +2675,7 @@
     "hash": "242f4f3a2564cd939c1e2827287212711c64282692fac7244b7f5c5aaf8dfb68"
   },
   {
-    "id": "98",
+    "id": "116",
     "barcode": "",
     "reference": "RARV01113-12 E7",
     "cooling": "Eau",
@@ -2200,7 +2700,7 @@
     "hash": "fc438247dce3f9321e4be2808b24e087fa1ddccda835cd407865e4500c8afe18"
   },
   {
-    "id": "99",
+    "id": "117",
     "barcode": "",
     "reference": "RARV01124-10 E7",
     "cooling": "Eau",
@@ -2225,7 +2725,7 @@
     "hash": "7adb010ac09a43ed260c899e558a878384364f7acf0b6be59df87d7b7a51fb45"
   },
   {
-    "id": "100",
+    "id": "118",
     "barcode": "",
     "reference": "RARV01114-12 E7",
     "cooling": "Eau",
@@ -2250,7 +2750,7 @@
     "hash": "1c08103a15ae2aa78b237c45e9134183be25361f52814dde771a66a0fc7d8bf4"
   },
   {
-    "id": "101",
+    "id": "119",
     "barcode": "6132481619991",
     "reference": "RARV02015-12 E7",
     "cooling": "Eau",
@@ -2275,7 +2775,7 @@
     "hash": "ab719f70eee3ba5d125105004f2580ed6d71b819f23839d662b2420529c70aef"
   },
   {
-    "id": "102",
+    "id": "120",
     "barcode": "",
     "reference": "RARV02025-12 E7",
     "cooling": "Eau",
@@ -2300,7 +2800,7 @@
     "hash": "1f175a0fc3af9aba84065ef2a1455486f346cb3581f0bc8391fc2132dac18d25"
   },
   {
-    "id": "103",
+    "id": "121",
     "barcode": "6132481620072",
     "reference": "RARV02033-10 E7",
     "cooling": "Eau",
@@ -2325,7 +2825,7 @@
     "hash": "70367b804bc7bc082c5f6c2a88e6b6a09a140b487be7261491dab5cacc093677"
   },
   {
-    "id": "104",
+    "id": "122",
     "barcode": "",
     "reference": "RARV02013-12 E7",
     "cooling": "Eau",
@@ -2350,7 +2850,7 @@
     "hash": "4d08e7cb6cc93dddd740759753f15c1ea2f4bff05554a487ce784b439ac33c7f"
   },
   {
-    "id": "105",
+    "id": "123",
     "barcode": "",
     "reference": "RARV02023-10 E7",
     "cooling": "Eau",
@@ -2375,7 +2875,7 @@
     "hash": "559b3bed882a175f4f072db88fe681c5e602446b8f8ddf1e4d7b68f43b6b7c97"
   },
   {
-    "id": "106",
+    "id": "124",
     "barcode": "",
     "reference": "RARV02014-12 E7",
     "cooling": "Eau",
@@ -2400,7 +2900,7 @@
     "hash": "3f512cc0b1297688fde6120a8f313e5d6351a8135c3bafed6016e7311dcb9e8f"
   },
   {
-    "id": "107",
+    "id": "125",
     "barcode": "",
     "reference": "RARV02024-10 E7",
     "cooling": "Eau",
@@ -2425,7 +2925,7 @@
     "hash": "5ccc6760ee4c4f67a7d052b0bed4a46a02720892329b7ffdaa4fc83f265e6651"
   },
   {
-    "id": "108",
+    "id": "126",
     "barcode": "",
     "reference": "RARV02025-10 E7",
     "cooling": "Eau",
@@ -2450,7 +2950,7 @@
     "hash": "7369d2750b0aed6d7998def2be35a40c95f8beec0cb90381104911543e8908f7"
   },
   {
-    "id": "109",
+    "id": "127",
     "barcode": "6132481619991",
     "reference": "RARV02015-12 E7",
     "cooling": "Eau",
@@ -2475,7 +2975,7 @@
     "hash": "decd928246425ae701f064a5b26e2e9ea844732f3ead951a3684909d0a9df6c8"
   },
   {
-    "id": "110",
+    "id": "128",
     "barcode": "6132481622052",
     "reference": "RARV03024-10 E7",
     "cooling": "Eau",
@@ -2500,7 +3000,7 @@
     "hash": "ed1e1fa41a377d09d55d6403e2e013ec1050c330b0cc7b1672cdc3b611e55e8f"
   },
   {
-    "id": "111",
+    "id": "129",
     "barcode": "6132481621932",
     "reference": "",
     "cooling": "Eau",
@@ -2525,7 +3025,7 @@
     "hash": "0b4e428128613c2f6524ef09655d956e4087f62f8498c9f618e2456490583d7e"
   },
   {
-    "id": "112",
+    "id": "130",
     "barcode": "6132481621956",
     "reference": "",
     "cooling": "Eau",
@@ -2550,7 +3050,7 @@
     "hash": "3a0180d41dd690509f334adb50cf80122529be54793909593420a05bb5a72cc0"
   },
   {
-    "id": "113",
+    "id": "131",
     "barcode": "6132481621949",
     "reference": "",
     "cooling": "Eau",
@@ -2575,7 +3075,7 @@
     "hash": "505c9ce6f9e0f608e888f5d3e0b07b3a28355397d8d9d7b4b82998009734c4be"
   },
   {
-    "id": "114",
+    "id": "132",
     "barcode": "6132481621932",
     "reference": "RARV03014-12 E7",
     "cooling": "Eau",
@@ -2600,7 +3100,7 @@
     "hash": "0b4e428128613c2f6524ef09655d956e4087f62f8498c9f618e2456490583d7e"
   },
   {
-    "id": "115",
+    "id": "133",
     "barcode": "",
     "reference": "RARV03024-10 E7",
     "cooling": "Eau",
@@ -2625,7 +3125,7 @@
     "hash": "ed1e1fa41a377d09d55d6403e2e013ec1050c330b0cc7b1672cdc3b611e55e8f"
   },
   {
-    "id": "116",
+    "id": "134",
     "barcode": "6132481621956",
     "reference": "RARV03015-12 E7",
     "cooling": "Eau",
@@ -2650,7 +3150,7 @@
     "hash": "3a0180d41dd690509f334adb50cf80122529be54793909593420a05bb5a72cc0"
   },
   {
-    "id": "117",
+    "id": "135",
     "barcode": "6132481621949",
     "reference": "RARV03025-10 E7",
     "cooling": "Eau",
@@ -2675,7 +3175,7 @@
     "hash": "505c9ce6f9e0f608e888f5d3e0b07b3a28355397d8d9d7b4b82998009734c4be"
   },
   {
-    "id": "118",
+    "id": "136",
     "barcode": "6132481601293",
     "reference": "RARV04024-10",
     "cooling": "Eau",
@@ -2700,7 +3200,7 @@
     "hash": "51047134f812766e7f5cb174cc3b7497a02cd89dc5f607ee2e20c07365cca46b"
   },
   {
-    "id": "119",
+    "id": "137",
     "barcode": "6132481616632",
     "reference": "RARV04014-12 E7",
     "cooling": "Eau",
@@ -2725,7 +3225,7 @@
     "hash": "d21a4af74481392a635ffb4fc0054384e12f5985c6739e58ddf80e26b7dfc10f"
   },
   {
-    "id": "120",
+    "id": "138",
     "barcode": "",
     "reference": "RARV04024-10 E7",
     "cooling": "Eau",
@@ -2750,7 +3250,7 @@
     "hash": "25ec10586c4b2a69a886e496cdba632862a2d927c7bcf75cf99d4299f4091105"
   },
   {
-    "id": "121",
+    "id": "139",
     "barcode": "",
     "reference": "RARV04014-12 E7",
     "cooling": "Eau",
@@ -2775,18 +3275,18 @@
     "hash": "d21a4af74481392a635ffb4fc0054384e12f5985c6739e58ddf80e26b7dfc10f"
   },
   {
-    "id": "122",
+    "id": "140",
     "barcode": "",
-    "reference": "RARV05022-10 E7",
+    "reference": "RARV05013-12 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
     "production": "Fini",
     "type": "Radiateur",
     "brand": "RVI",
     "model": "JK 60/ISUZU NPR/JAC AM 1036",
-    "fins": "Normale",
-    "pitch": 10,
-    "rows": 2,
+    "fins": "Zigzag",
+    "pitch": 12,
+    "rows": 3,
     "betweenCollectors": 505,
     "width": 480,
     "upperCollectorLength": 500,
@@ -2796,13 +3296,13 @@
     "tightening": "Plié",
     "position": "Center",
     "tube": "ET7",
-    "designation": "RAD 0505X0480 2D7 10 0500X0088 PC",
-    "hash": "cf2b5521f19751d5fb0759ea503670469620b04ecc182482589fcba56a848f5a"
+    "designation": "RAD 0505X0480 3Z7 12 0500X0088 PC",
+    "hash": "1e1c1bd984b499ea4bdb268b8b4cb2f2ab82a2ac56af57d16db35b40fabcaa12"
   },
   {
-    "id": "123",
+    "id": "141",
     "barcode": "",
-    "reference": "RARV05022-10 E7",
+    "reference": "RARV05023-10 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
     "production": "Fini",
@@ -2811,7 +3311,7 @@
     "model": "JK 60/ISUZU NPR/JAC AM 1036",
     "fins": "Normale",
     "pitch": 10,
-    "rows": 2,
+    "rows": 3,
     "betweenCollectors": 505,
     "width": 480,
     "upperCollectorLength": 500,
@@ -2821,11 +3321,11 @@
     "tightening": "Plié",
     "position": "Center",
     "tube": "ET7",
-    "designation": "RAD 0505X0480 2D7 10 0500X0088 PC",
-    "hash": "cf2b5521f19751d5fb0759ea503670469620b04ecc182482589fcba56a848f5a"
+    "designation": "RAD 0505X0480 3D7 10 0500X0088 PC",
+    "hash": "a0cc736e860a3c161d864b1bc1ccdd1e5fde6de44e000e67e4f5b43248ad0e39"
   },
   {
-    "id": "124",
+    "id": "142",
     "barcode": "6132481622946",
     "reference": "RARV06023-10 E7",
     "cooling": "Eau",
@@ -2850,8 +3350,8 @@
     "hash": "870e6c5e986aeebeafa2b2ef6ec1f4e2f0e12743a9c8a261cf127e960d9644b3"
   },
   {
-    "id": "125",
-    "barcode": "6132481620027",
+    "id": "143",
+    "barcode": "6132481626906",
     "reference": "RARV06013-12 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -2875,7 +3375,7 @@
     "hash": "ebd1edb0b9965426391c21805eefeae9b9580c73d52e50b2fca36587fe8da3ec"
   },
   {
-    "id": "126",
+    "id": "144",
     "barcode": "",
     "reference": "RARV06023-10 E7",
     "cooling": "Eau",
@@ -2900,7 +3400,7 @@
     "hash": "870e6c5e986aeebeafa2b2ef6ec1f4e2f0e12743a9c8a261cf127e960d9644b3"
   },
   {
-    "id": "127",
+    "id": "145",
     "barcode": "6132481622601",
     "reference": "RARV07014-12 E7",
     "cooling": "Eau",
@@ -2925,7 +3425,7 @@
     "hash": "0e349907caa38f0dfc182d07a79c607018cff41bff4b545d02438b63e58f3795"
   },
   {
-    "id": "128",
+    "id": "146",
     "barcode": "",
     "reference": "RARV07024-10 E7",
     "cooling": "Eau",
@@ -2950,7 +3450,7 @@
     "hash": "5548638f2dd60304cc0b9be0ec81543a9e7dd1c78a4564138843638f12212e63"
   },
   {
-    "id": "129",
+    "id": "147",
     "barcode": "6132481620140",
     "reference": "RARV08024-10 E7",
     "cooling": "Eau",
@@ -2975,7 +3475,7 @@
     "hash": "0d0a65f97cb04a473ea3021d86292459f98c446c8ee40837e2533e5c460f3ecd"
   },
   {
-    "id": "130",
+    "id": "148",
     "barcode": "6132481620157",
     "reference": "RARV08014-12 E7",
     "cooling": "Eau",
@@ -3000,7 +3500,7 @@
     "hash": "222896daada9b234e5d08e0ec1fcfabd016af91e60d9f1782863eaa7c280fa43"
   },
   {
-    "id": "131",
+    "id": "149",
     "barcode": "6132481620133",
     "reference": "RARV08015-12 E7",
     "cooling": "Eau",
@@ -3025,7 +3525,7 @@
     "hash": "9951849877166fc40ef000120e07c2b3ec2475b2be1d9a075b39acd1da875936"
   },
   {
-    "id": "132",
+    "id": "150",
     "barcode": "6132481620126",
     "reference": "RARV08025-10",
     "cooling": "Eau",
@@ -3050,7 +3550,7 @@
     "hash": "733ae1e8088b05670c47d8042f69210328038d2700809b1641f3d7c924ceca1e"
   },
   {
-    "id": "133",
+    "id": "151",
     "barcode": "6132481623783",
     "reference": "RARV08014-12 E7",
     "cooling": "Eau",
@@ -3075,7 +3575,7 @@
     "hash": "f78674d60af22499902ba1e4572941f7bcc7e9e10792ee454366c2cfeb905be9"
   },
   {
-    "id": "134",
+    "id": "152",
     "barcode": "6132481602566",
     "reference": "RARV09023-10",
     "cooling": "Eau",
@@ -3100,7 +3600,7 @@
     "hash": "a6a4e27bf964903a17543005cb731b0c20623a106529ac71118137a6e447faf7"
   },
   {
-    "id": "135",
+    "id": "153",
     "barcode": "",
     "reference": "RARV09023-10 E7",
     "cooling": "Eau",
@@ -3125,7 +3625,7 @@
     "hash": "19dbf50a0454a46fa4f86d3365ee6e149c1df98495cf75f8eedd5b728d3c2fdd"
   },
   {
-    "id": "136",
+    "id": "154",
     "barcode": "6132481602580",
     "reference": "RARV11023-10",
     "cooling": "Eau",
@@ -3150,7 +3650,7 @@
     "hash": "d6387e031f72de6f6bc4a16e949dfc696b57875833567605b8e32519d2192fbc"
   },
   {
-    "id": "137",
+    "id": "155",
     "barcode": "",
     "reference": "RARV11023-10 E7",
     "cooling": "Eau",
@@ -3175,7 +3675,7 @@
     "hash": "d31b8875ee362bad269d16f869808c76981efbfb4a644d3ca245c4c59cc00014"
   },
   {
-    "id": "138",
+    "id": "156",
     "barcode": "",
     "reference": "RASO03014-12 E7",
     "cooling": "Eau",
@@ -3200,7 +3700,7 @@
     "hash": "fe3be5e09f0823d33c9adc47f6e9464ba9b400a13185769f907c1a376b8bbb17"
   },
   {
-    "id": "139",
+    "id": "157",
     "barcode": "",
     "reference": "RASO03013-12 E7",
     "cooling": "Eau",
@@ -3225,7 +3725,7 @@
     "hash": "2af6f770ed0601a275b1b64ef2ae744e9ccc8b2eb67bd8799388c2987cf76e52"
   },
   {
-    "id": "140",
+    "id": "158",
     "barcode": "",
     "reference": "RAST01014-12 E7",
     "cooling": "Eau",
@@ -3250,7 +3750,7 @@
     "hash": "a88feb0b04a7fc378d3cb931e34b78e3e17ff2189f64e6340852fb1de94b62ab"
   },
   {
-    "id": "141",
+    "id": "159",
     "barcode": "",
     "reference": "RAST01024-10 E7",
     "cooling": "Eau",
@@ -3275,7 +3775,7 @@
     "hash": "b5bd8d98f7bc537c0eded2892767624f17fd6333bed52552ea305fa4574bdec0"
   },
   {
-    "id": "142",
+    "id": "160",
     "barcode": "6132481601354",
     "reference": "RASV01023-10",
     "cooling": "Eau",
@@ -3300,7 +3800,7 @@
     "hash": "e7fe82d85c7c0acbc287781bb2c1f900087ffbb793dacb5037a2b46682de3ee7"
   },
   {
-    "id": "143",
+    "id": "161",
     "barcode": "6132481621116",
     "reference": "RASV01023-10 E7",
     "cooling": "Eau",
@@ -3325,7 +3825,7 @@
     "hash": "2bd18c4e2a4bb116cff58087d74e18dd740a15a113a3032ca94e2fa5ff118f8a"
   },
   {
-    "id": "144",
+    "id": "162",
     "barcode": "6132481602214",
     "reference": "RASV02024-10",
     "cooling": "Eau",
@@ -3350,7 +3850,7 @@
     "hash": "ebe4f60aa97205a7f15eea6910a06210a0e38bbd1f198dc81013be131f867fd7"
   },
   {
-    "id": "145",
+    "id": "163",
     "barcode": "",
     "reference": "RASV02024-10 E7",
     "cooling": "Eau",
@@ -3375,7 +3875,7 @@
     "hash": "55c348166ee79374aacb36176f7f152cf71a9a2b695bb8984d7c42a3b97f6a48"
   },
   {
-    "id": "146",
+    "id": "164",
     "barcode": "6132481602498",
     "reference": "RASV03024-10",
     "cooling": "Eau",
@@ -3400,7 +3900,7 @@
     "hash": "44836aa06f64f0c974a348b0ff916aa834f56fc286f5f8aac91c89621a2c2726"
   },
   {
-    "id": "147",
+    "id": "165",
     "barcode": "",
     "reference": "RASV03014-12 E7",
     "cooling": "Eau",
@@ -3425,7 +3925,7 @@
     "hash": "b77ecc99076f94086ee3858a0c2b71d5549b96b84b61c136cba5bc6971deb73e"
   },
   {
-    "id": "148",
+    "id": "166",
     "barcode": "",
     "reference": "RASV03024-10 E7",
     "cooling": "Eau",
@@ -3450,7 +3950,7 @@
     "hash": "fdcb144cc11a1a7fad9bfffe6f6beae73c3919037265e73e5328ea012fea57a5"
   },
   {
-    "id": "149",
+    "id": "167",
     "barcode": "6132481623288",
     "reference": "RASV0503-10 E7",
     "cooling": "Eau",
@@ -3475,7 +3975,7 @@
     "hash": "a941601bd36e5248fb71a4c5101c4505a99934a06fc440831bcf206d9db37a6f"
   },
   {
-    "id": "150",
+    "id": "168",
     "barcode": "",
     "reference": "RATA01013-12 E7",
     "cooling": "Eau",
@@ -3500,7 +4000,7 @@
     "hash": "89e6e08337115769f2759e529534744aedd387fd47e6619dcc98cb8d4d20eb41"
   },
   {
-    "id": "151",
+    "id": "169",
     "barcode": "",
     "reference": "RATA01023-10 E7",
     "cooling": "Eau",
@@ -3525,7 +4025,7 @@
     "hash": "d16bbdbb9a185b53a096e44464de9923a3c33872dc7060ba905e46c1704ed6b1"
   },
   {
-    "id": "152",
+    "id": "170",
     "barcode": "",
     "reference": "RATA01022-10",
     "cooling": "Eau",
@@ -3550,7 +4050,7 @@
     "hash": "2f42b31f8e9660a2c9dc0aff3d45a7a48e2bd4e0345450b4c5f537c399a064b7"
   },
   {
-    "id": "153",
+    "id": "171",
     "barcode": "",
     "reference": "RATA01023-10",
     "cooling": "Eau",
@@ -3575,7 +4075,7 @@
     "hash": "2a1db933ee6d0599e8b31287495e4cc6235b0e267e6320430a61a28cd54ba06e"
   },
   {
-    "id": "154",
+    "id": "172",
     "barcode": "",
     "reference": "RATA01013-12",
     "cooling": "Eau",
@@ -3600,7 +4100,7 @@
     "hash": "2548093a1602d12f84dae102d2e23e9ad9fb1f17c080733c9fb4ae4a2287a415"
   },
   {
-    "id": "155",
+    "id": "173",
     "barcode": "",
     "reference": "RATA02022-10",
     "cooling": "Eau",
@@ -3625,7 +4125,7 @@
     "hash": "59ea30cf509b97da218496603c5547f5716b12391705d40139ffb8720edc189d"
   },
   {
-    "id": "156",
+    "id": "174",
     "barcode": "",
     "reference": "RATA02023-10",
     "cooling": "Eau",
@@ -3650,7 +4150,7 @@
     "hash": "25ddf16ad66f9592614034846fc7755a49756a08f71f0c7e72523ad75ded9d59"
   },
   {
-    "id": "157",
+    "id": "175",
     "barcode": "",
     "reference": "RATA02013-12",
     "cooling": "Eau",
@@ -3675,7 +4175,32 @@
     "hash": "4537e09b69fac285ca51166b82c5917d1afcae69066e40fcf8a37d90f03f9a2b"
   },
   {
-    "id": "158",
+    "id": "176",
+    "barcode": "6132481617997",
+    "reference": "RATA0204-10",
+    "cooling": "Eau",
+    "fabrication": "Confection",
+    "production": "Fini",
+    "type": "Radiateur",
+    "brand": "TATA",
+    "model": "EURO-1  613-713",
+    "fins": "Aérer",
+    "pitch": 10,
+    "rows": 4,
+    "betweenCollectors": 490,
+    "width": 500,
+    "upperCollectorLength": 525,
+    "upperCollectorWidth": 85,
+    "lowerCollectorLength": 525,
+    "lowerCollectorWidth": 85,
+    "tightening": "Plié",
+    "position": "Center",
+    "tube": "ET7",
+    "designation": "RAD 0490X0500 4A7 10 0525X0085 PC",
+    "hash": "fa6e77cf79c7f03ee2c427752df10bb4c51ff1ceebdfb449e984604c27127812"
+  },
+  {
+    "id": "177",
     "barcode": "6132481622083",
     "reference": "RATA03012-10",
     "cooling": "Eau",
@@ -3700,8 +4225,8 @@
     "hash": "ff9829d5429fc5cc9572ba11611f509dad779004336ac43ee654a29c4a7b67f0"
   },
   {
-    "id": "159",
-    "barcode": "",
+    "id": "178",
+    "barcode": "6132481622502",
     "reference": "RATY01013-12 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -3725,8 +4250,8 @@
     "hash": "fe512e6863293f5bbdc8a8f0b6cd0f27c3775f58534daa8b1239467890007724"
   },
   {
-    "id": "160",
-    "barcode": "",
+    "id": "179",
+    "barcode": "6132481624858",
     "reference": "RATY01023-10 E7",
     "cooling": "Eau",
     "fabrication": "Confection",
@@ -3750,7 +4275,7 @@
     "hash": "68f5a595d92f592ed7e92eb8859585189043ea5b210457054da6442ace0106cc"
   },
   {
-    "id": "161",
+    "id": "180",
     "barcode": "6132481623776",
     "reference": "RATY01113-12 E7",
     "cooling": "Eau",
@@ -3775,7 +4300,7 @@
     "hash": "41e8b1934a6a9c1c86a69299162ec94d5d100571af0b813355a4bfcbdfe68c28"
   },
   {
-    "id": "162",
+    "id": "181",
     "barcode": "6132481622496",
     "reference": "RATY01123-10 E7",
     "cooling": "Eau",
@@ -3800,7 +4325,7 @@
     "hash": "2d9a094059b283ebd99d996ca74d9a97dfffdaf3604388277f35f26fd20750ae"
   },
   {
-    "id": "163",
+    "id": "182",
     "barcode": "6132481620478",
     "reference": "RATY07012-10 E7",
     "cooling": "Eau",
@@ -3825,7 +4350,7 @@
     "hash": "e2378d5befa8eb6dd7e1d8b397a706e80f7be10e553c63bf21b6a21a5a65af3a"
   },
   {
-    "id": "164",
+    "id": "183",
     "barcode": "6132481622113",
     "reference": "",
     "cooling": "Eau",
@@ -3850,7 +4375,7 @@
     "hash": "6b641f95c91154684a187f89411b6709d966394faf053a720ffb80028da2d29f"
   },
   {
-    "id": "167",
+    "id": "186",
     "barcode": "",
     "reference": "RASV04027-10 E7",
     "cooling": "Eau",
@@ -3875,7 +4400,7 @@
     "hash": "ab8e66b483cb437179d2bba4e50dc4099320ee6e01d289c6ab7def313fba921c"
   },
   {
-    "id": "170",
+    "id": "189",
     "barcode": "6132481610783",
     "reference": "RASV04027-10",
     "cooling": "Eau",
