@@ -200,9 +200,9 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        step="0.01"
+                        //step="0.01"
                         {...field}
-                        //onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -241,9 +241,9 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        step="0.01"
+                        //step="0.01"
                         {...field}
-                        //onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -281,6 +281,7 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                     <FormControl>
                       <Input
                         type="number"
+                        step="0.01"
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
