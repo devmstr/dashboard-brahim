@@ -166,7 +166,10 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
       const invoice = await fetch(`/api/invoices/${data?.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          ...data,
+          total:totalTTC
+        })
       })
 
       if (!invoice.ok) {
