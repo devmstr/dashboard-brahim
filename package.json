@@ -11,7 +11,7 @@
     "lint": "next lint",
     "dev:local": "next dev -H 0.0.0.0",
     "studio": "npx prisma studio",
-    "studio:prod": "dotenv -e .env.production -- npx prisma studio",
+    "studio:prod": "dotenv -e .env.local -- npx prisma studio",
     "migrate:dev": "dotenv -e .env.production -- npx prisma migrate dev",
     "script": "ts-node -P tsconfig.seed.json",
     "seed:build": "tsc -p tsconfig.seed.json",
