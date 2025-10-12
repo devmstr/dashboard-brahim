@@ -198,12 +198,25 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                   <FormItem>
                     <FormLabel>Prix unitaire (HT)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        //step="0.01"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
+                     <Input
+          type="text"  // Change from "number"
+          inputMode="decimal"  // For mobile keyboards
+          pattern="[0-9]*[.]?[0-9]*"  // Optional: Restrict to numeric + decimal (for native validation)
+          {...field}
+          value={field.value ?? ''}  // Ensure it's always a string to avoid undefined issues
+          onChange={(e) => {
+            const value = e.target.value;
+            // Optional: Add live filtering to block invalid chars
+            if (value === '' || /^[0-9]+(\.[0-9]*)?$/.test(value)) {
+              field.onChange(value);  // Keep as string during typing
+            }
+          }}
+          onBlur={() => {
+            // Parse to number on blur for form state (keeps schema happy)
+            const parsed = parseFloat(field.value?.toString() || '0');
+            field.onChange(isNaN(parsed) ? 0 : parsed);  // Default to 0 if invalid
+          }}
+        />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -239,12 +252,25 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                   <FormItem>
                     <FormLabel>Prix en gros (HT)</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        //step="0.01"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      />
+                          <Input
+          type="text"  // Change from "number"
+          inputMode="decimal"  // For mobile keyboards
+          pattern="[0-9]*[.]?[0-9]*"  // Optional: Restrict to numeric + decimal (for native validation)
+          {...field}
+          value={field.value ?? ''}  // Ensure it's always a string to avoid undefined issues
+          onChange={(e) => {
+            const value = e.target.value;
+            // Optional: Add live filtering to block invalid chars
+            if (value === '' || /^[0-9]+(\.[0-9]*)?$/.test(value)) {
+              field.onChange(value);  // Keep as string during typing
+            }
+          }}
+          onBlur={() => {
+            // Parse to number on blur for form state (keeps schema happy)
+            const parsed = parseFloat(field.value?.toString() || '0');
+            field.onChange(isNaN(parsed) ? 0 : parsed);  // Default to 0 if invalid
+          }}
+        />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -281,7 +307,7 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        step="0.01"
+                        step={'1'}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />

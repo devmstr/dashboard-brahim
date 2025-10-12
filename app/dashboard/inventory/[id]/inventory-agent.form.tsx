@@ -179,6 +179,7 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
                     <FormControl>
                       <Input
                         type="number"
+                        step={"1"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
@@ -200,6 +201,7 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
                     <FormControl>
                       <Input
                         type="number"
+                            step={"1"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
@@ -218,6 +220,7 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
                     <FormControl>
                       <Input
                         type="number"
+                            step={"1"}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
