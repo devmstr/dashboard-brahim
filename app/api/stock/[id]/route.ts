@@ -3,7 +3,7 @@ import prisma from '@/lib/db'
 import { getCurrentUser } from '@/lib/session'
 import { revalidatePath } from 'next/cache'
 import { partial } from 'lodash'
-import { InventoryType } from '@/app/dashboard/inventory/schema.zod'
+import { StockFormType } from '@/app/dashboard/inventory/_schema.zod'
 
 // PATCH: Update inventory for a radiator
 export async function PATCH(
@@ -21,7 +21,7 @@ export async function PATCH(
     }
 
     const radiatorId = params.id
-    const body = (await request.json()) as Partial<InventoryType>
+    const body = (await request.json()) as StockFormType
     const { stockLevel, minStockLevel, maxStockLevel, isActive } = body
 
     // Find the radiator and its inventory

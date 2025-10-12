@@ -27,10 +27,10 @@ import { useRouter } from 'next/navigation'
 import React, { useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { renderDesignation } from './render-designation'
-import { inventorySchema, InventoryType } from '../schema.zod'
+import { StockFormSchema, StockFormType } from '../_schema.zod'
 
 interface InventoryAgentFormProps {
-  data?: InventoryType
+  data?: StockFormType
 }
 
 export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
@@ -39,8 +39,8 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
   const router = useRouter()
 
   // Initialize the form with react-hook-form
-  const form = useForm<InventoryType>({
-    resolver: zodResolver(inventorySchema),
+  const form = useForm<StockFormType>({
+    resolver: zodResolver(StockFormSchema),
     defaultValues: {
       ...data,
       // isActive: true
@@ -48,22 +48,22 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
     }
   })
 
-  const onSubmit = async (items: InventoryType) => {
+  const onSubmit = async (item: StockFormType) => {
     setError(null)
     try {
       // PATCH inventory for this radiator
-      const response = await fetch(`/api/stock/${items.id}`, {
+      const response = await fetch(`/api/stock/${item.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...items,
+          ...item,
           // Ensure numeric fields are numbers
-          stockLevel: Number(items.stockLevel),
-          minStockLevel: Number(items.minStockLevel),
-          maxStockLevel: Number(items.maxStockLevel),
-          isActive: Boolean(items.isActive)
+          stockLevel: Number(item.stockLevel),
+          minStockLevel: Number(item.minStockLevel),
+          maxStockLevel: Number(item.maxStockLevel),
+          isActive: Boolean(item.isActive)
         })
       })
       if (!response.ok) {
@@ -79,7 +79,7 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
     }
   }
 
-  const handleSubmit = (data: InventoryType) => {
+  const handleSubmit = (data: StockFormType) => {
     startTransition(async () => {
       try {
         await onSubmit(data)
@@ -179,7 +179,7 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        step={"1"}
+                        step={'1'}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
@@ -201,7 +201,7 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                            step={"1"}
+                        step={'1'}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
@@ -220,7 +220,7 @@ export function InventoryAgentForm({ data }: InventoryAgentFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                            step={"1"}
+                        step={'1'}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
