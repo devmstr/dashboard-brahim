@@ -17,6 +17,7 @@ interface AlgerianCity {
   wilaya_name: string
 }
 
+
 async function main() {
   console.log('🔄 Starting location seeding process...')
   const cities = json as AlgerianCity[]
@@ -77,7 +78,21 @@ async function main() {
     console.log(`📊 Processed ${wilayaMap.size} provinces`)
 
     // Step 3: Insert Provinces
-    const provinces = []
+    const provinces = [] as {
+      province:{
+           id: string
+    code: string
+    name: string
+    nameAr: string
+    countryId: string | null
+      }
+    wilaya:{
+    code: string;
+    name: string;
+    name_ar: string;
+    cities: Map<number, AlgerianCity>;
+}
+}[]
     for (const [wilayaCode, wilaya] of wilayaMap) {
       const province = await tx.province.create({
         data: {

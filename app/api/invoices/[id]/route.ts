@@ -94,7 +94,7 @@ export async function PATCH(
     let updatedInvoice
 
     if (itemsChanged) {
-      const newItemsData = items.map(({ id, ...rest }) => rest)
+ 
 
       const [_, invoice] = await prisma.$transaction([
         // TODO:fix the history logic
@@ -123,7 +123,7 @@ export async function PATCH(
             ...invoiceData,
             items: {
               createMany: {
-                data: newItemsData.map(
+                data: items?.map(
                   ({ number, amount, label, price, quantity }) => ({
                     number,
                     amount,
