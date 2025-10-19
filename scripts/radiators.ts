@@ -1,10 +1,19 @@
 import { PrismaClient } from '@prisma/client'
-import data from '../seed/data-2025.json'
-import STD25 from '../seed/STD-25.json'
+import SPE_ALL from '../seed/2025.json'
+import STD25FE from '../seed/STD-25-FE.json'
+import STD25RA from '../seed/STD-25-RA.json'
 import crypto from 'crypto'
 import { generateId } from '../helpers/id-generator'
 
-const prisma = new PrismaClient()
+const DATABASE_URL = process.env.SECONDARY_DATABASE_URL || 'postgres://sonerasserver:iYKzC3xpiaWece3Pmi29SD@192.168.1.199:5432/sonerasflowdb'
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: DATABASE_URL,
+    },
+  },
+})
 
 interface RadiatorData {
   id: string
@@ -45,25 +54,23 @@ async function main() {
   console.log('🌱 Starting seeding from 2025.json...')
 
   try {
-    // Read the JSON file
-    // const jsonPath = path.join(process.cwd(), 'seed', 'data', '2025.json')
-    // const jsonData = fs.readFileSync(jsonPath, 'utf-8')
-    // const radiatorDataArray: RadiatorData[] = JSON.parse(jsonData)
+ 
 
-    // console.log(`📄 Found ${radiatorDataArray.length} radiators in 2025.json`)
-
-    // Clean up existing data if needed
-    // console.log('🧹 Cleaning up existing data...')
-    // await prisma.orderItem.deleteMany()
-    // await prisma.component.deleteMany()
-    // await prisma.radiator.deleteMany()
-    // await prisma.inventory.deleteMany()
-    // await prisma.price.deleteMany()
+     // Clean up existing data if needed
+    console.log('🧹 Cleaning up existing data...')
+    await prisma.orderItem.deleteMany()
+    await prisma.component.deleteMany()
+    await prisma.radiator.deleteMany()
+    await prisma.inventory.deleteMany()
+    await prisma.price.deleteMany()
 
     let processedCount = 0
     let skippedCount = 0
 
-    for (const radiatorData of STD25) {
+    const data = [...SPE_ALL,...STD25FE,...STD25RA]
+    
+
+    for (const radiatorData of data) {
       try {
         // Create inventory for the radiator
         const inventory = await prisma.inventory.create({
