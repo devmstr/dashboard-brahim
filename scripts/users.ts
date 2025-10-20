@@ -69,13 +69,22 @@ const users: User[] = [
     employeeId: 100,
     phone: '0'
   },
+
+  {
+    email: 'inventory_agent@test.com',
+    username: 'Inventory Manager',
+    passwordHash: '12345678',
+    role: 'INVENTORY_AGENT',
+    employeeId: 101,
+    phone: '1'
+  },
   {
     email: 'test2@test.com',
     username: 'Sales Manager',
     passwordHash: '12345678',
     role: 'SALES_MANAGER',
-    employeeId: 101,
-    phone: '1'
+    employeeId: 102,
+    phone: '2'
   }
 ]
 

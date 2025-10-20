@@ -62,6 +62,7 @@ export async function PATCH(
       ...invoiceData
     } = body
 
+
     // Step 1: Fetch existing invoice with items
     const existingInvoice = await prisma.invoice.findUnique({
       where: { id },
@@ -86,12 +87,14 @@ export async function PATCH(
         quantity
       })) ?? []
 
+    
+
     const itemsChanged = !isEqual(oldItems, newItems)
 
     let updatedInvoice
 
     if (itemsChanged) {
-      const newItemsData = items.map(({ id, ...rest }) => rest)
+ 
 
       const [_, invoice] = await prisma.$transaction([
         // TODO:fix the history logic
@@ -120,7 +123,7 @@ export async function PATCH(
             ...invoiceData,
             items: {
               createMany: {
-                data: newItemsData.map(
+                data: items?.map(
                   ({ number, amount, label, price, quantity }) => ({
                     number,
                     amount,
@@ -136,6 +139,7 @@ export async function PATCH(
       ])
 
       updatedInvoice = invoice
+
     } else {
       // No items change, just update the invoice metadata
       updatedInvoice = await prisma.invoice.update({

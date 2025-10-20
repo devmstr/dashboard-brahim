@@ -21,105 +21,106 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import React, { useState, useTransition } from 'react'
+import React, { useEffect, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { CardGrid } from '@/components/card'
 import { Label } from '@/components/ui/label'
 import { renderDesignation } from './render-designation'
-import { inventorySchema, InventoryType } from '../schema.zod'
 import { toast } from '@/hooks/use-toast'
+import { PricingFormSchema, PricingFormType } from '../_schema.zod'
 
 interface InventorySalesFormProps {
-  data?: Partial<InventoryType>
+  data?: PricingFormType & { bulkPriceTTC: number; priceTTC: number }
 }
 
 export function InventorySalesForm({ data }: InventorySalesFormProps) {
   const [isSubmitting, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [priceTTC, setPriceTTC] = useState<number>(data?.priceTTC || 0)
+  const [bulkPriceTTC, setBulkPriceTTC] = useState<number>(
+    data?.bulkPriceTTC || 0
+  )
   const router = useRouter()
 
   // Initialize the form with react-hook-form
-  const form = useForm<Partial<InventoryType>>({
-    resolver: zodResolver(inventorySchema),
+  const form = useForm<PricingFormType>({
+    resolver: zodResolver(PricingFormSchema),
     defaultValues: {
       ...data,
       location: 'Dépôt SONERAS',
-      bulkPrice: data?.bulkPrice || 0,
-      bulkPriceTTC: data?.bulkPriceTTC || 0,
-      bulkPriceThreshold: data?.bulkPriceThreshold || 0,
-      price: data?.price || 0,
-      priceTTC: data?.priceTTC || 0,
+      bulkPrice: data?.bulkPrice ?? 0,
+      price: data?.price ?? 0,
+      bulkPriceThreshold: data?.bulkPriceThreshold ?? 0,
       isActive: data?.isActive !== undefined ? data.isActive : true
     }
   })
 
-  // Calculate TTC prices automatically
   const price = form.watch('price') || 0
   const bulkPrice = form.watch('bulkPrice') || 0
-  const VAT = 0.19
-  const priceTTC = price ? +(price * (1 + VAT)).toFixed(2) : 0
-  const bulkPriceTTC = bulkPrice ? +(bulkPrice * (1 + VAT)).toFixed(2) : 0
 
-  // Update TTC fields in form state for submission
-  React.useEffect(() => {
-    form.setValue('priceTTC', priceTTC)
-  }, [priceTTC])
-  React.useEffect(() => {
-    form.setValue('bulkPriceTTC', bulkPriceTTC)
-  }, [bulkPriceTTC])
+  useEffect(() => {
+    const to2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
+    setPriceTTC(to2(price * 1.19))
+    setBulkPriceTTC(to2(bulkPrice * 1.19))
+  }, [price, bulkPrice])
 
-  const onSubmit = async (items: Partial<InventoryType>) => {
-    setError(null)
-    try {
-      // update the price
-      const response = await fetch(`/api/price/${items.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          price: items.price,
-          priceTTC: priceTTC,
-          bulkPrice: items.bulkPrice,
-          bulkPriceTTC: bulkPriceTTC,
-          bulkThreshold: items.bulkPriceThreshold
-        })
+  const updatePricing = async (payload: PricingFormType) => {
+    const { id, price, bulkPrice, bulkPriceThreshold } = payload
+
+    const response = await fetch(`/api/price/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        price,
+        priceTTC,
+        bulkPrice,
+        bulkPriceTTC,
+        bulkPriceThreshold
       })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Une erreur est survenue')
-      }
-      const data = await response.json()
-      if (!data) {
-        throw new Error('Une erreur est survenue')
-      }
+    })
 
-      return true
-    } catch (error: any) {
-      setError(error.message || 'Une erreur est survenue')
-      throw error
+    // Handle network or backend errors gracefully
+    if (!response.ok) {
+      let message = 'Une erreur est survenue'
+      try {
+        const err = await response.json()
+        message = err?.message || message
+      } catch {
+        /* non-JSON error */
+      }
+      throw new Error(message)
     }
+
+    const data = await response.json().catch(() => null)
+    if (!data) throw new Error('Réponse invalide du serveur')
+
+    return data
   }
 
-  const handleSubmit = (data: Partial<InventoryType>) => {
+  const handleSubmit = (formData: PricingFormType) => {
+    setError(null)
+
     startTransition(async () => {
       try {
-        await onSubmit(data)
-        // toast success
+        await updatePricing(formData)
         toast({
           title: 'Succès',
+          variant: 'success',
           description: (
             <p>Les informations de vente ont été mises à jour avec succès</p>
-          ),
-          variant: 'success'
+          )
         })
         router.refresh()
-      } catch (error: any) {
-        setError(error.message || 'Une erreur est survenue')
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Une erreur est survenue'
+        setError(message)
         toast({
           title: 'Erreur',
-          description: <p>Une erreur est survenue lors de l'enregistrement</p>,
-          variant: 'destructive'
+          variant: 'destructive',
+          description: (
+            <p>Une erreur est survenue lors de l&apos;enregistrement</p>
+          )
         })
       }
     })
@@ -199,36 +200,35 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                     <FormLabel>Prix unitaire (HT)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        inputMode="decimal"
+                        pattern="[0-9]*[.,]?[0-9]*"
+                        placeholder="0.00"
+                        onChange={(e) => {
+                          // prevent invalid characters
+                          const value = e.target.value.replace(/[^0-9.]/g, '')
+                          field.onChange(value)
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="priceTTC"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix unitaire (TTC)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={priceTTC}
-                        disabled
-                        readOnly
-                        className="bg-muted"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Prix unitaire (TTC)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={priceTTC.toFixed(2)}
+                    disabled
+                    readOnly
+                    className="bg-muted"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             </CardGrid>
 
             <CardGrid>
@@ -240,36 +240,35 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                     <FormLabel>Prix en gros (HT)</FormLabel>
                     <FormControl>
                       <Input
-                        type="number"
-                        step="0.01"
                         {...field}
-                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                        inputMode="decimal"
+                        pattern="[0-9]*[.,]?[0-9]*"
+                        placeholder="0.00"
+                        onChange={(e) => {
+                          // prevent invalid characters
+                          const value = e.target.value.replace(/[^0-9.]/g, '')
+                          field.onChange(value)
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="bulkPriceTTC"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix en gros (TTC)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={bulkPriceTTC}
-                        disabled
-                        readOnly
-                        className="bg-muted"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem>
+                <FormLabel>Prix en gros (TTC)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={bulkPriceTTC.toFixed(2)}
+                    disabled
+                    readOnly
+                    className="bg-muted"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             </CardGrid>
             <CardGrid>
               <FormField
@@ -281,6 +280,7 @@ export function InventorySalesForm({ data }: InventorySalesFormProps) {
                     <FormControl>
                       <Input
                         type="number"
+                        step={'1'}
                         {...field}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />

@@ -1,7 +1,7 @@
 import { AddInventoryItem } from '@/app/dashboard/inventory/add-new-inventory-Item.dialog'
 import { Card } from '@/components/card'
 import { InventoryTable } from '@/components/inventory.table'
-import { getInventoryTableData } from './get-inventory-table-data'
+import { getInventoryTableData } from './_get-inventory-table-data'
 import { getUserRole } from '@/lib/session'
 import { notFound } from 'next/navigation'
 

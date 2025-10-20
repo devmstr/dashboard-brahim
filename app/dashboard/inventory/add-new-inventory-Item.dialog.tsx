@@ -31,7 +31,7 @@ import { useForm } from 'react-hook-form'
 import { Icons } from '@/components/icons'
 import ProductSearchInput from '@/components/search-product.input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { inventorySchema, InventoryType } from './schema.zod'
+import { StockFormSchema, StockFormType } from './_schema.zod'
 import { ApiRadiator } from '@/types'
 import { RadiatorSearchCard } from '@/components/radiator-search.card'
 
@@ -53,8 +53,8 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
   )
 
   // Initialize the form with react-hook-form
-  const form = useForm<Partial<InventoryType>>({
-    resolver: zodResolver(inventorySchema),
+  const form = useForm<StockFormType>({
+    resolver: zodResolver(StockFormSchema),
     defaultValues: {
       id: '',
       minStockLevel: 5,
@@ -106,7 +106,7 @@ export function AddInventoryItem({}: AddInventoryItemProps) {
     }
   }, [selectedProduct, fetchProduct])
 
-  const onSubmit = (data: Partial<InventoryType>) => {
+  const onSubmit = (data: StockFormType) => {
     setAddingTransition(async () => {
       setError(null)
 

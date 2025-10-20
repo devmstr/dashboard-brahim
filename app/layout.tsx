@@ -9,7 +9,7 @@ import '@/styles/globals.css'
 import { ReactQueryProvider } from '@/components/react-query.provider'
 import localFont from 'next/font/local'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+// const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 const geistSans = localFont({
   src: '../public/fonts/GeistVF.woff',
@@ -131,7 +131,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         <body
           className={cn(
             'flex flex-col h-full bg-slate-100 ',
-            inter.variable,
+            //inter.variable,
             geistSans.variable,
             geistMono.variable,
             notoNaskhArabic.variable,
