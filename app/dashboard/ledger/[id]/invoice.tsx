@@ -32,6 +32,8 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './print.css'
 
+const ITEMS_PER_PAGE = 7
+
 export interface InvoiceProps {
   data: Invoice
   className?: string
@@ -51,65 +53,33 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
   const totalsRef = useRef<HTMLDivElement>(null)
   const rowRef = useRef<HTMLTableRowElement>(null)
 
-  const refudRef = useRef<HTMLTableRowElement>(null)
-  const discoutRef = useRef<HTMLTableRowElement>(null)
-  const stampTaxRef = useRef<HTMLTableRowElement>(null)
-  const totalBruteRef = useRef<HTMLTableRowElement>(null)
-  const totalNetRef = useRef<HTMLTableRowElement>(null)
-  const vatRef = useRef<HTMLTableRowElement>(null)
-  const totalTtcRef = useRef<HTMLTableRowElement>(null)
-
   const [itemsPerPage, setItemsPerPage] = useState(4)
   const [itemsPerPageLast, setItemsPerPageLast] = useState(2)
   const [prices, setPrices] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    const A4_HEIGHT = 1122 // in pixels (A4 at 96dpi)
-
-    const header = headerRef.current?.offsetHeight || 0
-    const footer = footerRef.current?.offsetHeight || 0
-    const totals = totalsRef.current?.offsetHeight || 0
-    const row = rowRef.current?.offsetHeight || 32
-
-    const usableHeight = A4_HEIGHT - header - footer - 92 // paddings
-    const usableHeightLastPage = A4_HEIGHT - header - totals - footer - 92
-
-    const perPage = Math.floor(usableHeight / row)
-    const perLastPage = Math.floor(usableHeightLastPage / row)
-
-    if (perPage && perLastPage) {
-      setItemsPerPage(perPage)
-      setItemsPerPageLast(perLastPage)
+  // chunk items into fixed-size pages (18 items each)
+  const pages = useMemo(() => {
+    const chunks: Invoice['items'][] = []
+    for (let i = 0; i < data.items.length; i += ITEMS_PER_PAGE) {
+      chunks.push(data.items.slice(i, i + ITEMS_PER_PAGE))
     }
+    // even if last page is not full it's fine — every page gets its own totals
+    return chunks
   }, [data.items])
 
-  // Split pages dynamically
-  const pages = useMemo(() => {
-    const totalItems = data.items.length
-    const chunks: Invoice['items'][] = []
-
-    // Step 1: Chunk all items by normal page size
-    for (let i = 0; i < totalItems; i += itemsPerPage) {
-      chunks.push(data.items.slice(i, i + itemsPerPage))
-    }
-
-    // Step 2: Check if last page can accommodate totals
-    if (chunks.length > 1) {
-      const lastChunk = chunks[chunks.length - 1]
-
-      if (lastChunk.length > itemsPerPageLast) {
-        // Split it into a new page so totals won't overflow
-        const overflowIndex = lastChunk.length - itemsPerPageLast
-        const secondLastChunk = lastChunk.slice(0, overflowIndex)
-        const newLastChunk = lastChunk.slice(overflowIndex)
-
-        // Replace the last chunk and push the new last chunk
-        chunks.splice(chunks.length - 1, 1, secondLastChunk, newLastChunk)
-      }
-    }
-
-    return chunks
-  }, [data.items, itemsPerPage, itemsPerPageLast])
+  // per-page billing summaries
+  const pageSummaries = useMemo(
+    () =>
+      pages.map((pageItems) =>
+        calculateBillingSummary(pageItems, {
+          discountRate: data.discountRate,
+          refundRate: data.refundRate,
+          stampTaxRate: data.stampTaxRate,
+          vatRate: data.vat
+        })
+      ),
+    [pages, data.discountRate, data.refundRate, data.stampTaxRate, data.vat]
+  )
 
   const billingSummary = useMemo(
     () =>
@@ -128,26 +98,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
     ]
   )
 
-  // Handle payment type change
-  const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
-    setData((prev) => ({
-      ...prev,
-      paymentMode: value
-    }))
-    // If payment type is Espèces or Espèces + Versement, set stampTaxRate to 0.01 (1%)
-    if (value === 'Espèces' || value === 'Espèces + Versement') {
-      setData((prev) => ({
-        ...prev,
-        stampTaxRate: 0.01
-      }))
-    } else {
-      setData((prev) => ({
-        ...prev,
-        stampTaxRate: 0
-      }))
-    }
-  }
-
+  // destructure global summary (kept for inputs / some legacy usage)
   const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
     billingSummary
 
@@ -157,7 +108,16 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
       ...prev,
       total: Total
     }))
-  }, [data.total])
+  }, [Total])
+
+  const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
+    setData((prev) => ({
+      ...prev,
+      paymentMode: value,
+      stampTaxRate:
+        value === 'Espèces' || value === 'Espèces + Versement' ? 0.01 : 0
+    }))
+  }
 
   // send an update request on every change
   async function onUpdate() {
@@ -168,7 +128,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          total:totalTTC
+          total: totalTTC
         })
       })
 
@@ -407,230 +367,251 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
     </div>
   )
 
-  const renderTotals = () => (
-    <div className="totals-section mt-3  font-geist-sans">
-      <div className="flex justify-end text-sm">
-        <div className="flex flex-col space-y-2">
-          <div className="w-[15.4rem] pl-2 space-y-2 font-geist-sans ">
-            <div
-              className={cn(
-                'flex justify-between',
-                !data.discountRate && !data.refundRate && 'print:hidden'
-              )}
-            >
-              <span>TOTAL BRUTE H.T</span>
-              <span className="w-[6.5rem] pl-2 text-end px-2">
-                {formatPrice(Total)}
-              </span>
-            </div>
-            <div
-              className={cn(
-                'flex justify-between  border-t-[1.6px] pt-[1px]',
-                !data.discountRate && 'print:hidden'
-              )}
-            >
-              <div className="flex gap-1 items-center">
-                <span>REMISE </span>
-                <Input
-                  value={Number(data.discountRate) * 100}
-                  type="number"
-                  name="discount-percentage"
-                  placeholder="0"
-                  onChange={({ target: { value: v } }) => {
-                    let number = Math.max(0, Math.min(Number(v), 25))
+  // Modified: accepts optional per-page summary override (keeps design exactly the same)
+  const renderTotals = (summaryOverride?: {
+    refund?: number
+    discount?: number
+    stampTax?: number
+    Total?: number
+    totalHT?: number
+    totalTTC?: number
+    vat?: number
+  }) => {
+    const {
+      refund: s_refund = refund,
+      discount: s_discount = discount,
+      stampTax: s_stampTax = stampTax,
+      Total: s_Total = Total,
+      totalHT: s_totalHT = totalHT,
+      totalTTC: s_totalTTC = totalTTC,
+      vat: s_vat = vat
+    } = summaryOverride ?? {}
 
-                    if (number !== Number(v)) {
-                      toast({
-                        title: 'Avertissement',
-                        description:
-                          'Le taux de remise doit être entre 1% et 25%',
-                        variant: 'warning'
-                      })
-                      return
-                    }
-
-                    setData((prev) => ({
-                      ...prev,
-                      discountRate: number / 100
-                    }))
-                  }}
-                  className={cn(
-                    'p-0 m-0 w-5  text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                  )}
-                />
-                %
+    return (
+      <div className="totals-section mt-3  font-geist-sans">
+        <div className="flex justify-end text-sm">
+          <div className="flex flex-col space-y-2">
+            <div className="w-[15.4rem] pl-2 space-y-2 font-geist-sans ">
+              <div
+                className={cn(
+                  'flex justify-between',
+                  !data.discountRate && !data.refundRate && 'print:hidden'
+                )}
+              >
+                <span>TOTAL BRUTE H.T</span>
+                <span className="w-[6.5rem] pl-2 text-end px-2">
+                  {formatPrice(s_Total)}
+                </span>
               </div>
-              <span className="w-[6.5rem] pl-2 text-end font-geist-sans px-2">
-                {formatPrice(discount)}
-              </span>
-            </div>
-            <div
-              className={cn(
-                'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
-                !data.refundRate && 'print:hidden'
-              )}
-            >
-              <div className="flex gap-1 items-center">
-                <span>R.G</span>
-                <Input
-                  value={Number(data.refundRate) * 100}
-                  type="number"
-                  name="guarantee-refund"
-                  placeholder="0"
-                  onChange={({ target: { value: v } }) => {
-                    let number = Math.max(0, Math.min(Number(v), 50)) // clamp between 1 and 50
+              <div
+                className={cn(
+                  'flex justify-between  border-t-[1.6px] pt-[1px]',
+                  !data.discountRate && 'print:hidden'
+                )}
+              >
+                <div className="flex gap-1 items-center">
+                  <span>REMISE </span>
+                  <Input
+                    value={Number(data.discountRate) * 100}
+                    type="number"
+                    name="discount-percentage"
+                    placeholder="0"
+                    onChange={({ target: { value: v } }) => {
+                      let number = Math.max(0, Math.min(Number(v), 25))
 
-                    if (number !== Number(v)) {
-                      toast({
-                        title: 'Avertissement',
-                        description: 'Le taux doit être entre 1% et 50%',
-                        variant: 'warning'
-                      })
-                    }
+                      if (number !== Number(v)) {
+                        toast({
+                          title: 'Avertissement',
+                          description:
+                            'Le taux de remise doit être entre 1% et 25%',
+                          variant: 'warning'
+                        })
+                        return
+                      }
 
-                    setData((prev) => ({
-                      ...prev,
-                      refundRate: number / 100
-                    }))
-                  }}
-                  className={cn(
-                    'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                  )}
-                />
-                %
+                      setData((prev) => ({
+                        ...prev,
+                        discountRate: number / 100
+                      }))
+                    }}
+                    className={cn(
+                      'p-0 m-0 w-5  text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                    )}
+                  />
+                  %
+                </div>
+                <span className="w-[6.5rem] pl-2 text-end font-geist-sans px-2">
+                  {formatPrice(s_discount)}
+                </span>
               </div>
-              <span className="w-[6.5rem] px-2 pl-2 text-end font-geist-sans">
-                {formatPrice(refund)}
-              </span>
-            </div>
-            <div className="flex justify-between border-t-[1.6px] pt-[1px]">
-              <span>TOTAL NET H.T</span>
-              <span className="w-[6.5rem] px-2 pl-2 text-end">
-                {formatPrice(totalHT)}
-              </span>
-            </div>
-            <div className="flex justify-between border-t-[1.6px] pt-[1px]">
-              <div className="flex items-center gap-2">
-                <span>TVA </span>
-                <Selector
-                  className={cn(
-                    'p-0 m-0 w-12  h-6 text-muted-foreground print:text-foreground focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                  )}
-                  value={`${Number(data.vat) * 100}%`}
-                  items={['19%', '0%']}
-                  setValue={(v) => {
-                    setData((prev) => ({
-                      ...prev,
-                      vat: Number(v.replace(/\%/g, '')) / 100
-                    }))
-                  }}
-                />
+              <div
+                className={cn(
+                  'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
+                  !data.refundRate && 'print:hidden'
+                )}
+              >
+                <div className="flex gap-1 items-center">
+                  <span>R.G</span>
+                  <Input
+                    value={Number(data.refundRate) * 100}
+                    type="number"
+                    name="guarantee-refund"
+                    placeholder="0"
+                    onChange={({ target: { value: v } }) => {
+                      let number = Math.max(0, Math.min(Number(v), 50)) // clamp between 1 and 50
+
+                      if (number !== Number(v)) {
+                        toast({
+                          title: 'Avertissement',
+                          description: 'Le taux doit être entre 1% et 50%',
+                          variant: 'warning'
+                        })
+                      }
+
+                      setData((prev) => ({
+                        ...prev,
+                        refundRate: number / 100
+                      }))
+                    }}
+                    className={cn(
+                      'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                    )}
+                  />
+                  %
+                </div>
+                <span className="w-[6.5rem] px-2 pl-2 text-end font-geist-sans">
+                  {formatPrice(s_refund)}
+                </span>
               </div>
-
-              <span className="text-end px-2 w-[6.5rem] pl-2">
-                {formatPrice(vat)}
-              </span>
-            </div>
-            <div
-              className={cn(
-                'flex justify-between border-t-[1.6px] pt-[1px]',
-                !data.stampTaxRate && 'print:hidden'
-              )}
-            >
-              <div className="flex gap-1 items-center">
-                <span>TIMBRE</span>
-                <Input
-                  value={Number(data.stampTaxRate) * 100}
-                  type="number"
-                  name="stamp-tax"
-                  placeholder="0"
-                  onChange={({ target: { value: v } }) => {
-                    let number = Math.max(0, Math.min(Number(v), 1))
-                    if (number !== Number(v)) {
-                      toast({
-                        title: 'Avertissement',
-                        description:
-                          'Le taux de timbre doit être entre 0% et 1%',
-                        variant: 'warning'
-                      })
-                      return
-                    }
-
-                    setData((prev) => ({
-                      ...prev,
-                      stampTaxRate: number / 100
-                    }))
-                  }}
-                  className={cn(
-                    'p-0 m-0 w-5  text-end h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                  )}
-                />
-                %
+              <div className="flex justify-between border-t-[1.6px] pt-[1px]">
+                <span>TOTAL NET H.T</span>
+                <span className="w-[6.5rem] px-2 pl-2 text-end">
+                  {formatPrice(s_totalHT)}
+                </span>
               </div>
+              <div className="flex justify-between border-t-[1.6px] pt-[1px]">
+                <div className="flex items-center gap-2">
+                  <span>TVA </span>
+                  <Selector
+                    className={cn(
+                      'p-0 m-0 w-12  h-6 text-muted-foreground print:text-foreground focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                    )}
+                    value={`${Number(data.vat) * 100}%`}
+                    items={['19%', '0%']}
+                    setValue={(v) => {
+                      setData((prev) => ({
+                        ...prev,
+                        vat: Number(v.replace(/\%/g, '')) / 100
+                      }))
+                    }}
+                  />
+                </div>
 
-              <span className="w-24 px-2 text-end ">
-                {formatPrice(stampTax)}
+                <span className="text-end px-2 w-[6.5rem] pl-2">
+                  {formatPrice(s_vat)}
+                </span>
+              </div>
+              <div
+                className={cn(
+                  'flex justify-between border-t-[1.6px] pt-[1px]',
+                  !data.stampTaxRate && 'print:hidden'
+                )}
+              >
+                <div className="flex gap-1 items-center">
+                  <span>TIMBRE</span>
+                  <Input
+                    value={Number(data.stampTaxRate) * 100}
+                    type="number"
+                    name="stamp-tax"
+                    placeholder="0"
+                    onChange={({ target: { value: v } }) => {
+                      let number = Math.max(0, Math.min(Number(v), 1))
+                      if (number !== Number(v)) {
+                        toast({
+                          title: 'Avertissement',
+                          description:
+                            'Le taux de timbre doit être entre 0% et 1%',
+                          variant: 'warning'
+                        })
+                        return
+                      }
+
+                      setData((prev) => ({
+                        ...prev,
+                        stampTaxRate: number / 100
+                      }))
+                    }}
+                    className={cn(
+                      'p-0 m-0 w-5  text-end h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                    )}
+                  />
+                  %
+                </div>
+
+                <span className="w-24 px-2 text-end ">
+                  {formatPrice(s_stampTax)}
+                </span>
+              </div>
+            </div>
+            <div className="flex justify-between font-bold bg-gray-100  py-2 pl-2 w-[15.4rem] border-y font-geist-sans">
+              <span>TOTAL TTC</span>
+              <span className="w-[6.5rem] px-2 pl-2 text-right ">
+                {formatPrice(s_totalTTC)}
               </span>
             </div>
-          </div>
-          <div className="flex justify-between font-bold bg-gray-100  py-2 pl-2 w-[15.4rem] border-y font-geist-sans">
-            <span>TOTAL TTC</span>
-            <span className="w-[6.5rem] px-2 pl-2 text-right ">
-              {formatPrice(totalTTC)}
-            </span>
           </div>
         </div>
-      </div>
-      <div className="amount-in-words">
-        <div className="space-y-1 text-sm print:text-black mt-1">
-          <p className="font-semibold">
-            ARRÊTÉE LA PRÉSENTE FACTURE A LA SOMME EN TTC DE:
-          </p>
-          <p className="capitalize">{amountToWords(totalTTC)}</p>
+        <div className="amount-in-words">
+          <div className="space-y-1 text-sm print:text-black mt-1">
+            <p className="font-semibold">
+              ARRÊTÉE LA PRÉSENTE FACTURE A LA SOMME EN TTC DE:
+            </p>
+            <p className="capitalize">{amountToWords(s_totalTTC)}</p>
+          </div>
         </div>
-      </div>
-      <div className="payment-details">
-        <div className="space-y-2 text-sm mt-2">
-          <div className="space-y-1">
-            <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
-            <Select
-              value={data.paymentMode ?? undefined}
-              onValueChange={handlePaymentTypeChange}
-            >
-              <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
-                <SelectValue placeholder="Sélectionner le mode de paiement" />
-              </SelectTrigger>
-              <SelectContent>
-                {PAYMENT_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {/* REMARQUE: show textarea on screen, show value in print only if not empty */}
-          <div className={cn('space-y-1 print:hidden')}>
-            <h3 className="font-semibold">REMARQUE</h3>
-            <Textarea
-              className="w-full min-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
-              placeholder="Saisissez des remarques pour cette facture..."
-              value={data.note ?? undefined}
-              onChange={({ target: { value } }) => {
-                setData((prev) => ({ ...prev, note: value }))
-              }}
-            />
-          </div>
-          {data.note && (
-            <div className="hidden print:block space-y-1">
+        <div className="payment-details">
+          <div className="space-y-2 text-sm mt-2">
+            <div className="space-y-1">
+              <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
+              <Select
+                value={data.paymentMode ?? undefined}
+                onValueChange={handlePaymentTypeChange}
+              >
+                <SelectTrigger className="w-fit border-none ring-0 h-fit py-1 px-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
+                  <SelectValue placeholder="Sélectionner le mode de paiement" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* REMARQUE: show textarea on screen, show value in print only if not empty */}
+            <div className={cn('space-y-1 print:hidden')}>
               <h3 className="font-semibold">REMARQUE</h3>
-              <p className="">{data.note}</p>
+              <Textarea
+                className="w-full min-h-20 group focus-visible:ring-0 ring-offset-0 rounded-md focus-visible:ring-offset-0 "
+                placeholder="Saisissez des remarques pour cette facture..."
+                value={data.note ?? undefined}
+                onChange={({ target: { value } }) => {
+                  setData((prev) => ({ ...prev, note: value }))
+                }}
+              />
             </div>
-          )}
+            {data.note && (
+              <div className="hidden print:block space-y-1">
+                <h3 className="font-semibold">REMARQUE</h3>
+                <p className="">{data.note}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const renderTable = (pageItems: Invoice['items']) => {
     return (
@@ -655,97 +636,101 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pageItems.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="py-[3px] px-2 h-8">{item.number}</TableCell>
-              <TableCell className="py-[3px] px-2 h-8 relative">
-                {editedId === item.id ? (
+          {pageItems
+            .sort((a, b) => Number(a.id) - Number(b.id))
+            .map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className="py-[3px] px-2 h-8">
+                  {item.number}
+                </TableCell>
+                <TableCell className="py-[3px] px-2 h-8 relative">
+                  {editedId === item.id ? (
+                    <Input
+                      value={item.label ?? undefined}
+                      onChange={(e) => {
+                        const newValue = e.target.value
+                        setData((prev) => ({
+                          ...prev,
+                          items: prev.items.map((nonEditedItem) =>
+                            nonEditedItem.id === item.id
+                              ? { ...nonEditedItem, label: newValue }
+                              : nonEditedItem
+                          )
+                        }))
+                      }}
+                      onBlur={() => setEditedId(undefined)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setEditedId(undefined)
+                        }
+                      }}
+                      autoFocus
+                      className="h-6 py-1 focus-visible:ring-0 ring-0 border-none rounded-none "
+                    />
+                  ) : (
+                    <div className="flex items-center  ">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 mr-1 opacity-50 print:hidden hover:opacity-100"
+                        onClick={() => {
+                          setEditedId(item.id)
+                        }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                        <span className="sr-only">Edit description</span>
+                      </Button>
+                      {item.label}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell className="text-center py-[3px] px-2 h-8 font-geist-sans">
+                  {item.quantity}
+                </TableCell>
+                <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
                   <Input
-                    value={item.label ?? undefined}
-                    onChange={(e) => {
-                      const newValue = e.target.value
+                    type="txt"
+                    value={prices[item.number] ?? item.price?.toString() ?? ''}
+                    onChange={(e) =>
+                      setPrices((prev) => ({
+                        ...prev,
+                        [item.number]: e.target.value
+                      }))
+                    }
+                    onBlur={() => {
+                      const raw =
+                        prices[item.number] ?? item.price?.toString() ?? '0'
+                      const num = Number(raw) || 0
+
                       setData((prev) => ({
                         ...prev,
-                        items: prev.items.map((nonEditedItem) =>
-                          nonEditedItem.id === item.id
-                            ? { ...nonEditedItem, label: newValue }
-                            : nonEditedItem
+                        items: prev.items.map((i) =>
+                          i.number === item.number
+                            ? {
+                                ...i,
+                                price: num,
+                                amount: num * Number(i.quantity)
+                              }
+                            : i
                         )
                       }))
+
+                      // replace raw input with formatted version
+                      setPrices((prev) => ({
+                        ...prev,
+                        [item.id ?? item.number.toString()]: formatPrice(num)
+                      }))
                     }}
-                    onBlur={() => setEditedId(undefined)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        setEditedId(undefined)
-                      }
-                    }}
-                    autoFocus
-                    className="h-6 py-1 focus-visible:ring-0 ring-0 border-none rounded-none "
+                    className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-[.9rem] text-right focus-visible:ring-0 border-none rounded-none"
                   />
-                ) : (
-                  <div className="flex items-center  ">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 mr-1 opacity-50 print:hidden hover:opacity-100"
-                      onClick={() => {
-                        setEditedId(item.id)
-                      }}
-                    >
-                      <Pencil className="h-3 w-3" />
-                      <span className="sr-only">Edit description</span>
-                    </Button>
-                    {item.label}
-                  </div>
-                )}
-              </TableCell>
-              <TableCell className="text-center py-[3px] px-2 h-8 font-geist-sans">
-                {item.quantity}
-              </TableCell>
-              <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
-                <Input
-                  type="txt"
-                  value={prices[item.number] ?? item.price?.toString() ?? ''}
-                  onChange={(e) =>
-                    setPrices((prev) => ({
-                      ...prev,
-                      [item.number]: e.target.value
-                    }))
-                  }
-                  onBlur={() => {
-                    const raw =
-                      prices[item.number] ?? item.price?.toString() ?? '0'
-                    const num = Number(raw) || 0
-
-                    setData((prev) => ({
-                      ...prev,
-                      items: prev.items.map((i) =>
-                        i.number === item.number
-                          ? {
-                              ...i,
-                              price: num,
-                              amount: num * Number(i.quantity)
-                            }
-                          : i
-                      )
-                    }))
-
-                    // replace raw input with formatted version
-                    setPrices((prev) => ({
-                      ...prev,
-                      [item.id ?? item.number.toString()]: formatPrice(num)
-                    }))
-                  }}
-                  className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-[.9rem] text-right focus-visible:ring-0 border-none rounded-none"
-                />
-              </TableCell>
-              <TableCell className="text-right py-[3px] px-2 h- font-geist-sans">
-                {formatPrice(
-                  item.amount ? item.amount : item.price! * item.quantity!
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+                </TableCell>
+                <TableCell className="text-right py-[3px] px-2 h- font-geist-sans">
+                  {formatPrice(
+                    item.amount ? item.amount : item.price! * item.quantity!
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     )
@@ -812,10 +797,13 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
             )}
           </div>
 
-          {/* Totals only on the last page */}
-          {pageIndex === pages.length - 1 && (
-            <div ref={totalsRef}>{renderTotals()}</div>
-          )}
+          {/* Totals on every page (uses per-page summary) */}
+          <div
+            ref={pageIndex === pages.length - 1 ? totalsRef : undefined}
+            className="mt-2"
+          >
+            {renderTotals(pageSummaries[pageIndex])}
+          </div>
 
           <div className="mt-auto" ref={pageIndex === 0 ? footerRef : null}>
             {renderBillFooter({
