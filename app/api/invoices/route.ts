@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     const id = type === 'FINAL' ? generateId('FF') : generateId('FP')
 
     const reference = await generateInvoiceReference(type)
+
     // Create invoice
     const invoice = await prisma.invoice.create({
       data: {

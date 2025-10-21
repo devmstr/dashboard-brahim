@@ -2,27 +2,32 @@ import prisma from './db'
 
 export async function generateInvoiceReference(
   type: 'FINAL' | 'PROFORMA' | string | null | undefined
-) {
+): Promise<string> {
   const currentYear = new Date().getFullYear()
-  const yearSuffix = String(currentYear).slice(-2) // e.g., "25" from "2025"
+  const yearSuffix = String(currentYear).slice(-2) // "25" for 2025
   const prefix = type === 'FINAL' ? 'FF' : 'FP'
 
-  // Start of current year
-  const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`)
-
-  // Count how many invoices of this type were created since start of year
-  const count = await prisma.invoice.count({
+  // Get the most recent invoice of this type for the current year
+  const lastInvoice = await prisma.invoice.findFirst({
     where: {
       type,
-      createdAt: {
-        gte: startOfYear
+      reference: {
+        startsWith: `${prefix}${yearSuffix}-`
       }
-    }
+    },
+    orderBy: { createdAt: 'desc' },
+    select: { reference: true }
   })
 
-  // Next invoice number (pad to 3 digits)
-  const nextNumber = String(count + 1).padStart(3, '0')
+  let nextNumber = 1
 
-  // Final reference like: 25-001, 25-002...
-  return `${prefix}${yearSuffix}-${nextNumber}`
+  if (lastInvoice?.reference) {
+    // Extract numeric part safely, e.g. "FF25-012" → 12
+    const match = lastInvoice.reference.match(/-(\d+)$/)
+    if (match) nextNumber = parseInt(match[1], 10) + 1
+  }
+
+  // Pad with leading zeros (e.g. 001, 002, ...)
+  const formattedNumber = String(nextNumber).padStart(3, '0')
+  return `${prefix}${yearSuffix}-${formattedNumber}`
 }
