@@ -10,6 +10,8 @@ import { ClientSchemaType } from '@/lib/validations'
 import { toast } from '@/hooks/use-toast'
 import { rest } from 'lodash'
 
+const ITEMS_PER_INVOICE_PAGE = 15 // Match your pagination limit
+
 export default function PosDashboard({
   radiators = []
 }: {
@@ -58,6 +60,14 @@ export default function PosDashboard({
             : item
         )
       } else {
+        if (prevCart.length >= ITEMS_PER_INVOICE_PAGE) {
+          toast({
+            title: 'Limite atteinte',
+            description: `Seulement ${ITEMS_PER_INVOICE_PAGE} articles sont autorisés par facture.`,
+            variant: 'warning'
+          })
+          return prevCart
+        }
         if (availableStock < 1) {
           return prevCart // No stock available
         }
@@ -135,7 +145,9 @@ export default function PosDashboard({
       })
       return
     }
+
     const { id: clientId, ...client } = selectedCustomer
+
     const response = await fetch('/api/invoices', {
       method: 'POST',
       headers: {
@@ -149,11 +161,12 @@ export default function PosDashboard({
         dueDate: new Date().toISOString(),
         status: 'PAID',
         items: cart,
-        subtotal,
-        tax,
-        total
+        subtotal: subtotal,
+        tax: tax,
+        total: total
       })
     })
+
     if (!response.ok) {
       const error = await response.json()
       toast({
@@ -166,7 +179,7 @@ export default function PosDashboard({
       return
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as { id: string } | null
 
     if (!data) {
       toast({
@@ -177,12 +190,13 @@ export default function PosDashboard({
       })
       return
     }
-    // Redirect to the printing page with the invoice ID
+
     toast({
       title: 'Succès',
       description: 'La facture a été créée avec succès.',
       variant: 'success'
     })
+    // Redirect to the print page for the invoice
     router.push(`/dashboard/ledger/${data.id}`)
   }
 
