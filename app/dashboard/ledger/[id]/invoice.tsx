@@ -100,7 +100,12 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          total: totalTTC
+          total: totalTTC,
+          subtotal: totalHT,
+          vat: vat,
+          discount: discount,
+          refund: refund,
+          stampTax: stampTax
         })
       })
 

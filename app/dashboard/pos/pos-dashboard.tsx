@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CartItem, Product } from '@/types'
 import CustomerSearchInput from '@/components/customer-search.input'
 import ProductsSection from './product-section'
@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import { ClientSchemaType } from '@/lib/validations'
 import { toast } from '@/hooks/use-toast'
 import { rest } from 'lodash'
+import { calculateBillingSummary } from '@/helpers/invoice'
 
 const ITEMS_PER_INVOICE_PAGE = 15 // Match your pagination limit
 
@@ -126,14 +127,10 @@ export default function PosDashboard({
     )
   }
 
-  // Calculate totals
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  )
-  const taxRate = 0.19
-  const tax = subtotal * taxRate
-  const total = subtotal + tax
+  const billingSummary = useMemo(() => calculateBillingSummary(cart), [cart])
+
+  const { totalTTC, stampTax, discount, refund, totalHT, vat } = billingSummary
+
   const router = useRouter()
   // Print receipt
   const printReceipt = async () => {
@@ -161,9 +158,16 @@ export default function PosDashboard({
         dueDate: new Date().toISOString(),
         status: 'PAID',
         items: cart,
-        subtotal: subtotal,
-        tax: tax,
-        total: total
+        subtotal: totalHT,
+        vat: vat,
+        vatRate: 0.19,
+        total: totalTTC,
+        stampTax: stampTax,
+        stampTaxRate: 0,
+        discount: discount,
+        discountRate: 0,
+        refund: refund,
+        refundRate: 0
       })
     })
 
@@ -217,9 +221,9 @@ export default function PosDashboard({
           toggleItemExpansion={toggleItemExpansion}
           updateQuantity={updateQuantity}
           removeFromCart={removeFromCart}
-          subtotal={subtotal}
-          tax={tax}
-          total={total}
+          subtotal={totalHT}
+          tax={vat}
+          total={totalTTC}
           printReceipt={printReceipt}
         />
       </div>

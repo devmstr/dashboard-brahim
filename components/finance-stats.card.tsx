@@ -1,90 +1,154 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatPrice } from '@/lib/utils'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 
-const stats = [
-  {
-    title: 'brute h/t',
-    value: 122380000,
-    delta: 15.1,
-    lastMonth: 106324500, // Fixed: 122380000 / (1 + 15.1/100)
-    positive: true,
-    prefix: '',
-    suffix: ''
-  },
-  {
-    title: 'net commercial',
-    value: 100238000,
-    delta: -2.0,
-    lastMonth: 102283673.47, // Fixed: 100238000 / (1 - 2.0/100)
-    positive: false,
-    prefix: '',
-    suffix: ''
-  },
-  {
-    title: 'tva 19%',
-    value: 12100000,
-    delta: 0.4,
-    lastMonth: 12051792.83, // Fixed: 12100000 / (1 + 0.4/100)
-    positive: true,
-    prefix: '$',
-    suffix: 'M',
-    format: (v: number) => `$${(v / 1e6).toFixed(1)}M`,
-    lastFormat: (v: number) => `$${(v / 1e6).toFixed(1)}M`
-  },
-  {
-    title: 'TTC',
-    value: 150380000,
-    delta: 3.7,
-    lastMonth: 145014464.8, // Fixed: 150380000 / (1 + 3.7/100)
-    positive: true,
-    prefix: '',
-    suffix: ''
-  }
-]
-
 function formatNumber(n: number) {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
-  if (n >= 1_000) return n.toLocaleString()
-  return n.toString()
+  if (n >= 1_000_000) return formatPrice(n / 1_000_000) + ' M'
+  return formatPrice(n)
 }
 
-export default function FinanceMetadataCards() {
+type StatCardItem = {
+  title: string
+  value: number
+  delta: number
+  lastMonth: number // Fixed: 150380000 / (1 + 3.7/100)
+  positive: boolean
+}
+
+export type FinanceStats = {
+  bruteHT: StatCardItem
+  netCommercial: StatCardItem
+  tva19: StatCardItem
+  ttc: StatCardItem
+}
+
+export default function FinanceMetadataCards({
+  stats
+}: {
+  stats?: FinanceStats
+}) {
+  if (!stats) return null
+  const { bruteHT, netCommercial, tva19, ttc } = stats
+
   return (
     <div className="grow grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-      {stats.map((stat, index) => (
-        <Card key={index}>
+      {bruteHT && (
+        <Card>
           <CardHeader className="border-0">
             <CardTitle className="text-muted-foreground text-sm font-medium uppercase">
-              {stat.title}
+              {bruteHT.title}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2.5">
             <div className="flex items-center gap-2.5">
               <span className="text-2xl font-medium text-foreground tracking-tight">
-                {stat.format
-                  ? stat.format(stat.value)
-                  : stat.prefix + formatNumber(stat.value) + stat.suffix}
+                {formatNumber(bruteHT.value)}
               </span>
               <Badge
-                variant={stat.positive ? 'success' : 'destructive'}
+                variant={bruteHT.positive ? 'success' : 'destructive'}
                 appearance="light"
               >
-                {stat.delta > 0 ? <ArrowUp /> : <ArrowDown />}
-                {stat.delta}%
+                {bruteHT.delta >= 0 ? <ArrowUp /> : <ArrowDown />}
+                {bruteHT.delta}%
               </Badge>
             </div>
             <div className="text-md text-muted-foreground mt-2 border-t-2 pt-2.5">
               Mois précédent:{' '}
               <span className="font-medium text-foreground">
-                {stat.lastFormat
-                  ? stat.lastFormat(stat.lastMonth)
-                  : stat.prefix + formatNumber(stat.lastMonth) + stat.suffix}
+                {formatNumber(bruteHT.lastMonth)}
               </span>
             </div>
           </CardContent>
         </Card>
-      ))}
+      )}
+      {netCommercial && (
+        <Card>
+          <CardHeader className="border-0">
+            <CardTitle className="text-muted-foreground text-sm font-medium uppercase">
+              {netCommercial.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl font-medium text-foreground tracking-tight">
+                {formatNumber(netCommercial.value)}
+              </span>
+              <Badge
+                variant={netCommercial.positive ? 'success' : 'destructive'}
+                appearance="light"
+              >
+                {netCommercial.delta >= 0 ? <ArrowUp /> : <ArrowDown />}
+                {netCommercial.delta}%
+              </Badge>
+            </div>
+            <div className="text-md text-muted-foreground mt-2 border-t-2 pt-2.5">
+              Mois précédent:{' '}
+              <span className="font-medium text-foreground">
+                {formatNumber(netCommercial.lastMonth)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {tva19 && (
+        <Card>
+          <CardHeader className="border-0">
+            <CardTitle className="text-muted-foreground text-sm font-medium uppercase">
+              {tva19.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl font-medium text-foreground tracking-tight">
+                {formatNumber(tva19.value)}
+              </span>
+              <Badge
+                variant={tva19.positive ? 'success' : 'destructive'}
+                appearance="light"
+              >
+                {tva19.delta >= 0 ? <ArrowUp /> : <ArrowDown />}
+                {tva19.delta}%
+              </Badge>
+            </div>
+            <div className="text-md text-muted-foreground mt-2 border-t-2 pt-2.5">
+              Mois précédent:{' '}
+              <span className="font-medium text-foreground">
+                {formatNumber(tva19.lastMonth)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      {ttc && (
+        <Card>
+          <CardHeader className="border-0">
+            <CardTitle className="text-muted-foreground text-sm font-medium uppercase">
+              {ttc.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl font-medium text-foreground tracking-tight">
+                {formatNumber(ttc.value)}
+              </span>
+              <Badge
+                variant={ttc.positive ? 'success' : 'destructive'}
+                appearance="light"
+              >
+                {ttc.delta >= 0 ? <ArrowUp /> : <ArrowDown />}
+                {ttc.delta}%
+              </Badge>
+            </div>
+            <div className="text-md text-muted-foreground mt-2 border-t-2 pt-2.5">
+              Mois précédent:{' '}
+              <span className="font-medium text-foreground">
+                {formatNumber(ttc.lastMonth)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
