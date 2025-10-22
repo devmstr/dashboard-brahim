@@ -155,8 +155,12 @@ model Invoice {
   purchaseOrder       String?
   deliverySlip        String?
   discountRate        Float?    @default(0)
+  discount            Float?    @default(0)
   refundRate          Float?    @default(0)
+  refund              Float?    @default(0)
   stampTaxRate        Float?    @default(0)
+  stampTax            Float?    @default(0)
+  vatRate             Float?    @default(0)
   vat                 Float?    @default(0)
   offerValidity       String?
   guaranteeTime       String?
@@ -164,7 +168,6 @@ model Invoice {
   note                String?
   total               Float?
   subtotal            Float?
-  tax                 Float?
 
   items InvoiceItem[]
 

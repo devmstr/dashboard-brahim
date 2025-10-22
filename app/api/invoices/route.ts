@@ -31,7 +31,11 @@ export async function POST(req: NextRequest) {
       note,
       total,
       subtotal,
-      tax,
+      discount,
+      refund,
+      stampTax,
+      vatRate,
+      vat,
       items,
       histories,
       clientId,
@@ -67,7 +71,11 @@ export async function POST(req: NextRequest) {
         note,
         total,
         subtotal,
-        tax,
+        discount,
+        refund,
+        stampTax,
+        vatRate,
+        vat,
         ...(clientId && {
           Client: {
             connect: {

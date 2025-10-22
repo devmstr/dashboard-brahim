@@ -337,53 +337,95 @@ export function LedgerTable({
   const columnAccessRules: ColumnAccess[] = [
     {
       id: 'id',
-      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'FINANCE',
+        'FINANCE_MANAGER'
+      ],
       order: 1
     },
     {
       id: 'billId',
-      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'FINANCE',
+        'FINANCE_MANAGER'
+      ],
       order: 2
     },
     {
       id: 'type',
-      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'FINANCE',
+        'FINANCE_MANAGER'
+      ],
       order: 3
     },
     {
       id: 'total',
-      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'FINANCE',
+        'FINANCE_MANAGER'
+      ],
       order: 4
     },
     {
       id: 'items',
-      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'FINANCE',
+        'FINANCE_MANAGER'
+      ],
       order: 5
     },
     {
       id: 'createdAt',
-      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'FINANCE',
+        'FINANCE_MANAGER'
+      ],
       order: 6
     },
     {
       id: 'company',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE', 'FINANCE_MANAGER'],
       order: 7
     },
     {
       id: 'phone',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE', 'FINANCE_MANAGER'],
       order: 8
     },
     {
       id: 'location',
-      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: ['SALES_AGENT', 'SALES_MANAGER', 'FINANCE', 'FINANCE_MANAGER'],
       order: 9,
       responsiveClass: 'hidden lg:table-cell'
     },
     {
       id: 'actions',
-      roles: ['GUEST', 'SALES_AGENT', 'SALES_MANAGER', 'FINANCE'],
+      roles: [
+        'GUEST',
+        'SALES_AGENT',
+        'SALES_MANAGER',
+        'FINANCE',
+        'FINANCE_MANAGER'
+      ],
       order: 10
     }
   ]

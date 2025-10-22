@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CartItem, Product } from '@/types'
 import CustomerSearchInput from '@/components/customer-search.input'
 import ProductsSection from './product-section'
@@ -9,6 +9,9 @@ import { useRouter } from 'next/navigation'
 import { ClientSchemaType } from '@/lib/validations'
 import { toast } from '@/hooks/use-toast'
 import { rest } from 'lodash'
+import { calculateBillingSummary } from '@/helpers/invoice'
+
+const ITEMS_PER_INVOICE_PAGE = 15 // Match your pagination limit
 
 export default function PosDashboard({
   radiators = []
@@ -58,6 +61,14 @@ export default function PosDashboard({
             : item
         )
       } else {
+        if (prevCart.length >= ITEMS_PER_INVOICE_PAGE) {
+          toast({
+            title: 'Limite atteinte',
+            description: `Seulement ${ITEMS_PER_INVOICE_PAGE} articles sont autorisés par facture.`,
+            variant: 'warning'
+          })
+          return prevCart
+        }
         if (availableStock < 1) {
           return prevCart // No stock available
         }
@@ -116,14 +127,10 @@ export default function PosDashboard({
     )
   }
 
-  // Calculate totals
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  )
-  const taxRate = 0.19
-  const tax = subtotal * taxRate
-  const total = subtotal + tax
+  const billingSummary = useMemo(() => calculateBillingSummary(cart), [cart])
+
+  const { totalTTC, stampTax, discount, refund, totalHT, vat } = billingSummary
+
   const router = useRouter()
   // Print receipt
   const printReceipt = async () => {
@@ -135,7 +142,9 @@ export default function PosDashboard({
       })
       return
     }
+
     const { id: clientId, ...client } = selectedCustomer
+
     const response = await fetch('/api/invoices', {
       method: 'POST',
       headers: {
@@ -149,11 +158,19 @@ export default function PosDashboard({
         dueDate: new Date().toISOString(),
         status: 'PAID',
         items: cart,
-        subtotal,
-        tax,
-        total
+        subtotal: totalHT,
+        vat: vat,
+        vatRate: 0.19,
+        total: totalTTC,
+        stampTax: stampTax,
+        stampTaxRate: 0,
+        discount: discount,
+        discountRate: 0,
+        refund: refund,
+        refundRate: 0
       })
     })
+
     if (!response.ok) {
       const error = await response.json()
       toast({
@@ -166,7 +183,7 @@ export default function PosDashboard({
       return
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as { id: string } | null
 
     if (!data) {
       toast({
@@ -177,12 +194,13 @@ export default function PosDashboard({
       })
       return
     }
-    // Redirect to the printing page with the invoice ID
+
     toast({
       title: 'Succès',
       description: 'La facture a été créée avec succès.',
       variant: 'success'
     })
+    // Redirect to the print page for the invoice
     router.push(`/dashboard/ledger/${data.id}`)
   }
 
@@ -203,9 +221,9 @@ export default function PosDashboard({
           toggleItemExpansion={toggleItemExpansion}
           updateQuantity={updateQuantity}
           removeFromCart={removeFromCart}
-          subtotal={subtotal}
-          tax={tax}
-          total={total}
+          subtotal={totalHT}
+          tax={vat}
+          total={totalTTC}
           printReceipt={printReceipt}
         />
       </div>
