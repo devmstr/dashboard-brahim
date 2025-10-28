@@ -32,6 +32,7 @@ const Page: React.FC<Props> = async ({
     'ENGINEER',
     'ENGINEERING_MANAGER'
   ])
+
   try {
     const orderItem = await prisma.orderItem.findUniqueOrThrow({
       where: { id: componentId },

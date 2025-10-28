@@ -160,14 +160,14 @@ export default function PosDashboard({
         items: cart,
         subtotal: totalHT,
         vat: vat,
-        vatRate: 0.19,
         total: totalTTC,
         stampTax: stampTax,
-        stampTaxRate: 0,
         discount: discount,
-        discountRate: 0,
         refund: refund,
-        refundRate: 0
+        stampTaxRate: 0,
+        discountRate: 0,
+        refundRate: 0,
+        vatRate: 0.19
       })
     })
 
@@ -206,26 +206,28 @@ export default function PosDashboard({
 
   return (
     <div className="flex flex-col space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 h-full">
+      <div className="grid grirev grid-cols-1 lg:grid-cols-3 gap-6 flex-1 h-full">
         <div className="lg:col-span-2 flex flex-col gap-6">
+          <ProductsSection products={products} addToCart={addToCart} />
+        </div>
+        <div className="flex flex-col gap-4">
           <CustomerSearchInput
             onlyCompanies={false}
             selected={selectedCustomer}
             onSelectChange={setSelectedCustomer}
           />
-          <ProductsSection products={products} addToCart={addToCart} />
+          <CartSection
+            cart={cart}
+            expandedItems={expandedItems}
+            toggleItemExpansion={toggleItemExpansion}
+            updateQuantity={updateQuantity}
+            removeFromCart={removeFromCart}
+            subtotal={totalHT}
+            tax={vat}
+            total={totalTTC}
+            printReceipt={printReceipt}
+          />
         </div>
-        <CartSection
-          cart={cart}
-          expandedItems={expandedItems}
-          toggleItemExpansion={toggleItemExpansion}
-          updateQuantity={updateQuantity}
-          removeFromCart={removeFromCart}
-          subtotal={totalHT}
-          tax={vat}
-          total={totalTTC}
-          printReceipt={printReceipt}
-        />
       </div>
     </div>
   )

@@ -82,6 +82,7 @@ import { PiBuildingsBold } from 'react-icons/pi'
 import { IoPricetagsOutline } from 'react-icons/io5'
 import { RiOrganizationChart } from 'react-icons/ri'
 import { HiOutlineChartPie } from 'react-icons/hi2'
+import { TbFileDownload } from 'react-icons/tb'
 
 import { cn } from '@/lib/utils'
 
@@ -91,6 +92,7 @@ export const Icons = {
   priceMargin: HiOutlineChartPie,
   category: RiOrganizationChart,
   globe: Globe,
+  file: TbFileDownload,
   pricingTag: IoPricetagsOutline,
   carBrand: PiBuildingsBold,
   deliveryPackage: TbPackageImport,

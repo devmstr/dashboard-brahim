@@ -10,7 +10,6 @@ import { signIn } from 'next-auth/react'
 import prisma from '@/lib/db'
 import { OrderMetaForm } from './_components/order-meta.form'
 import { Payment } from '@prisma/client'
-import { Order } from '@/lib/validations'
 
 interface PageProps {
   params: {

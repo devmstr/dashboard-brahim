@@ -38,7 +38,7 @@ import Link from 'next/link'
 import { Icons } from '@/components/icons'
 import { cn, hasUserRole } from '@/lib/utils'
 import type { Invoice as InvoiceType, UserRole } from '@/types'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import {
   Popover,
@@ -65,6 +65,7 @@ import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import ReadOnlyInvoice from '@/components/readonly-invoice'
+import { DateRange, DateRangeFilter } from '@/components/DateRangeFilter'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -94,7 +95,8 @@ interface LedgerTableProps {
     phone: string
     location: string
     limit: string
-    export: string
+    exportJournal: string
+    exportRecap: string
     filter: string
     dateRange: string
     from: string
@@ -135,12 +137,13 @@ export function LedgerTable({
     phone: 'Téléphone',
     location: 'Location',
     limit: 'Limite',
-    export: 'Exporter',
-    filter: 'Date',
+    exportJournal: 'Exporter Journale',
+    exportRecap: 'Exporter Recap',
     dateRange: 'Plage de dates',
     from: 'De',
     to: 'À',
     apply: 'Appliquer',
+    filter: 'Date',
     reset: 'Réinitialiser',
     details: 'Détails',
     type: 'Type',
@@ -169,8 +172,6 @@ export function LedgerTable({
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
-
-  const { refresh } = useRouter()
 
   // Define a reusable function for creating sortable headers
   const createSortableHeader = (column: any, label: string) => {
@@ -253,6 +254,32 @@ export function LedgerTable({
       })
     }
   }, [])
+
+  const searchParams = useSearchParams()
+
+  const handleRecapDownload = async () => {
+    try {
+      const res = await fetch(`/api/reports/recap?${searchParams.toString()}`, {
+        method: 'GET'
+      })
+      if (!res.ok) throw new Error('Failed to generate recap')
+
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `recap_${new Date().getFullYear()}.xlsx`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de générer le fichier de récapitulatif.',
+        variant: 'destructive'
+      })
+    }
+  }
 
   // Define column overrides for specific columns
   const columnOverrides: Record<string, ColumnOverride> = {
@@ -512,7 +539,7 @@ export function LedgerTable({
   }
 
   // Export to CSV function
-  const exportToCSV = () => {
+  const handleJournalDownload = () => {
     // Filter out the actions column from visible columns
     const exportableColumns = table
       .getVisibleFlatColumns()
@@ -575,72 +602,7 @@ export function LedgerTable({
           />
 
           {/* Date Range Filter */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="flex gap-2 bg-transparent">
-                <Filter className="h-4 w-4" />
-                {t.filter}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent usePortal className="w-full">
-              <div className="space-y-4">
-                <div className="flex justify-between gap-4">
-                  <h4 className="font-medium">{t.dateRange}</h4>
-                  <div className="flex gap-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDateRange({})}
-                    >
-                      {t.reset}
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        // Filter is applied automatically via useEffect
-                      }}
-                      disabled={!dateRange.from || !dateRange.to}
-                    >
-                      {t.apply}
-                    </Button>
-                  </div>
-                </div>
-                <Separator />
-                <div className="flex flex-col gap-2 px-3 pt-2 pb-4">
-                  <div className="flex gap-5 ">
-                    <div className="flex items-start gap-2">
-                      <Label className="text-sm">{t.from}:</Label>
-                      <Calendar
-                        mode="single"
-                        selected={dateRange.from}
-                        onSelect={(date: any) =>
-                          setDateRange((prev) => ({ ...prev, from: date }))
-                        }
-                        disabled={(date: any) =>
-                          dateRange.to ? date > dateRange.to : false
-                        }
-                        className="rounded-md border"
-                      />
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <Label className="text-sm">{t.to}:</Label>
-                      <Calendar
-                        mode="single"
-                        selected={dateRange.to}
-                        onSelect={(date: any) =>
-                          setDateRange((prev) => ({ ...prev, to: date }))
-                        }
-                        disabled={(date: any) =>
-                          dateRange.from ? date < dateRange.from : false
-                        }
-                        className="rounded-md border"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <DateRangeFilter dateRange={dateRange} setDateRange={setDateRange} />
           {/* Invoice Type Filter Popover */}
           <Popover>
             <PopoverTrigger asChild>
@@ -764,14 +726,31 @@ export function LedgerTable({
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            variant="outline"
-            className="flex gap-2 bg-transparent"
-            onClick={exportToCSV}
-          >
-            <Download className="h-4 w-4" />
-            {t.export}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex gap-2">
+                <Download className="h-4 w-4" />
+                Export/Import
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                className="flex gap-2 bg-transparent"
+                onClick={handleRecapDownload}
+              >
+                <Icons.file className="h-4 w-4" />
+                {t.exportRecap}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="flex gap-2 bg-transparent"
+                onClick={handleJournalDownload}
+              >
+                <Icons.file className="h-4 w-4" />
+                {t.exportJournal}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

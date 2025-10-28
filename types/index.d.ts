@@ -321,8 +321,12 @@ declare type Invoice = {
   purchaseOrder: string | null
   deliverySlip: string | null
   discountRate: number | null
+  discount: number | null
   refundRate: number | null
+  refund: number | null
   stampTaxRate: number | null
+  stampTax: number | null
+  vatRate: number | null
   vat: number | null
   offerValidity: string | null
   guaranteeTime: string | null
@@ -330,7 +334,6 @@ declare type Invoice = {
   note: string | null
   total: number | null
   subtotal: number | null
-  tax: number | null
   orderId: string | null
   clientId: string | null
   items: InvoiceItem[] | []

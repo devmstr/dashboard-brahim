@@ -40,7 +40,7 @@ export interface InvoiceProps {
 export default function Invoice({ data: input, className }: InvoiceProps) {
   const [data, setData] = useState<Invoice>({
     ...input,
-    vat: 0.19
+    vat: input.vatRate || 0.19
   })
 
   const [editedId, setEditedId] = useState<string | undefined>(undefined)
@@ -59,14 +59,14 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         discountRate: data.discountRate,
         refundRate: data.refundRate,
         stampTaxRate: data.stampTaxRate,
-        vatRate: data.vat
+        vatRate: data.vatRate
       }),
     [
       data.items,
       data.discountRate,
       data.refundRate,
       data.stampTaxRate,
-      data.vat
+      data.vatRate
     ]
   )
 
@@ -100,6 +100,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
+          vatRate: data.vatRate,
           total: totalTTC,
           subtotal: totalHT,
           vat: vat,
@@ -470,12 +471,12 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
                     className={cn(
                       'p-0 m-0 w-12  h-6 text-muted-foreground print:text-foreground focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
                     )}
-                    value={`${Number(data.vat) * 100}%`}
+                    value={`${Number(data.vatRate) * 100}%`}
                     items={['19%', '0%']}
                     setValue={(v) => {
                       setData((prev) => ({
                         ...prev,
-                        vat: Number(v.replace(/\%/g, '')) / 100
+                        vatRate: Number(v.replace(/\%/g, '')) / 100
                       }))
                     }}
                   />

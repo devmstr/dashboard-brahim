@@ -83,7 +83,7 @@ export function ProductPosTable({
   }
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [limit, setLimit] = React.useState(8)
+  const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
@@ -376,7 +376,7 @@ export function ProductPosTable({
                   value={limit.toString()}
                   onValueChange={(value) => setLimit(parseInt(value))}
                 >
-                  {['8', '10', '25', '50'].map((value) => (
+                  {['10', '25', '50'].map((value) => (
                     <DropdownMenuRadioItem
                       className={cn(
                         'text-muted-foreground font-medium hover:text-primary',

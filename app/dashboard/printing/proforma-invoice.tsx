@@ -103,8 +103,11 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             note: null,
             total: null,
             subtotal: null,
-            tax: null,
-            vat: 0.19,
+            vatRate: 0.19,
+            vat: null,
+            discount: null,
+            refund: null,
+            stampTax: null,
             orderId: null,
             clientId: null,
             items: [
