@@ -66,6 +66,7 @@ import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import ReadOnlyInvoice from '@/components/readonly-invoice'
 import { DateRange, DateRangeFilter } from '@/components/DateRangeFilter'
+import MonthlyLedger from './mothely.ledger'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -162,12 +163,43 @@ export function LedgerTable({
   const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
     {}
   )
+
   const [invoiceTypeFilter, setInvoiceTypeFilter] = React.useState<
     'FINAL' | 'PROFORMA' | null
   >(null)
   const [showInvoice, setShowInvoice] = React.useState(false)
   const [invoice, setInvoice] = React.useState<InvoiceType | null>(null)
   const printRef = React.useRef<HTMLDivElement>(null)
+  const [showMonthlyLedger, setShowMonthlyLedger] = React.useState(false) // Added state for monthly ledger dialog
+  const monthlyPrintRef = React.useRef<HTMLDivElement>(null) // Added ref for printing monthly ledger
+  const [mothelyLedgerData, setMonthlyLedgerData] = React.useState<
+    | {
+        invoices: {
+          id: string
+          type: string | null
+          reference: string
+          discount: number | null
+          refund: number | null
+          stampTax: number | null
+          vat: number | null
+          total: number | null
+          subtotal: number | null
+          createdAt: Date | null
+          Client: {
+            name: string
+          } | null
+        }[]
+        totals: {
+          subtotal: number
+          discount: number
+          refund: number
+          stampTax: number
+          vat: number
+          total: number
+        }
+      }
+    | undefined
+  >(undefined)
 
   React.useEffect(() => {
     table.setPageSize(limit)
@@ -237,6 +269,21 @@ export function LedgerTable({
           }
         `
   })
+  const handleMonthlyPrint = useReactToPrint({
+    contentRef: monthlyPrintRef,
+    documentTitle: `Journal_Mensuel_${dateRange.from}_to_${dateRange.to}`,
+    pageStyle: `
+      @page { 
+        size: A4 landscape;
+        margin: 0;
+      }
+      @media print {
+        body { 
+          -webkit-print-color-adjust: exact; 
+        }
+      }
+    `
+  })
 
   const openPrintDialog = React.useCallback(async (id: string) => {
     setShowInvoice(true)
@@ -263,12 +310,20 @@ export function LedgerTable({
         method: 'GET'
       })
       if (!res.ok) throw new Error('Failed to generate recap')
+      // naming
+      let nameSalt = new Date().getFullYear().toString()
 
+      if (dateRange.from && dateRange.to) {
+        nameSalt = `de ${format(dateRange.from, 'yyyy-MM-dd')} a${format(
+          dateRange.to,
+          'yyyy-MM-dd'
+        )}`
+      }
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `recap_${new Date().getFullYear()}.xlsx`
+      a.download = `recap_${nameSalt}.xlsx`
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -539,55 +594,42 @@ export function LedgerTable({
   }
 
   // Export to CSV function
-  const handleJournalDownload = () => {
-    // Filter out the actions column from visible columns
-    const exportableColumns = table
-      .getVisibleFlatColumns()
-      .filter((column) => column.id !== 'actions')
+  const handleJournalDownload = async () => {
+    try {
+      // Forward every filter that the UI already applies
+      const res = await fetch(
+        `/api/reports/journal?${searchParams.toString()}`,
+        {
+          method: 'GET'
+        }
+      )
 
-    // Use the filtered columns for headers
-    const headers = exportableColumns.map(
-      (column) => t[column.id as keyof typeof t] || column.id
-    )
+      if (!res.ok) throw new Error('Failed to generate journal CSV')
 
-    const rows = table.getFilteredRowModel().rows.map((row) => {
-      return exportableColumns.map((column) => {
-        const value = row.getValue(column.id)
-        if (column.id === 'createdAt' && value) {
-          return format(new Date(value as string), 'dd/MM/yyyy')
-        }
-        if (column.id === 'total' && value) {
-          return Number((value as number).toFixed(2)).toLocaleString('fr-FR')
-        }
-        if (column.id === 'items' && value) {
-          const items = (row.original as LedgerEntry).items
-          return items > 0 ? `${items}` : '0'
-        }
-        if (column.id === 'type' && value) {
-          return value === 'FINAL' ? t.final : t.proforma
-        }
+      // Build a friendly file name (same logic you used before)
+      let nameSalt = format(new Date(), 'yyyy-MM-dd')
+      if (dateRange.from && dateRange.to) {
+        nameSalt = `de_${format(dateRange.from, 'yyyy-MM-dd')}_a_${format(
+          dateRange.to,
+          'yyyy-MM-dd'
+        )}`
+      }
 
-        return value
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `journal_${nameSalt}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de générer le fichier journal.',
+        variant: 'destructive'
       })
-    })
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.join(','))
-    ].join('\n')
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.setAttribute('href', url)
-    link.setAttribute(
-      'download',
-      `ledger-export-${format(new Date(), 'yyyy-MM-dd')}.csv`
-    )
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    }
   }
 
   return (
@@ -744,7 +786,7 @@ export function LedgerTable({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="flex gap-2 bg-transparent"
-                onClick={handleJournalDownload}
+                onClick={() => setShowMonthlyLedger(true)}
               >
                 <Icons.file className="h-4 w-4" />
                 {t.exportJournal}
@@ -863,6 +905,39 @@ export function LedgerTable({
                 'w-full text-foreground rounded-t-none'
               )}
               onClick={() => handlePrint()}
+            >
+              <Icons.printer className="mr-2 h-4 w-4" />
+              Imprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Added: Monthly Ledger Dialog */}
+      <Dialog open={showMonthlyLedger} onOpenChange={setShowMonthlyLedger}>
+        <DialogContent className="p-0 w-full max-w-[80vw] max-h-[80vh]">
+          <ScrollArea className="w-full rounded-md h-[calc(80vh-8rem)]">
+            <div ref={monthlyPrintRef}>
+              <MonthlyLedger />
+            </div>
+          </ScrollArea>
+          <DialogFooter className="flex w-full gap-3">
+            <Button
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'w-full text-foreground rounded-t-none'
+              )}
+              onClick={handleJournalDownload} // handleJournalDownload inside onClick
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download CSV
+            </Button>
+            <Button
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'w-full text-foreground rounded-t-none'
+              )}
+              onClick={() => handleMonthlyPrint()}
             >
               <Icons.printer className="mr-2 h-4 w-4" />
               Imprimer

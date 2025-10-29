@@ -65,6 +65,7 @@ function editCells(
   // Commit every row that was touched
   rowsMap.forEach((r) => r.commit())
 }
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.nextUrl)
 

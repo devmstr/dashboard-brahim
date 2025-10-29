@@ -12,7 +12,14 @@ async function main() {
 
   for (const data of invoices) {
     try {
-      const { Client, items, histories, clientId, ...invoiceData } = data
+      const {
+        Client: { addressId, ...clientData },
+        items,
+        histories,
+        clientId,
+        ...invoiceData
+      } = data
+
       const invoice = await prisma.invoice.create({
         data: {
           ...invoiceData,
@@ -21,9 +28,16 @@ async function main() {
             createMany: {
               data: items
             }
+          },
+          Client: {
+            connectOrCreate: {
+              where: { id: clientData.id },
+              create: clientData
+            }
           }
         }
       })
+
       console.log(`Invoice ${invoice.reference} created successfully!`)
     } catch (error) {
       console.log({ message: `Invoice Creation error !`, error })
