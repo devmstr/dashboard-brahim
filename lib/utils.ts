@@ -112,7 +112,8 @@ export function isContentEmpty(note: Content): boolean {
 
 export function formatPrice(value: number | string | undefined | null): string {
   if (!value) return '0'
-  return thousands(Number(value).toFixed(2), {
+  const rounded = Math.floor(Number(value) * 100) / 100
+  return thousands(rounded.toFixed(2), {
     separator: ' ',
     formatFourDigits: true
   })

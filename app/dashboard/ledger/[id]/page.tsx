@@ -1,4 +1,3 @@
-
 import Invoice from './invoice'
 import prisma from '@/lib/db'
 import { InvoicePrinterWrapper } from './invoice-client-wrapper'
@@ -15,7 +14,9 @@ export default async function Page({ params }: { params: { id: string } }) {
           Address: true
         }
       },
-      items: true
+      items: {
+        orderBy: { id: 'asc' }
+      }
     }
   })
   // console.log(invoice)

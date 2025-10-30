@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
   // ---------- 1. Build Prisma WHERE clause ----------
   const from = parseDateStart(searchParams.get('from'))
   const to = parseDateEnd(searchParams.get('to'))
+  console.log({ from, to })
   const type = searchParams.get('type') as 'FINAL' | 'PROFORMA' | null
 
   const where: Prisma.InvoiceWhereInput = {}
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
         }
       }
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { reference: 'asc' }
   })
 
   // ---------- 3. Handle format ----------
