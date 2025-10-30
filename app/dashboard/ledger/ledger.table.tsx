@@ -201,6 +201,8 @@ export function LedgerTable({
     | undefined
   >(undefined)
 
+  const [isExcelLoading, setIsExcelLoading] = React.useState<boolean>()
+
   React.useEffect(() => {
     table.setPageSize(limit)
   }, [limit])
@@ -596,6 +598,7 @@ export function LedgerTable({
   // Export to CSV function
   const handleJournalDownload = async () => {
     try {
+      setIsExcelLoading(true)
       // Forward every filter that the UI already applies
       const res = await fetch(
         `/api/reports/journal?${searchParams.toString()}`,
@@ -604,7 +607,7 @@ export function LedgerTable({
         }
       )
 
-      if (!res.ok) throw new Error('Failed to generate journal CSV')
+      if (!res.ok) throw new Error('Failed to generate journal Xlsx')
 
       // Build a friendly file name (same logic you used before)
       let nameSalt = format(new Date(), 'yyyy-MM-dd')
@@ -619,7 +622,7 @@ export function LedgerTable({
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `journal_${nameSalt}.csv`
+      a.download = `journal_${nameSalt}.xlsx`
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
@@ -629,6 +632,8 @@ export function LedgerTable({
         description: 'Impossible de générer le fichier journal.',
         variant: 'destructive'
       })
+    } finally {
+      setIsExcelLoading(false)
     }
   }
 
@@ -925,10 +930,15 @@ export function LedgerTable({
             <Button
               variant={'outline'}
               className={cn('w-full text-foreground rounded-none')}
-              onClick={handleJournalDownload} // handleJournalDownload inside onClick
+              onClick={handleJournalDownload}
+              disabled={isExcelLoading}
             >
-              <Download className="mr-2 h-4 w-4" />
-              Download CSV
+              {isExcelLoading ? (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Download MS.Excel
             </Button>
             <Button
               variant={'outline'}

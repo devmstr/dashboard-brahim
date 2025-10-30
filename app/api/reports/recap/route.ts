@@ -4,6 +4,7 @@ import ExcelJS from 'exceljs'
 import path from 'path'
 import fs from 'fs/promises'
 import { Prisma } from '@prisma/client'
+import { editCells } from '@/lib/xlsx'
 
 type InvoiceSum = {
   subtotal: number
@@ -33,37 +34,6 @@ const parseDateEnd = (str: string | null): Date | null => {
   // Set to 23:59:59.999 of that day
   date.setHours(23, 59, 59, 999)
   return date
-}
-
-/**
- * Edit specific cells in a worksheet.
- *
- * @param sheet      The ExcelJS worksheet
- * @param edits      Array of { row, col, value }
- *                   • row = Excel row number (1‑based)
- *                   • col = Excel column number (1 = A, 2 = B, …)
- *                   • value = number | string | null | Date | …
- */
-function editCells(
-  sheet: ExcelJS.Worksheet,
-  edits: { row: number; col: number; value: any }[]
-) {
-  // Group edits by row to avoid fetching the same Row object many times
-  const rowsMap = new Map<number, ExcelJS.Row>()
-
-  for (const { row, col, value } of edits) {
-    let excelRow = rowsMap.get(row)
-    if (!excelRow) {
-      excelRow = sheet.getRow(row)
-      rowsMap.set(row, excelRow)
-    }
-
-    const cell = excelRow.getCell(col)
-    cell.value = value
-  }
-
-  // Commit every row that was touched
-  rowsMap.forEach((r) => r.commit())
 }
 
 export async function GET(request: NextRequest) {

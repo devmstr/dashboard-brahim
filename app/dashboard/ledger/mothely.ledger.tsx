@@ -140,7 +140,6 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
         )
         if (!res.ok) throw new Error('Failed to fetch ledger data')
         const invoices: LedgerInvoice[] = await res.json()
-        console.log({ invoices })
         setData(invoices)
       } catch (error) {
         console.error(error)
@@ -332,7 +331,7 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
           TOTAUX
         </TableCell>
         <TableCell className="py-[1.5px] px-2 text-right">
-          {formatPrice(totals.subtotal + totals.discount)}
+          {formatPrice(totals.subtotal + totals.discount + totals.refund)}
         </TableCell>
         <TableCell className="py-[1.5px] px-2 text-right">
           {formatPrice(totals.discount)}
