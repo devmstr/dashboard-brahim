@@ -707,7 +707,7 @@ export function LedgerTable({
           )}
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
@@ -737,7 +737,7 @@ export function LedgerTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
@@ -768,7 +768,7 @@ export function LedgerTable({
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex gap-2">
                 <Download className="h-4 w-4" />
@@ -881,7 +881,7 @@ export function LedgerTable({
       </div>
 
       {/* Invoice Print Dialog rendered in parent */}
-      <Dialog open={showInvoice} onOpenChange={setShowInvoice}>
+      <Dialog open={showInvoice} onOpenChange={setShowInvoice} modal={false}>
         <DialogContent className="p-0 max-w-[50rem]">
           {invoice ? (
             <ScrollArea className="w-full rounded-md h-[calc(100vh-8rem)]">
@@ -915,28 +915,24 @@ export function LedgerTable({
 
       {/* Added: Monthly Ledger Dialog */}
       <Dialog open={showMonthlyLedger} onOpenChange={setShowMonthlyLedger}>
-        <DialogContent className="p-0 w-full max-w-[80vw] max-h-[80vh]">
-          <ScrollArea className="w-full rounded-md h-[calc(80vh-8rem)]">
+        <DialogContent className="p-0 w-full max-w-[297mm] max-h-[80vh]">
+          <ScrollArea className="rounded-md h-[calc(80vh-8rem)]">
             <div ref={monthlyPrintRef}>
               <MonthlyLedger />
             </div>
           </ScrollArea>
-          <DialogFooter className="flex w-full gap-3">
+          <DialogFooter className="flex w-full ">
             <Button
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'w-full text-foreground rounded-t-none'
-              )}
+              variant={'outline'}
+              className={cn('w-full text-foreground rounded-none')}
               onClick={handleJournalDownload} // handleJournalDownload inside onClick
             >
               <Download className="mr-2 h-4 w-4" />
               Download CSV
             </Button>
             <Button
-              className={cn(
-                buttonVariants({ variant: 'outline' }),
-                'w-full text-foreground rounded-t-none'
-              )}
+              variant={'outline'}
+              className={cn('w-full text-foreground rounded-none')}
               onClick={() => handleMonthlyPrint()}
             >
               <Icons.printer className="mr-2 h-4 w-4" />

@@ -9,15 +9,23 @@ import {
 } from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
 import { formatPrice } from '@/lib/utils'
-import { format } from 'date-fns'
+import {
+  addDays,
+  differenceInDays,
+  format,
+  getDaysInMonth,
+  parseISO,
+  startOfYear
+} from 'date-fns'
 import { amountToWords } from '@/helpers/price-to-string'
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import { fr } from 'date-fns/locale' // For French month names
 import './print.css'
-import { DateRange } from '@/components/DateRangeFilter'
-import { random } from 'lodash'
-import { useSearchParams } from 'next/navigation'
+import { chunk, random } from 'lodash'
+import { useRouter, useSearchParams } from 'next/navigation'
+
+const PAGE_SIZE = 15
 
 interface MonthlyLedgerProps {}
 
@@ -34,28 +42,90 @@ interface LedgerInvoice {
   createdAt: string // ISO date
   Client: { name: string }
 }
-type StringDateRange = {
-  from: string
-  to: string
+
+type DateRange = {
+  from: Date
+  to: Date
 }
+
+const formatLocalDate = (date: Date) =>
+  date.toLocaleDateString('en-CA', { timeZone: 'Africa/Algiers' }) // or your local zone
+
+export function getJournalTitle({
+  from: from_input,
+  to: to_input
+}: DateRange): string {
+  const now = new Date()
+  const firstOfYear = formatLocalDate(new Date(now.getFullYear(), 0, 1))
+  const lastOfYear = formatLocalDate(new Date(now.getFullYear() + 1, 0, 1))
+  console.log({ lastOfYear })
+  const firstOfMonth = formatLocalDate(
+    new Date(now.getFullYear(), now.getMonth(), 1)
+  )
+  const lastOfMonth = formatLocalDate(
+    new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  )
+  const from = formatLocalDate(from_input)
+  const to = formatLocalDate(to_input)
+
+  if (from == firstOfYear && to <= lastOfYear) {
+    const title = format(from, 'yyyy', { locale: fr }).toUpperCase()
+    return `${title}`
+  }
+
+  if (from == firstOfMonth && to == lastOfMonth) {
+    const title = format(from, 'MMMM yyyy', { locale: fr }).toUpperCase()
+    return `(${title})`
+  }
+
+  let fromText = format(from, 'dd MMMM', { locale: fr }).toUpperCase()
+  if (from_input.getFullYear() != to_input.getFullYear()) {
+    fromText = format(from, 'dd MMMM yyyy', { locale: fr }).toUpperCase()
+  }
+  const toText = format(to, 'dd MMMM yyyy', { locale: fr }).toUpperCase()
+  return `(${fromText} - ${toText})`
+}
+
 export default function MonthlyLedger({}: MonthlyLedgerProps) {
   const [data, setData] = useState<LedgerInvoice[]>([])
   const [loading, setLoading] = useState(true)
 
-  const serachParams = useSearchParams()
-  const [dateRange, setDateRange] = useState<StringDateRange>({
-    from: serachParams.get('from') as string,
-    to: serachParams.get('to') as string
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  const from = searchParams.get('from')
+  const to = searchParams.get('to')
+
+  // Only redirect if missing params
+  if (!from || !to) {
+    const now = new Date()
+
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
+    const params = new URLSearchParams(searchParams.toString())
+    if (!from) params.set('from', formatLocalDate(firstOfMonth))
+    if (!to) params.set('to', formatLocalDate(lastOfMonth))
+
+    router.replace(`?${params.toString()}`)
+  }
+
+  const journalTitle = getJournalTitle({
+    from: new Date(from!),
+    to: new Date(to!)
   })
+
+  const pages = useMemo(() => chunk(data, PAGE_SIZE), [data])
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `/api/reports/journal?from=${dateRange.from}&to=${dateRange.to}&format=json`
+          `/api/reports/journal?from=${searchParams.toString()}&format=json`
         )
         if (!res.ok) throw new Error('Failed to fetch ledger data')
         const invoices: LedgerInvoice[] = await res.json()
+        console.log({ invoices })
         setData(invoices)
       } catch (error) {
         console.error(error)
@@ -65,7 +135,7 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
       }
     }
     fetchData()
-  }, [dateRange])
+  }, [searchParams])
 
   const totals = useMemo(() => {
     return data.reduce(
@@ -80,10 +150,6 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
       { subtotal: 0, discount: 0, refund: 0, stampTax: 0, vat: 0, total: 0 }
     )
   }, [data])
-
-  const monthTitle = format(dateRange.from, 'MMMM yyyy', {
-    locale: fr
-  }).toUpperCase()
 
   const renderHeader = () => (
     <div className="print-header">
@@ -136,8 +202,8 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
         className="separator my-1 h-[1.8px] rounded text-black"
       />
       <div className="w-full flex justify-center text-center">
-        <h2 className="text-3xl -translate-y-1 font-bold font-poppins">
-          JOURNAL DES FACTURES DU {monthTitle}
+        <h2 className="text-2xl font-semibold font-poppins">
+          JOURNAL DES FACTURES {journalTitle}
         </h2>
       </div>
       <div className="text-base mt-1">
@@ -149,19 +215,19 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
     </div>
   )
 
-  const renderFooter = () => (
+  const renderFooter = (props?: { page?: number; pages?: number }) => (
     <div className="print-footer flex flex-col font-poppins text-xs mt-auto">
-      <div className="amount-in-words mt-2">
-        <div className="space-y-[2px] text-sm print:text-black">
-          <p className="font-semibold">GAINS TOTAUX DU MOIS EN TTC:</p>
-          <p className="capitalize">{amountToWords(totals.total)}</p>
-        </div>
+      <div className="text-right">
+        <p>
+          Page: {props?.page}|
+          <span className="text-muted-foreground">{props?.pages}</span>
+        </p>
       </div>
       <Separator
         style={{ backgroundColor: '#000' }}
         className="my-1 h-[1.6px] rounded"
       />
-      <div className="grid  grid-cols-4 gap-1 text-center">
+      <div className="grid  grid-cols-4 gap-1 text-left">
         <p className="font-sans w-1/4 text-nowrap ">
           <strong>R.C:</strong> 97/B/0862043
         </p>
@@ -196,105 +262,148 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
     </div>
   )
 
+  const renderPriceInLetters = () => {
+    return (
+      <div className="amount-in-words mt-2">
+        <div className="space-y-[2px] text-sm print:text-black">
+          <p className="font-semibold">GAINS TOTAUX DU MOIS EN TTC:</p>
+          <p className="capitalize">{amountToWords(totals.total)}</p>
+        </div>
+      </div>
+    )
+  }
+  const renderTotals = () => {
+    return (
+      <TableRow className="font-bold bg-gray-100">
+        <TableCell colSpan={3} className="py-[1.5px] px-2 text-left">
+          TOTAUX
+        </TableCell>
+        <TableCell className="py-[1.5px] px-2 text-right">
+          {formatPrice(totals.subtotal + totals.discount)}
+        </TableCell>
+        <TableCell className="py-[1.5px] px-2 text-right">
+          {formatPrice(totals.discount)}
+        </TableCell>
+        <TableCell className="py-[1.5px] px-2 text-right">
+          {formatPrice(totals.refund)}
+        </TableCell>
+        <TableCell className="py-[1.5px] px-2 text-right">
+          {formatPrice(totals.subtotal)}
+        </TableCell>
+        <TableCell className="py-[1.5px] px-2 text-right">
+          {formatPrice(totals.vat)}
+        </TableCell>
+        <TableCell className="py-[1.5px] px-2 text-right">
+          {formatPrice(totals.stampTax)}
+        </TableCell>
+        <TableCell className="py-[1.5px] px-2 text-right">
+          {formatPrice(totals.total)}
+        </TableCell>
+      </TableRow>
+    )
+  }
+
   if (loading) {
     return <div>Chargement...</div>
   }
 
   return (
-    <>
-      <div className="print:w-[297mm] print:h-[210mm] w-[297mm] h-[210mm] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none p-8 bg-white flex flex-col justify-start">
-        {renderHeader()}
-        <Table className="font-poppins text-[0.9rem] w-full font-regular hide-scrollbar-print text-foreground mt-4">
-          <TableHeader className="print:table-header-group bg-gray-100 border-y">
-            <TableRow>
-              <TableHead className="px-2 py-1 h-5 text-left text-black font-medium border-r-[3px] border-white">
-                Date
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-left text-black font-medium border-r-[3px] border-white">
-                N°
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-left text-black font-medium border-r-[3px] border-white">
-                Société
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-right text-black font-medium border-r-[3px] border-white">
-                Total(HT)
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-right text-black font-medium border-r-[3px] border-white">
-                Remise
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-right text-black font-medium border-r-[3px] border-white">
-                RG
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-right text-black font-medium border-r-[3px] border-white">
-                Timbre
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-right text-black font-medium border-r-[3px] border-white">
-                TVA
-              </TableHead>
-              <TableHead className="px-2 py-1 h-5 text-right text-black font-medium">
-                TTC
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((inv) => (
-              <TableRow key={inv.id}>
-                <TableCell className="py-[1.5px] px-2">
-                  {format(new Date(inv.createdAt), 'dd/MM/yyyy')}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2">
-                  {inv.reference.replace(/FF-\d{2}|FP-\d{2}/g, '')}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2">
-                  {inv.Client?.name ?? ''}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                  {formatPrice(inv.subtotal)}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                  {formatPrice(inv.discount)}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                  {formatPrice(inv.refund)}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                  {formatPrice(inv.stampTax)}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                  {formatPrice(inv.vat)}
-                </TableCell>
-                <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                  {formatPrice(inv.total)}
-                </TableCell>
-              </TableRow>
-            ))}
-            <TableRow className="font-bold bg-gray-100">
-              <TableCell colSpan={3} className="py-[1.5px] px-2 text-left">
-                TOTAUX
-              </TableCell>
-              <TableCell className="py-[1.5px] px-2 text-right">
-                {formatPrice(totals.subtotal)}
-              </TableCell>
-              <TableCell className="py-[1.5px] px-2 text-right">
-                {formatPrice(totals.discount)}
-              </TableCell>
-              <TableCell className="py-[1.5px] px-2 text-right">
-                {formatPrice(totals.refund)}
-              </TableCell>
-              <TableCell className="py-[1.5px] px-2 text-right">
-                {formatPrice(totals.stampTax)}
-              </TableCell>
-              <TableCell className="py-[1.5px] px-2 text-right">
-                {formatPrice(totals.vat)}
-              </TableCell>
-              <TableCell className="py-[1.5px] px-2 text-right">
-                {formatPrice(totals.total)}
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-        {renderFooter()}
-      </div>
-    </>
+    <div className="space-y-6">
+      {pages.map((page, pageIndex) => {
+        const isLastPage = pageIndex === pages.length - 1
+
+        return (
+          <div
+            key={pageIndex}
+            className="print:w-[297mm] print:h-[210mm] w-[297mm] h-[210mm] font-geist-sans shadow-2xl rounded-xl print:shadow-none print:rounded-none p-8 bg-white flex flex-col justify-start break-after-page print:break-after-page"
+          >
+            {renderHeader()}
+
+            <Table className="font-poppins text-[0.8rem] w-full font-regular hide-scrollbar-print text-foreground mt-4">
+              <TableHeader className="print:table-header-group bg-gray-100 border-y">
+                <TableRow>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-left text-black font-medium border-r-[3px] border-white w-[6.3rem]">
+                    Date
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-left text-black font-medium border-r-[3px] border-white w-9">
+                    N°
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-left text-black font-medium border-r-[3px] border-white max-w-[15rem] truncate">
+                    Société
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-right text-black font-medium border-r-[3px] border-white w-[7.35rem]">
+                    Total Brute H.T
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-right text-black font-medium border-r-[3px] border-white w-[6.3rem]">
+                    Remise
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-right text-black font-medium border-r-[3px] border-white w-[6.3rem]">
+                    RG
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-right text-black font-medium border-r-[3px] border-white w-[7.35rem]">
+                    Total Net H.T
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-right text-black font-medium border-r-[3px] border-white w-28">
+                    TVA
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-right text-black font-medium border-r-[3px] border-white w-14">
+                    Timbre
+                  </TableHead>
+                  <TableHead className="px-2 text-nowrap py-1 h-5 text-right text-black font-medium w-[7.35rem]">
+                    TTC
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {page.map((inv) => (
+                  <TableRow key={inv.id}>
+                    <TableCell className="py-[1.5px] px-2 w-[5.08rem]">
+                      {format(new Date(inv.createdAt), 'dd-MM-yyyy')}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 font-sans">
+                      {inv.reference.substring(inv.reference.length - 3)}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 max-w-[15rem] truncate">
+                      {inv.Client?.name ?? ''}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 text-right font-geist-sans w-28">
+                      {formatPrice(inv.subtotal + inv.discount + inv.refund)}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
+                      {formatPrice(inv.discount)}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
+                      {formatPrice(inv.refund)}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
+                      {formatPrice(inv.subtotal)}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
+                      {formatPrice(inv.vat)}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
+                      {formatPrice(inv.stampTax)}
+                    </TableCell>
+                    <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
+                      {formatPrice(inv.total)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {isLastPage && renderTotals()}
+              </TableBody>
+            </Table>
+
+            {isLastPage && <div className="mt-4">{renderPriceInLetters()}</div>}
+
+            {renderFooter({
+              page: pageIndex + 1,
+              pages: pages.length
+            })}
+          </div>
+        )
+      })}
+    </div>
   )
 }

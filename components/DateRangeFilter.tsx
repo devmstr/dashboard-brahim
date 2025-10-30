@@ -6,10 +6,11 @@ import {
   PopoverTrigger,
   PopoverContent
 } from '@/components/ui/popover'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Filter } from 'lucide-react'
 import { Calendar } from './ui/calendar'
+import { cn } from '@/lib/utils'
 
 export type DateRange = {
   from?: Date
@@ -42,6 +43,22 @@ export const DateRangeFilter: React.FC<Props> = ({
   }
 }: Props) => {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+
+  React.useEffect(() => {
+    const fromParam = searchParams.get('from')
+    const toParam = searchParams.get('to')
+
+    // Only set if current state is empty
+    if ((!dateRange.from && fromParam) || (!dateRange.to && toParam)) {
+      setDateRange({
+        from: fromParam ? new Date(fromParam) : undefined,
+        to: toParam ? new Date(toParam) : undefined
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // only run on mount
 
   React.useEffect(() => {
     if (dateRange.from && dateRange.to) {
@@ -57,10 +74,18 @@ export const DateRangeFilter: React.FC<Props> = ({
     }
   }, [dateRange, router])
 
+  function handleReset() {
+    setDateRange({})
+    router.replace(pathname)
+  }
+
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="flex gap-2 bg-transparent">
+        <Button
+          variant={dateRange.from || dateRange.to ? 'default' : 'outline'}
+          className={cn('flex gap-2 ')}
+        >
           <Filter className="h-4 w-4" />
           {t.filter}
         </Button>
@@ -70,11 +95,7 @@ export const DateRangeFilter: React.FC<Props> = ({
           <div className="flex justify-between gap-4">
             <h4 className="font-medium">{t.dateRange}</h4>
             <div className="flex gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDateRange({})}
-              >
+              <Button variant="outline" size="sm" onClick={() => handleReset()}>
                 {t.reset}
               </Button>
             </div>

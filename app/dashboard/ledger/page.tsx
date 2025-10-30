@@ -16,7 +16,7 @@ const Page = async () => {
       items: true,
       Client: true
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { reference: 'asc' }
   })
 
   const formattedData = invoices.map((invoice) => ({
