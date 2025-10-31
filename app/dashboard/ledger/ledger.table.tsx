@@ -67,6 +67,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import ReadOnlyInvoice from '@/components/readonly-invoice'
 import { DateRange, DateRangeFilter } from '@/components/DateRangeFilter'
 import MonthlyLedger from './mothely.ledger'
+import { RecapTable } from './recap.table'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -160,9 +161,7 @@ export function LedgerTable({
   )
   const [columnVisibility, setColumnVisibility] =
     usePersistedState<VisibilityState>('ledger-table-columns-visibility', {})
-  const [dateRange, setDateRange] = React.useState<{ from?: Date; to?: Date }>(
-    {}
-  )
+  const [dateRange, setDateRange] = React.useState<DateRange>({})
 
   const [invoiceTypeFilter, setInvoiceTypeFilter] = React.useState<
     'FINAL' | 'PROFORMA' | null
@@ -172,6 +171,7 @@ export function LedgerTable({
   const printRef = React.useRef<HTMLDivElement>(null)
   const [showMonthlyLedger, setShowMonthlyLedger] = React.useState(false) // Added state for monthly ledger dialog
   const monthlyPrintRef = React.useRef<HTMLDivElement>(null) // Added ref for printing monthly ledger
+  const summeryPrintRef = React.useRef<HTMLDivElement>(null) // Added ref for printing monthly ledger
   const [mothelyLedgerData, setMonthlyLedgerData] = React.useState<
     | {
         invoices: {
@@ -202,6 +202,10 @@ export function LedgerTable({
   >(undefined)
 
   const [isExcelLoading, setIsExcelLoading] = React.useState<boolean>()
+  const [isSummeryLoading, setIsSummeryLoading] = React.useState<boolean>()
+
+  const [showLedgerSummery, setShowLedgerSummery] =
+    React.useState<boolean>(false)
 
   React.useEffect(() => {
     table.setPageSize(limit)
@@ -271,9 +275,24 @@ export function LedgerTable({
           }
         `
   })
+  const handleRecapPrint = useReactToPrint({
+    contentRef: summeryPrintRef,
+    documentTitle: `Récapitulatif_du_journal${dateRange.from}_to_${dateRange.to}`,
+    pageStyle: `
+      @page { 
+        size: A4 landscape;
+        margin: 0;
+      }
+      @media print {
+        body { 
+          -webkit-print-color-adjust: exact; 
+        }
+      }
+    `
+  })
   const handleMonthlyPrint = useReactToPrint({
     contentRef: monthlyPrintRef,
-    documentTitle: `Journal_Mensuel_${dateRange.from}_to_${dateRange.to}`,
+    documentTitle: `Journal_${dateRange.from}_to_${dateRange.to}`,
     pageStyle: `
       @page { 
         size: A4 landscape;
@@ -783,7 +802,7 @@ export function LedgerTable({
             <DropdownMenuContent>
               <DropdownMenuItem
                 className="flex gap-2 bg-transparent"
-                onClick={handleRecapDownload}
+                onClick={() => setShowLedgerSummery(true)}
               >
                 <Icons.file className="h-4 w-4" />
                 {t.exportRecap}
@@ -944,6 +963,40 @@ export function LedgerTable({
               variant={'outline'}
               className={cn('w-full text-foreground rounded-none')}
               onClick={() => handleMonthlyPrint()}
+            >
+              <Icons.printer className="mr-2 h-4 w-4" />
+              Imprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Added: Ledger Summery Dialog */}
+      <Dialog open={showLedgerSummery} onOpenChange={setShowLedgerSummery}>
+        <DialogContent className="p-0 w-full max-w-[297mm] max-h-[80vh]">
+          <ScrollArea className="rounded-md h-[calc(80vh-8rem)]">
+            <div ref={summeryPrintRef}>
+              <RecapTable />
+            </div>
+          </ScrollArea>
+          <DialogFooter className="flex w-full ">
+            <Button
+              variant={'outline'}
+              className={cn('w-full text-foreground rounded-none')}
+              onClick={handleRecapDownload}
+              disabled={isSummeryLoading}
+            >
+              {isSummeryLoading ? (
+                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              Download MS.Excel
+            </Button>
+            <Button
+              variant={'outline'}
+              className={cn('w-full text-foreground rounded-none')}
+              onClick={() => handleRecapPrint()}
             >
               <Icons.printer className="mr-2 h-4 w-4" />
               Imprimer

@@ -51,9 +51,10 @@ export async function GET(request: NextRequest) {
   // ---------- 1. Build Prisma WHERE clause ----------
   const from = parseDateStart(searchParams.get('from'))
   const to = parseDateEnd(searchParams.get('to'))
-  const type = searchParams.get('type') as 'FINAL' | 'PROFORMA' | null
 
-  const where: Prisma.InvoiceWhereInput = {}
+  const where: Prisma.InvoiceWhereInput = {
+    type: 'FINAL'
+  }
 
   const currentYear = new Date().getFullYear()
   where.createdAt = { gte: new Date(currentYear, 0, 1) }
@@ -62,16 +63,11 @@ export async function GET(request: NextRequest) {
     where.createdAt = { gte: from, lte: to }
   }
 
-  if (type) {
-    where.type = type
-  }
-
   // ---------- 2. Fetch the rows ----------
   const invoices = await prisma.invoice.findMany({
     where,
     select: {
       reference: true,
-      type: true,
       total: true,
       subtotal: true,
       refund: true,
@@ -109,9 +105,7 @@ export async function GET(request: NextRequest) {
   await workbook.xlsx.load(file as any)
 
   // Write computed data
-  const sheet = workbook.getWorksheet(
-    'Journal des factures'
-  ) as ExcelJS.Worksheet
+  const sheet = workbook.getWorksheet(1) as ExcelJS.Worksheet
 
   const ledgerRows: InvoiceLedgerRow[] = invoices
     .filter(
@@ -161,7 +155,14 @@ export async function GET(request: NextRequest) {
   )
 
   // 3. Apply edits efficiently
-  editCells(sheet, edits, { withBorder: true })
+  editCells(sheet, edits, {
+    border: {
+      top: { style: 'thin', color: { argb: 'FF000000' } },
+      left: { style: 'thin', color: { argb: 'FF000000' } },
+      bottom: { style: 'thin', color: { argb: 'FF000000' } },
+      right: { style: 'thin', color: { argb: 'FF000000' } }
+    }
+  })
 
   // 4. Edit Totals
   editCells(sheet, [

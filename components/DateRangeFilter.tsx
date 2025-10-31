@@ -9,8 +9,11 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Filter } from 'lucide-react'
-import { Calendar } from './ui/calendar'
 import { cn } from '@/lib/utils'
+import { Calendar } from '@/components/ui/calendar'
+import { DatePicker } from './date-picker'
+import { fr } from 'date-fns/locale'
+import { format } from 'date-fns'
 
 export type DateRange = {
   from?: Date
@@ -75,7 +78,9 @@ export const DateRangeFilter: React.FC<Props> = ({
   }, [dateRange, router])
 
   function handleReset() {
-    setDateRange({})
+    setDateRange({
+      from: undefined
+    })
     router.replace(pathname)
   }
 

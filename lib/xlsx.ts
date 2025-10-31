@@ -8,10 +8,17 @@ import ExcelJS from 'exceljs'
  *                   • col = Excel column number (1 = A, 2 = B, …)
  *                   • value = number | string | null | Date | …
  */
+
 export function editCells(
   sheet: ExcelJS.Worksheet,
   edits: { row: number; col: number; value: any }[],
-  options?: { withBorder?: boolean } // 👈 optional flag
+  options?: Partial<{
+    border: Partial<ExcelJS.Borders>
+    fill: ExcelJS.Fill
+    font: Partial<ExcelJS.Font>
+    alignment: Partial<ExcelJS.Alignment>
+    numFmt: string
+  }>
 ) {
   const rowsMap = new Map<number, ExcelJS.Row>()
 
@@ -25,14 +32,13 @@ export function editCells(
     const cell = excelRow.getCell(col)
     cell.value = value
 
-    // 🟩 Apply border only if requested
-    if (options?.withBorder) {
-      cell.border = {
-        top: { style: 'thin', color: { argb: 'FF000000' } },
-        left: { style: 'thin', color: { argb: 'FF000000' } },
-        bottom: { style: 'thin', color: { argb: 'FF000000' } },
-        right: { style: 'thin', color: { argb: 'FF000000' } }
-      }
+    // 🎨 Dynamically apply all provided style options
+    if (options) {
+      if (options.border) cell.border = options.border
+      if (options.fill) cell.fill = options.fill
+      if (options.font) cell.font = options.font
+      if (options.alignment) cell.alignment = options.alignment
+      if (options.numFmt) cell.numFmt = options.numFmt
     }
   }
 

@@ -1,4 +1,7 @@
 'use client'
+import { DateRange } from '@/components/DateRangeFilter'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -7,60 +10,23 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { Separator } from '@/components/ui/separator'
-import { formatPrice } from '@/lib/utils'
-import {
-  addDays,
-  differenceInDays,
-  format,
-  getDaysInMonth,
-  parseISO,
-  startOfYear
-} from 'date-fns'
 import { amountToWords } from '@/helpers/price-to-string'
-import Image from 'next/image'
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { formatPrice } from '@/lib/utils'
+import { format } from 'date-fns'
 import { fr } from 'date-fns/locale' // For French month names
-import './print.css'
-import { chunk, random } from 'lodash'
+import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Icons } from '@/components/icons'
+import './print.css'
+import { Label } from '@/components/ui/label'
+import React, { Suspense } from 'react'
 
-const PAGE_SIZE = 15
-
-interface MonthlyLedgerProps {}
-
-interface LedgerInvoice {
-  id: string
-  reference: string
-  type: 'FINAL' | 'PROFORMA'
-  total: number
-  subtotal: number
-  refund: number
-  discount: number
-  vat: number
-  stampTax: number
-  createdAt: string // ISO date
-  Client: { name: string }
-}
-
-type DateRange = {
-  from: Date
-  to: Date
-}
+interface Props {}
 
 const formatLocalDate = (date: Date) =>
   date.toLocaleDateString('en-CA', { timeZone: 'Africa/Algiers' }) // or your local zone
 
-export const LedgerHeader = ({
-  dateRange = { from: new Date(), to: new Date() },
-  tableLength = 0
-}: {
-  dateRange?: DateRange
-  tableLength?: number
-}) => {
+export const LedgerHeader = (props?: { dateRange?: DateRange }) => {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const url = `${pathname}?${searchParams.toString()}`
@@ -186,20 +152,17 @@ export const LedgerHeader = ({
         className="separator my-1 h-[1.8px] rounded text-black"
       />
       <div className="w-full h-fit flex justify-between text-center">
-        <div className="flex flex-col items-start w-1/3">
-          {dateRange && (
+        <div className="flex flex-col items-start w-1/4">
+          {props?.dateRange && (
             <span className="text-xs font-geist-sans text-nowrap capitalize">
-              {formatDateRangeJSX(dateRange)}
+              {formatDateRangeJSX(props?.dateRange)}
             </span>
           )}
-          <h6 className="flex justify-start  items-center text-nowrap font-geist-sans text-xs ">
-            {`Nbr : ${tableLength}`}
-          </h6>
         </div>
-        <h2 className="text-2xl font-semibold font-poppins w-1/3">
-          JOURNAL DES FACTURES
+        <h2 className="text-2xl font-semibold font-poppins w-2/4">
+          RECUPELATIF DU CHIFFRE D'AFFAIRE
         </h2>
-        <h6 className="flex justify-end  items-center text-nowrap font-geist-sans text-xs w-1/3">
+        <h6 className="flex justify-end  items-center text-nowrap font-geist-sans text-xs w-1/4">
           {`Le : ${format(new Date(), 'dd/MM/yyy')}`}
         </h6>
       </div>
@@ -270,12 +233,14 @@ export const PriceInEnglish = (price: number, isLoading: boolean) => {
 
 export const LedgerFooter = (props?: { page?: number; pages?: number }) => (
   <div className="print-footer flex flex-col font-poppins text-xs mt-auto">
-    <div className="text-right">
-      <p>
-        Page: {props?.page}|
-        <span className="text-muted-foreground">{props?.pages}</span>
-      </p>
-    </div>
+    {props && (
+      <div className="text-right">
+        <p>
+          Page: {props.page}|
+          <span className="text-muted-foreground">{props?.pages}</span>
+        </p>
+      </div>
+    )}
     <Separator
       style={{ backgroundColor: '#000' }}
       className="my-1 h-[1.6px] rounded"
@@ -317,9 +282,9 @@ export const LedgerFooter = (props?: { page?: number; pages?: number }) => (
 
 const TableLoadingSkeleton = () => (
   <TableBody>
-    {Array.from({ length: 5 }).map((_, i) => (
+    {Array.from({ length: 3 }).map((_, i) => (
       <TableRow key={i}>
-        {Array.from({ length: 10 }).map((_, j) => (
+        {Array.from({ length: 11 }).map((_, j) => (
           <TableCell className="py-[2px] px-2" key={j}>
             <Skeleton className="h-4 rounded-md" />
           </TableCell>
@@ -329,11 +294,28 @@ const TableLoadingSkeleton = () => (
   </TableBody>
 )
 
-export default function MonthlyLedger({}: MonthlyLedgerProps) {
-  const [data, setData] = useState<LedgerInvoice[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+interface LedgerInvoice {
+  id: string
+  reference: string
+  total: number
+  subtotal: number
+  refund: number
+  discount: number
+  vat: number
+  vatRate: number
+  stampTax: number
+  createdAt: string // ISO date
+}
+
+export const RecapTable: React.FC<Props> = ({}: Props) => {
+  const [data, setData] = React.useState<LedgerInvoice[]>([])
+  const [isLoading, setIsLoading] = React.useState(true)
 
   const searchParams = useSearchParams()
+  const dateRange = {
+    from: new Date(searchParams.get('from')?.toString()!),
+    to: new Date(searchParams.get('to')?.toString()!)
+  }
   const pathname = usePathname()
   const router = useRouter()
 
@@ -354,13 +336,11 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
     router.replace(`?${params.toString()}`)
   }
 
-  const pages = useMemo(() => chunk(data, PAGE_SIZE), [data])
-
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `/api/reports/journal?from=${searchParams.toString()}&format=json`
+          `/api/reports/recap?from=${searchParams.toString()}&format=json`
         )
         if (!res.ok) throw new Error('Failed to fetch ledger data')
         const invoices: LedgerInvoice[] = await res.json()
@@ -375,137 +355,166 @@ export default function MonthlyLedger({}: MonthlyLedgerProps) {
     fetchData()
   }, [searchParams])
 
-  const totals = useMemo(() => {
-    return data.reduce(
-      (acc, inv) => ({
-        subtotal: acc.subtotal + inv.subtotal,
-        discount: acc.discount + inv.discount,
-        refund: acc.refund + inv.refund,
-        stampTax: acc.stampTax + inv.stampTax,
-        vat: acc.vat + inv.vat,
-        total: acc.total + inv.total
-      }),
-      { subtotal: 0, discount: 0, refund: 0, stampTax: 0, vat: 0, total: 0 }
+  const { bruteHT, taxEcluded, refund, discount, stampTax, total, vat } =
+    data.reduce(
+      (acc, inv) => {
+        const subtotal = Number(inv.subtotal)
+        const discount = Number(inv.discount)
+        const refund = Number(inv.refund)
+        const stampTax = Number(inv.stampTax)
+        const vat = Number(inv.vat)
+        const total = Number(inv.total)
+
+        const bruteHT = subtotal + discount + refund
+        const taxEcluded = inv.vatRate === 0 ? bruteHT : 0
+
+        acc.bruteHT += bruteHT
+        acc.taxEcluded += taxEcluded
+        acc.discount += discount
+        acc.refund += refund
+        acc.stampTax += stampTax
+        acc.vat += vat
+        acc.total += total
+
+        return acc
+      },
+      {
+        bruteHT: 0,
+        taxEcluded: 0,
+        discount: 0,
+        refund: 0,
+        stampTax: 0,
+        vat: 0,
+        total: 0
+      }
     )
-  }, [data])
+
+  const netHT = bruteHT - taxEcluded
+  const netSales = netHT - discount
+  const taxable = netSales - refund
+
+  const productionTableData = [
+    ['RAD/FAIS', 'py-[1.5px] px-2 text-left'],
+    [formatPrice(bruteHT), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(taxEcluded), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(netHT), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(discount), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(netSales), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(refund), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(taxable), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(taxable * 0.19), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(stampTax), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(taxable * 1.19 + stampTax), 'py-[1.5px] px-2 text-right']
+  ]
+  const dechetsTableData = [
+    ['DECHETS', 'py-[1.5px] px-2 text-left'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right'],
+    ['-', 'py-[1.5px] px-2 text-right']
+  ]
+  const totauxTableData = [
+    [formatPrice(taxable), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(taxable * 0.19), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(stampTax), 'py-[1.5px] px-2 text-right'],
+    [formatPrice(taxable * 1.19 + stampTax), 'py-[1.5px] px-2 text-right']
+  ]
 
   return (
     <div className="space-y-6">
-      {(pages.length > 0 ? pages : [[]]).map((page, pageIndex) => {
-        const isLastPage = pageIndex === (pages.length || 1) - 1
-
-        return (
-          <div
-            key={pageIndex}
-            className="print:w-[297mm] print:h-[210mm] w-[297mm] h-[210mm]
+      <div
+        className="print:w-[297mm] print:h-[210mm] w-[297mm] h-[210mm]
                      font-geist-sans shadow-2xl rounded-xl print:shadow-none
                      print:rounded-none p-8 bg-white flex flex-col justify-start
                      break-after-page print:break-after-page"
-          >
-            {LedgerHeader({
-              dateRange: { from: new Date(from!), to: new Date(to!) },
-              tableLength: data.length
-            })}
-
-            <Table className="font-poppins text-[0.8rem] w-full font-regular hide-scrollbar-print text-foreground mt-4">
-              <TableHeader className="print:table-header-group bg-gray-100 border-y">
+      >
+        {LedgerHeader({
+          dateRange
+        })}
+        {/* table title */}
+        <div className="w-full bg-gray-100 border-y border-gray-200 px-2 py-[1.5px]  mt-5">
+          <Label className="uppercase">Production</Label>
+        </div>
+        {/* table section  */}
+        <Table className="font-poppins text-[0.8rem] w-full font-regular hide-scrollbar-print text-foreground mt-3">
+          <TableHeader className="print:table-header-group bg-gray-100 border-y">
+            <TableRow>
+              {[
+                ['SECTEURS', ''],
+                ['C.A BRUTE H/T', ''],
+                ['C.A EXONERE', ''],
+                ['C.A NET H/T', ''],
+                ['REMISE', ''],
+                ['NET VENTES', ''],
+                ['R.G', ''],
+                ['C.A TAXABLE', ''],
+                ['TVA 19%', ''],
+                ['TIMBRE', ''],
+                ['TTC', '']
+              ].map(([label, cls]) => (
+                <TableHead
+                  key={label}
+                  className={`px-2 text-nowrap py-1 h-5 text-black font-medium border-r-[3px] border-white ${cls}`}
+                >
+                  {label}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <Suspense fallback={<TableLoadingSkeleton />}>
+            {isLoading ? (
+              <TableLoadingSkeleton />
+            ) : (
+              <TableBody>
                 <TableRow>
-                  {[
-                    ['Date', 'text-left w-[6.3rem]'],
-                    ['N°', 'text-left w-9'],
-                    ['Société', 'text-left max-w-[15rem] truncate'],
-                    ['Total Brute H.T', 'text-right w-[7.35rem]'],
-                    ['Remise', 'text-right w-[6.3rem]'],
-                    ['RG', 'text-right w-[6.3rem]'],
-                    ['Total Net H.T', 'text-right w-[7.35rem]'],
-                    ['TVA', 'text-right w-28'],
-                    ['Timbre', 'text-right w-14'],
-                    ['TTC', 'text-right w-[7.35rem]']
-                  ].map(([label, cls]) => (
-                    <TableHead
-                      key={label}
+                  {productionTableData.map(([data, cls], ind) => (
+                    <TableCell
+                      key={ind}
                       className={`px-2 text-nowrap py-1 h-5 text-black font-medium border-r-[3px] border-white ${cls}`}
                     >
-                      {label}
-                    </TableHead>
+                      {data}
+                    </TableCell>
                   ))}
                 </TableRow>
-              </TableHeader>
-              <Suspense fallback={<TableLoadingSkeleton />}>
-                {isLoading ? (
-                  <TableLoadingSkeleton />
-                ) : (
-                  <>
-                    <TableBody>
-                      {page.length > 0 ? (
-                        page.map((inv) => (
-                          <TableRow key={inv.id}>
-                            <TableCell className="py-[1.5px] px-2 w-[5.08rem]">
-                              {format(new Date(inv.createdAt), 'dd-MM-yyyy')}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 font-sans">
-                              {inv.reference.slice(-3)}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 max-w-[15rem] truncate">
-                              {inv.Client?.name ?? ''}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 text-right font-geist-sans w-28">
-                              {formatPrice(
-                                inv.subtotal + inv.discount + inv.refund
-                              )}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                              {formatPrice(inv.discount)}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                              {formatPrice(inv.refund)}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                              {formatPrice(inv.subtotal)}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                              {formatPrice(inv.vat)}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                              {formatPrice(inv.stampTax)}
-                            </TableCell>
-                            <TableCell className="py-[1.5px] px-2 text-right font-geist-sans">
-                              {formatPrice(inv.total)}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          {Array.from({ length: 10 }).map((_, i) => (
-                            <TableCell
-                              key={i}
-                              className="py-[1.5px] px-2 text-center text-gray-400"
-                            >
-                              -
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      )}
-                    </TableBody>
-                    {isLastPage && LedgerTotalsRow(totals)}
-                  </>
-                )}
-              </Suspense>
-            </Table>
-
-            {isLastPage && (
-              <div className="mt-4">
-                {PriceInEnglish(totals.total, isLoading)}
-              </div>
+                <TableRow>
+                  {dechetsTableData.map(([data, cls], ind) => (
+                    <TableCell
+                      key={ind}
+                      className={`px-2 text-nowrap py-1 h-5 text-black font-medium border-r-[3px] border-white ${cls}`}
+                    >
+                      {data}
+                    </TableCell>
+                  ))}
+                </TableRow>
+                <TableRow className="font-bold bg-gray-100">
+                  <TableCell
+                    colSpan={7}
+                    className={` text-nowrap  h-5 text-black font-medium border-r-[3px] border-white py-[1.5px] px-2 text-left`}
+                  >
+                    TOTAUX
+                  </TableCell>
+                  {totauxTableData.map(([data, cls], ind) => (
+                    <TableCell
+                      key={ind}
+                      className={`px-2 text-nowrap py-1 h-5 text-black font-medium border-r-[3px] border-white ${cls}`}
+                    >
+                      {data}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
             )}
-
-            {LedgerFooter({
-              page: pageIndex + 1,
-              pages: pages.length || 1
-            })}
-          </div>
-        )
-      })}
+          </Suspense>
+        </Table>
+        {PriceInEnglish(taxable * 1.19, isLoading)}
+        {LedgerFooter()}
+      </div>
     </div>
   )
 }
