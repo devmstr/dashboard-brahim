@@ -38,7 +38,7 @@ import Link from 'next/link'
 import { Icons } from '@/components/icons'
 import { cn, hasUserRole } from '@/lib/utils'
 import type { Invoice as InvoiceType, UserRole } from '@/types'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import {
   Popover,
@@ -58,7 +58,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
-import { Calendar } from '@/components/ui/calendar'
 import { ScrollArea } from '@/components/scroll-area'
 import { useReactToPrint } from 'react-to-print'
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog'
@@ -68,6 +67,7 @@ import ReadOnlyInvoice from '@/components/readonly-invoice'
 import { DateRange, DateRangeFilter } from '@/components/DateRangeFilter'
 import MonthlyLedger from './mothely.ledger'
 import { RecapTable } from './recap.table'
+import { getCookie, setCookie } from '@/lib/cookies'
 
 // Define the LedgerEntry type
 interface LedgerEntry {
@@ -125,7 +125,7 @@ type ColumnAccess = {
 type ColumnOverride = Partial<ColumnDef<LedgerEntry>>
 
 export function LedgerTable({
-  data,
+  data: data_input,
   userRole = 'GUEST',
   t = {
     id: 'Matricule',
@@ -154,6 +154,10 @@ export function LedgerTable({
     allTypes: 'Tous les types'
   }
 }: LedgerTableProps) {
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const data = React.useMemo(() => data_input || [], [data_input])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -163,9 +167,10 @@ export function LedgerTable({
     usePersistedState<VisibilityState>('ledger-table-columns-visibility', {})
   const [dateRange, setDateRange] = React.useState<DateRange>({})
 
-  const [invoiceTypeFilter, setInvoiceTypeFilter] = React.useState<
+  const [invoiceTypeFilter, setInvoiceTypeFilter] = usePersistedState<
     'FINAL' | 'PROFORMA' | null
-  >(null)
+  >('ledger-invoice-type-filter', null)
+
   const [showInvoice, setShowInvoice] = React.useState(false)
   const [invoice, setInvoice] = React.useState<InvoiceType | null>(null)
   const printRef = React.useRef<HTMLDivElement>(null)
@@ -583,6 +588,9 @@ export function LedgerTable({
     filterFns
   })
 
+  const isFiltered =
+    table.getState().columnFilters.length > 0 || table.getState().globalFilter
+
   // Apply date range filter if set
   React.useEffect(() => {
     if (dateRange.from && dateRange.to) {
@@ -672,7 +680,10 @@ export function LedgerTable({
           {/* Invoice Type Filter Popover */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="flex gap-2 bg-transparent">
+              <Button
+                variant={invoiceTypeFilter ? 'default' : 'outline'}
+                className="flex gap-2 "
+              >
                 <Filter className="h-4 w-4" />
                 {t.type}
               </Button>
@@ -715,7 +726,7 @@ export function LedgerTable({
             </PopoverContent>
           </Popover>
           {/* Invoice Type Filter Badge */}
-          {invoiceTypeFilter && (
+          {/* {invoiceTypeFilter && (
             <Badge
               variant="secondary"
               className={`flex items-center gap-1 cursor-pointer h-8 px-3 py-1 rounded-full border shadow-sm transition-all duration-200
@@ -728,6 +739,26 @@ export function LedgerTable({
             >
               {invoiceTypeFilter === 'FINAL' ? t.final : t.proforma}
             </Badge>
+          )} */}
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                table.resetColumnFilters()
+                setDateRange({
+                  from: undefined
+                })
+                setInvoiceTypeFilter(null)
+                // reset search value
+                table.setGlobalFilter('')
+                router.replace(pathname)
+              }}
+              className="gap-1"
+            >
+              Effacer les filtres
+              <X className="w-4 h-4" />
+            </Button>
           )}
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -792,31 +823,33 @@ export function LedgerTable({
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex gap-2">
-                <Download className="h-4 w-4" />
-                Export/Import
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem
-                className="flex gap-2 bg-transparent"
-                onClick={() => setShowLedgerSummery(true)}
-              >
-                <Icons.file className="h-4 w-4" />
-                {t.exportRecap}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="flex gap-2 bg-transparent"
-                onClick={() => setShowMonthlyLedger(true)}
-              >
-                <Icons.file className="h-4 w-4" />
-                {t.exportJournal}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {['FINANCE_MANAGER'].includes(userRole) && (
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex gap-2">
+                  <Download className="h-4 w-4" />
+                  Export/Import
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem
+                  className="flex gap-2 bg-transparent"
+                  onClick={() => setShowLedgerSummery(true)}
+                >
+                  <Icons.file className="h-4 w-4" />
+                  {t.exportRecap}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="flex gap-2 bg-transparent"
+                  onClick={() => setShowMonthlyLedger(true)}
+                >
+                  <Icons.file className="h-4 w-4" />
+                  {t.exportJournal}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
@@ -940,7 +973,7 @@ export function LedgerTable({
       {/* Added: Monthly Ledger Dialog */}
       <Dialog open={showMonthlyLedger} onOpenChange={setShowMonthlyLedger}>
         <DialogContent className="p-0 w-full max-w-[297mm] max-h-[80vh]">
-          <ScrollArea className="rounded-md h-[calc(80vh-8rem)]">
+          <ScrollArea className="rounded-md h-[calc(90vh-8rem)]">
             <div ref={monthlyPrintRef}>
               <MonthlyLedger />
             </div>
@@ -974,7 +1007,7 @@ export function LedgerTable({
       {/* Added: Ledger Summery Dialog */}
       <Dialog open={showLedgerSummery} onOpenChange={setShowLedgerSummery}>
         <DialogContent className="p-0 w-full max-w-[297mm] max-h-[80vh]">
-          <ScrollArea className="rounded-md h-[calc(80vh-8rem)]">
+          <ScrollArea className="rounded-md h-[calc(90vh-8rem)]">
             <div ref={summeryPrintRef}>
               <RecapTable />
             </div>

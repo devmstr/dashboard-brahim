@@ -512,8 +512,9 @@ export const RecapTable: React.FC<Props> = ({}: Props) => {
             )}
           </Suspense>
         </Table>
+        <div className="my-2" />
         {PriceInEnglish(taxable * 1.19, isLoading)}
-        {LedgerFooter()}
+        {LedgerFooter({ page: 1, pages: 1 })}
       </div>
     </div>
   )
