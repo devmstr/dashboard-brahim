@@ -42,14 +42,14 @@ const Page: React.FC<PageProps> = async ({}: PageProps) => {
       return sum + (item.Radiator?.Price?.unit || 0)
     }, 0)
     const allItemsValid = order.OrdersItems?.every(
-      (item: { status: string }) => item.status === 'Valide'
+      (item: { status: string }) => item.status === 'VALIDATED'
     )
     return {
       id: order.id,
       customer: order.Client?.name || '—',
       phone: order.Client?.phone || '—',
       deadline: order.deadline.toISOString(),
-      status: allItemsValid ? 'Valide' : order.status ?? 'Prévu',
+      status: allItemsValid ? 'VALIDATED' : order.status ?? 'PLANNED',
       progress: order.progress || 0,
       state: order.Client?.Address?.Province.name || '—',
       items,

@@ -20,7 +20,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { PAYMENT_TYPES } from '@/config/global'
 import { useScrollProgress } from '@/hooks/use-scroll'
-import { cn, delay } from '@/lib/utils'
+import { cn, delay, formatPrice } from '@/lib/utils'
 import { calculateBillingSummary } from '@/helpers/invoice'
 import { amountToWords } from '@/helpers/price-to-string'
 import { generateId } from '@/helpers/id-generator'
@@ -53,6 +53,9 @@ import ClientAutocomplete, {
 import { InvoiceItem } from '@/types'
 import { InvoiceSchemaType } from '@/lib/validations/invoice'
 import { useParams, usePathname } from 'next/navigation'
+import { Selector } from '@/components/selector'
+import { AutoResizeTextarea } from '@/components/auto-resize.textarea'
+import React from 'react'
 
 export interface InvoiceProps {
   data?: Invoice
@@ -61,10 +64,12 @@ export interface InvoiceProps {
 
 const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
   ({ className, data: input }, ref) => {
+    const [mounted, setMounted] = useState(false)
     const pathname = usePathname()
     const componentRef = useRef<HTMLDivElement>(null)
 
     const headerRef = useRef<HTMLDivElement>(null)
+    const tableRef = useRef<HTMLTableElement>(null)
     const footerRef = useRef<HTMLDivElement>(null)
     const totalsRef = useRef<HTMLDivElement>(null)
     const selectorsRef = useRef<HTMLDivElement>(null)
@@ -72,9 +77,9 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
 
     const [itemsPerPage, setItemsPerPage] = useState(4)
     const [itemsPerPageLast, setItemsPerPageLast] = useState(2)
-    const [showOfferValidity, setShowOfferValidity] = useState(true)
-    const [showDeliveryTime, setShowDeliveryTime] = useState(true)
-    const [showGuaranteeTime, setShowGuaranteeTime] = useState(true)
+    const [showOfferValidity, setShowOfferValidity] = useState(false)
+    const [showDeliveryTime, setShowDeliveryTime] = useState(false)
+    const [showGuaranteeTime, setShowGuaranteeTime] = useState(false)
     const [showNote, setShowNote] = useState(true)
 
     const [data, setData] = useState<Invoice>(
@@ -91,7 +96,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             taxIdNumber: null,
             type: null,
             status: null,
-            paymentMode: null,
+            paymentMode: 'Espèces',
             purchaseOrder: null,
             deliverySlip: null,
             discountRate: null,
@@ -122,25 +127,33 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           }
     )
 
+    const handlePaymentTypeChange = (value: (typeof PAYMENT_TYPES)[number]) => {
+      setData((prev) => ({
+        ...prev,
+        paymentMode: value,
+        stampTaxRate:
+          value === 'Espèces' || value === 'Espèces + Versement' ? 0.01 : 0
+      }))
+    }
+
     const billingSummary = useMemo(
       () =>
         calculateBillingSummary(data.items, {
           discountRate: data.discountRate,
           refundRate: data.refundRate,
           stampTaxRate: data.stampTaxRate,
-          vatRate: 0.19
+          vatRate: data.vatRate
         }),
-      [data.items, data.discountRate, data.refundRate, data.stampTaxRate]
+      [
+        data.items,
+        data.discountRate,
+        data.refundRate,
+        data.stampTaxRate,
+        data.vatRate
+      ]
     )
-    const {
-      refund,
-      discount,
-      stampTax,
-      Total: TotalBrut,
-      totalHT,
-      totalTTC,
-      vat
-    } = billingSummary
+    const { refund, discount, stampTax, Total, totalHT, totalTTC, vat } =
+      billingSummary
 
     useEffect(() => {
       setData((prev) => ({
@@ -159,72 +172,92 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
     )
 
     useEffect(() => {
-      const A4_HEIGHT = 1122 // in pixels (A4 at 96dpi)
+      const VAILIBALE_TABLE_AREA = 625 // the table place
 
-      const header = headerRef.current?.offsetHeight || 0
-      const footer = footerRef.current?.offsetHeight || 0
-      const totals = totalsRef.current?.offsetHeight || 0
+      let totals = totalsRef.current?.offsetHeight || 0
+
+      if (data.stampTaxRate === 0) {
+        totals -= 26 // adjust for hidden stamp tax row
+      }
+      if (data.vatRate === 0) {
+        totals -= 26 // adjust for hidden vat row
+      }
+      if (!data.refundRate) {
+        totals -= 26 // adjust for hidden refund row
+      }
+
       const selectors = selectorsRef.current?.offsetHeight || 0
-      const row = rowRef.current?.offsetHeight || 32
+      const row = rowRef.current?.offsetHeight || 30
 
-      const usableHeight = A4_HEIGHT - header - footer - 92 // paddings
-      const usableHeightLastPage =
-        A4_HEIGHT - header - totals - footer - selectors - 92
+      const usableHeightLastPage = VAILIBALE_TABLE_AREA - totals - selectors
 
-      const perPage = Math.floor(usableHeight / row)
+      const perPage = Math.floor(VAILIBALE_TABLE_AREA / row)
       const perLastPage = Math.floor(usableHeightLastPage / row)
 
-      if (perPage && perLastPage) {
-        setItemsPerPage(perPage)
-        setItemsPerPageLast(perLastPage)
-      }
+      setItemsPerPage(perPage)
+      setItemsPerPageLast(perLastPage)
     }, [
       data.items,
+      data.vatRate,
+      data.stampTaxRate,
+      data.refundRate,
+      data.discountRate,
       showDeliveryTime,
       showDeliveryTime,
       showGuaranteeTime,
       showNote
     ])
 
-    // Split pages dynamically
-    const pages = useMemo(() => {
-      const totalItems = data.items.length
-      const chunks: Invoice['items'][] = []
-
-      // Step 1: Chunk all items by normal page size
-      for (let i = 0; i < totalItems; i += itemsPerPage) {
-        chunks.push(data.items.slice(i, i + itemsPerPage))
-      }
-
-      // Step 2: Check if last page can accommodate totals
-      if (chunks.length > 1) {
-        const lastChunk = chunks[chunks.length - 1]
-
-        if (lastChunk.length > itemsPerPageLast) {
-          // Split it into a new page so totals won't overflow
-          const overflowIndex = lastChunk.length - itemsPerPageLast
-          const secondLastChunk = lastChunk.slice(0, overflowIndex)
-          const newLastChunk = lastChunk.slice(overflowIndex)
-
-          // Replace the last chunk and push the new last chunk
-          chunks.splice(chunks.length - 1, 1, secondLastChunk, newLastChunk)
-        }
-      }
-
-      return chunks
-    }, [data.items, itemsPerPage, itemsPerPageLast])
-
-    const [mounted, setMounted] = useState(false)
-
     useEffect(() => {
       setMounted(true)
     }, [])
+
+    // ---- Step 2: compute dynamic pagination ----
+    const pages = useMemo(() => {
+      const totalItems = data.items.length
+      if (totalItems === 0) return []
+
+      const perPage = itemsPerPage
+      const perLast = Math.max(2, itemsPerPageLast) // ensure min 2 rows on last page
+
+      // Case 1: all fit on one page
+      if (totalItems <= perLast) {
+        return [data.items]
+      }
+
+      // Reserve the last page
+      const lastPageItems = data.items.slice(-perLast)
+      const remaining = data.items.slice(0, totalItems - perLast)
+
+      // Compute how many pages are needed for the remaining items
+      const otherPageCount = Math.ceil(remaining.length / perPage)
+
+      // Calculate ideal per-page size without exceeding perPage
+      const ideal = Math.min(
+        perPage,
+        Math.ceil(remaining.length / otherPageCount)
+      )
+
+      const chunks: Invoice['items'][] = []
+      let start = 0
+
+      for (let i = 0; i < otherPageCount; i++) {
+        const end = Math.min(start + ideal, remaining.length)
+        chunks.push(remaining.slice(start, end))
+        start = end
+      }
+
+      // Add the last page (always filled)
+      chunks.push(lastPageItems)
+
+      return chunks
+    }, [data.items, itemsPerPage, itemsPerPageLast])
 
     const renderBillHeader = () => (
       <div className="print-header">
         <div className="flex justify-between items-start">
           <div className="w-full flex items-center justify-between ">
-            <div className="w-[5.4rem] h-[5.4rem] translate-y-1">
+            <div className="w-[4.57rem] h-[4.57rem] translate-y-[1.5px]">
               <Image
                 id="logo-img"
                 className="w-full"
@@ -235,41 +268,42 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                 priority
               />
             </div>
-            <div className="text-center font-poppins">
-              <h1 className="text-[2rem] font-bold font-poppins translate-y-[6px]">
-                SARL SO.NE.RA.S
-              </h1>
-              <p className="text-[1.57rem] font-bold font-naskh-arabic ">
-                ش . ذ . م . م . صونيـراس
-              </p>
-              <p className="text-xl font-poppins ">Capital: 104 002 000.00</p>
-            </div>
-            <div className="w-20 h-20 pl-[8px] -mt-[5px]  scale-95">
-              {/* <QRCodeSVG value={qrAddress} className="w-[4.57rem] h-auto" /> */}
-              {mounted && (
-                <>
-                  <QRCodeSVG
-                    imageSettings={{
-                      crossOrigin: 'anonymous',
-                      src: '/images/logo.svg',
-                      height: 40,
-                      width: 40,
-                      x: 45,
-                      y: 45,
-                      excavate: true
-                    }}
-                    value={data.id}
-                    className="w-[4.57rem] h-auto"
-                  />
-                  <span className="text-[0.745rem] w-20 text-center ">
-                    {data.id}
-                  </span>
-                </>
-              )}
-            </div>
+            {mounted && (
+              <div className="text-center font-poppins">
+                <h1 className="text-[1.7rem] leading-tight  font-bold font-poppins translate-y-[4px]">
+                  SARL SO.NE.RA.S
+                </h1>
+                <p className="text-[1.57rem] leading-tight font-bold font-naskh-arabic ">
+                  ش . ذ . م . م . صونيـراس
+                </p>
+                <p className="text-xl leading-tight font-poppins ">
+                  Capital: 104 002 000.00
+                </p>
+              </div>
+            )}
+            {mounted && (
+              <div className="w-20 h-20 flex flex-col justify-center pl-[8px] -mt-[5px]  scale-95 translate-y-[4px]">
+                <QRCodeSVG
+                  imageSettings={{
+                    crossOrigin: 'anonymous',
+                    src: '/images/logo.svg',
+                    height: 40,
+                    width: 40,
+                    x: 45,
+                    y: 45,
+                    excavate: true
+                  }}
+                  value={data.id}
+                  className="w-[4.57rem] h-auto"
+                />
+                <span className="text-[0.745rem] w-full text-center ">
+                  {data.id}
+                </span>
+              </div>
+            )}
           </div>
         </div>
-        <div className="w-full flex justify-between text-sm mt-6">
+        <div className="w-full flex justify-between text-sm mt-2">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span>Adresse: Z.I. Garat taam B. P.N 46 Bounoura - 47014</span>
@@ -303,35 +337,33 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             </h2>
           </div>
           <div className="w-1/4 flex justify-end  text-right text-sm font-geist-sans">
-            <p>Du: {mounted ? format(new Date(), 'dd/MM/yyyy') : ''}</p>
+            <p>Du: {format(new Date(), 'dd/MM/yyyy')}</p>
           </div>
         </div>
-        <div className="text-base mt-4 w-full ">
+        <div className="text-base mt-1 w-full ">
           <Separator
             style={{ backgroundColor: '#000' }}
-            className="separator my-2 h-[1.4px] rounded "
+            className="separator my-1 h-[1.4px] rounded "
           />
           <h3 className="font-semibold">Client</h3>
-          <div className="flex w-full justify-between ">
-            <ClientAutocomplete
-              client={{
-                id: data.clientId || '',
-                name: data.name || '',
-                street: data.address,
-                registrationArticle: data.registrationArticle,
-                tradeRegisterNumber: data.tradeRegisterNumber,
-                taxIdNumber: data.taxIdNumber
-              }}
-              setClient={({ id, street, ...client }) => {
-                setData((prev) => ({
-                  ...prev,
-                  ...client,
-                  clientId: id,
-                  address: street || ''
-                }))
-              }}
-            />
-          </div>
+          <ClientAutocomplete
+            client={{
+              id: data.clientId || '',
+              name: data.name || '',
+              street: data.address,
+              registrationArticle: data.registrationArticle,
+              tradeRegisterNumber: data.tradeRegisterNumber,
+              taxIdNumber: data.taxIdNumber
+            }}
+            setClient={({ id, street, ...client }) => {
+              setData((prev) => ({
+                ...prev,
+                ...client,
+                clientId: id,
+                address: street || ''
+              }))
+            }}
+          />
           <Separator
             style={{ backgroundColor: '#000' }}
             className="separator my-2 h-[1.2px] rounded text-black"
@@ -379,7 +411,7 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
       }
 
       return (
-        <div className="flex flex-col gap-1 my-1">
+        <div className="flex flex-col gap-1 mb-1">
           {/* Single Add button with popover menu */}
           {availableSelectors.length > 0 && (
             <Popover>
@@ -539,9 +571,9 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
             )}
           </div>
           {/* Print-only content - only show in print mode, outside selector UI */}
-          <div className="hidden print:block mt-2  text-xs">
+          <div className="hidden print:block  text-xs">
             {showOfferValidity && data.offerValidity && (
-              <div className="flex gap-1 items-center my-1">
+              <div className="flex gap-1 items-center mt-1">
                 <h3 className="font-semibold text-xs ">
                   OFFRE DE PRIX VALABLE:
                 </h3>
@@ -549,13 +581,13 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
               </div>
             )}
             {showDeliveryTime && data.deliveryTime && (
-              <div className="flex gap-1 items-center my-1">
+              <div className="flex gap-1 items-center mt-1">
                 <h3 className="font-semibold text-xs ">DELAI DE LIVRAISON:</h3>
                 <p>{data.deliveryTime}</p>
               </div>
             )}
             {showGuaranteeTime && data.guaranteeTime && (
-              <div className="flex gap-1 items-center my-1">
+              <div className="flex gap-1 items-center mt-1">
                 <h3 className="font-semibold text-xs ">DELAI DE GARANTE:</h3>
                 <p>{data.guaranteeTime}</p>
               </div>
@@ -582,40 +614,40 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
         <div>
           <Separator
             style={{ backgroundColor: '#000' }}
-            className="my-2 h-[1.6px] rounded"
+            className="my-1 h-[1.6px] rounded"
           />
-          <div className="grid grid-cols-4 gap-1 text-center ">
-            <p className="font-sans">
+          <div className="flex justify-start w-full ">
+            <p className="flex w-1/4 font-sans">
               <strong className="">R.C:</strong> 97/B/0862043
             </p>
-            <p className="font-sans translate-x-1">
+            <p className="flex w-1/4 font-sans ">
               <strong className="">N.I.F:</strong> 99747086204393
             </p>
-            <p className="font-sans">
+            <p className="flex w-1/4 font-sans">
               <strong className="">A.I:</strong> 4710060038
             </p>
-            <p className="font-sans">
+            <p className="flex w-1/4 font-sans">
               <strong className="">N.I.S:</strong> 096947100010442
             </p>
           </div>
           <Separator
             style={{ backgroundColor: '#000' }}
-            className="my-2 h-[1px] rounded"
+            className="my-1 h-[1px] rounded"
           />
-          <div className="grid grid-cols-4 gap-1 mt-1  font-geist-sans text-end ">
-            <p className="">
+          <div className="flex justify-start w-full ">
+            <p className="w-1/4 flex items-center">
               <strong className="">BEA:</strong>
               00200028280286002213
             </p>
-            <p className="translate-x-1">
+            <p className="w-1/4 flex items-center">
               <strong className="">BNA:</strong>
               00100291030035005601
             </p>
-            <p className="">
+            <p className="w-1/4 flex items-center">
               <strong className="">SGA:</strong>
               02100551113003458571
             </p>
-            <p className="">
+            <p className="w-1/4 flex items-center">
               <strong className="">AGB:</strong>
               03200001229251120896
             </p>
@@ -624,238 +656,265 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
       </div>
     )
 
-    const renderTotals = () => (
-      <div className="totals-section mt-3  font-geist-sans">
-        <div className="flex justify-end text-sm">
-          <div className="flex flex-col space-y-2">
-            <div className="w-[15.4rem] pl-2 space-y-2 font-geist-sans ">
-              <div
-                className={cn(
-                  'flex justify-between',
-                  !data.discountRate && !data.refundRate && 'print:hidden'
-                )}
-              >
-                <span>TOTAL BRUTE H.T</span>
-                <span className="w-[6.5rem] pl-2">
-                  {Number(TotalBrut.toFixed(2)).toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  'flex justify-between border-t-[1.6px] pt-[1px]',
-                  !data.discountRate && 'print:hidden'
-                )}
-              >
-                <div className="flex gap-1 items-center">
-                  <span>REMISE </span>
-                  <Input
-                    value={
-                      data.discountRate
-                        ? (data.discountRate * 100).toFixed()
-                        : undefined
-                    }
-                    type="number"
-                    name="discount-percentage"
-                    placeholder="0"
-                    onChange={({ target: { value: v } }) => {
-                      let number = Math.max(0, Math.min(Number(v), 25))
+    const renderTotals = (summaryOverride?: {
+      refund?: number
+      discount?: number
+      stampTax?: number
+      Total?: number
+      totalHT?: number
+      totalTTC?: number
+      vat?: number
+    }) => {
+      const {
+        refund: s_refund = refund,
+        discount: s_discount = discount,
+        stampTax: s_stampTax = stampTax,
+        Total: s_Total = Total,
+        totalHT: s_totalHT = totalHT,
+        totalTTC: s_totalTTC = totalTTC,
+        vat: s_vat = vat
+      } = summaryOverride ?? {}
 
-                      if (number !== Number(v)) {
-                        toast({
-                          title: 'Avertissement',
-                          description:
-                            'Le taux de remise doit être entre 1% et 25%',
-                          variant: 'warning'
-                        })
-                        return
-                      }
-
-                      setData((prev) => ({
-                        ...prev,
-                        discountRate: number / 100
-                      }))
-                    }}
-                    className={cn(
-                      'p-0 m-0 w-5 text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                    )}
-                  />
-                  %
+      return (
+        <div className="totals-section   font-geist-sans">
+          <div className="flex justify-end text-sm">
+            <div className="w-[15rem] flex flex-col space-y-1">
+              <div className=" pl-2 space-y-1 font-geist-sans ">
+                <div
+                  className={cn(
+                    'flex justify-between',
+                    !data.discountRate && !data.refundRate && 'print:hidden'
+                  )}
+                >
+                  <span className="text-nowrap">TOTAL BRUTE H.T</span>
+                  <span className="w-full pl-2 text-end px-2">
+                    {formatPrice(s_Total)}
+                  </span>
                 </div>
-                <span className="w-[6.5rem] pl-2 font-geist-sans">
-                  {Number(discount.toFixed(2)).toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
-                  !data.refundRate && 'print:hidden'
-                )}
-              >
-                <div className="flex gap-1 items-center">
-                  <span>R.G</span>
-                  <Input
-                    value={
-                      data.refundRate
-                        ? (data.refundRate * 100).toFixed()
-                        : undefined
-                    }
-                    type="number"
-                    name="guarantee-refund"
-                    placeholder="0"
-                    onChange={({ target: { value: v } }) => {
-                      let number = Math.max(0, Math.min(Number(v), 50)) // clamp between 1 and 50
+                <div
+                  className={cn(
+                    'flex justify-between  border-t-[1.6px] pt-[1px]',
+                    !data.discountRate && 'print:hidden'
+                  )}
+                >
+                  <div className="flex gap-1 items-center">
+                    <span className="text-nowrap">REMISE </span>
+                    <Input
+                      value={Number(data.discountRate) * 100}
+                      type="number"
+                      name="discount-percentage"
+                      placeholder="0"
+                      onChange={({ target: { value: v } }) => {
+                        let number = Math.max(0, Math.min(Number(v), 25))
 
-                      if (number !== Number(v)) {
-                        toast({
-                          title: 'Avertissement',
-                          description: 'Le taux doit être entre 1% et 50%',
-                          variant: 'warning'
-                        })
-                      }
+                        if (number !== Number(v)) {
+                          toast({
+                            title: 'Avertissement',
+                            description:
+                              'Le taux de remise doit être entre 1% et 25%',
+                            variant: 'warning'
+                          })
+                          return
+                        }
 
-                      setData((prev) => ({
-                        ...prev,
-                        refundRate: number / 100
-                      }))
-                    }}
-                    className={cn(
-                      'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                    )}
-                  />
-                  %
+                        setData((prev) => ({
+                          ...prev,
+                          discountRate: number / 100
+                        }))
+                      }}
+                      className={cn(
+                        'p-0 m-0 w-5  text-end text-muted-foreground print:text-foreground  h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                      )}
+                    />
+                    %
+                  </div>
+                  <span className="w-full pl-2 text-end font-geist-sans px-2">
+                    {formatPrice(s_discount)}
+                  </span>
                 </div>
-                <span className="w-[6.5rem] pl-2 font-geist-sans">
-                  {Number(refund.toFixed(2)).toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between border-t-[1.6px] pt-[1px]">
-                <span>TOTAL NET H.T</span>
-                <span className="w-[6.5rem] pl-2">
-                  {Number(totalHT.toFixed(2)).toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between border-t-[1.6px] pt-[1px]">
-                <span>TVA 19%</span>
-                <span className="w-[6.5rem] pl-2">
-                  {Number(vat.toFixed(2)).toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
-                </span>
-              </div>
-              <div
-                className={cn(
-                  'flex justify-between border-t-[1.6px] pt-[1px]',
-                  !data.stampTaxRate && 'print:hidden'
-                )}
-              >
-                <div className="flex gap-1 items-center">
-                  <span>TIMBRE</span>
-                  <Input
-                    value={
-                      data.stampTaxRate
-                        ? (data.stampTaxRate * 100).toFixed()
-                        : 0
-                    }
-                    type="number"
-                    name="stamp-tax"
-                    placeholder="0"
-                    onChange={({ target: { value: v } }) => {
-                      let number = Math.max(0, Math.min(Number(v), 1))
+                <div
+                  className={cn(
+                    'flex justify-between h-6 items-center border-t-[1.6px] pt-[1px]',
+                    !data.refundRate && 'print:hidden'
+                  )}
+                >
+                  <div className="flex gap-1 items-center">
+                    <span>R.G</span>
+                    <Input
+                      value={Number(data.refundRate) * 100}
+                      type="number"
+                      name="guarantee-refund"
+                      placeholder="0"
+                      onChange={({ target: { value: v } }) => {
+                        let number = Math.max(0, Math.min(Number(v), 50)) // clamp between 1 and 50
 
-                      if (number !== Number(v)) {
-                        toast({
-                          title: 'Avertissement',
-                          description:
-                            'Le taux de timbre doit être entre 0% et 1%',
-                          variant: 'warning'
-                        })
-                        return
-                      }
+                        if (number !== Number(v)) {
+                          toast({
+                            title: 'Avertissement',
+                            description: 'Le taux doit être entre 1% et 50%',
+                            variant: 'warning'
+                          })
+                        }
 
-                      setData((prev) => ({
-                        ...prev,
-                        stampTaxRate: number / 100
-                      }))
-                    }}
-                    className={cn(
-                      'p-0 m-0 w-5 text-end  h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
-                    )}
-                  />
-                  %
+                        setData((prev) => ({
+                          ...prev,
+                          refundRate: number / 100
+                        }))
+                      }}
+                      className={cn(
+                        'p-0 m-0 w-6 text-end text-muted-foreground  print:text-foreground    h-6 focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                      )}
+                    />
+                    %
+                  </div>
+                  <span className="w-full px-2 pl-2 text-end font-geist-sans">
+                    {formatPrice(s_refund)}
+                  </span>
                 </div>
+                <div className="flex justify-between border-t-[1.6px] pt-[1px]">
+                  <span className="text-nowrap">TOTAL NET H.T</span>
+                  <span className="w-full px-2 pl-2 text-end">
+                    {formatPrice(s_totalHT)}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t-[1.6px] pt-[1px]">
+                  <div className="flex items-center gap-2">
+                    <span>TVA </span>
+                    <Selector
+                      className={cn(
+                        'p-0 m-0 w-12  h-6 text-muted-foreground print:text-foreground focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                      )}
+                      value={`${Number(data.vatRate) * 100}%`}
+                      items={['19%', '0%']}
+                      setValue={(v) => {
+                        setData((prev) => ({
+                          ...prev,
+                          vatRate: Number(v.replace(/\%/g, '')) / 100
+                        }))
+                      }}
+                    />
+                  </div>
 
-                <span className="w-24 ">
-                  {Number(stampTax.toFixed(2)).toLocaleString('fr-FR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })}
+                  <span className="text-end px-2 w-full pl-2">
+                    {formatPrice(s_vat)}
+                  </span>
+                </div>
+                <div
+                  className={cn(
+                    'flex justify-between border-t-[1.6px] pt-[1px]',
+                    !data.stampTaxRate && 'print:hidden'
+                  )}
+                >
+                  <div className="flex gap-1 items-center">
+                    <span>TIMBRE</span>
+                    <Input
+                      value={Number(data.stampTaxRate) * 100}
+                      type="number"
+                      name="stamp-tax"
+                      placeholder="0"
+                      onChange={({ target: { value: v } }) => {
+                        let number = Math.max(0, Math.min(Number(v), 1))
+                        if (number !== Number(v)) {
+                          toast({
+                            title: 'Avertissement',
+                            description:
+                              'Le taux de timbre doit être entre 0% et 1%',
+                            variant: 'warning'
+                          })
+                          return
+                        }
+
+                        setData((prev) => ({
+                          ...prev,
+                          stampTaxRate: number / 100
+                        }))
+                      }}
+                      className={cn(
+                        'p-0 m-0 w-5  text-end h-6 text-muted-foreground print:text-foreground   focus-visible:ring-0 rounded-none focus-visible:ring-offset-0 border-none'
+                      )}
+                    />
+                    %
+                  </div>
+
+                  <span className="w-full px-2 text-end ">
+                    {formatPrice(s_stampTax)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between font-bold bg-gray-100  py-[4px] pl-2  border-y font-geist-sans">
+                <span className="text-nowrap">TOTAL TTC</span>
+                <span className="w-full px-2  pl-2 text-right ">
+                  {formatPrice(s_totalTTC)}
                 </span>
               </div>
             </div>
-            <div className="flex justify-between font-bold bg-gray-100  py-2 pl-2 w-[15.4rem] border-y font-geist-sans">
-              <span>TOTAL TTC</span>
-              <span className="w-[6.5rem] pl-2 ">
-                {Number(totalTTC.toFixed(2)).toLocaleString('fr-FR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
-              </span>
+          </div>
+          <div className="amount-in-words">
+            <div className="space-y-[2px] text-sm print:text-black mt-1">
+              <p className="font-semibold">
+                ARRÊTÉE LA PRÉSENTE FACTURE A LA SOMME EN TTC DE:
+              </p>
+              <p className="capitalize">{amountToWords(s_totalTTC)}</p>
+            </div>
+          </div>
+          <div className="payment-details">
+            <div className="space-y-[2px] text-sm mt-[2px]">
+              <div className="space-y-[2px]">
+                <h3 className="font-semibold">MODE DE RÉGALEMENT</h3>
+                <Select
+                  value={data.paymentMode ?? undefined}
+                  onValueChange={handlePaymentTypeChange}
+                >
+                  <SelectTrigger className="w-fit border-none ring-0 h-fit p-0 ring-offset-0 rounded-none focus:ring-0 disabled:opacity-100">
+                    <SelectValue placeholder="Sélectionner le mode de paiement" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>
-        <div className="amount-in-words">
-          <div className="space-y-1 text-sm print:text-black mt-1">
-            <p className="font-semibold">
-              ARRÊTÉE LA PRÉSENTE FACTURE A LA SOMME EN TTC DE:
-            </p>
-            <p className="capitalize">{amountToWords(totalTTC)}</p>
-          </div>
-        </div>
-      </div>
-    )
+      )
+    }
 
     const renderTable = (pageItems: InvoiceItem[]) => {
       return (
-        <Table className="font-geist-sans text-sm w-full font-light hide-scrollbar-print ">
+        <Table
+          ref={tableRef}
+          className="font-poppins text-[0.9rem] w-full font-regular hide-scrollbar-print text-foreground "
+        >
           <TableHeader className="print:table-header-group bg-gray-100  border-y">
             <TableRow className="">
-              <TableHead className="px-2 py-2 h-8 w-8 text-left text-black font-medium border-r-[3px] border-white ">
+              <TableHead className="px-2 py-1 h-5  w-8 text-left text-black font-medium border-r-[3px] border-white ">
                 N°
               </TableHead>
-              <TableHead className="px-2 py-2 h-8 text-center text-black font-medium border-r-[3px] border-white ">
+              <TableHead className="px-2 py-1 h-5  text-center text-black font-medium border-r-[3px] border-white ">
                 Désignation
               </TableHead>
-              <TableHead className="px-2 py-2 h-8 w-8 text-left text-black font-medium border-r-[3px] border-white ">
+              <TableHead className="px-2 py-1 h-5  w-8 text-left text-black font-medium border-r-[3px] border-white ">
                 Qté
               </TableHead>
-              <TableHead className="px-2 py-2 h-8 w-24 text-left text-black font-medium border-r-[3px] border-white ">
+              <TableHead className="px-2 py-1 h-5  w-24 text-left text-black font-medium border-r-[3px] border-white ">
                 Prix U/H.T
               </TableHead>
-              <TableHead className="px-2 py-2 h-8 w-[6.5rem] text-left text-black font-medium border-r-[3px] border-white relative">
+              <TableHead className="px-2 py-1 h-5  w-[6.5rem] text-left text-black font-medium border-r-[3px] border-white relative">
                 Montant
               </TableHead>
-              <TableHead className="h-8 px-0  w-10 text-center text-black font-medium border-white print:hidden ">
+              <TableHead className=" h-5  w-10 text-center text-black font-medium border-white print:hidden ">
                 <Button
-                  className="w-fit"
+                  className="w-full h-full px-0 "
                   style={{ zIndex: 10 }}
                   onClick={handleAddItem}
                   type="button"
                   variant="ghost"
                 >
-                  <Icons.packagePlus className="text-foreground h-[1.15rem] w-auto" />
+                  <Icons.packagePlus className="text-foreground h-4 w-auto" />
                 </Button>
               </TableHead>
             </TableRow>
@@ -863,11 +922,11 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
           <TableBody>
             {pageItems.map((item: InvoiceItem, idx: number) => (
               <TableRow key={item.id} className="relative">
-                <TableCell className="py-[3px] px-2 h-8">
+                <TableCell className="py-[3px] px-2 h-5">
                   {item.number}
                 </TableCell>
-                <TableCell className="py-[3px] px-2 h-8 relative">
-                  <Input
+                <TableCell className="py-[3px] px-2 h-5">
+                  <AutoResizeTextarea
                     value={item.label ?? undefined}
                     onChange={({ target: { value } }) => {
                       setData((prev) => ({
@@ -879,10 +938,11 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                         )
                       }))
                     }}
-                    className="min-h-6 h-6 max-h-24 py-1 focus-visible:ring-0 ring-0 border-none rounded-none resize-y "
+                    // style={{ height: 'auto' }}
+                    className="h-5 w-full p-0  focus-visible:ring-0 ring-0 border-none rounded-none resize-y print:resize-none"
                   />
                 </TableCell>
-                <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
+                <TableCell className="text-left py-[3px] px-2 h-5 font-geist-sans">
                   <Input
                     type="number"
                     min={1}
@@ -903,10 +963,10 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                         })
                       }))
                     }}
-                    className="h-6 py-1 max-w-10   text-xs w-full pl-0.5 pr-0 focus-visible:ring-0 border-none rounded-none"
+                    className="h-full  w-full p-0 max-w-10   text-xs  pr-0 focus-visible:ring-0 border-none rounded-none"
                   />
                 </TableCell>
-                <TableCell className="text-left py-[3px] px-2 h-8 font-geist-sans">
+                <TableCell className="text-left py-[3px] px-2 h-5 font-geist-sans">
                   <Input
                     type="number"
                     min={0}
@@ -927,10 +987,10 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                         })
                       }))
                     }}
-                    className="h-6 py-1 w-full pl-0.5 pr-0 max-w-20 text-xs focus-visible:ring-0 border-none rounded-none"
+                    className="h-full  w-full p-0  max-w-20 text-xs focus-visible:ring-0 border-none rounded-none"
                   />
                 </TableCell>
-                <TableCell className="text-left py-[3px] px-2  font-geist-sans max-w-20">
+                <TableCell className="text-left h-5 py-[3px] px-2  font-geist-sans max-w-20">
                   {Number(
                     item.amount || Number(item.price) * Number(item.quantity)
                   ).toLocaleString('fr-FR', {
@@ -938,11 +998,11 @@ const ProformaInvoice = forwardRef<InvoiceRef, InvoiceProps>(
                     maximumFractionDigits: 2
                   })}
                 </TableCell>
-                <TableCell className="text-center py-[3px] px-1 print:hidden">
+                <TableCell className="text-center h-5 py-[3px] px-1 print:hidden">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5"
+                    className="h-full w-full p-0 m-0"
                     onClick={() => {
                       const newItems = data.items
                         .filter((i) => i.number !== item.number) // Remove the item

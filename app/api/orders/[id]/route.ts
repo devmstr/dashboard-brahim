@@ -397,7 +397,7 @@ export async function PATCH(
 
     if (existingItem.validatedAt)
       return NextResponse.json(
-        { message: 'Order is already validated' },
+        { message: 'Les commandes validées ne peuvent pas être modifiées.' },
         { status: 404 }
       )
 

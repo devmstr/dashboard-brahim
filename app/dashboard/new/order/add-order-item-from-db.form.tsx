@@ -86,6 +86,7 @@ export function AddOrderItemFromDbFrom({
       const orderItem: OrderItem = {
         ...apiRadiator,
         ...data,
+        status: 'VALIDATED',
         radiatorId: apiRadiator.id
       }
       const parsed = orderItemSchema.parse(orderItem)

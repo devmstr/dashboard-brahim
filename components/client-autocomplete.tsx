@@ -181,10 +181,10 @@ export default function ClientAutocomplete({
   return (
     <div
       ref={containerRef}
-      className="relative flex justify-between gap-3 w-full"
+      className="relative flex justify-between gap-1 w-full"
     >
       {/* Client Name Input */}
-      <div className="w-full">
+      <div className="w-4/6">
         <div className="relative ">
           <Input
             ref={inputRef}
@@ -291,7 +291,7 @@ export default function ClientAutocomplete({
       </div>
 
       {/* Client Details */}
-      <div className="text-sm space-y-0.5 w-full max-w-52">
+      <div className="text-sm space-y-0.5 w-2/6 flex flex-col justify-start ">
         <div
           className={cn(
             'flex items-center gap-2',

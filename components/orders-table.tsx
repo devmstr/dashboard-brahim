@@ -104,9 +104,17 @@ interface DetailedOrder {
     quantity: number
     label: string
     validatedAt: string
-    Vehicle: {
-      brand: string
-      model: string
+    CarType: {
+      name: string
+      Model: {
+        name: string
+        Family: {
+          name: string
+          Brand: {
+            name: string
+          }
+        }
+      }
     }
   }>
 }
@@ -183,6 +191,7 @@ export function OrderTable({
       })
 
       const orders = await Promise.all(orderPromises)
+      console.log({ orders })
       return orders
     } catch (error) {
       console.error('Error fetching order details:', error)
@@ -196,11 +205,14 @@ export function OrderTable({
 
     orders.forEach((order) => {
       order.OrdersItems.forEach((item) => {
+        if (item.validatedAt == null) return // Skip non-validated items
+        let label = item.label
+        if (item.CarType) {
+          label += ` (${item.CarType.Model?.Family?.Brand.name} - ${item.CarType.Model.name})`
+        }
         exportData.push({
           index: index++,
-          label: item.validatedAt
-            ? item.label
-            : `${item.label} --non confirmé--` || 'N/A',
+          label: label,
           quantity: item.quantity,
           deadline: order.deadline
             ? format(new Date(order.deadline), 'dd/MM/yyyy')

@@ -243,7 +243,7 @@ export function CarTable({
       id: 'actions',
       enableHiding: false,
       cell: ({ row }) => (
-        <Actions id={row.original.id} onDelete={handleDelete} />
+        <Actions id={row.original.modelId ?? ''} onDelete={handleDelete} />
       )
     }
   ]
@@ -455,7 +455,7 @@ function Actions({
               buttonVariants({ variant: 'ghost' }),
               'flex gap-3 items-center justify-center w-12 cursor-pointer group  focus:text-primary ring-0'
             )}
-            href={'/dashboard/orders/' + id}
+            href={'/dashboard/cars/' + id}
           >
             <Icons.edit className="w-4 h-4 group-hover:text-primary" />
           </Link>

@@ -163,6 +163,7 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
               Capital: 104 002 000.00
             </p>
           </div>
+
           <div className="w-20 h-20 flex flex-col justify-center pl-[8px] -mt-[5px]  scale-95 translate-y-[4px]">
             <QRCodeSVG
               imageSettings={{
@@ -302,17 +303,17 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
           style={{ backgroundColor: '#000' }}
           className="my-1 h-[1.6px] rounded"
         />
-        <div className="grid grid-cols-4 gap-1 text-center ">
-          <p className="font-sans">
+        <div className="flex justify-start w-full ">
+          <p className="flex w-1/4 font-sans">
             <strong className="">R.C:</strong> 97/B/0862043
           </p>
-          <p className="font-sans translate-x-1">
+          <p className="flex w-1/4 font-sans ">
             <strong className="">N.I.F:</strong> 99747086204393
           </p>
-          <p className="font-sans">
+          <p className="flex w-1/4 font-sans">
             <strong className="">A.I:</strong> 4710060038
           </p>
-          <p className="font-sans">
+          <p className="flex w-1/4 font-sans">
             <strong className="">N.I.S:</strong> 096947100010442
           </p>
         </div>
@@ -320,20 +321,20 @@ export default function Invoice({ data: input, className }: InvoiceProps) {
           style={{ backgroundColor: '#000' }}
           className="my-1 h-[1px] rounded"
         />
-        <div className="grid grid-cols-4 gap-1 mt-1  font-geist-sans text-end ">
-          <p className="">
+        <div className="flex justify-start w-full ">
+          <p className="w-1/4 flex items-center">
             <strong className="">BEA:</strong>
             00200028280286002213
           </p>
-          <p className="translate-x-1">
+          <p className="w-1/4 flex items-center">
             <strong className="">BNA:</strong>
             00100291030035005601
           </p>
-          <p className="">
+          <p className="w-1/4 flex items-center">
             <strong className="">SGA:</strong>
             02100551113003458571
           </p>
-          <p className="">
+          <p className="w-1/4 flex items-center">
             <strong className="">AGB:</strong>
             03200001229251120896
           </p>

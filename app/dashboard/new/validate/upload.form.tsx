@@ -7,6 +7,7 @@ import { OrderUploader } from '@/components/order-uploader'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { STATUS_TYPES } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
 import { Attachment, OrderItem } from '@/lib/validations'
 import { fr } from 'date-fns/locale'
@@ -101,7 +102,7 @@ export const UploadForm: React.FC<Props> = ({}: Props) => {
         id: order.id,
         clientId: order.Client?.id || order.clientId,
         deadline: order.deadline || new Date().toISOString(),
-        state: 'PLANNED',
+        state: STATUS_TYPES[1], // PLANNED
         progress: 0,
         Payment: order.Payment || null,
         totalItems: order.OrderItems?.length || 0, // Add total items

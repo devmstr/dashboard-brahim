@@ -53,7 +53,14 @@ export function EditCarForm({ data }: EditCarFormProps) {
   // Initialize the form with default values
   const form = useForm<EditCarSchemaType>({
     resolver: zodResolver(editCarSchema),
-    defaultValues: data
+    defaultValues: {
+      ...data,
+      types: data.types?.map((i) => ({
+        name: i.name || '',
+        year: i.year || '',
+        fuel: i.fuel || 'Essence'
+      }))
+    }
   })
 
   // Use field array for dynamic types

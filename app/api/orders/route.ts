@@ -124,7 +124,9 @@ export async function POST(request: Request) {
             lowerCollectorWidth: item.lowerCollectorWidth ?? null,
             tightening: item.tightening ?? null,
             label: item.label,
-            status: item.radiatorId ? 'Valide' : 'Prévu',
+            status: item.status ?? 'PLANNED',
+            validatedAt:
+              item.status == 'VALIDATED' ? new Date().toISOString() : null,
             delivered: 0,
             Order: { connect: { id: createdOrder.id } },
             ...(item.CarType?.id && {

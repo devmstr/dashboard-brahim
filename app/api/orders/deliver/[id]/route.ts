@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { Router } from 'next/router'
+import { STATUS_TYPES } from '@/config/global'
 
 // POST /api/orders/deliver/[id]
 export async function POST(
@@ -27,9 +28,11 @@ export async function POST(
         { status: 404 }
       )
     }
-    if (orderItem.status != 'Valide') {
+    if (orderItem.status == 'PLANNED') {
       return NextResponse.json(
-        { message: 'Seuls les articles validé peuvent être livrés.' },
+        {
+          message: 'Les articles prévus ne peuvent pas être livrés'
+        },
         { status: 400 }
       )
     }
@@ -56,14 +59,16 @@ export async function POST(
     // Calculate new delivered count
     const totalDelivered = prevDelivered + quantity
     const isFullyDelivered = totalDelivered >= (orderItem.quantity || 0)
-    const newStatus = isFullyDelivered ? 'Livré' : 'Prévu'
 
     // Update delivered count and status on OrderItem
     const updated = await prisma.orderItem.update({
       where: { id },
       data: {
         delivered: totalDelivered,
-        status: newStatus
+        // IF ALL Quantité DELIVERED make the status as delivered
+        ...(isFullyDelivered
+          ? { status: STATUS_TYPES[2] } // VALIDATED
+          : { status: STATUS_TYPES[3] }) // ONGOING
       }
     })
 

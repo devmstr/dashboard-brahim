@@ -340,7 +340,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         isModified,
         quantity,
         label,
-        status: 'Valide',
+        status: 'VALIDATED',
         ...(orderId && { Order: { connect: { id: orderId } } }),
         Radiator: { connect: { id: radiator.id } }
       }
