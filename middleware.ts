@@ -13,7 +13,12 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
     'SALES_AGENT'
   ],
   '/dashboard/printing': ['ADMIN', 'SALES_MANAGER', 'SALES_AGENT'],
-  '/dashboard/cars': ['ADMIN', 'CONSULTANT', 'ENGINEERING_MANAGER'],
+  '/dashboard/cars': [
+    'ADMIN',
+    'CONSULTANT',
+    'ENGINEERING_MANAGER',
+    'PRODUCTION_MANAGER'
+  ],
   '/dashboard/new': ['ADMIN', 'SALES_AGENT'],
   '/dashboard/pos': ['ADMIN', 'SALES_AGENT'],
   '/dashboard/db': [
@@ -29,7 +34,8 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
     'SALES_AGENT',
     'CONSULTANT',
     'ENGINEER',
-    'ENGINEERING_MANAGER'
+    'ENGINEERING_MANAGER',
+    'PRODUCTION_MANAGER'
   ],
   '/dashboard/inventory': [
     'ADMIN',
@@ -45,12 +51,14 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
     'FINANCE_MANAGER'
   ],
   '/dashboard/timeline': [
-    'ADMIN'
+    'ADMIN',
+    'PRODUCTION_MANAGER'
     // 'SALES_AGENT'
     // 'ENGINEER',
-    // 'ENGINEERING_MANAGER',
     // 'CONSULTANT'
-  ]
+  ],
+  '/dashbaord/procrutement': ['PROCRUTEMENT_AGENT', 'PROCRUTEMENT_AGENT']
+
   // Add more routes and roles as needed
 }
 

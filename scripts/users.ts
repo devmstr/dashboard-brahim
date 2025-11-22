@@ -29,6 +29,14 @@ const users: User[] = [
     phone: '0676470243'
   },
   {
+    email: 'test@test4.com',
+    username: 'Production mamanger',
+    passwordHash: '12345678',
+    role: 'PRODUCTION_MANAGER',
+    employeeId: 501,
+    phone: '0676470240'
+  },
+  {
     email: 'souna.abdelouahab@gmail.com',
     username: 'Souna Abdelouahab',
     passwordHash: '0667012443',
@@ -60,6 +68,7 @@ const users: User[] = [
     employeeId: 804,
     phone: '0665650862'
   },
+
   // testing accounts
   {
     email: 'test@test.com',
@@ -85,6 +94,14 @@ const users: User[] = [
     role: 'SALES_MANAGER',
     employeeId: 102,
     phone: '2'
+  },
+  {
+    email: 'test3@gmail.com',
+    username: 'Hmad Bouchaala',
+    passwordHash: '12345678',
+    role: 'PROCRUTEMENT_AGENT',
+    employeeId: 103,
+    phone: '0665650868'
   }
 ]
 

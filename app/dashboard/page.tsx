@@ -29,6 +29,10 @@ const Page: React.FC<Props> = async ({}: Props) => {
       redirect('/dashboard/inventory')
     case 'ENGINEER':
       redirect('/dashboard/db')
+    case 'PROCRUTEMENT_AGENT':
+      redirect('/dashboard/procurement')
+    case 'PROCRUTEMENT_MANAGER':
+      redirect('/dashboard/procurement')
     default:
       return notFound()
   }

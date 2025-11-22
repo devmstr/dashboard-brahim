@@ -37,13 +37,20 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     icon: 'orders',
     key: 'orders'
   },
-
   {
     title: 'Base De Données',
     href: '/dashboard/db',
     icon: 'database',
     key: 'db'
   },
+
+  {
+    title: 'Achats',
+    href: '/dashboard/procurement',
+    icon: 'deliveryPackage',
+    key: 'procurement'
+  },
+
   {
     title: 'Journal des Factures',
     href: '/dashboard/ledger',
