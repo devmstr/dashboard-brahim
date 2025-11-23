@@ -1,0 +1,24 @@
+import type { STATUS_TYPES } from '@/config/global'
+import type { Attachment } from '@/lib/validations/order'
+
+export type ProcurementStatus = (typeof STATUS_TYPES)[number]
+
+export interface ProcurementRecord {
+  id: string
+  reference: string
+  vendor: string
+  contactName: string
+  contactEmail?: string
+  phone?: string
+  status: ProcurementStatus
+  items: number
+  total: number
+  currency?: string
+  createdAt: string
+  expectedDate: string
+  deliveredAt?: string
+  paymentTerms?: string
+  notes?: string
+  attachments?: Attachment[]
+  updatedAt?: string
+}
