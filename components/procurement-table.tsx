@@ -13,7 +13,7 @@ import {
   useReactTable
 } from '@tanstack/react-table'
 import { format } from 'date-fns'
-import { ArrowUpDown, ChevronDown, FileSpreadsheet, Link2 } from 'lucide-react'
+import { ArrowUpDown, ChevronDown, FileSpreadsheet, Link2, Plus } from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 
@@ -186,10 +186,15 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         <div className="flex flex-col gap-2">
           <h2 className="text-xl font-semibold">Procurements</h2>
           <p className="text-sm text-muted-foreground">
-            Suivez vos demandes d\'achat, bons de commande et factures fournisseurs.
+            Suivez vos demandes d'achat, bons de commande et factures fournisseurs.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
+          <Button asChild>
+            <Link href="/dashboard/procurement/new">
+              <Plus className="mr-2 h-4 w-4" /> Nouvelle fiche
+            </Link>
+          </Button>
           <Input
             placeholder="Rechercher une référence ou un fournisseur"
             value={(table.getColumn('vendor')?.getFilterValue() as string) ?? ''}
