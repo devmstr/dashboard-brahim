@@ -572,3 +572,32 @@ model Permission {
   File      File?      @relation(fields: [fileId], references: [id], onDelete: Cascade)
   Directory Directory? @relation(fields: [dirId], references: [id], onDelete: Cascade)
 }
+
+enum ProcurementStatus {
+  CANCELLED
+  PLANNED
+  VALIDATED
+  ONGOING
+  FINISHED
+  DELIVERED
+}
+
+model Procurement {
+  id            String             @id @default(cuid())
+  reference     String             @unique
+  vendor        String
+  contactName   String
+  contactEmail  String?
+  phone         String?
+  status        ProcurementStatus
+  items         Int
+  total         Float
+  currency      String?            @default("DZD")
+  createdAt     DateTime           @default(now())
+  expectedDate  DateTime
+  deliveredAt   DateTime?
+  paymentTerms  String?
+  notes         String?
+  attachments   Json?
+  updatedAt     DateTime           @updatedAt
+}

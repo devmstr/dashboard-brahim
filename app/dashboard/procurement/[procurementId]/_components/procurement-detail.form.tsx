@@ -88,6 +88,15 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
     DELIVERED: 'deliveryPackage'
   }
 
+  const statusLabels: Record<ProcurementStatus, string> = {
+    CANCELLED: 'Annulé',
+    PLANNED: 'Planifié',
+    VALIDATED: 'Validé',
+    ONGOING: 'En cours',
+    FINISHED: 'Terminé',
+    DELIVERED: 'Livré'
+  }
+
   return (
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
@@ -177,11 +186,12 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
                   <SelectContent>
                     {STATUS_TYPES.map((status) => {
                       const Icon = Icons[statusIcon[status]]
+                      const statusLabel = statusLabels[status]
                       return (
                         <SelectItem key={status} value={status} className="flex gap-2">
                           <div className="flex items-center gap-2">
                             <Icon className="h-4 w-4" />
-                            <span className="capitalize">{status.toLowerCase()}</span>
+                            <span>{statusLabel}</span>
                           </div>
                         </SelectItem>
                       )
