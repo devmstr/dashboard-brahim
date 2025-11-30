@@ -13,9 +13,9 @@ interface ProcurementInvoiceUploadProps {
   procurement: ProcurementRecord
 }
 
-export const ProcurementInvoiceUpload: React.FC<ProcurementInvoiceUploadProps> = ({
-  procurement
-}) => {
+export const ProcurementInvoiceUpload: React.FC<
+  ProcurementInvoiceUploadProps
+> = ({ procurement }) => {
   const deliveryDate = procurement.deliveredAt
     ? format(new Date(procurement.deliveredAt), 'dd MMM yyyy HH:mm')
     : 'Non livré'
@@ -31,7 +31,7 @@ export const ProcurementInvoiceUpload: React.FC<ProcurementInvoiceUploadProps> =
       </div>
       <Separator />
       <CardGrid className="grid-cols-1">
-        <div className="space-y-2">
+        <div className="space-y-2 col-span-3">
           <Label className="text-sm">Facture fournisseur</Label>
           <OrderUploader
             uploadPath={`procurement/${procurement.id}/invoice`}

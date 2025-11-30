@@ -13,7 +13,13 @@ import {
   useReactTable
 } from '@tanstack/react-table'
 import { format } from 'date-fns'
-import { ArrowUpDown, ChevronDown, FileSpreadsheet, Link2, Plus } from 'lucide-react'
+import {
+  ArrowUpDown,
+  ChevronDown,
+  FileSpreadsheet,
+  Link2,
+  Plus
+} from 'lucide-react'
 import Link from 'next/link'
 import * as React from 'react'
 
@@ -54,9 +60,14 @@ const currencyFormatter = new Intl.NumberFormat('fr-DZ', {
 export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
   const [columnVisibility, setColumnVisibility] =
-    usePersistedState<VisibilityState>('procurement-table-columns-visibility', {})
+    usePersistedState<VisibilityState>(
+      'procurement-table-columns-visibility',
+      {}
+    )
 
   const columns = React.useMemo<ColumnDef<ProcurementRecord>[]>(
     () => [
@@ -84,7 +95,9 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         cell: ({ row }) => (
           <div className="space-y-1">
             <p className="font-medium">{row.original.vendor}</p>
-            <p className="text-xs text-muted-foreground">{row.original.contactName}</p>
+            <p className="text-xs text-muted-foreground">
+              {row.original.contactName}
+            </p>
           </div>
         )
       },
@@ -183,52 +196,59 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-2">
+        <div className="flex w-full flex-col gap-2">
           <h2 className="text-xl font-semibold">Procurements</h2>
           <p className="text-sm text-muted-foreground">
-            Suivez vos demandes d'achat, bons de commande et factures fournisseurs.
+            Suivez vos demandes d'achat, bons de commande et factures
+            fournisseurs.
           </p>
-        </div>
-        <div className="flex flex-wrap gap-2 items-center">
-          <Button asChild>
-            <Link href="/dashboard/procurement/new">
-              <Plus className="mr-2 h-4 w-4" /> Nouvelle fiche
-            </Link>
-          </Button>
-          <Input
-            placeholder="Rechercher une référence ou un fournisseur"
-            value={(table.getColumn('vendor')?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              table.getColumn('vendor')?.setFilterValue(event.target.value)
-            }
-            className="w-[300px]"
-          />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex gap-2">
-                <ChevronDown className="h-4 w-4" /> Colonnes
+          <div className="w-full flex gap-5 justify-between">
+            <Input
+              placeholder="Rechercher une référence ou un fournisseur"
+              value={
+                (table.getColumn('vendor')?.getFilterValue() as string) ?? ''
+              }
+              onChange={(event) =>
+                table.getColumn('vendor')?.setFilterValue(event.target.value)
+              }
+              className="w-[300px]"
+            />
+            <div className="flex flex-wrap gap-2 items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex gap-2">
+                    <ChevronDown className="h-4 w-4" /> Colonnes
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled className="flex gap-2">
+                    <FileSpreadsheet className="h-4 w-4" /> Export à venir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button asChild>
+                <Link href="/dashboard/procurement/new">
+                  <Plus className="mr-2 h-4 w-4" /> Nouvelle fiche
+                </Link>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem disabled className="flex gap-2">
-                <FileSpreadsheet className="h-4 w-4" /> Export à venir
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -255,7 +275,10 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
@@ -264,14 +287,20 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
                         cell.column.id === 'actions' ? 'text-right' : ''
                       )}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   Aucun enregistrement trouvé.
                 </TableCell>
               </TableRow>

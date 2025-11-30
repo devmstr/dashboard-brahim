@@ -1,7 +1,7 @@
 import { Card, CardGrid } from '@/components/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { STATUS_TYPES } from '@/config/global'
+import { PROCUREMENT_STATUS_TYPES, STATUS_TYPES } from '@/config/global'
 import type { ProcurementRecord } from '@/types/procurement'
 import { format } from 'date-fns'
 import { ProcurementDetailForm } from '../[procurementId]/_components/procurement-detail.form'
@@ -15,7 +15,7 @@ const Page: React.FC = () => {
     contactName: '',
     contactEmail: '',
     phone: '',
-    status: STATUS_TYPES[1],
+    status: PROCUREMENT_STATUS_TYPES[1],
     items: 1,
     total: 0,
     currency: 'DZD',
@@ -31,7 +31,9 @@ const Page: React.FC = () => {
       <Card className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Nouvelle fiche d'achat</p>
+            <p className="text-sm text-muted-foreground">
+              Nouvelle fiche d'achat
+            </p>
             <h2 className="text-xl font-semibold">Créer une demande</h2>
           </div>
           <Badge variant="secondary">Brouillon</Badge>

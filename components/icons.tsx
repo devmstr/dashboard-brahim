@@ -59,7 +59,8 @@ import {
   UploadCloud,
   Database,
   Globe,
-  Car
+  Car,
+  Inbox
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackage, LuPackageCheck } from 'react-icons/lu'
@@ -75,7 +76,7 @@ import { FiEdit } from 'react-icons/fi'
 import { TbTruckDelivery } from 'react-icons/tb'
 import { BiCar } from 'react-icons/bi'
 import { FaChartGantt } from 'react-icons/fa6'
-import { LiaFileInvoiceDollarSolid } from 'react-icons/lia'
+
 import { TbDeviceIpadDollar, TbFileInvoice } from 'react-icons/tb'
 import { TbPackageImport } from 'react-icons/tb'
 import { PiBuildingsBold } from 'react-icons/pi'
@@ -89,6 +90,7 @@ import { cn } from '@/lib/utils'
 export type Icon = LucideIcon
 
 export const Icons = {
+  inbox: Inbox,
   priceMargin: HiOutlineChartPie,
   category: RiOrganizationChart,
   globe: Globe,

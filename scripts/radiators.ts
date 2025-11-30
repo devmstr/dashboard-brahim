@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import SPE_ALL from '../seed/data-2025.json'
+import SPE_ALL from '../seed/2025.json'
 import STD25FE from '../seed/STD-25-FE.json'
 import STD25RA from '../seed/STD-25-RA.json'
 import crypto from 'crypto'

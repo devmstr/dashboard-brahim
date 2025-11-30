@@ -1,6 +1,7 @@
 'use client'
 
 import { CardGrid } from '@/components/card'
+import { DatePicker } from '@/components/date-picker'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,31 +13,40 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { STATUS_TYPES } from '@/config/global'
+import { PROCUREMENT_STATUS_TYPES, STATUS_TYPES } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import type { ProcurementRecord, ProcurementStatus } from '@/types/procurement'
+import type { ProcurementStatus, ProcurementRecord } from '@/types/procurement'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 import React from 'react'
 import { useForm } from 'react-hook-form'
+
 import * as z from 'zod'
 
 const procurementSchema = z.object({
-  reference: z.string().min(2, "Référence requise"),
-  vendor: z.string().min(2, "Fournisseur requis"),
-  contactName: z.string().min(2, "Contact requis"),
-  contactEmail: z.string().email("Email invalide").optional().or(z.literal('')),
+  reference: z.string().min(2, 'Référence requise'),
+  vendor: z.string().min(2, 'Fournisseur requis'),
+  contactName: z.string().min(2, 'Contact requis'),
+  contactEmail: z.string().email('Email invalide').optional().or(z.literal('')),
   phone: z.string().optional(),
-  status: z.enum(STATUS_TYPES),
+  status: z.enum(PROCUREMENT_STATUS_TYPES),
   expectedDate: z.string(),
   paymentTerms: z.string().optional(),
   notes: z.string().optional(),
   items: z.coerce.number().min(1),
   total: z.coerce.number().min(0),
-  currency: z.string().default('DZD')
+  currency: z.string().default('DZD'),
+  validator: z.string().optional()
 })
 
 type ProcurementFormValues = z.infer<typeof procurementSchema>
@@ -63,7 +73,8 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
       notes: procurement.notes,
       items: procurement.items,
       total: procurement.total,
-      currency: procurement.currency || 'DZD'
+      currency: procurement.currency || 'DZD',
+      validator: procurement.validator || ''
     }
   })
 
@@ -81,20 +92,18 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
 
   const statusIcon: Record<ProcurementStatus, keyof typeof Icons> = {
     CANCELLED: 'abandoned',
-    PLANNED: 'planned',
-    VALIDATED: 'checkCircle',
-    ONGOING: 'ongoing',
-    FINISHED: 'done',
-    DELIVERED: 'deliveryPackage'
+    CREATED: 'file',
+    RECEIVED: 'inbox',
+    APPROVED: 'checkCircle',
+    PAID: 'done'
   }
 
   const statusLabels: Record<ProcurementStatus, string> = {
-    CANCELLED: 'Annulé',
-    PLANNED: 'Planifié',
-    VALIDATED: 'Validé',
-    ONGOING: 'En cours',
-    FINISHED: 'Terminé',
-    DELIVERED: 'Livré'
+    CANCELLED: 'Annulée',
+    CREATED: 'Créée',
+    RECEIVED: 'Reçue',
+    APPROVED: 'Validée',
+    PAID: 'Payée'
   }
 
   return (
@@ -150,7 +159,11 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="email@domaine.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="email@domaine.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -177,7 +190,10 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Statut</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Choisir un statut" />
@@ -188,7 +204,11 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
                       const Icon = Icons[statusIcon[status]]
                       const statusLabel = statusLabels[status]
                       return (
-                        <SelectItem key={status} value={status} className="flex gap-2">
+                        <SelectItem
+                          key={status}
+                          value={status}
+                          className="flex gap-2"
+                        >
                           <div className="flex items-center gap-2">
                             <Icon className="h-4 w-4" />
                             <span>{statusLabel}</span>
@@ -202,15 +222,41 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="validator"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Validateur</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nom du validateur" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
             name="expectedDate"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="">
                 <FormLabel>Échéance</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <DatePicker
+                    date={form.getValues('expectedDate')}
+                    onDateChange={(v) => {
+                      if (!v) return
+                      form.setValue(
+                        'expectedDate',
+                        format(new Date(v), 'yyyy-MM-dd')
+                      )
+                    }}
+                    locale={fr}
+                    placeholder="Choisir une date"
+                    formatStr="PPP"
+                    className="w-full"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -251,7 +297,10 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Devise</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue />
@@ -303,7 +352,8 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
         />
 
         <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />} Sauvegarder
+          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}{' '}
+          Sauvegarder
         </Button>
       </form>
     </Form>

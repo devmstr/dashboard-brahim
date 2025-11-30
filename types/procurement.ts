@@ -1,7 +1,7 @@
-import type { STATUS_TYPES } from '@/config/global'
+import type { PROCUREMENT_STATUS_TYPES } from '@/config/global'
 import type { Attachment } from '@/lib/validations/order'
 
-export type ProcurementStatus = (typeof STATUS_TYPES)[number]
+export type ProcurementStatus = (typeof PROCUREMENT_STATUS_TYPES)[number]
 
 export interface ProcurementRecord {
   id: string
@@ -21,4 +21,5 @@ export interface ProcurementRecord {
   notes?: string
   attachments?: Attachment[]
   updatedAt?: string
+  validator?: string
 }

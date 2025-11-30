@@ -1,50 +1,80 @@
 import { cn } from '@/lib/utils'
 import { Icons } from './icons'
-import { STATUS_TYPES } from '@/config/global'
+import { STATUS_TYPES, PROCUREMENT_STATUS_TYPES } from '@/config/global'
 
 interface StatusBudgeProps {
-  variant?: (typeof STATUS_TYPES)[number]
+  variant?:
+    | (typeof STATUS_TYPES)[number]
+    | (typeof PROCUREMENT_STATUS_TYPES)[number]
 }
 
-const FrStatus: Record<(typeof STATUS_TYPES)[number], string> = {
-  CANCELLED: 'Annuler',
-  PLANNED: 'Prévu',
-  VALIDATED: 'Valide',
-  ONGOING: 'Encours',
-  FINISHED: 'Fini',
-  DELIVERED: 'Livré'
+// Merge French labels for both procurement and invoice statuses
+const FrStatus: Record<string, string> = {
+  // Procurement statuses (existing)
+  CANCELLED: 'Annulé',
+  PLANNED: 'Planifié',
+  VALIDATED: 'Validé',
+  ONGOING: 'En cours',
+  FINISHED: 'Terminé',
+  DELIVERED: 'Livré',
+
+  // Invoice statuses (new)
+  CREATED: 'Créée',
+  RECEIVED: 'Reçue',
+  APPROVED: 'Validée',
+  PAID: 'Payée'
 } as const
 
+// Merge status config for both procurement and invoice
 const STATUS_CONFIG: Record<
-  (typeof STATUS_TYPES)[number],
+  string,
   {
     iconKey: keyof typeof Icons
     className: string
   }
 > = {
+  // Procurement statuses
   CANCELLED: {
     iconKey: 'abandoned',
-    className: 'bg-[#f8f9fa] text-[#a0a0a0] border-[#a0a0a0]' // Lighter gray
+    className: 'bg-[#f8f9fa] text-[#a0a0a0] border-[#a0a0a0]'
   },
   PLANNED: {
     iconKey: 'planned',
-    className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]' // Brighter blue
+    className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]'
   },
   VALIDATED: {
-    iconKey: 'checkCircle', // or 'verified' depending on your Icons object
-    className: 'bg-[#e8f5e8] text-[#2e7d32] border-[#2e7d32]' // Dark green for validation
+    iconKey: 'checkCircle',
+    className: 'bg-[#e8f5e8] text-[#2e7d32] border-[#2e7d32]'
   },
   ONGOING: {
     iconKey: 'ongoing',
-    className: 'bg-[#fff0d4] text-[#ffa500] border-[#ffa500]' // Vibrant orange
+    className: 'bg-[#fff0d4] text-[#ffa500] border-[#ffa500]'
   },
   FINISHED: {
     iconKey: 'done',
-    className: 'bg-[#f0f8e0] text-[#6ba800] border-[#6ba800]' // Brighter green
+    className: 'bg-[#f0f8e0] text-[#6ba800] border-[#6ba800]'
   },
   DELIVERED: {
     iconKey: 'deliveryPackage',
-    className: 'bg-[#e6f9ed] text-[#1aaa55] border-[#1aaa55]' // Greenish teal for delivery
+    className: 'bg-[#e6f9ed] text-[#1aaa55] border-[#1aaa55]'
+  },
+
+  // Invoice statuses
+  CREATED: {
+    iconKey: 'file',
+    className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]'
+  },
+  RECEIVED: {
+    iconKey: 'inbox',
+    className: 'bg-[#fff0d4] text-[#ffa500] border-[#ffa500]'
+  },
+  APPROVED: {
+    iconKey: 'checkCircle',
+    className: 'bg-[#e8f5e8] text-[#2e7d32] border-[#2e7d32]'
+  },
+  PAID: {
+    iconKey: 'done',
+    className: 'bg-[#e6f9ed] text-[#1aaa55] border-[#1aaa55]'
   }
 }
 
@@ -65,7 +95,7 @@ export const StatusBudge: React.FC<StatusBudgeProps> = ({ variant }) => {
         'pl-1 pr-2 flex gap-1 w-fit text-md rounded-full capitalize border-2 py-[0.08rem] scale-[85%]'
       )}
     >
-      <Icon className="w-5 h-5  p-[0.12rem]" /> {FrStatus[variant]}
+      <Icon className="w-5 h-5 p-[0.12rem]" /> {FrStatus[variant]}
     </div>
   )
 }
