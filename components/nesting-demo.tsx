@@ -1,0 +1,200 @@
+// components/nesting-demo.tsx
+'use client'
+
+import { useState } from 'react'
+import type { NestingResult } from '@/lib/nesting/nest-rectangles'
+
+interface FormState {
+  sheetWidth: string
+  sheetHeight: string
+  rectWidth: string
+  rectHeight: string
+  allowRotation: boolean
+  maxRects: string
+  padding: string
+}
+
+export function NestingDemo() {
+  const [form, setForm] = useState<FormState>({
+    sheetWidth: '2000',
+    sheetHeight: '1000',
+    rectWidth: '200',
+    rectHeight: '100',
+    allowRotation: true,
+    maxRects: '',
+    padding: '0'
+  })
+
+  const [result, setResult] = useState<NestingResult | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleChange =
+    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value =
+        e.target.type === 'checkbox'
+          ? (e.target as HTMLInputElement).checked
+          : e.target.value
+      setForm((prev) => ({ ...prev, [field]: value as any }))
+    }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+    setResult(null)
+
+    try {
+      const payload = {
+        sheetWidth: Number(form.sheetWidth),
+        sheetHeight: Number(form.sheetHeight),
+        rectWidth: Number(form.rectWidth),
+        rectHeight: Number(form.rectHeight),
+        allowRotation: form.allowRotation,
+        maxRects: form.maxRects ? Number(form.maxRects) : undefined,
+        padding: form.padding ? Number(form.padding) : undefined
+      }
+
+      const res = await fetch('/api/nesting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+
+      const json = await res.json()
+
+      if (!res.ok) {
+        setError(json.error ?? 'Unknown error')
+      } else {
+        setResult(json as NestingResult)
+      }
+    } catch (err) {
+      console.error(err)
+      setError('Request failed.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+        <div className="col-span-1 space-y-1">
+          <label className="block text-sm font-medium">Sheet width</label>
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-sm"
+            value={form.sheetWidth}
+            onChange={handleChange('sheetWidth')}
+          />
+        </div>
+        <div className="col-span-1 space-y-1">
+          <label className="block text-sm font-medium">Sheet height</label>
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-sm"
+            value={form.sheetHeight}
+            onChange={handleChange('sheetHeight')}
+          />
+        </div>
+
+        <div className="col-span-1 space-y-1">
+          <label className="block text-sm font-medium">Rect width</label>
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-sm"
+            value={form.rectWidth}
+            onChange={handleChange('rectWidth')}
+          />
+        </div>
+        <div className="col-span-1 space-y-1">
+          <label className="block text-sm font-medium">Rect height</label>
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-sm"
+            value={form.rectHeight}
+            onChange={handleChange('rectHeight')}
+          />
+        </div>
+
+        <div className="col-span-1 space-y-1">
+          <label className="block text-sm font-medium">Padding</label>
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-sm"
+            value={form.padding}
+            onChange={handleChange('padding')}
+            min={0}
+          />
+        </div>
+
+        <div className="col-span-1 space-y-1">
+          <label className="block text-sm font-medium">
+            Max rects (optional)
+          </label>
+          <input
+            type="number"
+            className="w-full rounded border px-2 py-1 text-sm"
+            value={form.maxRects}
+            onChange={handleChange('maxRects')}
+            min={1}
+          />
+        </div>
+
+        <div className="col-span-2 flex items-center gap-2 pt-2">
+          <input
+            id="allowRotation"
+            type="checkbox"
+            checked={form.allowRotation}
+            onChange={handleChange('allowRotation')}
+          />
+          <label htmlFor="allowRotation" className="text-sm">
+            Allow 90° rotation
+          </label>
+        </div>
+
+        <div className="col-span-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {loading ? 'Computing…' : 'Compute nesting'}
+          </button>
+        </div>
+      </form>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
+      {result && (
+        <div className="space-y-3 text-sm">
+          <div>
+            <div>
+              <span className="font-semibold">Max count:</span>{' '}
+              {result.maxCount}
+            </div>
+            <div>
+              <span className="font-semibold">Waste:</span>{' '}
+              {result.wastePercentage.toFixed(2)}%
+            </div>
+            <div>
+              <span className="font-semibold">Orientation:</span>{' '}
+              {result.orientation}
+            </div>
+          </div>
+
+          {result.debugLayout && (
+            <div>
+              <div className="font-semibold">
+                Debug grid (R = rect, . = empty):
+              </div>
+              <pre className="mt-1 rounded bg-gray-900 p-2 font-mono text-xs text-gray-100">
+                {result.debugLayout.grid.join('\n')}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
