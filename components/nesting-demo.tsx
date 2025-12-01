@@ -1,8 +1,8 @@
 // components/nesting-demo.tsx
 'use client'
 
+import { NestingResult } from '@/lib/nesting/types'
 import { useState } from 'react'
-import type { NestingResult } from '@/lib/nesting/nest-rectangles'
 
 interface FormState {
   sheetWidth: string
