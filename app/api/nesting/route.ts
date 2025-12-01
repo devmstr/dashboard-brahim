@@ -1,16 +1,13 @@
 // app/api/nesting/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  nestRectangles,
-  type NestingInput,
-  NestingValidationError
-} from '@/lib/nesting/nest-rectangles'
+import { computeMaxFitForSingleShape } from '@/lib/nesting/single-2d-nesting'
+import { NestingInput, NestingValidationError } from '@/lib/nesting/types'
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as Partial<NestingInput>
 
-    const result = nestRectangles({
+    const result = computeMaxFitForSingleShape({
       sheetWidth: body.sheetWidth ?? 0,
       sheetHeight: body.sheetHeight ?? 0,
       rectWidth: body.rectWidth ?? 0,
@@ -19,6 +16,8 @@ export async function POST(req: NextRequest) {
       maxRects: body.maxRects,
       padding: body.padding
     })
+
+    console.log(JSON.stringify(result))
 
     return NextResponse.json(result, { status: 200 })
   } catch (error) {

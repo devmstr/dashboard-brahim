@@ -4,82 +4,13 @@ import {
   type IRectangle,
   type IOption as MaxRectsOptions
 } from 'maxrects-packer'
-
-/**
- * Input parameters for identical-rectangle nesting.
- */
-export interface NestingInput {
-  sheetWidth: number
-  sheetHeight: number
-  rectWidth: number
-  rectHeight: number
-  allowRotation: boolean
-  /**
-   * Optional upper bound on how many rectangles to try to place.
-   */
-  maxRects?: number
-  /**
-   * Padding between rectangles (and effectively to sheet borders), in same units as dimensions.
-   * Default: 0
-   */
-  padding?: number
-}
-
-/**
- * Single positioned rectangle on the sheet.
- */
-export interface PositionedRectangle {
-  index: number
-  x: number
-  y: number
-  width: number
-  height: number
-  rotated: boolean
-}
-
-/**
- * Debug layout representation (coarse grid).
- */
-export interface NestingDebugLayout {
-  /**
-   * Array of strings, one per row.
-   * 'R' = rectangle cell, '.' = empty.
-   */
-  grid: string[]
-}
-
-/**
- * Result of a nesting computation.
- */
-export interface NestingResult {
-  maxCount: number
-  rectangles: PositionedRectangle[]
-  wastePercentage: number
-  usedArea: number
-  totalArea: number
-  /**
-   * Orientation summary:
-   * - 'original'  => no rectangles were rotated
-   * - 'rotated'   => all rectangles were rotated
-   * - 'mixed'     => mixture of both orientations
-   */
-  orientation: 'original' | 'rotated' | 'mixed'
-  /**
-   * Optional ASCII-style grid layout, for debugging.
-   * (Coarse approximation only, not an exact map of coordinates.)
-   */
-  debugLayout?: NestingDebugLayout
-}
-
-/**
- * Error thrown when input validation fails.
- */
-export class NestingValidationError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'NestingValidationError'
-  }
-}
+import {
+  NestingInput,
+  NestingDebugLayout,
+  NestingResult,
+  PositionedRectangle,
+  NestingValidationError
+} from './types'
 
 /**
  * Validate numeric input and constraints.
@@ -338,7 +269,9 @@ function buildDebugGrid(
  * - Rectangles are always defined in original orientation; MaxRects handles rotation.
  * - This allows mixed 0° and 90° layouts (e.g., your 17-piece example).
  */
-export function nestRectangles(input: NestingInput): NestingResult {
+export function computeMaxFitForSingleShape(
+  input: NestingInput
+): NestingResult {
   const {
     sheetWidth,
     sheetHeight,
