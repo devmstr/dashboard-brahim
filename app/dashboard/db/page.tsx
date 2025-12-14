@@ -54,6 +54,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
   })
   return (
     <Card>
+      {/*  */}
       <DatabaseTable userRole={role as UserRole} data={data} />
     </Card>
   )
