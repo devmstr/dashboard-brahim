@@ -319,7 +319,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 1
     },
@@ -332,7 +333,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 2
     },
@@ -345,7 +347,8 @@ export function DatabaseTable({
         'CONSULTANT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 3
     },
@@ -358,7 +361,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 4
     },
@@ -371,7 +375,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 5
     },
@@ -384,7 +389,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 6
     },
@@ -397,7 +403,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 7
     },
@@ -410,7 +417,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 8,
       responsiveClass: 'hidden md:table-cell'
@@ -424,7 +432,8 @@ export function DatabaseTable({
         'INVENTORY_AGENT',
         'ENGINEER',
         'CONSULTANT',
-        'ENGINEERING_MANAGER'
+        'ENGINEERING_MANAGER',
+        'DATA_AGENT'
       ],
       order: 8
     }
