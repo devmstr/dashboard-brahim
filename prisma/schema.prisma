@@ -7,6 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =======================================
+// AUTH & USER MODELS (UNCHANGED)
+// =======================================
 model Account {
   id                 String    @id @default(cuid())
   userId             String
@@ -61,7 +64,9 @@ model VerificationRequest {
   @@unique([identifier, token])
 }
 
-// LOCATION MODELS
+// =======================================
+// LOCATION MODELS (UNCHANGED)
+// =======================================
 model Country {
   id        String     @id @default(cuid())
   code      String     @unique
@@ -112,12 +117,14 @@ model Address {
   @@map("addresses")
 }
 
-// RADIATOR, INVENTORY, COMPONENTS
+// =======================================
+// SALES, INVOICING & ORDERS (UNCHANGED)
+// =======================================
 model Inventory {
   id       String  @id @default(cuid())
-  level    Int     @default(0) // Current inventory level
-  alertAt  Int     @default(10) // Minimum level to trigger an alert
-  maxLevel Int     @default(500) // Maximum level for inventory
+  level    Int     @default(0)
+  alertAt  Int     @default(10)
+  maxLevel Int     @default(500)
   location String?
 
   Radiators Radiator[]
@@ -203,10 +210,10 @@ model InvoiceHistory {
 model Price {
   id            String   @id @default(cuid())
   unit          Float    @default(0)
-  unitTTC       Float    @default(0) // Including tax
+  unitTTC       Float    @default(0)
   bulk          Float    @default(0)
-  bulkTTC       Float    @default(0) // Including tax
-  bulkThreshold Int      @default(100) // Minimum quantity for bulk pricing
+  bulkTTC       Float    @default(0)
+  bulkThreshold Int      @default(100)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -215,18 +222,71 @@ model Price {
   @@map("prices")
 }
 
+// =====================
+// ENUMS
+// =====================
+
+enum BomType {
+  DESIGN
+  PRODUCTION
+}
+
+enum BomItemType {
+  PART // Manufactured or sub-assembly
+  MATERIAL // Raw material
+}
+
+enum UnitCategory {
+  COUNT
+  WEIGHT
+  SURFACE
+  VOLUME
+  LENGTH
+}
+
+enum UnitCode {
+  PCS
+  KG
+  G
+  MM2
+  M2
+  LITER
+  ML
+  MM
+  M
+}
+
+// =====================
+// UNIT OF MEASURE
+// =====================
+
+model Unit {
+  id       String       @id @default(cuid())
+  code     UnitCode     @unique
+  category UnitCategory
+  name     String
+
+  // Back-relations
+  rawMaterials RawMaterial[]
+  bomItems     BomItem[]
+}
+
+// =====================
+// FINISHED PRODUCT
+// =====================
+
 model Radiator {
-  id                   String        @id @default(cuid())
-  partNumber           String?       @unique // is unique manufacturing number 
+  id                   String   @id @default(cuid())
+  partNumber           String?  @unique
   category             String?
   dirId                String?
   cooling              String?
-  barcode              String?       @unique
+  barcode              String?  @unique
   label                String?
-  hash                 String?       @unique // Unique hash for the radiator
-  status               String? // e.g., "active", "inactive", "draft" , "ar"
-  type                 String? // e.g., "collector", "core", "tube"
-  production           String? // e.g., "2023-10-01"
+  hash                 String?  @unique
+  statusprocurement    String?
+  type                 String?
+  production           String?
   fabrication          String?
   fins                 String?
   pitch                Int?
@@ -238,73 +298,130 @@ model Radiator {
   position             String?
   tightening           String?
   perforation          String?
-  isTinned             Boolean?      @default(false)
-  isPainted            Boolean?      @default(true)
+  isTinned             Boolean? @default(false)
+  isPainted            Boolean? @default(true)
   upperCollectorLength Int?
   lowerCollectorLength Int?
   upperCollectorWidth  Int?
   lowerCollectorWidth  Int?
-  isActive             Boolean?      @default(false)
+  isActive             Boolean? @default(false)
   inventoryId          String?
   priceId              String?
   directoryId          String?
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
-  Inventory            Inventory?    @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
-  Price                Price?        @relation(fields: [priceId], references: [id], onDelete: SetNull)
-  Directory            Directory?    @relation(fields: [directoryId], references: [id], onDelete: SetNull)
-  CarType              Type?
-  OrderItems           OrderItem[]
-  Components           Component[]
-  invoiceId            String?
-  InventoryItem        InvoiceItem[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  Inventory     Inventory?    @relation(fields: [inventoryId], references: [id], onDelete: SetNull)
+  Price         Price?        @relation(fields: [priceId], references: [id], onDelete: SetNull)
+  Directory     Directory?    @relation(fields: [directoryId], references: [id], onDelete: SetNull)
+  CarType       Type?
+  OrderItems    OrderItem[]
+  InventoryItem InvoiceItem[]
+
+  // BOM
+  boms Bom[] @relation("RadiatorBom")
 
   @@map("radiators")
 }
 
-model Component {
-  id         String  @id @default(cuid())
-  label      String
-  type       String?
+// =====================
+// MANUFACTURED PART / SUB-ASSEMBLY
+// =====================
+
+model Part {
+  id        String @id @default(cuid())
+  name      String
+  reference String @unique
+
+  // Relations
+  usedInBomItems BomItem[] @relation("PartUsage")
+  boms           Bom[]     @relation("PartBom")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// =====================
+// RAW MATERIAL MASTER
+// =====================
+
+model RawMaterial {
+  id             String   @id @default(cuid())
+  reference      String   @unique
+  name           String
+  description    String?
+  baseUnitId     String
+  unitCost       Decimal
+  density        Decimal?
+  thicknessMm    Decimal?
+  wasteFactorPct Decimal?
+
+  // Relations
+  baseUnit       Unit      @relation(fields: [baseUnitId], references: [id])
+  usedInBomItems BomItem[] @relation("MaterialUsage")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// =====================
+// BOM HEADER
+// =====================
+
+model Bom {
+  id       String  @id @default(cuid())
+  code     String
+  type     BomType
+  version  String
+  isActive Boolean @default(true)
+
+  // Polymorphic parent
   radiatorId String?
+  radiator   Radiator? @relation("RadiatorBom", fields: [radiatorId], references: [id])
 
-  Radiator       Radiator?       @relation(fields: [radiatorId], references: [id], onDelete: Cascade)
-  MaterialUsages MaterialUsage[]
+  partId String?
+  part   Part?   @relation("PartBom", fields: [partId], references: [id])
 
-  @@map("components")
+  // Items
+  items BomItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([code, version])
 }
 
-// MATERIAL SYSTEM
+// =====================
+// BOM ITEM
+// =====================
 
-model Material {
-  id               String          @id @default(cuid())
-  reference        String?         @unique
-  name             String
-  description      String?
-  unit             String? // e.g., "kg", "g", "l", "m²", "cm²"
-  baseUnit         String? // e.g., "g", "ml", "m²"
-  conversionFactor Float? // e.g., 1000 if unit is "kg" and baseUnit is "g"
-  unitCost         Float? // cost per base unit
-  Usages           MaterialUsage[]
+model BomItem {
+  id       String      @id @default(cuid())
+  bomId    String
+  itemType BomItemType
+  quantity Decimal
+  unitId   String
 
-  @@map("materials")
+  // Polymorphic child
+  partId String?
+  part   Part?   @relation("PartUsage", fields: [partId], references: [id])
+
+  rawMaterialId String?
+  rawMaterial   RawMaterial? @relation("MaterialUsage", fields: [rawMaterialId], references: [id])
+
+  // Relations
+  bom  Bom  @relation(fields: [bomId], references: [id])
+  unit Unit @relation(fields: [unitId], references: [id])
+
+  // Cost snapshot
+  costSnapshot Decimal?
+
+  @@unique([bomId, partId])
+  @@unique([bomId, rawMaterialId])
 }
 
-model MaterialUsage {
-  id          String @id @default(cuid())
-  componentId String
-  materialId  String
-  quantity    Float?
-
-  Component Component @relation(fields: [componentId], references: [id], onDelete: Cascade)
-  Material  Material  @relation(fields: [materialId], references: [id], onDelete: Cascade)
-
-  @@unique([componentId, materialId])
-  @@map("material_usages")
-}
-
-// CAR SYSTEM
-
+// CAR SYSTEM (UNCHANGED)
 model Brand {
   id       String   @id @default(cuid())
   name     String   @unique
@@ -354,12 +471,11 @@ model Type {
   @@map("car_type")
 }
 
-// CLIENTS & ORDERS
-
+// CLIENTS & ORDERS (UNCHANGED)
 model Client {
   id                  String  @id @default(cuid())
   name                String
-  phone               String? // TODO: add @unique when the database is ready
+  phone               String?
   label               String?
   email               String? @unique
   isCompany           Boolean @default(false)
@@ -375,7 +491,7 @@ model Client {
   Address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
 
   Orders    Order[]
-  Payments  Payment[] // Added to directly link payments to clients for easier querying
+  Payments  Payment[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Invoice   Invoice[]
@@ -385,17 +501,17 @@ model Client {
 
 model Attachment {
   id          String     @id @default(cuid())
-  url         String // URL of the uploaded file
-  type        String // MIME type like 'image/jpeg', 'application/pdf', etc.
-  name        String // Original file name
-  uniqueName  String     @unique // Unique file serial
+  url         String
+  type        String
+  name        String
+  uniqueName  String     @unique
   Order       Order?     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId     String?
   createdAt   DateTime   @default(now())
   OrderItem   OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  orderItemId String? // Made optional to fix the issue @map("orderId")
+  orderItemId String?
 
-  @@map("attachments") // Added map directive for consistency
+  @@map("attachments")
 }
 
 model Order {
@@ -405,7 +521,7 @@ model Order {
   progress       Int          @default(0)
   OrdersItems    OrderItem[]
   totalItems     Int          @default(0)
-  totalAmount    Float? // Added to store the total order value
+  totalAmount    Float?
   deliveredItems Int          @default(0)
   Payment        Payment      @relation(name: "OrderToPayment", fields: [paymentId], references: [id], onDelete: Restrict)
   paymentId      String       @unique
@@ -413,11 +529,11 @@ model Order {
   Client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   Attachments    Attachment[]
 
-  createdAt DateTime  @default(now()) // Added for consistency
-  updatedAt DateTime  @updatedAt // Added for consistency
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   Invoice   Invoice[]
 
-  @@map("order_batches") // Added map directive for consistency
+  @@map("order_batches")
 }
 
 model OrderItem {
@@ -434,7 +550,7 @@ model OrderItem {
   production           String?
   fabrication          String?
   isModified           Boolean?
-  status               String? // e.g., "pending", "in_progress", "delivered"
+  status               String?
   quantity             Int?
   delivered            Int?
   validatedAt          DateTime?
@@ -455,8 +571,8 @@ model OrderItem {
   lowerCollectorLength Int?
   upperCollectorWidth  Int?
   lowerCollectorWidth  Int?
-  createdAt            DateTime     @default(now()) // Made consistent (not optional)
-  updatedAt            DateTime     @updatedAt // Made consistent (not optional)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
   Order                Order?       @relation(fields: [orderId], references: [id], onDelete: SetNull)
   orderId              String?
   Attachments          Attachment[]
@@ -473,15 +589,15 @@ model Payment {
   amount             Float
   deposit            Float
   remaining          Float
-  status             String? // Tracks payment status (e.g., "pending", "partial", "completed")
+  status             String?
   mode               String?
   bank               String?
   iban               String?
   depositor          String?
-  paymentDate        DateTime? // Precise payment timing for filtering by year
+  paymentDate        DateTime?
   Order              Order?               @relation(name: "OrderToPayment")
-  createdAt          DateTime             @default(now()) // Added for consistency
-  updatedAt          DateTime             @updatedAt // Added for consistency
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
   Client             Client?              @relation(fields: [clientId], references: [id])
   clientId           String?
   PaymentInstallment PaymentInstallment[]
@@ -504,8 +620,7 @@ model PaymentInstallment {
   @@map("payment_installments")
 }
 
-// FILE SYSTEM
-
+// FILE SYSTEM (UNCHANGED)
 model Directory {
   id        String   @id @default(cuid())
   name      String
@@ -573,6 +688,7 @@ model Permission {
   Directory Directory? @relation(fields: [dirId], references: [id], onDelete: Cascade)
 }
 
+// PROCUREMENT (UNCHANGED)
 enum ProcurementStatus {
   CANCELLED
   PLANNED
@@ -583,21 +699,21 @@ enum ProcurementStatus {
 }
 
 model Procurement {
-  id            String             @id @default(cuid())
-  reference     String             @unique
-  vendor        String
-  contactName   String
-  contactEmail  String?
-  phone         String?
-  status        ProcurementStatus
-  items         Int
-  total         Float
-  currency      String?            @default("DZD")
-  createdAt     DateTime           @default(now())
-  expectedDate  DateTime
-  deliveredAt   DateTime?
-  paymentTerms  String?
-  notes         String?
-  attachments   Json?
-  updatedAt     DateTime           @updatedAt
+  id           String            @id @default(cuid())
+  reference    String            @unique
+  vendor       String
+  contactName  String
+  contactEmail String?
+  phone        String?
+  status       ProcurementStatus
+  items        Int
+  total        Float
+  currency     String?           @default("DZD")
+  createdAt    DateTime          @default(now())
+  expectedDate DateTime
+  deliveredAt  DateTime?
+  paymentTerms String?
+  notes        String?
+  attachments  Json?
+  updatedAt    DateTime          @updatedAt
 }

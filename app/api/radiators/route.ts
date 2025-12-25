@@ -48,15 +48,15 @@ export async function GET(request: NextRequest) {
     const radiators = await prisma.radiator.findMany({
       where: filter,
       include: {
-        Components: {
-          include: {
-            MaterialUsages: {
-              include: {
-                Material: true
-              }
-            }
-          }
-        },
+        // Components: {
+        //   include: {
+        //     MaterialUsages: {
+        //       include: {
+        //         Material: true
+        //       }
+        //     }
+        //   }
+        // },
         CarType: {
           include: {
             Model: {
@@ -92,7 +92,15 @@ export async function GET(request: NextRequest) {
 
     // Format the response to include only essential fields
     const formattedRadiators = radiators.map(
-      ({ Components, OrderItems, CarType, Price, Inventory, ...radiator }) => ({
+      ({
+        // Components,
+
+        OrderItems,
+        CarType,
+        Price,
+        Inventory,
+        ...radiator
+      }) => ({
         ...radiator,
         inventoryLevel: Inventory?.level,
         inventoryMaxLevel: Inventory?.maxLevel,
@@ -105,13 +113,13 @@ export async function GET(request: NextRequest) {
         bulkPriceHT: Price?.bulk,
         bulkPriceTTC: Price?.bulkTTC,
         bulkPriceThreshold: Price?.bulkThreshold,
-        Components: Components.map(({ MaterialUsages, ...component }) => ({
-          ...component,
-          usages: MaterialUsages.map(({ Material, quantity }) => ({
-            ...Material,
-            quantity
-          }))
-        })),
+        // Components: Components.map(({ MaterialUsages, ...component }) => ({
+        //   ...component,
+        //   usages: MaterialUsages.map(({ Material, quantity }) => ({
+        //     ...Material,
+        //     quantity
+        //   }))
+        // })),
         CarType,
         Clients: OrderItems.map(({ Order }) => ({ ...Order?.Client }))
       })

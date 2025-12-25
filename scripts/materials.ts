@@ -1,9 +1,23 @@
-import { PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('Starting to seed materials...')
+  console.log('Delete old Materials...')
+  await prisma.rawMaterial.deleteMany()
+  console.log('Materials Deleted with sucess!')
+   
+  const baseUnit = {
+    connectOrCreate: {
+      where: { code: 'KG' as const },
+      create: {
+        name: 'kilograme',
+        code: 'KG' as const,
+        category: 'WEIGHT' as const
+      }
+    }
+  }
 
   // Array of materials to seed
   const materials = [
@@ -13,7 +27,7 @@ async function main() {
       description:
         'Tube en laiton de diamètre 30mm, utilisé pour les radiateurs et installations de chauffage',
       unit: 'grammes',
-      baseUnit: 'mètre',
+      baseUnit,
       conversionFactor: 840, // e.g., 840g/m
       unitCost: 0.012 // €/g
     },
@@ -23,7 +37,7 @@ async function main() {
       description:
         'Tube en laiton de diamètre 32mm, utilisé pour les radiateurs et installations de chauffage',
       unit: 'grammes',
-      baseUnit: 'mètre',
+      baseUnit,
       conversionFactor: 920, // 920g/m
       unitCost: 0.012
     },
@@ -33,7 +47,7 @@ async function main() {
       description:
         'Tube en laiton de diamètre 35mm, utilisé pour les radiateurs et installations de chauffage',
       unit: 'grammes',
-      baseUnit: 'mètre',
+      baseUnit,
       conversionFactor: 1050, // 1050g/m
       unitCost: 0.012
     },
@@ -43,7 +57,7 @@ async function main() {
       description:
         'Bande en laiton de diamètre 6mm, utilisée pour les radiateurs et installations de chauffage',
       unit: 'grammes',
-      baseUnit: 'mètre',
+      baseUnit,
       conversionFactor: 150, // 150g/m
       unitCost: 0.012
     }
@@ -52,10 +66,8 @@ async function main() {
   // Create materials in the database
   for (const material of materials) {
     try {
-      const createdMaterial = await prisma.material.upsert({
-        where: { reference: material.reference },
-        update: material,
-        create: material
+      const createdMaterial = await prisma.rawMaterial.create({
+        data: material
       })
       console.log(`Created material: ${createdMaterial.name}`)
     } catch (error) {

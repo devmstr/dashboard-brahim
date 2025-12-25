@@ -129,7 +129,6 @@ async function main() {
             partNumber: null,
             type: radiatorData.type,
             fabrication: radiatorData.fabrication,
-            status: 'ACTIVE',
             category: category,
             dirId: undefined,
             cooling: coolingType,
@@ -163,64 +162,6 @@ async function main() {
                   }
                 }
               : {})
-          }
-        })
-
-        // Create upper collector component
-        await prisma.component.create({
-          data: {
-            label: `Collecteur Supérieur ${radiatorData.reference}`,
-            type: 'COLLECTOR',
-            radiatorId: radiator.id,
-            MaterialUsages: {
-              create: {
-                quantity: 1,
-                Material: {
-                  connectOrCreate: {
-                    where: {
-                      reference: 'BNL06'
-                    },
-                    create: {
-                      reference: 'BNL06',
-                      name: 'Laiton',
-                      unit: 'grammes',
-                      baseUnit: 'mètre',
-                      conversionFactor: 150, // 150g/m
-                      unitCost: 0.012
-                    }
-                  }
-                }
-              }
-            }
-          }
-        })
-
-        // Create lower collector component
-        await prisma.component.create({
-          data: {
-            label: `Collecteur inférieur ${radiatorData.reference}`,
-            type: 'COLLECTOR',
-            radiatorId: radiator.id,
-            MaterialUsages: {
-              create: {
-                quantity: 1,
-                Material: {
-                  connectOrCreate: {
-                    where: {
-                      reference: 'BNL06'
-                    },
-                    create: {
-                      reference: 'BNL06',
-                      name: 'Laiton',
-                      unit: 'grammes',
-                      baseUnit: 'mètre',
-                      conversionFactor: 150, // 150g/m
-                      unitCost: 0.012
-                    }
-                  }
-                }
-              }
-            }
           }
         })
 

@@ -42,15 +42,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             }
           }
         },
-        Components: {
-          include: {
-            MaterialUsages: {
-              include: {
-                Material: true
-              }
-            }
-          }
-        },
+        // Components: {
+        //   include: {
+        //     MaterialUsages: {
+        //       include: {
+        //         Material: true
+        //       }
+        //     }
+        //   }
+        // },
         Inventory: true,
         Price: true
         // Directory: true
@@ -61,8 +61,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    const { Components, Inventory, CarType, OrderItems, Price, ...radiator } =
-      record
+    const {
+      // Components,
+      Inventory,
+      CarType,
+      OrderItems,
+      Price,
+      ...radiator
+    } = record
 
     // Format the response to include only essential fields
     return NextResponse.json({
@@ -73,13 +79,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       priceTTC: Price?.unitTTC,
       bulkPriceHT: Price?.bulk,
       bulkPriceTTC: Price?.bulkTTC,
-      Components: Components.map(({ MaterialUsages, ...component }) => ({
-        ...component,
-        usages: MaterialUsages.map(({ Material, quantity }) => ({
-          ...Material,
-          quantity
-        }))
-      })),
+      // Components: Components.map(({ MaterialUsages, ...component }) => ({
+      //   ...component,
+      //   usages: MaterialUsages.map(({ Material, quantity }) => ({
+      //     ...Material,
+      //     quantity
+      //   }))
+      // })),
       CarType,
       Clients: OrderItems.map(({ Order }) => ({ ...Order?.Client }))
     })
@@ -302,7 +308,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           id: generateId('RA'),
           label,
           hash,
-          status: 'VALIDATED',
+          // status: 'VALIDATED',
           dirId,
           OrderItems: {
             connect: { id: orderItemId }
