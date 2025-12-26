@@ -3,6 +3,7 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type FilterFn,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -16,6 +17,7 @@ import { format } from 'date-fns'
 import {
   ArrowUpDown,
   ChevronDown,
+  Filter,
   FileSpreadsheet,
   Link2,
   Plus
@@ -29,6 +31,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
@@ -46,6 +50,9 @@ import { StatusBudge } from './status-badge'
 import type { ProcurementRecord } from '@/types/procurement'
 import { cn } from '@/lib/utils'
 import { Badge } from './ui/badge'
+import { DateRange, DateRangeFilter } from '@/components/DateRangeFilter'
+import { Icons } from './icons'
+import { usePathname, useRouter } from 'next/navigation'
 
 interface ProcurementTableProps {
   data: ProcurementRecord[]
@@ -58,17 +65,84 @@ const currencyFormatter = new Intl.NumberFormat('fr-DZ', {
 })
 
 export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
+  const pathname = usePathname()
+  const router = useRouter()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [limit, setLimit] = React.useState(10)
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
+  const [dateRange, setDateRange] = React.useState<DateRange>({})
+  const [typeFilter, setTypeFilter] = React.useState<string>('all')
+  const [statusFilter, setStatusFilter] = React.useState<string>('all')
   const [columnVisibility, setColumnVisibility] =
     usePersistedState<VisibilityState>(
       'procurement-table-columns-visibility',
       {}
     )
 
+  const typeLabel = (reference: string) => {
+    if (reference.startsWith('PR')) return "Demande d'achat"
+    if (reference.startsWith('RF')) return 'RFQ'
+    if (reference.startsWith('PO')) return 'Bon de commande'
+    if (reference.startsWith('RC')) return 'Reception'
+    if (reference.startsWith('SI')) return 'Facture fournisseur'
+    if (reference.startsWith('CT')) return 'Contrat'
+    if (reference.startsWith('AS')) return 'Immobilisation'
+    return 'Autre'
+  }
+
+  const detailHref = (reference: string, id: string) => {
+    if (reference.startsWith('PR')) {
+      return `/dashboard/procurement/requisitions/${id}`
+    }
+    if (reference.startsWith('RF')) {
+      return `/dashboard/procurement/rfqs/${id}`
+    }
+    if (reference.startsWith('PO')) {
+      return `/dashboard/procurement/purchase-orders/${id}`
+    }
+    if (reference.startsWith('RC')) {
+      return `/dashboard/procurement/receipts/${id}`
+    }
+    if (reference.startsWith('SI')) {
+      return `/dashboard/procurement/invoices/${id}`
+    }
+    if (reference.startsWith('CT')) {
+      return `/dashboard/procurement/contracts/${id}`
+    }
+    if (reference.startsWith('AS')) {
+      return `/dashboard/procurement/assets/${id}`
+    }
+    return `/dashboard/procurement/purchase-orders/${id}`
+  }
+
+  const typeOptions = React.useMemo(() => {
+    const unique = new Set<string>()
+    data.forEach((entry) => unique.add(typeLabel(entry.reference)))
+    return Array.from(unique)
+  }, [data])
+
+  const statusOptions = React.useMemo(() => {
+    const unique = new Set<string>()
+    data.forEach((entry) => unique.add(entry.status))
+    return Array.from(unique)
+  }, [data])
+
+  const dateRangeFilter: FilterFn<ProcurementRecord> = (
+    row,
+    columnId,
+    filterValue
+  ) => {
+    if (!Array.isArray(filterValue) || filterValue.length !== 2) {
+      return true
+    }
+    const [from, to] = filterValue
+    if (!from || !to) return true
+    const cellValue = row.getValue(columnId) as string
+    const date = new Date(cellValue)
+    return date >= new Date(from) && date <= new Date(to)
+  }
   const columns = React.useMemo<ColumnDef<ProcurementRecord>[]>(
     () => [
       {
@@ -87,6 +161,14 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
             <p className="font-semibold">{row.original.reference}</p>
             <p className="text-xs text-muted-foreground">{row.original.id}</p>
           </div>
+        )
+      },
+      {
+        id: 'type',
+        accessorFn: (row) => typeLabel(row.reference),
+        header: 'Type',
+        cell: ({ row }) => (
+          <Badge variant="outline">{typeLabel(row.original.reference)}</Badge>
         )
       },
       {
@@ -109,6 +191,7 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
       {
         accessorKey: 'expectedDate',
         header: 'Échéance',
+        filterFn: dateRangeFilter,
         cell: ({ row }) => (
           <div className="space-y-1">
             <p className="font-medium">
@@ -125,7 +208,7 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         header: 'Articles',
         cell: ({ row }) => (
           <Badge variant="secondary" className="font-semibold">
-            {row.original.items} poste(s)
+            {row.original.items} Article(s)
           </Badge>
         )
       },
@@ -144,7 +227,7 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
               : currencyFormatter
 
           return (
-            <div className="text-right font-semibold">
+            <div className="text-left font-semibold">
               {formatter.format(row.original.total)}
             </div>
           )
@@ -156,7 +239,9 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/dashboard/procurement/${row.original.id}`}>
+              <Link
+                href={detailHref(row.original.reference, row.original.id)}
+              >
                 <Link2 className="mr-2 h-4 w-4" /> Détails
               </Link>
             </Button>
@@ -193,26 +278,131 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
     table.setPageSize(limit)
   }, [limit, table])
 
+  React.useEffect(() => {
+    const column = table.getColumn('expectedDate')
+    if (!column) return
+    if (dateRange.from && dateRange.to) {
+      column.setFilterValue([dateRange.from, dateRange.to])
+      return
+    }
+    column.setFilterValue(undefined)
+  }, [dateRange, table])
+
+  const hasActiveFilters =
+    typeFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    Boolean(dateRange.from || dateRange.to) ||
+    Boolean(table.getColumn('vendor')?.getFilterValue())
+
+  const clearFilters = () => {
+    setTypeFilter('all')
+    setStatusFilter('all')
+    table.setGlobalFilter('')
+    setDateRange({ from: undefined })
+    table.getColumn('type')?.setFilterValue(undefined)
+    table.getColumn('status')?.setFilterValue(undefined)
+    table.getColumn('expectedDate')?.setFilterValue(undefined)
+    table.getColumn('vendor')?.setFilterValue('')
+    router.replace(pathname)
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex w-full flex-col gap-2">
-          <h2 className="text-xl font-semibold">Procurements</h2>
+          <h2 className="text-xl font-semibold">Achats</h2>
           <p className="text-sm text-muted-foreground">
             Suivez vos demandes d'achat, bons de commande et factures
             fournisseurs.
           </p>
           <div className="w-full flex gap-5 justify-between">
-            <Input
-              placeholder="Rechercher une référence ou un fournisseur"
-              value={
-                (table.getColumn('vendor')?.getFilterValue() as string) ?? ''
-              }
-              onChange={(event) =>
-                table.getColumn('vendor')?.setFilterValue(event.target.value)
-              }
-              className="w-[300px]"
-            />
+            <div className="flex gap-2">
+              <Input
+                placeholder="Rechercher une référence ou un fournisseur"
+                value={
+                  (table.getColumn('vendor')?.getFilterValue() as string) ?? ''
+                }
+                onChange={(event) =>
+                  table.getColumn('vendor')?.setFilterValue(event.target.value)
+                }
+                className="w-[300px]"
+              />
+              <DateRangeFilter
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+              />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={typeFilter === 'all' ? 'outline' : 'default'}
+                    className="flex gap-2"
+                  >
+                    <Filter className="h-4 w-4" /> Type
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuRadioGroup
+                    value={typeFilter}
+                    onValueChange={(value) => {
+                      setTypeFilter(value)
+                      table
+                        .getColumn('type')
+                        ?.setFilterValue(value === 'all' ? undefined : value)
+                    }}
+                  >
+                    <DropdownMenuRadioItem value="all">
+                      Tous
+                    </DropdownMenuRadioItem>
+                    {typeOptions.map((option) => (
+                      <DropdownMenuRadioItem key={option} value={option}>
+                        {option}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={statusFilter === 'all' ? 'outline' : 'default'}
+                    className="flex gap-2"
+                  >
+                    <Filter className="h-4 w-4" /> Statut
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuRadioGroup
+                    value={statusFilter}
+                    onValueChange={(value) => {
+                      setStatusFilter(value)
+                      table
+                        .getColumn('status')
+                        ?.setFilterValue(value === 'all' ? undefined : value)
+                    }}
+                  >
+                    <DropdownMenuRadioItem value="all">
+                      Tous
+                    </DropdownMenuRadioItem>
+                    {statusOptions.map((option) => (
+                      <DropdownMenuRadioItem key={option} value={option}>
+                        {option}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  className="rounded-full "
+                  onClick={clearFilters}
+                >
+                  Effacer filtres
+                  <Icons.close className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
             <div className="flex flex-wrap gap-2 items-center">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

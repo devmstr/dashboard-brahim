@@ -64,26 +64,76 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               .map((item, index) => {
                 const delay = index === 0 ? 80 : index * 80
 
+                const isDisabled = item.active === false || item.disabled
+
+                const normalizedHref = item.href?.replace(/\/$/, '')
+
+                const normalizedPath = pathname?.replace(/\/$/, '')
+
                 const active =
-                  item.href === '/dashboard'
-                    ? pathname === '/dashboard'
-                    : pathname?.startsWith(
-                        item.href?.split('/').slice(0, 3).join('/') as string
-                      )
+                  !isDisabled &&
+                  (normalizedHref === '/dashboard'
+                    ? normalizedPath === '/dashboard'
+                    : normalizedHref
+                      ? item.matchChildren
+                        ? normalizedPath?.startsWith(normalizedHref)
+                        : normalizedPath === normalizedHref
+                      : false)
 
                 const Icon = Icons[item.icon as keyof typeof Icons]
 
                 return (
-                  item.href && (
-                    <Link
+                  item.href &&
+                  (isDisabled ? (
+                    <div
                       key={index}
-                      href={item.disabled ? '#' : item.href}
+                      aria-disabled="true"
                       className={cn(
                         'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
                         active
                           ? 'text-primary bg-secondary opacity-100'
-                          : 'opacity-80 hover:opacity-100 hover:text-secondary',
-                        item.disabled && 'cursor-not-allowed opacity-80'
+                          : 'opacity-80',
+                        'cursor-not-allowed opacity-60'
+                      )}
+                    >
+                      <Icon
+                        className={cn(
+                          'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
+                          open ? 'mr-2' : 'mr-0'
+                        )}
+                      />
+                      {open ? (
+                        <Fade
+                          className="text-md sm:text-sm"
+                          from="top"
+                          amount={0.4}
+                          duration={300}
+                          delay={delay}
+                          easing="easeOut"
+                        >
+                          <span>{item.title}</span>
+                        </Fade>
+                      ) : (
+                        <span
+                          className={cn(
+                            'absolute z-40 scale-0 group-hover:scale-100 transition-all duration-300 ease-in-out ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100 shadow-lg text-nowrap',
+                            active &&
+                              'bg-secondary text-primary group-hover:text-primary'
+                          )}
+                        >
+                          {item.title}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      key={index}
+                      href={item.href}
+                      className={cn(
+                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
+                        active
+                          ? 'text-primary bg-secondary opacity-100'
+                          : 'opacity-80 hover:opacity-100 hover:text-secondary'
                       )}
                     >
                       <Icon
@@ -115,7 +165,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                         </span>
                       )}
                     </Link>
-                  )
+                  ))
                 )
               })}
           </nav>
@@ -133,22 +183,76 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             const Icon = Icons[item.icon || 'arrowRight']
             const delay = (index = 0 ? 80 : index * 80)
 
+            const isDisabled = item.active === false || item.disabled
+            const normalizedHref = item.href?.replace(/\/$/, '')
+            const normalizedPath = pathname?.replace(/\/$/, '')
             const active =
-              item.href === '/dashboard'
-                ? pathname === '/dashboard'
-                : pathname?.startsWith(item.href as string)
+              !isDisabled &&
+              (normalizedHref === '/dashboard'
+                ? normalizedPath === '/dashboard'
+                : normalizedHref
+                  ? item.matchChildren
+                    ? normalizedPath?.startsWith(normalizedHref)
+                    : normalizedPath === normalizedHref
+                  : false)
 
             return (
-              item.href && (
-                <Link
+              item.href &&
+              (isDisabled ? (
+                <div
                   key={index}
-                  href={item.disabled ? '#' : item.href!}
+                  aria-disabled="true"
                   className={cn(
                     'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3   rounded-lg',
                     active
                       ? 'text-primary bg-secondary opacity-100'
-                      : 'opacity-80 hover:opacity-100 hover:text-secondary',
-                    item.disabled && 'cursor-not-allowed opacity-80'
+                      : 'opacity-80',
+                    'cursor-not-allowed opacity-60'
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
+                      open ? 'mr-2' : 'mr-0'
+                    )}
+                  />
+                  {open ? (
+                    <Fade
+                      className={cn(
+                        'text-md sm:text-sm'
+                        // showSidebar
+                        //   ? 'flex transition-all duration-300 ease-in'
+                        //   : 'hidden transition-all duration-500 ease-out'
+                      )}
+                      from={'top'}
+                      amount={0.4}
+                      duration={300}
+                      delay={delay}
+                      easing={'easeOut'}
+                    >
+                      <span>{item.title}</span>
+                    </Fade>
+                  ) : (
+                    <span
+                      className={cn(
+                        'absolute z-40 scale-0  group-hover:scale-100 transition-all duration-300 ease-in-out  ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100  shadow-lg text-nowrap',
+                        active &&
+                          'bg-secondary text-primary group-hover:text-primary'
+                      )}
+                    >
+                      {item.title}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={index}
+                  href={item.href}
+                  className={cn(
+                    'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3   rounded-lg',
+                    active
+                      ? 'text-primary bg-secondary opacity-100'
+                      : 'opacity-80 hover:opacity-100 hover:text-secondary'
                   )}
                 >
                   <Icon
@@ -185,7 +289,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     </span>
                   )}
                 </Link>
-              )
+              ))
             )
           })}
       </div>

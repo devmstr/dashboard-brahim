@@ -1,6 +1,29 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { unlink } from 'fs/promises'
 import { existsSync } from 'fs'
+import path from 'path'
+
+const BASE_UPLOADS_DIR = path.resolve(process.cwd(), 'uploads')
+
+const resolveUploadPath = (filePath: string) => {
+  if (!filePath) return null
+
+  if (filePath.startsWith('/uploads/')) {
+    const relative = filePath.replace(/^\/uploads\//, '')
+    return path.join(BASE_UPLOADS_DIR, relative)
+  }
+
+  if (/^uploads[\\/]/.test(filePath)) {
+    const relative = filePath.replace(/^uploads[\\/]/, '')
+    return path.join(BASE_UPLOADS_DIR, relative)
+  }
+
+  if (path.isAbsolute(filePath)) {
+    return filePath
+  }
+
+  return path.join(BASE_UPLOADS_DIR, filePath)
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,9 +36,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate path to prevent directory traversal attacks
-    const normalizedPath = filePath.replace(/\.\./g, '').replace(/\/+/g, '/')
-    if (normalizedPath !== filePath) {
+    const resolvedPath = resolveUploadPath(filePath)
+    if (!resolvedPath) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid path' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedPath = path.resolve(resolvedPath)
+    if (!normalizedPath.startsWith(BASE_UPLOADS_DIR)) {
       return NextResponse.json(
         { success: false, message: 'Invalid path' },
         { status: 400 }
@@ -23,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if file exists
-    if (!existsSync(filePath)) {
+    if (!existsSync(normalizedPath)) {
       return NextResponse.json(
         { success: false, message: 'File not found' },
         { status: 404 }
@@ -31,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Delete the file
-    await unlink(filePath)
+    await unlink(normalizedPath)
 
     return NextResponse.json({
       success: true,
@@ -39,6 +69,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Delete error:', error)
+
     return NextResponse.json(
       {
         success: false,

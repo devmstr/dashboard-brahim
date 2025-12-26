@@ -96,6 +96,8 @@ export type FooterConfig = {
 export type SidebarNavItem = {
   title: string
   disabled?: boolean
+  active?: boolean
+  matchChildren?: boolean
   external?: boolean
   key?: string
   icon?: keyof typeof Icons

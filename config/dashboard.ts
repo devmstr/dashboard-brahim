@@ -11,7 +11,8 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     title: 'Nouveau',
     href: '/dashboard/new',
     icon: 'packagePlus',
-    key: 'new'
+    key: 'new',
+    matchChildren: true
   },
   {
     title: 'Vente',
@@ -43,21 +44,90 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     icon: 'database',
     key: 'db'
   },
-
+  {
+    title: 'Analyses & indicateurs',
+    href: '/dashboard/procurement/analytics',
+    icon: 'dashboard',
+    key: 'procurement-analytics',
+    active: false
+  },
   {
     title: 'Achats',
     href: '/dashboard/procurement',
     icon: 'deliveryPackage',
     key: 'procurement'
   },
+  {
+    title: "Demandes d'achat",
+    href: '/dashboard/procurement/requisitions',
+    icon: 'list',
+    key: 'procurement-requisitions',
+    active: true
+  },
+  {
+    title: 'Bons de commande',
+    href: '/dashboard/procurement/purchase-orders',
+    icon: 'packagePlus',
+    key: 'procurement-purchase-orders',
+    active: true
+  },
+  {
+    title: 'Réceptions',
+    href: '/dashboard/procurement/receipts',
+    icon: 'inbox',
+    key: 'procurement-receipts',
+    active: true
+  },
+  {
+    title: 'Factures fournisseurs',
+    href: '/dashboard/procurement/invoices',
+    icon: 'fileText',
+    key: 'procurement-invoices',
+    active: true
+  },
+  {
+    title: 'Fournisseurs',
+    href: '/dashboard/procurement/suppliers',
+    icon: 'users',
+    key: 'procurement-suppliers',
+    active: true
+  },
+  {
+    title: "Appels d'offres / Devis",
+    href: '/dashboard/procurement/rfqs',
+    icon: 'fileText',
+    key: 'procurement-rfqs',
+    active: true
+  },
 
+  {
+    title: "Contrats d'achat",
+    href: '/dashboard/procurement/contracts',
+    icon: 'page',
+    key: 'procurement-contracts',
+    active: true
+  },
+
+  {
+    title: 'Immobilisations',
+    href: '/dashboard/procurement/assets',
+    icon: 'factory',
+    key: 'procurement-assets',
+    active: true
+  },
+  {
+    title: 'Articles',
+    href: '/dashboard/procurement/items',
+    icon: 'database',
+    key: 'procurement-items',
+    active: true
+  },
   {
     title: 'Journal des Factures',
     href: '/dashboard/ledger',
     icon: 'ledger',
     key: 'ledger'
   },
-
   {
     title: 'Les Marges',
     href: '/dashboard/pricing',

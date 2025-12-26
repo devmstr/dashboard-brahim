@@ -1,4 +1,5 @@
 import { ClientForm } from '@/app/dashboard/new/(client)/client.form'
+import { Card } from '@/components/card'
 import db from '@/lib/db'
 import { formatPhoneNumber } from '@/lib/utils'
 import { ClientSchemaType as Client } from '@/lib/validations'
@@ -26,7 +27,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
   })
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <Card className="max-w-6xl mx-auto">
       <ClientForm
         data={data.map(({ Address, ...client }) => ({
           ...client,
@@ -55,7 +56,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
           })
         }))}
       />
-    </div>
+    </Card>
   )
 }
 

@@ -60,7 +60,8 @@ import {
   Database,
   Globe,
   Car,
-  Inbox
+  Inbox,
+  Factory
 } from 'lucide-react'
 import { FaAlignLeft, FaUser } from 'react-icons/fa6'
 import { LuPackage, LuPackageCheck } from 'react-icons/lu'
@@ -90,6 +91,10 @@ import { cn } from '@/lib/utils'
 export type Icon = LucideIcon
 
 export const Icons = {
+  factory: Factory,
+  list: List,
+  users: Users,
+  fileText: FileText,
   inbox: Inbox,
   priceMargin: HiOutlineChartPie,
   category: RiOrganizationChart,

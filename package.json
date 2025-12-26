@@ -22,6 +22,9 @@
     "seed:locations": "npm run script scripts/locations.ts",
     "seed:radiators": "npm run script scripts/radiators.ts",
     "seed:invoices": "npm run script scripts/invoices.ts",
+    "seed:procurement": "npm run script scripts/procurement-items.ts",
+    "seed:suppliers": "npm run script scripts/procurement-suppliers.ts",
+    "seed:procurement:full": "npm run script scripts/procurement-seed.ts",
     "trancate": "npm run script scripts/trancate-dynamic-tables.ts",
     "test": "vitest run"
   },

@@ -19,7 +19,16 @@ export enum SKU_PREFIX {
   PA = 'PA', // payment
   FP = 'FP', // facture proforma
   FF = 'FF', // facture final
-  FL = 'FL' // file
+  FL = 'FL', // file
+  PR = 'PR', // procurement requisition
+  PI = 'PI', // procurement item
+  PO = 'PO', // purchase order
+  RC = 'RC', // receipt
+  SI = 'SI', // supplier invoice
+  SU = 'SU', // supplier
+  RF = 'RF', // rfq
+  CT = 'CT', // contract
+  AS = 'AS' // asset
 }
 
 export type PREFIX = keyof typeof SKU_PREFIX

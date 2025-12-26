@@ -513,7 +513,7 @@ export function FileUploadArea({
           aria-label="Sélectionner des fichiers"
         />
       </div>
-
+      {/* PREVIEW SECTION */}
       {uploads.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-1">
           {uploads.map((upload) => {
@@ -532,8 +532,10 @@ export function FileUploadArea({
                         <Button
                           variant="ghost"
                           size="icon"
+                          type="button"
                           className="h-6 w-6 absolute top-1 right-1 z-10 hover:bg-secondary/30 hover:text-primary dark:hover:bg-red-900/30"
                           onClick={(e) => {
+                            e.preventDefault()
                             e.stopPropagation()
                             handleDeleteFile(upload.id)
                           }}

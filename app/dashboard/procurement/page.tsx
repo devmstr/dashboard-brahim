@@ -1,11 +1,9 @@
 import { Card } from '@/components/card'
 import { ProcurementTable } from '@/components/procurement-table'
-import { getProcurements } from '@/lib/mock/procurements'
+import { listProcurements } from '@/lib/procurement/actions'
 
-interface Props {}
-
-const Page: React.FC<Props> = async ({}: Props) => {
-  const procurements = await getProcurements()
+const Page = async () => {
+  const procurements = await listProcurements()
 
   return (
     <Card>
