@@ -14,7 +14,6 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -37,6 +36,8 @@ import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 import type { Attachment } from '@/lib/validations/order'
+import { Input } from '@/components/ui/input'
+import { AutoResizeTextarea } from '@/components/auto-resize.textarea'
 
 const SUPPLIER_INVOICE_STATUS_TYPES = [
   'DRAFT',
@@ -203,9 +204,11 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
       serviceId: values.serviceId,
       purchaseOrderId: toOptionalString(values.purchaseOrderId),
       receiptId: toOptionalString(values.receiptId),
-      invoiceDate: values.invoiceDate || undefined,
-      dueDate: values.dueDate || undefined,
-      paidAt: values.paidAt || undefined,
+      invoiceDate: values.invoiceDate
+        ? new Date(values.invoiceDate)
+        : undefined,
+      dueDate: values.dueDate ? new Date(values.dueDate) : undefined,
+      paidAt: values.paidAt ? new Date(values.paidAt) : undefined,
       currency: toOptionalString(values.currency),
       subtotal: toOptionalNumber(values.subtotal),
       taxes: toOptionalNumber(values.taxes),
@@ -251,7 +254,30 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-6 relative"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div
+          className={cn(
+            'absolute -right-4 -top-16 z-10',
+            'flex flex-row items-center gap-3 rounded-l-md',
+            'bg-background/70 px-2 py-1 backdrop-blur',
+            'border border-border',
+            'text-base text-muted-foreground',
+            'select-none',
+            'bg-gray-100 h-fit w-fit px-4 py-2'
+          )}
+        >
+          {reference && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Ref:</span>{' '}
+              {reference}
+            </span>
+          )}
+        </div>
+
+        <input type="hidden" {...form.register('reference')} />
         <CardGrid>
           <FormField
             control={form.control}
@@ -267,24 +293,6 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
                       form.setValue('serviceId', value)
                     }}
                     placeholder="Selectionner un service"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="reference"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reference</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="INV-2024-001"
-                    {...field}
-                    disabled
                   />
                 </FormControl>
                 <FormMessage />
@@ -565,6 +573,7 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
                   placeholder="Informations utiles, contraintes, delais..."
                   className={cn('resize-none')}
                   {...field}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />

@@ -1,6 +1,5 @@
 'use client'
 
-import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
 import { DatePicker } from '@/components/date-picker'
 import { Icons } from '@/components/icons'
@@ -14,7 +13,6 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -23,18 +21,33 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
 import { generateId } from '@/helpers/id-generator'
 import { createRequisition, updateRequisition } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
-import { Minus, Plus } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
 import type { Attachment } from '@/lib/validations/order'
+// Import the new dialog component
+import { RequisitionArticleDialog } from './requisition-article-dialog'
+import type {
+  ArticleItem,
+  ProcurementItemOption
+} from './requisition-article-dialog'
+import { formatDate } from 'date-fns'
 
 const REQUISITION_STATUS_TYPES = [
   'DRAFT',
@@ -62,6 +75,7 @@ const requisitionFormSchema = z.object({
   serviceId: z.string().min(1, 'Service requis'),
   title: z.string().optional().nullable(),
   neededBy: z.string().optional().nullable(),
+  createdAt: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   status: z.enum(REQUISITION_STATUS_TYPES).optional(),
   items: z
@@ -81,20 +95,12 @@ const requisitionFormSchema = z.object({
 
 export type RequisitionFormValues = z.infer<typeof requisitionFormSchema>
 
-type ProcurementItemOption = {
-  id: string
-  name: string
-  sku?: string | null
-  unit?: string | null
-  description?: string | null
-}
-
 type ServiceOption = {
   id: string
   name: string
 }
 
-interface RequisitionFormProps {
+interface RequisitionFormBaseProps {
   requisitionId?: string
   defaultValues?: Partial<RequisitionFormValues> & {
     attachments?: Attachment[]
@@ -103,6 +109,8 @@ interface RequisitionFormProps {
   servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
+  allowItemActions?: boolean
+  allowItemEditing?: boolean
 }
 
 const toOptionalString = (value: string | null | undefined) => {
@@ -115,13 +123,49 @@ const toOptionalNumber = (value: number | null | undefined) => {
   return Number.isNaN(value) ? null : value
 }
 
-export const RequisitionForm: React.FC<RequisitionFormProps> = ({
+const formatPrice = (price: number | null | undefined) => {
+  if (price === null || price === undefined) return '-'
+  return new Intl.NumberFormat('fr-DZ', {
+    style: 'currency',
+    currency: 'DZD',
+    minimumFractionDigits: 2
+  }).format(price)
+}
+
+const buildSafeItems = (items: RequisitionFormValues['items']) => {
+  return (
+    items
+      ?.map((item) => ({
+        itemId: item.itemId || null,
+        itemName: toOptionalString(item.itemName),
+        description: toOptionalString(item.description),
+        quantity: toOptionalNumber(item.quantity),
+        unit: toOptionalString(item.unit),
+        estimatedUnitCost: toOptionalNumber(item.estimatedUnitCost),
+        currency: toOptionalString(item.currency)
+      }))
+      .filter((item) => {
+        return Boolean(
+          item.itemId ||
+            item.itemName ||
+            item.description ||
+            item.quantity ||
+            item.unit ||
+            item.estimatedUnitCost
+        )
+      }) ?? []
+  )
+}
+
+const RequisitionFormBase: React.FC<RequisitionFormBaseProps> = ({
   requisitionId,
   defaultValues,
   itemsOptions,
   servicesOptions,
   showStatus = false,
-  submitLabel
+  submitLabel,
+  allowItemActions = true,
+  allowItemEditing = true
 }) => {
   const router = useRouter()
   const [isSaving, startTransition] = React.useTransition()
@@ -129,15 +173,13 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
     defaultValues?.attachments ?? []
   )
 
+  // Dialog State
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
+  const [draftItem, setDraftItem] = React.useState<ArticleItem | null>(null)
+
   const itemLookup = React.useMemo(() => {
     return new Map(itemsOptions.map((item) => [item.id, item]))
-  }, [itemsOptions])
-
-  const itemSelectOptions = React.useMemo(() => {
-    return itemsOptions.map((item) => ({
-      label: item.sku ? `${item.name} (${item.sku})` : item.name,
-      value: item.id
-    }))
   }, [itemsOptions])
 
   const serviceSelectOptions = React.useMemo(() => {
@@ -150,135 +192,200 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
   const initialItems =
     defaultValues?.items && defaultValues.items.length > 0
       ? defaultValues.items
-      : [
-          {
-            itemId: null,
-            itemName: '',
-            description: '',
-            quantity: null,
-            unit: '',
-            estimatedUnitCost: null,
-            currency: 'DZD'
-          }
-        ]
+      : []
 
   const form = useForm<RequisitionFormValues>({
     resolver: zodResolver(requisitionFormSchema),
     defaultValues: {
-      reference: defaultValues?.reference ?? generateId('PR'),
+      reference: defaultValues?.reference ?? '',
       serviceId: defaultValues?.serviceId ?? '',
       title: defaultValues?.title ?? '',
       neededBy: defaultValues?.neededBy ?? undefined,
       notes: defaultValues?.notes ?? '',
-      status: defaultValues?.status,
-      items: initialItems
+      status: defaultValues?.status || 'SUBMITTED',
+      items: initialItems,
+      createdAt: defaultValues?.createdAt ?? ''
     }
   })
 
   const reference = form.watch('reference')
+  const createdAt = form.watch('createdAt')
   const uploadPath = React.useMemo(() => {
     return `procurement/requisitions/${reference || 'draft'}`
   }, [reference])
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'items'
   })
 
-  const addItem = () => {
-    append({
-      itemId: null,
-      itemName: '',
-      description: '',
-      quantity: null,
-      unit: '',
-      estimatedUnitCost: null,
-      currency: 'DZD'
-    })
-  }
+  // Watch items for live calculation in table
+  const watchedItems = form.watch('items')
 
-  const onSubmit = (values: RequisitionFormValues) => {
-    const safeItems =
-      values.items
-        ?.map((item) => ({
-          itemId: item.itemId || null,
-          itemName: toOptionalString(item.itemName),
-          description: toOptionalString(item.description),
-          quantity: toOptionalNumber(item.quantity),
-          unit: toOptionalString(item.unit),
-          estimatedUnitCost: toOptionalNumber(item.estimatedUnitCost),
-          currency: toOptionalString(item.currency)
-        }))
-        .filter((item) => {
-          return Boolean(
-            item.itemId ||
-              item.itemName ||
-              item.description ||
-              item.quantity ||
-              item.unit ||
-              item.estimatedUnitCost
-          )
-        }) ?? []
+  // Handle opening dialog for new item
+  const handleAddItemClick = React.useCallback(() => {
+    setDraftItem(null) // null indicates new item
+    setEditingIndex(null)
+    setIsDialogOpen(true)
+  }, [])
 
-    const payload = {
-      reference: values.reference,
-      serviceId: values.serviceId,
-      title: toOptionalString(values.title),
-      neededBy: values.neededBy ? new Date(values.neededBy) : undefined,
-      notes: toOptionalString(values.notes),
-      items: safeItems
-    }
+  // Handle opening dialog for editing
+  const handleEditItemClick = React.useCallback(
+    (index: number, item: ArticleItem) => {
+      if (!allowItemEditing) return
 
-    startTransition(async () => {
-      try {
-        if (requisitionId) {
-          await updateRequisition(requisitionId, {
-            ...payload,
-            status: values.status
-          })
+      setDraftItem({
+        itemId: item.itemId ?? null,
+        itemName: item.itemName ?? '',
+        description: item.description ?? '',
+        quantity: item.quantity ?? null,
+        unit: item.unit ?? '',
+        estimatedUnitCost: item.estimatedUnitCost ?? null,
+        currency: item.currency ?? 'DZD'
+      })
+      setEditingIndex(index)
+      setIsDialogOpen(true)
+    },
+    [allowItemEditing]
+  )
+
+  const handleDialogSave = React.useCallback(
+    (itemData: ArticleItem) => {
+      if (editingIndex !== null) {
+        update(editingIndex, itemData)
+      } else {
+        append(itemData)
+      }
+    },
+    [append, editingIndex, update]
+  )
+
+  const onSubmit = React.useCallback(
+    (values: RequisitionFormValues) => {
+      const safeItems = buildSafeItems(values.items)
+
+      const payload = {
+        reference: values.reference,
+        serviceId: values.serviceId,
+        title: toOptionalString(values.title),
+        neededBy: values.neededBy ? new Date(values.neededBy) : undefined,
+        notes: toOptionalString(values.notes),
+        items: safeItems
+      }
+
+      startTransition(async () => {
+        try {
+          if (requisitionId) {
+            await updateRequisition(requisitionId, {
+              ...payload,
+              status: values.status
+            })
+            toast({
+              title: 'Enregistre',
+              description: "La demande d'achat a ete mise a jour.",
+              variant: 'success'
+            })
+            router.refresh()
+            return
+          }
+
+          const created = await createRequisition(payload)
           toast({
-            title: 'Enregistre',
-            description: "La demande d'achat a ete mise a jour.",
+            title: 'Cree',
+            description: "La demande d'achat a ete creee.",
             variant: 'success'
           })
-          router.refresh()
-          return
+          router.push(`/dashboard/procurement/requisitions/${created.id}`)
+        } catch (error) {
+          toast({
+            title: 'Erreur',
+            description:
+              error instanceof Error
+                ? error.message
+                : "Impossible d'enregistrer la demande.",
+            variant: 'destructive'
+          })
         }
+      })
+    },
+    [requisitionId, router, startTransition]
+  )
 
-        const created = await createRequisition(payload)
-        toast({
-          title: 'Cree',
-          description: "La demande d'achat a ete creee.",
-          variant: 'success'
-        })
-        router.push(`/dashboard/procurement/requisitions/${created.id}`)
-      } catch (error) {
-        toast({
-          title: 'Erreur',
-          description:
-            error instanceof Error
-              ? error.message
-              : "Impossible d'enregistrer la demande.",
-          variant: 'destructive'
-        })
-      }
-    })
-  }
+  // Handle opening dialog for editing
+  const handleDialogOpen = React.useCallback((open: boolean) => {
+    setIsDialogOpen(open)
+    if (!open) {
+      setEditingIndex(null)
+      setDraftItem(null)
+    }
+  }, [])
+
+  const createdAtDate = React.useMemo(() => {
+    if (!createdAt) return null
+    return new Date(createdAt)
+  }, [createdAt])
+
+  React.useEffect(() => {
+    const currentReference = form.getValues('reference')
+    if (!currentReference) {
+      form.setValue('reference', generateId('PR'), { shouldDirty: false })
+    }
+
+    const currentCreatedAt = form.getValues('createdAt')
+    if (!currentCreatedAt) {
+      form.setValue('createdAt', new Date().toISOString(), {
+        shouldDirty: false
+      })
+    }
+  }, [form])
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-        <CardGrid>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-8 relative"
+      >
+        <div
+          className={cn(
+            'absolute -right-4 -top-16 z-10',
+            'flex flex-row items-center gap-3 rounded-l-md',
+            'bg-background/70 px-2 py-1 backdrop-blur',
+            'border border-border ',
+            'text-base text-muted-foreground',
+            'select-none',
+            'bg-gray-100 h-fit w-fit px-4 py-2'
+          )}
+        >
+          {reference && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Ref:</span>{' '}
+              {reference}
+            </span>
+          )}
+
+          {createdAt && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">
+                Demandé le:
+              </span>{' '}
+              {createdAtDate
+                ? formatDate(createdAtDate, 'PPP', { locale: fr })
+                : null}
+            </span>
+          )}
+        </div>
+
+        <div className="grid  grid-cols-1 gap-6  ">
           <FormField
             control={form.control}
             name="serviceId"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full max-w-sm">
                 <FormLabel>Service</FormLabel>
                 <FormControl>
                   <Combobox
                     options={serviceSelectOptions}
-                    selected={field.value || undefined}
+                    selected={field.value}
                     onSelect={(value) => {
                       form.setValue('serviceId', value)
                     }}
@@ -292,29 +399,16 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
 
           <FormField
             control={form.control}
-            name="reference"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reference</FormLabel>
-                <FormControl>
-                  <Input placeholder="REQ-2024-001" {...field} disabled />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="title"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Objet</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Titre ou sujet"
+                  <Textarea
                     {...field}
-                    value={field.value as string}
+                    className="min-h-32"
+                    value={field.value || ''}
+                    placeholder="Ex: Achat de fournitures de bureau"
                   />
                 </FormControl>
                 <FormMessage />
@@ -326,7 +420,7 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
             control={form.control}
             name="neededBy"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col gap-1">
                 <FormLabel>Besoin le</FormLabel>
                 <FormControl>
                   <DatePicker
@@ -335,7 +429,7 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
                     locale={fr}
                     placeholder="Choisir une date"
                     formatStr="PPP"
-                    className="w-full"
+                    className="w-full max-w-sm"
                   />
                 </FormControl>
                 <FormMessage />
@@ -348,15 +442,15 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
               control={form.control}
               name="status"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col gap-1">
                   <FormLabel>Statut</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choisir un statut" />
+                      <SelectTrigger className="w-full max-w-sm">
+                        <SelectValue placeholder="Selectionner un statut" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -372,251 +466,146 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
               )}
             />
           )}
-        </CardGrid>
+        </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Articles</h3>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addItem}
-              className="flex items-center gap-1"
-            >
-              <Plus className="h-4 w-4" />
-              Ajouter
-            </Button>
+            <h3 className="text-lg font-medium">Articles</h3>
           </div>
-          <div className="space-y-4">
-            {fields.map((fieldItem, index) => {
-              const selectedItemId = form.watch(`items.${index}.itemId`)
-              const selectedItem = selectedItemId
-                ? itemLookup.get(selectedItemId)
-                : null
-              const isLocked = Boolean(selectedItemId && selectedItem)
 
-              return (
-                <div
-                  key={fieldItem.id}
-                  className="space-y-4 rounded-lg border bg-gray-50/50 p-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">
-                      Article {index + 1}
-                    </span>
-                    {fields.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => remove(index)}
-                        className="flex-shrink-0"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.itemId`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Article</FormLabel>
-                          <FormControl>
-                            <Combobox
-                              options={itemSelectOptions}
-                              selected={field.value || undefined}
-                              onSelect={(value) => {
-                                const selected = itemLookup.get(value)
-                                form.setValue(`items.${index}.itemId`, value)
-                                if (selected?.unit) {
-                                  form.setValue(
-                                    `items.${index}.unit`,
-                                    selected.unit
-                                  )
-                                }
-                                if (
-                                  !form.getValues(
-                                    `items.${index}.description`
-                                  ) &&
-                                  selected?.description
-                                ) {
-                                  form.setValue(
-                                    `items.${index}.description`,
-                                    selected.description
-                                  )
-                                }
-                                if (selected?.name) {
-                                  form.setValue(
-                                    `items.${index}.itemName`,
-                                    selected.name
-                                  )
-                                }
-                              }}
-                              placeholder="Selectionner un article"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+          <div className="border rounded-t-md">
+            <Table className="font-poppins text-[0.9rem] w-full font-regular hide-scrollbar-print text-foreground">
+              <TableHeader className="print:table-header-group bg-gray-100 border-y ">
+                <TableRow className="text-black">
+                  <TableHead className="px-2 py-1 h-5 w-8 text-left font-medium">
+                    N°
+                  </TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">Reference</TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">Article</TableHead>
+                  <TableHead className="text-left py-[3px] px-2 h-5">
+                    Quantite
+                  </TableHead>
+                  <TableHead className="text-right py-[3px] px-2 h-5">
+                    Prix Unitaire
+                  </TableHead>
+                  <TableHead className="text-right py-[3px] px-2 h-5">
+                    Total
+                  </TableHead>
+                  {allowItemActions && (
+                    <TableHead className="w-[50px]"></TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fields.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-16 text-center">
+                      Aucun article ajoute.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  fields.map((fieldItem, idx) => {
+                    const item = watchedItems?.[idx] || fieldItem
+                    const itemRef = item.itemId
+                      ? itemLookup.get(item.itemId)?.sku ||
+                        itemLookup.get(item.itemId)?.id ||
+                        '-'
+                      : '-'
 
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.itemName`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nom article</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Nom pour un nouvel article"
-                              {...field}
-                              value={field.value ?? ''}
-                              disabled={isLocked}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                    const lineTotal =
+                      (item.quantity ?? 0) * (item.estimatedUnitCost ?? 0)
 
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.description`}
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2 lg:col-span-2">
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Description ou specification"
-                              value={field.value as string}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quantite</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={0}
-                              step="1"
-                              value={field.value ?? ''}
-                              onChange={(event) =>
-                                field.onChange(
-                                  event.target.value === ''
-                                    ? null
-                                    : Number(event.target.value)
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.unit`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Unite</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="ex: pcs, kg"
-                              {...field}
-                              value={field.value as string}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.estimatedUnitCost`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Prix unitaire estime</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              value={field.value ?? ''}
-                              onChange={(event) =>
-                                field.onChange(
-                                  event.target.value === ''
-                                    ? null
-                                    : Number(event.target.value)
-                                )
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name={`items.${index}.currency`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Devise</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value || 'DZD'}
+                    return (
+                      <TableRow key={fieldItem.id} className="h-5 p-0">
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {idx + 1}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {itemRef}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          <span
+                            className={cn(
+                              allowItemEditing
+                                ? 'cursor-pointer hover:underline'
+                                : 'cursor-default'
+                            )}
+                            onClick={() =>
+                              handleEditItemClick(idx, item as ArticleItem)
+                            }
                           >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="DZD">DZD</SelectItem>
-                              <SelectItem value="EUR">EUR</SelectItem>
-                              <SelectItem value="USD">USD</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              )
-            })}
+                            {item.itemName || '-'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-left py-[3px] px-2 h-5">
+                          {item.quantity
+                            ? `${item.quantity} ${item.unit || ''}`
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-right py-[3px] px-2 h-5">
+                          {formatPrice(item.estimatedUnitCost)}
+                        </TableCell>
+                        <TableCell className="text-right py-[3px] px-2 h-5">
+                          {formatPrice(lineTotal)}
+                        </TableCell>
+                        {allowItemActions && (
+                          <TableCell className="py-[3px] px-2 h-5 text-right">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => remove(idx)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+            {allowItemActions && (
+              <Button
+                variant={'outline'}
+                onClick={handleAddItemClick}
+                className={cn(
+                  'flex w-full h-24 justify-center gap-1  text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30  hover:bg-gray-100 text-md border-dashed broder-dash py-4',
+                  'h-fit'
+                )}
+              >
+                <Icons.plus className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
+                <span className="text-base font-medium">
+                  Ajouter Un Article
+                </span>
+              </Button>
+            )}
           </div>
         </div>
+
+        {/* Separated Dialog Component */}
+        <RequisitionArticleDialog
+          open={isDialogOpen}
+          onOpenChange={handleDialogOpen}
+          initialData={draftItem}
+          onSave={handleDialogSave}
+          itemsOptions={itemsOptions}
+        />
 
         <FormField
           control={form.control}
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes internes</FormLabel>
+              <FormLabel>Note internes</FormLabel>
               <FormControl>
                 <Textarea
-                  rows={4}
-                  placeholder="Informations utiles, contraintes, delais..."
-                  className={cn('resize-none')}
+                  className="min-h-24"
                   {...field}
-                  value={field.value as string}
+                  value={field.value || ''}
+                  placeholder="Notes supplementaires..."
                 />
               </FormControl>
               <FormMessage />
@@ -624,11 +613,11 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
           )}
         />
 
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Pieces jointes</h3>
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Pieces jointes</h3>
           <ProcurementUploader
             target="requisition"
-            targetId={requisitionId}
+            targetId={reference}
             uploadPath={uploadPath}
             initialAttachments={attachments}
             onAttachmentAdded={(attachment) => {
@@ -643,11 +632,42 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
           />
         </div>
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (requisitionId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end space-x-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={isSaving}
+          >
+            Annuler
+          </Button>
+          <Button type="submit" disabled={isSaving}>
+            {isSaving && (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {submitLabel || (requisitionId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
+  )
+}
+
+export const RequisitionCreateForm: React.FC<
+  Omit<RequisitionFormBaseProps, 'showStatus' | 'allowItemActions'>
+> = (props) => {
+  return <RequisitionFormBase {...props} showStatus={false} />
+}
+
+export const RequisitionEditForm: React.FC<
+  Omit<RequisitionFormBaseProps, 'allowItemActions'>
+> = (props) => {
+  return (
+    <RequisitionFormBase
+      {...props}
+      showStatus={props.showStatus ?? true}
+      allowItemActions={false}
+      allowItemEditing={true}
+    />
   )
 }

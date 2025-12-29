@@ -2,7 +2,6 @@
 
 import { CardGrid } from '@/components/card'
 import { Combobox } from '@/components/combobox'
-import { DatePicker } from '@/components/date-picker'
 import { Icons } from '@/components/icons'
 import { ProcurementUploader } from '@/components/procurement-uploader'
 import { Button } from '@/components/ui/button'
@@ -14,7 +13,6 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -23,18 +21,28 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
 import { generateId } from '@/helpers/id-generator'
 import { createReceipt, updateReceipt } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { formatDate } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Minus, Plus } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
 import type { Attachment } from '@/lib/validations/order'
+import { ReceiptItemDialog, type ReceiptItem } from './receipt-item-dialog'
 
 const RECEIPT_STATUS_TYPES = [
   'DRAFT',
@@ -133,6 +141,9 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
   const [attachments, setAttachments] = React.useState<Attachment[]>(
     defaultValues?.attachments ?? []
   )
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
+  const [draftItem, setDraftItem] = React.useState<ReceiptItem | null>(null)
 
   const purchaseOrderOptions = React.useMemo(() => {
     return purchaseOrdersOptions.map((purchaseOrder) => ({
@@ -147,13 +158,6 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
     return new Map(itemsOptions.map((item) => [item.id, item]))
   }, [itemsOptions])
 
-  const itemSelectOptions = React.useMemo(() => {
-    return itemsOptions.map((item) => ({
-      label: item.sku ? `${item.name} (${item.sku})` : item.name,
-      value: item.id
-    }))
-  }, [itemsOptions])
-
   const serviceSelectOptions = React.useMemo(() => {
     return servicesOptions.map((service) => ({
       label: service.name,
@@ -164,15 +168,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
   const initialItems =
     defaultValues?.items && defaultValues.items.length > 0
       ? defaultValues.items
-      : [
-          {
-            purchaseOrderItemId: null,
-            itemId: null,
-            quantityReceived: null,
-            condition: '',
-            notes: ''
-          }
-        ]
+      : []
 
   const form = useForm<ReceiptFormValues>({
     resolver: zodResolver(receiptFormSchema),
@@ -188,24 +184,76 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
   })
 
   const reference = form.watch('reference')
+  const receivedAt = form.watch('receivedAt')
+  const receivedAtDate = React.useMemo(() => {
+    if (!receivedAt) return null
+    return new Date(receivedAt)
+  }, [receivedAt])
   const uploadPath = React.useMemo(() => {
     return `procurement/receipts/${reference || 'draft'}`
   }, [reference])
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'items'
   })
 
-  const addItem = () => {
-    append({
-      purchaseOrderItemId: null,
-      itemId: null,
-      quantityReceived: null,
-      condition: '',
-      notes: ''
-    })
-  }
+  const watchedItems = form.watch('items')
+
+  React.useEffect(() => {
+    const currentReceivedAt = form.getValues('receivedAt')
+    if (!currentReceivedAt) {
+      form.setValue('receivedAt', new Date().toISOString(), {
+        shouldDirty: false
+      })
+    }
+  }, [form])
+
+  const handleAddItemClick = React.useCallback(() => {
+    setDraftItem(null)
+    setEditingIndex(null)
+    setIsDialogOpen(true)
+  }, [])
+
+  const handleEditItemClick = React.useCallback(
+    (index: number, item: ReceiptItem) => {
+      setDraftItem({
+        purchaseOrderItemId: item.purchaseOrderItemId ?? null,
+        itemId: item.itemId ?? null,
+        quantityReceived: item.quantityReceived ?? null,
+        condition: item.condition ?? '',
+        notes: item.notes ?? ''
+      })
+      setEditingIndex(index)
+      setIsDialogOpen(true)
+    },
+    []
+  )
+
+  const handleDialogSave = React.useCallback(
+    (itemData: ReceiptItem) => {
+      if (editingIndex !== null) {
+        update(editingIndex, {
+          purchaseOrderItemId: itemData.purchaseOrderItemId ?? null,
+          ...itemData
+        })
+      } else {
+        append({
+          purchaseOrderItemId: itemData.purchaseOrderItemId ?? null,
+          ...itemData
+        })
+      }
+    },
+    [append, editingIndex, update]
+  )
+
+  const handleDialogOpen = React.useCallback((open: boolean) => {
+    setIsDialogOpen(open)
+    if (!open) {
+      setEditingIndex(null)
+      setDraftItem(null)
+    }
+  }, [])
 
   const onSubmit = (values: ReceiptFormValues) => {
     const safeItems =
@@ -225,7 +273,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
       reference: values.reference,
       purchaseOrderId: values.purchaseOrderId,
       serviceId: values.serviceId,
-      receivedAt: values.receivedAt || undefined,
+      receivedAt: values.receivedAt ? new Date(values.receivedAt) : undefined,
       notes: toOptionalString(values.notes),
       items: safeItems
     }
@@ -268,7 +316,37 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-6 relative"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div
+          className={cn(
+            'absolute -right-4 -top-16 z-10',
+            'flex flex-row items-center gap-3 rounded-l-md',
+            'bg-background/70 px-2 py-1 backdrop-blur',
+            'border border-border',
+            'text-base text-muted-foreground',
+            'select-none',
+            'bg-gray-100 h-fit w-fit px-4 py-2'
+          )}
+        >
+          {reference && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Ref:</span>{' '}
+              {reference}
+            </span>
+          )}
+          {receivedAtDate && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Reçu le:</span>{' '}
+              {formatDate(receivedAtDate, 'PPP', { locale: fr })}
+            </span>
+          )}
+        </div>
+
+        <input type="hidden" {...form.register('reference')} />
+        <input type="hidden" {...form.register('receivedAt')} />
         <CardGrid>
           <FormField
             control={form.control}
@@ -293,20 +371,6 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
 
           <FormField
             control={form.control}
-            name="reference"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reference</FormLabel>
-                <FormControl>
-                  <Input placeholder="RCV-2024-001" {...field} disabled />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="purchaseOrderId"
             render={({ field }) => (
               <FormItem>
@@ -319,27 +383,6 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
                       form.setValue('purchaseOrderId', value)
                     }}
                     placeholder="Selectionner un bon"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="receivedAt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reception</FormLabel>
-                <FormControl>
-                  <DatePicker
-                    date={field.value || undefined}
-                    onDateChange={field.onChange}
-                    locale={fr}
-                    placeholder="Choisir une date"
-                    formatStr="PPP"
-                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -378,132 +421,117 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
           )}
         </CardGrid>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium">Articles</h3>
+          </div>
+
+          <div className="border rounded-t-md">
+            <Table className="font-poppins text-[0.9rem] w-full font-regular hide-scrollbar-print text-foreground">
+              <TableHeader className="print:table-header-group bg-gray-100 border-y">
+                <TableRow className="text-black">
+                  <TableHead className="px-2 py-1 h-5 w-8 text-left font-medium">
+                    N°
+                  </TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">Reference</TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">Article</TableHead>
+                  <TableHead className="text-left py-[3px] px-2 h-5">
+                    Quantite recue
+                  </TableHead>
+                  <TableHead className="text-left py-[3px] px-2 h-5">
+                    Etat
+                  </TableHead>
+                  <TableHead className="text-left py-[3px] px-2 h-5">
+                    Notes
+                  </TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fields.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-16 text-center">
+                      Aucun article ajoute.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  fields.map((fieldItem, index) => {
+                    const item = watchedItems?.[index] || fieldItem
+                    const itemRef = item.itemId
+                      ? itemLookup.get(item.itemId)?.sku ||
+                        itemLookup.get(item.itemId)?.id ||
+                        '-'
+                      : '-'
+                    const itemLabel =
+                      item.itemId && itemLookup.get(item.itemId)?.name
+                        ? itemLookup.get(item.itemId)?.name
+                        : '-'
+
+                    return (
+                      <TableRow key={fieldItem.id} className="h-5 p-0">
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {itemRef}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          <span
+                            className="cursor-pointer hover:underline"
+                            onClick={() =>
+                              handleEditItemClick(index, item as ReceiptItem)
+                            }
+                          >
+                            {itemLabel}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-left py-[3px] px-2 h-5">
+                          {item.quantityReceived ?? '-'}
+                        </TableCell>
+                        <TableCell className="text-left py-[3px] px-2 h-5">
+                          {item.condition || '-'}
+                        </TableCell>
+                        <TableCell className="text-left py-[3px] px-2 h-5">
+                          {item.notes || '-'}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5 text-right">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => remove(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
             <Button
-              type="button"
               variant="outline"
-              size="sm"
-              onClick={addItem}
-              className="flex items-center gap-1"
+              onClick={handleAddItemClick}
+              className={cn(
+                'flex w-full h-24 justify-center gap-1 text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30 hover:bg-gray-100 text-md border-dashed py-4',
+                'h-fit'
+              )}
             >
-              <Plus className="h-4 w-4" />
-              Ajouter
+              <Icons.plus className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
+              <span className="text-base font-medium">Ajouter Un Article</span>
             </Button>
           </div>
-          <div className="space-y-4">
-            {fields.map((fieldItem, index) => (
-              <div
-                key={fieldItem.id}
-                className="space-y-4 rounded-lg border bg-gray-50/50 p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    Article {index + 1}
-                  </span>
-                  {fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => remove(index)}
-                      className="flex-shrink-0"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.itemId`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Article</FormLabel>
-                        <FormControl>
-                          <Combobox
-                            options={itemSelectOptions}
-                            selected={field.value || undefined}
-                            onSelect={(value) => {
-                              const selectedItem = itemLookup.get(value)
-                              form.setValue(`items.${index}.itemId`, value)
-                              if (
-                                !form.getValues(`items.${index}.notes`) &&
-                                selectedItem?.description
-                              ) {
-                                form.setValue(
-                                  `items.${index}.notes`,
-                                  selectedItem.description
-                                )
-                              }
-                            }}
-                            placeholder="Selectionner un article"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.quantityReceived`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quantite recue</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={0}
-                            step="1"
-                            value={field.value ?? ''}
-                            onChange={(event) =>
-                              field.onChange(
-                                event.target.value === ''
-                                  ? null
-                                  : Number(event.target.value)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.condition`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Etat</FormLabel>
-                        <FormControl>
-                          <Input placeholder="ex: Bon etat" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`items.${index}.notes`}
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2 lg:col-span-3">
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Observations" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
+
+        <ReceiptItemDialog
+          open={isDialogOpen}
+          onOpenChange={handleDialogOpen}
+          initialData={draftItem}
+          onSave={handleDialogSave}
+          itemsOptions={itemsOptions}
+        />
 
         <FormField
           control={form.control}
@@ -517,6 +545,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
                   placeholder="Informations utiles, contraintes, delais..."
                   className={cn('resize-none')}
                   {...field}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />

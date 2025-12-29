@@ -184,7 +184,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({
       supplierId: toOptionalString(values.supplierId),
       purchaseOrderId: toOptionalString(values.purchaseOrderId),
       itemId: toOptionalString(values.itemId),
-      acquisitionDate: values.acquisitionDate || undefined,
+      acquisitionDate: values.acquisitionDate
+        ? new Date(values.acquisitionDate)
+        : undefined,
       value: toOptionalNumber(values.value),
       currency: toOptionalString(values.currency),
       notes: toOptionalString(values.notes)
@@ -225,7 +227,30 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-6 relative"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div
+          className={cn(
+            'absolute -right-4 -top-16 z-10',
+            'flex flex-row items-center gap-3 rounded-l-md',
+            'bg-background/70 px-2 py-1 backdrop-blur',
+            'border border-border',
+            'text-base text-muted-foreground',
+            'select-none',
+            'bg-gray-100 h-fit w-fit px-4 py-2'
+          )}
+        >
+          {reference && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Ref:</span>{' '}
+              {reference}
+            </span>
+          )}
+        </div>
+
+        <input type="hidden" {...form.register('reference')} />
         <CardGrid>
           <FormField
             control={form.control}
@@ -242,20 +267,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                     }}
                     placeholder="Selectionner un service"
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="reference"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reference</FormLabel>
-                <FormControl>
-                  <Input placeholder="AS-2024-001" {...field} disabled />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -455,6 +466,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
                   placeholder="Informations utiles..."
                   className={cn('resize-none')}
                   {...field}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />

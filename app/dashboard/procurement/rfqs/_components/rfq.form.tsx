@@ -14,7 +14,6 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -23,18 +22,27 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
 import { generateId } from '@/helpers/id-generator'
 import { createRfq, updateRfq } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
-import { Minus, Plus } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
 import type { Attachment } from '@/lib/validations/order'
+import { RfqLineDialog, type RfqLineItem } from './rfq-line-dialog'
 
 const RFQ_STATUS_TYPES = [
   'DRAFT',
@@ -130,6 +138,9 @@ export const RfqForm: React.FC<RfqFormProps> = ({
   const [attachments, setAttachments] = React.useState<Attachment[]>(
     defaultValues?.attachments ?? []
   )
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
+  const [draftLine, setDraftLine] = React.useState<RfqLineItem | null>(null)
 
   const requisitionSelectOptions = React.useMemo(() => {
     return requisitionsOptions.map((requisition) => ({
@@ -144,13 +155,6 @@ export const RfqForm: React.FC<RfqFormProps> = ({
     return new Map(itemsOptions.map((item) => [item.id, item]))
   }, [itemsOptions])
 
-  const itemSelectOptions = React.useMemo(() => {
-    return itemsOptions.map((item) => ({
-      label: item.sku ? `${item.name} (${item.sku})` : item.name,
-      value: item.id
-    }))
-  }, [itemsOptions])
-
   const serviceSelectOptions = React.useMemo(() => {
     return servicesOptions.map((service) => ({
       label: service.name,
@@ -161,14 +165,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
   const initialLines =
     defaultValues?.lines && defaultValues.lines.length > 0
       ? defaultValues.lines
-      : [
-          {
-            itemId: null,
-            description: '',
-            quantity: null,
-            unit: ''
-          }
-        ]
+      : []
 
   const form = useForm<RfqFormValues>({
     resolver: zodResolver(rfqFormSchema),
@@ -188,19 +185,51 @@ export const RfqForm: React.FC<RfqFormProps> = ({
     return `procurement/rfqs/${reference || 'draft'}`
   }, [reference])
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'lines'
   })
 
-  const addLine = () => {
-    append({
-      itemId: null,
-      description: '',
-      quantity: null,
-      unit: ''
-    })
-  }
+  const watchedLines = form.watch('lines')
+
+  const handleAddLineClick = React.useCallback(() => {
+    setDraftLine(null)
+    setEditingIndex(null)
+    setIsDialogOpen(true)
+  }, [])
+
+  const handleEditLineClick = React.useCallback(
+    (index: number, line: RfqLineItem) => {
+      setDraftLine({
+        itemId: line.itemId ?? null,
+        description: line.description ?? '',
+        quantity: line.quantity ?? null,
+        unit: line.unit ?? ''
+      })
+      setEditingIndex(index)
+      setIsDialogOpen(true)
+    },
+    []
+  )
+
+  const handleDialogSave = React.useCallback(
+    (lineData: RfqLineItem) => {
+      if (editingIndex !== null) {
+        update(editingIndex, lineData)
+      } else {
+        append(lineData)
+      }
+    },
+    [append, editingIndex, update]
+  )
+
+  const handleDialogOpen = React.useCallback((open: boolean) => {
+    setIsDialogOpen(open)
+    if (!open) {
+      setEditingIndex(null)
+      setDraftLine(null)
+    }
+  }, [])
 
   const onSubmit = (values: RfqFormValues) => {
     const safeLines =
@@ -264,7 +293,30 @@ export const RfqForm: React.FC<RfqFormProps> = ({
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-6 relative"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div
+          className={cn(
+            'absolute -right-4 -top-16 z-10',
+            'flex flex-row items-center gap-3 rounded-l-md',
+            'bg-background/70 px-2 py-1 backdrop-blur',
+            'border border-border',
+            'text-base text-muted-foreground',
+            'select-none',
+            'bg-gray-100 h-fit w-fit px-4 py-2'
+          )}
+        >
+          {reference && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Ref:</span>{' '}
+              {reference}
+            </span>
+          )}
+        </div>
+
+        <input type="hidden" {...form.register('reference')} />
         <CardGrid>
           <FormField
             control={form.control}
@@ -281,20 +333,6 @@ export const RfqForm: React.FC<RfqFormProps> = ({
                     }}
                     placeholder="Selectionner un service"
                   />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="reference"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reference</FormLabel>
-                <FormControl>
-                  <Input placeholder="RFQ-2024-001" {...field} disabled />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -374,146 +412,113 @@ export const RfqForm: React.FC<RfqFormProps> = ({
           )}
         </CardGrid>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium">Lignes</h3>
+          </div>
+
+          <div className="border rounded-t-md">
+            <Table className="font-poppins text-[0.9rem] w-full font-regular hide-scrollbar-print text-foreground">
+              <TableHeader className="print:table-header-group bg-gray-100 border-y">
+                <TableRow className="text-black">
+                  <TableHead className="px-2 py-1 h-5 w-8 text-left font-medium">
+                    N°
+                  </TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">Reference</TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">Article</TableHead>
+                  <TableHead className="text-left py-[3px] px-2 h-5">
+                    Quantite
+                  </TableHead>
+                  <TableHead className="text-left py-[3px] px-2 h-5">
+                    Unite
+                  </TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fields.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-16 text-center">
+                      Aucune ligne ajoutee.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  fields.map((fieldItem, index) => {
+                    const line = watchedLines?.[index] || fieldItem
+                    const itemRef = line.itemId
+                      ? itemLookup.get(line.itemId)?.sku ||
+                        itemLookup.get(line.itemId)?.id ||
+                        '-'
+                      : '-'
+                    const lineLabel =
+                      line.itemId && itemLookup.get(line.itemId)?.name
+                        ? itemLookup.get(line.itemId)?.name
+                        : line.description || '-'
+
+                    return (
+                      <TableRow key={fieldItem.id} className="h-5 p-0">
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {itemRef}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          <span
+                            className="cursor-pointer hover:underline"
+                            onClick={() =>
+                              handleEditLineClick(index, line as RfqLineItem)
+                            }
+                          >
+                            {lineLabel}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-left py-[3px] px-2 h-5">
+                          {line.quantity
+                            ? `${line.quantity} ${line.unit || ''}`
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-left py-[3px] px-2 h-5">
+                          {line.unit || '-'}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5 text-right">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => remove(index)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
             <Button
-              type="button"
               variant="outline"
-              size="sm"
-              onClick={addLine}
-              className="flex items-center gap-1"
+              onClick={handleAddLineClick}
+              className={cn(
+                'flex w-full h-24 justify-center gap-1 text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30 hover:bg-gray-100 text-md border-dashed py-4',
+                'h-fit'
+              )}
             >
-              <Plus className="h-4 w-4" />
-              Ajouter
+              <Icons.plus className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
+              <span className="text-base font-medium">Ajouter Une Ligne</span>
             </Button>
           </div>
-          <div className="space-y-4">
-            {fields.map((fieldItem, index) => (
-              <div
-                key={fieldItem.id}
-                className="space-y-4 rounded-lg border bg-gray-50/50 p-4"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    Ligne {index + 1}
-                  </span>
-                  {fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => remove(index)}
-                      className="flex-shrink-0"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  <FormField
-                    control={form.control}
-                    name={`lines.${index}.itemId`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Article</FormLabel>
-                        <FormControl>
-                          <Combobox
-                            options={itemSelectOptions}
-                            selected={field.value || undefined}
-                            onSelect={(value) => {
-                              const selectedItem = itemLookup.get(value)
-                              form.setValue(`lines.${index}.itemId`, value)
-                              if (
-                                !form.getValues(`lines.${index}.description`) &&
-                                selectedItem?.description
-                              ) {
-                                form.setValue(
-                                  `lines.${index}.description`,
-                                  selectedItem.description
-                                )
-                              }
-                              if (selectedItem?.unit) {
-                                form.setValue(
-                                  `lines.${index}.unit`,
-                                  selectedItem.unit
-                                )
-                              }
-                            }}
-                            placeholder="Selectionner un article"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`lines.${index}.description`}
-                    render={({ field }) => (
-                      <FormItem className="md:col-span-2 lg:col-span-2">
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Description"
-                            {...field}
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`lines.${index}.quantity`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Quantite</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min={0}
-                            step="1"
-                            value={field.value ?? ''}
-                            onChange={(event) =>
-                              field.onChange(
-                                event.target.value === ''
-                                  ? null
-                                  : Number(event.target.value)
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`lines.${index}.unit`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unite</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="ex: pcs, kg"
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
+
+        <RfqLineDialog
+          open={isDialogOpen}
+          onOpenChange={handleDialogOpen}
+          initialData={draftLine}
+          onSave={handleDialogSave}
+          itemsOptions={itemsOptions}
+        />
 
         <FormField
           control={form.control}

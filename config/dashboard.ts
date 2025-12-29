@@ -105,7 +105,7 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     href: '/dashboard/procurement/contracts',
     icon: 'page',
     key: 'procurement-contracts',
-    active: true
+    active: false
   },
 
   {

@@ -117,9 +117,34 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
     })
   }
 
+  const supplierCode = form.watch('code')
+
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-6 relative"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div
+          className={cn(
+            'absolute -right-4 -top-16 z-10',
+            'flex flex-row items-center gap-3 rounded-l-md',
+            'bg-background/70 px-2 py-1 backdrop-blur',
+            'border border-border',
+            'text-base text-muted-foreground',
+            'select-none',
+            'bg-gray-100 h-fit w-fit px-4 py-2'
+          )}
+        >
+          {supplierCode && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Ref:</span>{' '}
+              {supplierCode}
+            </span>
+          )}
+        </div>
+
+        <input type="hidden" {...form.register('code')} />
         <CardGrid>
           <FormField
             control={form.control}
@@ -137,26 +162,16 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
 
           <FormField
             control={form.control}
-            name="code"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="SUP-001" {...field} disabled />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="contactName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contact</FormLabel>
                 <FormControl>
-                  <Input placeholder="Nom du contact" {...field} />
+                  <Input
+                    placeholder="Nom du contact"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -170,7 +185,12 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="email@domaine.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="email@domaine.com"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -184,7 +204,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
               <FormItem>
                 <FormLabel>Telephone</FormLabel>
                 <FormControl>
-                  <Input placeholder="+213" {...field} />
+                  <Input
+                    placeholder="+213"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -198,7 +222,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
               <FormItem>
                 <FormLabel>Site web</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://fournisseur.dz" {...field} />
+                  <Input
+                    placeholder="https://fournisseur.dz"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -212,7 +240,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
               <FormItem>
                 <FormLabel>NIF</FormLabel>
                 <FormControl>
-                  <Input placeholder="NIF" {...field} />
+                  <Input
+                    placeholder="NIF"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -226,7 +258,11 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
               <FormItem>
                 <FormLabel>RC</FormLabel>
                 <FormControl>
-                  <Input placeholder="Registre du commerce" {...field} />
+                  <Input
+                    placeholder="Registre du commerce"
+                    {...field}
+                    value={field.value || ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -246,6 +282,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({
                   placeholder="Informations utiles..."
                   className={cn('resize-none')}
                   {...field}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />

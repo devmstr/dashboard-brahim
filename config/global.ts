@@ -108,6 +108,26 @@ export const PAYMENT_TYPES = [
 ] as const
 export const PAYMENT_TYPES_ARR: string[] = [...PAYMENT_TYPES]
 
+// Raw material units
+export const RAW_MATERIAL_UNITS = [
+  'kg',
+  'g',
+  'tonne',
+  'mètre',
+  'centimètre',
+  'millimètre',
+  'litre',
+  'millilitre',
+  'pièce',
+  'boîte',
+  'rouleau',
+  'palette',
+  'paquet',
+  'sachet',
+  'unité'
+] as const
+export const RAW_MATERIAL_UNITS_ARR: string[] = [...RAW_MATERIAL_UNITS]
+
 // Banks
 export const BANK_TYPES = [
   { label: 'Banque Extérieure d’Algérie', value: 'BEA' },

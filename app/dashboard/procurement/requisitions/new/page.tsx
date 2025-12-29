@@ -3,7 +3,7 @@ import {
   listProcurementItems,
   listProcurementServices
 } from '@/lib/procurement/actions'
-import { RequisitionForm } from '../_components/requisition.form'
+import { RequisitionCreateForm } from '../_components/requisition.form'
 
 const Page = async () => {
   const [itemsOptions, servicesOptions] = await Promise.all([
@@ -19,7 +19,7 @@ const Page = async () => {
           Creez une demande d'achat avec ses articles.
         </p>
       </div>
-      <RequisitionForm
+      <RequisitionCreateForm
         itemsOptions={itemsOptions}
         servicesOptions={servicesOptions}
       />

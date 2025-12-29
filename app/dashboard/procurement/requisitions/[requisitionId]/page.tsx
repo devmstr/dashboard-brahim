@@ -5,9 +5,7 @@ import {
   listProcurementItems,
   listProcurementServices
 } from '@/lib/procurement/actions'
-import { RequisitionForm } from '../_components/requisition.form'
-import type { Attachment } from '@/lib/validations/order'
-
+import { RequisitionEditForm } from '../_components/requisition.form'
 interface PageProps {
   params: {
     requisitionId: string
@@ -32,13 +30,15 @@ const Page = async ({ params }: PageProps) => {
       : undefined,
     notes: requisition.notes ?? '',
     status: requisition.status,
-    attachments: requisition.Attachments?.map((attachment) => ({
-      id: attachment.id,
-      name: attachment.name,
-      uniqueName: attachment.uniqueName,
-      url: attachment.url,
-      type: attachment.type
-    })) ?? [],
+    createdAt: requisition.createdAt.toISOString(),
+    attachments:
+      requisition.Attachments?.map((attachment) => ({
+        id: attachment.id,
+        name: attachment.name,
+        uniqueName: attachment.uniqueName,
+        url: attachment.url,
+        type: attachment.type
+      })) ?? [],
     items: requisition.Items.map((item) => ({
       itemId: item.itemId,
       itemName: item.Item?.name ?? '',
@@ -52,7 +52,7 @@ const Page = async ({ params }: PageProps) => {
 
   return (
     <Card className="space-y-8">
-      <RequisitionForm
+      <RequisitionEditForm
         requisitionId={requisition.id}
         defaultValues={formDefaults}
         itemsOptions={itemsOptions}

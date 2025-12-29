@@ -1,6 +1,7 @@
 'use client'
 
 import { CardGrid } from '@/components/card'
+import { Combobox } from '@/components/combobox'
 import { Icons } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,6 +19,7 @@ import { toast } from '@/hooks/use-toast'
 import { generateId } from '@/helpers/id-generator'
 import { createItem, updateItem } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
+import { RAW_MATERIAL_UNITS_ARR } from '@/config/global'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
@@ -64,6 +66,14 @@ export const ItemForm: React.FC<ItemFormProps> = ({
     }
   })
 
+  const sku = form.watch('sku')
+  const unitSelectOptions = React.useMemo(() => {
+    return RAW_MATERIAL_UNITS_ARR.map((unit) => ({
+      label: unit,
+      value: unit
+    }))
+  }, [])
+
   const onSubmit = (values: ItemFormValues) => {
     const payload = {
       name: values.name,
@@ -108,7 +118,29 @@ export const ItemForm: React.FC<ItemFormProps> = ({
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        className="space-y-6 relative"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <div
+          className={cn(
+            'absolute -right-4 -top-16 z-10',
+            'flex flex-row items-center gap-3 rounded-l-md',
+            'bg-background/70 px-2 py-1 backdrop-blur',
+            'border border-border',
+            'text-base text-muted-foreground',
+            'select-none',
+            'bg-gray-100 h-fit w-fit px-4 py-2'
+          )}
+        >
+          {sku && (
+            <span className="whitespace-nowrap">
+              <span className="font-medium text-foreground/80">Ref:</span> {sku}
+            </span>
+          )}
+        </div>
+
+        <input type="hidden" {...form.register('sku')} />
         <CardGrid>
           <FormField
             control={form.control}
@@ -126,26 +158,19 @@ export const ItemForm: React.FC<ItemFormProps> = ({
 
           <FormField
             control={form.control}
-            name="sku"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>SKU</FormLabel>
-                <FormControl>
-                  <Input placeholder="PI-001" {...field} disabled />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="unit"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Unite</FormLabel>
                 <FormControl>
-                  <Input placeholder="ex: pcs, kg" {...field} />
+                  <Combobox
+                    options={unitSelectOptions}
+                    selected={field.value || ''}
+                    onSelect={(value) => {
+                      form.setValue('unit', value)
+                    }}
+                    placeholder="Selectionner une unite"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -156,7 +181,7 @@ export const ItemForm: React.FC<ItemFormProps> = ({
             control={form.control}
             name="isActive"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <FormItem className="col-span-3 flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                 <div className="space-y-0.5">
                   <FormLabel>Actif</FormLabel>
                   <div className="text-sm text-muted-foreground">
@@ -186,6 +211,7 @@ export const ItemForm: React.FC<ItemFormProps> = ({
                   placeholder="Details de l'article..."
                   className={cn('resize-none')}
                   {...field}
+                  value={field.value || ''}
                 />
               </FormControl>
               <FormMessage />
