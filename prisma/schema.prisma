@@ -701,6 +701,24 @@ model ProcurementItem {
   @@map("procurement_items")
 }
 
+model ProcurementService {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Requisitions   ProcurementRequisition[]
+  Rfqs           ProcurementRfq[]
+  PurchaseOrders ProcurementPurchaseOrder[]
+  Receipts       ProcurementReceipt[]
+  Invoices       ProcurementSupplierInvoice[]
+  Contracts      ProcurementContract[]
+  Assets         ProcurementAsset[]
+
+  @@map("procurement_services")
+}
+
 model ProcurementRequisition {
   id          String                      @id @default(cuid())
   reference   String                      @unique
@@ -713,9 +731,11 @@ model ProcurementRequisition {
 
   createdById String
   approvedById String?
+  serviceId   String?
 
   CreatedBy  User @relation("ProcurementRequisitionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   ApprovedBy User? @relation("ProcurementRequisitionApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  Service    ProcurementService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
   Items          ProcurementRequisitionItem[]
   Rfqs           ProcurementRfq[]
@@ -754,9 +774,11 @@ model ProcurementRfq {
 
   requisitionId String?
   createdById   String
+  serviceId     String?
 
   Requisition ProcurementRequisition? @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
   CreatedBy   User                    @relation("ProcurementRfqCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service     ProcurementService?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
   Lines        ProcurementRfqLine[]
   VendorQuotes ProcurementRfqVendorQuote[]
@@ -848,12 +870,14 @@ model ProcurementPurchaseOrder {
   rfqId         String?
   createdById   String?
   approvedById  String?
+  serviceId     String?
 
   Supplier    ProcurementSupplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   Requisition ProcurementRequisition?  @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
   Rfq         ProcurementRfq?           @relation(fields: [rfqId], references: [id], onDelete: SetNull)
   CreatedBy   User?                     @relation("ProcurementPurchaseOrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   ApprovedBy  User?                     @relation("ProcurementPurchaseOrderApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  Service     ProcurementService?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
   Items     ProcurementPurchaseOrderItem[]
   Receipts  ProcurementReceipt[]
@@ -896,9 +920,11 @@ model ProcurementReceipt {
 
   purchaseOrderId String
   createdById     String
+  serviceId       String?
 
   PurchaseOrder ProcurementPurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
   CreatedBy    User                      @relation("ProcurementReceiptCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service      ProcurementService?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
   Items ProcurementReceiptItem[]
   Invoices ProcurementSupplierInvoice[]
@@ -944,11 +970,13 @@ model ProcurementSupplierInvoice {
   purchaseOrderId String?
   receiptId     String?
   createdById   String
+  serviceId     String?
 
   Supplier      ProcurementSupplier      @relation(fields: [supplierId], references: [id], onDelete: Restrict)
   PurchaseOrder ProcurementPurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
   Receipt       ProcurementReceipt?      @relation(fields: [receiptId], references: [id], onDelete: SetNull)
   CreatedBy     User                      @relation("ProcurementSupplierInvoiceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service       ProcurementService?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   Attachments   Attachment[] @relation("ProcurementSupplierInvoiceAttachments")
 
   @@map("procurement_supplier_invoices")
@@ -968,9 +996,11 @@ model ProcurementContract {
 
   supplierId  String
   createdById String
+  serviceId   String?
 
   Supplier  ProcurementSupplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
   CreatedBy User                @relation("ProcurementContractCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service   ProcurementService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   Attachments Attachment[] @relation("ProcurementContractAttachments")
 
   @@map("procurement_contracts")
@@ -992,11 +1022,13 @@ model ProcurementAsset {
   purchaseOrderId String?
   itemId      String?
   createdById String
+  serviceId   String?
 
   Supplier     ProcurementSupplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   PurchaseOrder ProcurementPurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
   Item         ProcurementItem?         @relation(fields: [itemId], references: [id], onDelete: SetNull)
   CreatedBy    User                     @relation("ProcurementAssetCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service      ProcurementService?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   Attachments Attachment[] @relation("ProcurementAssetAttachments")
 
   @@map("procurement_assets")

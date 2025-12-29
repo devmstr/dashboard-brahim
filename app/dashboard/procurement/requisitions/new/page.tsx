@@ -1,9 +1,15 @@
 import { Card } from '@/components/card'
-import { listProcurementItems } from '@/lib/procurement/actions'
+import {
+  listProcurementItems,
+  listProcurementServices
+} from '@/lib/procurement/actions'
 import { RequisitionForm } from '../_components/requisition.form'
 
 const Page = async () => {
-  const itemsOptions = await listProcurementItems()
+  const [itemsOptions, servicesOptions] = await Promise.all([
+    listProcurementItems(),
+    listProcurementServices()
+  ])
 
   return (
     <Card className="space-y-6">
@@ -13,7 +19,10 @@ const Page = async () => {
           Creez une demande d'achat avec ses articles.
         </p>
       </div>
-      <RequisitionForm itemsOptions={itemsOptions} />
+      <RequisitionForm
+        itemsOptions={itemsOptions}
+        servicesOptions={servicesOptions}
+      />
     </Card>
   )
 }

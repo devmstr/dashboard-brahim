@@ -3,6 +3,7 @@ import { Card } from '@/components/card'
 import {
   getRfqById,
   listProcurementItems,
+  listProcurementServices,
   listRequisitions
 } from '@/lib/procurement/actions'
 import { RfqForm } from '../_components/rfq.form'
@@ -15,16 +16,19 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [rfq, itemsOptions, requisitionsOptions] = await Promise.all([
+  const [rfq, itemsOptions, requisitionsOptions, servicesOptions] =
+    await Promise.all([
     getRfqById(params.rfqId),
     listProcurementItems(),
-    listRequisitions()
+    listRequisitions(),
+    listProcurementServices()
   ])
 
   if (!rfq) notFound()
 
   const formDefaults = {
     reference: rfq.reference,
+    serviceId: rfq.serviceId ?? '',
     requisitionId: rfq.requisitionId ?? '',
     neededBy: rfq.neededBy ? new Date(rfq.neededBy).toISOString() : undefined,
     notes: rfq.notes ?? '',
@@ -57,6 +61,7 @@ const Page = async ({ params }: PageProps) => {
         defaultValues={formDefaults}
         itemsOptions={itemsOptions}
         requisitionsOptions={requisitionsOptions}
+        servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"
       />

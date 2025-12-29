@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import { Card } from '@/components/card'
 import {
   getRequisitionById,
-  listProcurementItems
+  listProcurementItems,
+  listProcurementServices
 } from '@/lib/procurement/actions'
 import { RequisitionForm } from '../_components/requisition.form'
 import type { Attachment } from '@/lib/validations/order'
@@ -14,15 +15,17 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [requisition, itemsOptions] = await Promise.all([
+  const [requisition, itemsOptions, servicesOptions] = await Promise.all([
     getRequisitionById(params.requisitionId),
-    listProcurementItems()
+    listProcurementItems(),
+    listProcurementServices()
   ])
 
   if (!requisition) notFound()
 
   const formDefaults = {
     reference: requisition.reference,
+    serviceId: requisition.serviceId ?? '',
     title: requisition.title ?? '',
     neededBy: requisition.neededBy
       ? new Date(requisition.neededBy).toISOString()
@@ -53,6 +56,7 @@ const Page = async ({ params }: PageProps) => {
         requisitionId={requisition.id}
         defaultValues={formDefaults}
         itemsOptions={itemsOptions}
+        servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"
       />

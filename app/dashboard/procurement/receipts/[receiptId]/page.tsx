@@ -2,6 +2,7 @@ import { Card } from '@/components/card'
 import {
   getReceiptById,
   listProcurementItems,
+  listProcurementServices,
   listPurchaseOrders
 } from '@/lib/procurement/actions'
 import { notFound } from 'next/navigation'
@@ -15,17 +16,20 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [receipt, itemsOptions, purchaseOrdersOptions] = await Promise.all([
-    getReceiptById(params.receiptId),
-    listProcurementItems(),
-    listPurchaseOrders()
-  ])
+  const [receipt, itemsOptions, purchaseOrdersOptions, servicesOptions] =
+    await Promise.all([
+      getReceiptById(params.receiptId),
+      listProcurementItems(),
+      listPurchaseOrders(),
+      listProcurementServices()
+    ])
 
   if (!receipt) notFound()
 
   const formDefaults = {
     reference: receipt.reference,
     purchaseOrderId: receipt.purchaseOrderId ?? '',
+    serviceId: receipt.serviceId ?? '',
     receivedAt: receipt.receivedAt
       ? new Date(receipt.receivedAt).toISOString()
       : undefined,
@@ -60,6 +64,7 @@ const Page = async ({ params }: PageProps) => {
         defaultValues={formDefaults}
         itemsOptions={itemsOptions}
         purchaseOrdersOptions={purchaseOrdersOptions}
+        servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"
       />

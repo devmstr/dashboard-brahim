@@ -17,6 +17,9 @@ export type RfqRow = {
   reference: string
   status: string
   neededBy: Date | null
+  Service?: {
+    name: string
+  } | null
 }
 
 interface RfqsTableProps {
@@ -77,6 +80,11 @@ export function RfqsTable({ data, userRole }: RfqsTableProps) {
       header: 'Statut'
     },
     {
+      accessorKey: 'Service.name',
+      header: 'Service',
+      cell: ({ row }) => row.original.Service?.name || '-'
+    },
+    {
       accessorKey: 'neededBy',
       header: 'Besoin',
       cell: ({ row }) =>
@@ -100,7 +108,7 @@ export function RfqsTable({ data, userRole }: RfqsTableProps) {
     >
       <Button asChild>
         <Link href="/dashboard/procurement/rfqs/new">
-          <Plus className="mr-2 h-4 w-4" /> Nouveau RFQ
+          <Plus className="mr-2 h-4 w-4" /> Nouveau Devis
         </Link>
       </Button>
     </ProcurementDataTable>

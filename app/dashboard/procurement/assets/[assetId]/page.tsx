@@ -2,6 +2,7 @@ import { Card } from '@/components/card'
 import {
   getAssetById,
   listProcurementItems,
+  listProcurementServices,
   listProcurementSuppliers,
   listPurchaseOrders
 } from '@/lib/procurement/actions'
@@ -16,19 +17,26 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [asset, suppliersOptions, purchaseOrdersOptions, itemsOptions] =
-    await Promise.all([
-      getAssetById(params.assetId),
-      listProcurementSuppliers(),
-      listPurchaseOrders(),
-      listProcurementItems()
-    ])
+  const [
+    asset,
+    suppliersOptions,
+    purchaseOrdersOptions,
+    itemsOptions,
+    servicesOptions
+  ] = await Promise.all([
+    getAssetById(params.assetId),
+    listProcurementSuppliers(),
+    listPurchaseOrders(),
+    listProcurementItems(),
+    listProcurementServices()
+  ])
 
   if (!asset) notFound()
 
   const formDefaults = {
     reference: asset.reference,
     name: asset.name,
+    serviceId: asset.serviceId ?? '',
     supplierId: asset.supplierId ?? '',
     purchaseOrderId: asset.purchaseOrderId ?? '',
     itemId: asset.itemId ?? '',
@@ -62,6 +70,7 @@ const Page = async ({ params }: PageProps) => {
         suppliersOptions={suppliersOptions}
         purchaseOrdersOptions={purchaseOrdersOptions}
         itemsOptions={itemsOptions}
+        servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"
       />

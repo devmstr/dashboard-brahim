@@ -67,6 +67,7 @@ const purchaseOrderFormSchema = z.object({
   supplierId: z.string().optional().nullable(),
   requisitionId: z.string().optional().nullable(),
   rfqId: z.string().optional().nullable(),
+  serviceId: z.string().min(1, 'Service requis'),
   vendor: z.string().optional().nullable(),
   contactName: z.string().optional().nullable(),
   contactEmail: z.string().optional().nullable(),
@@ -114,6 +115,11 @@ type RequisitionOption = {
   title?: string | null
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+}
+
 interface PurchaseOrderFormProps {
   purchaseOrderId?: string
   defaultValues?: Partial<PurchaseOrderFormValues> & {
@@ -122,6 +128,7 @@ interface PurchaseOrderFormProps {
   itemsOptions: ProcurementItemOption[]
   suppliersOptions: SupplierOption[]
   requisitionsOptions: RequisitionOption[]
+  servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
 }
@@ -142,6 +149,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   itemsOptions,
   suppliersOptions,
   requisitionsOptions,
+  servicesOptions,
   showStatus = false,
   submitLabel
 }) => {
@@ -170,6 +178,13 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       value: requisition.id
     }))
   }, [requisitionsOptions])
+
+  const serviceSelectOptions = React.useMemo(() => {
+    return servicesOptions.map((service) => ({
+      label: service.name,
+      value: service.id
+    }))
+  }, [servicesOptions])
 
   const itemLookup = React.useMemo(() => {
     return new Map(itemsOptions.map((item) => [item.id, item]))
@@ -203,6 +218,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       supplierId: defaultValues?.supplierId ?? null,
       requisitionId: defaultValues?.requisitionId ?? '',
       rfqId: defaultValues?.rfqId ?? '',
+      serviceId: defaultValues?.serviceId ?? '',
       vendor: defaultValues?.vendor ?? '',
       contactName: defaultValues?.contactName ?? '',
       contactEmail: defaultValues?.contactEmail ?? '',
@@ -280,6 +296,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       supplierId: values.supplierId || undefined,
       requisitionId: toOptionalString(values.requisitionId),
       rfqId: toOptionalString(values.rfqId),
+      serviceId: values.serviceId,
       vendor: toOptionalString(values.vendor),
       contactName: toOptionalString(values.contactName),
       contactEmail: toOptionalString(values.contactEmail),
@@ -375,6 +392,27 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
                       }
                     }}
                     placeholder="Selectionner un fournisseur"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={serviceSelectOptions}
+                    selected={field.value || undefined}
+                    onSelect={(value) => {
+                      form.setValue('serviceId', value)
+                    }}
+                    placeholder="Selectionner un service"
                   />
                 </FormControl>
                 <FormMessage />

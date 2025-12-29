@@ -47,6 +47,7 @@ const ASSET_STATUS_LABELS: Record<(typeof ASSET_STATUS_TYPES)[number], string> =
 const assetFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
   name: z.string().min(1, 'Nom requis'),
+  serviceId: z.string().min(1, 'Service requis'),
   supplierId: z.string().optional().nullable(),
   purchaseOrderId: z.string().optional().nullable(),
   itemId: z.string().optional().nullable(),
@@ -79,6 +80,11 @@ type ProcurementItemOption = {
   sku?: string | null
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+}
+
 interface AssetFormProps {
   assetId?: string
   defaultValues?: Partial<AssetFormValues> & {
@@ -87,6 +93,7 @@ interface AssetFormProps {
   suppliersOptions: SupplierOption[]
   purchaseOrdersOptions: PurchaseOrderOption[]
   itemsOptions: ProcurementItemOption[]
+  servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
 }
@@ -107,6 +114,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   suppliersOptions,
   purchaseOrdersOptions,
   itemsOptions,
+  servicesOptions,
   showStatus = false,
   submitLabel
 }) => {
@@ -139,11 +147,19 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     }))
   }, [itemsOptions])
 
+  const serviceSelectOptions = React.useMemo(() => {
+    return servicesOptions.map((service) => ({
+      label: service.name,
+      value: service.id
+    }))
+  }, [servicesOptions])
+
   const form = useForm<AssetFormValues>({
     resolver: zodResolver(assetFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? generateId('AS'),
       name: defaultValues?.name ?? '',
+      serviceId: defaultValues?.serviceId ?? '',
       supplierId: defaultValues?.supplierId ?? '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
       itemId: defaultValues?.itemId ?? '',
@@ -164,6 +180,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     const payload = {
       reference: values.reference,
       name: values.name,
+      serviceId: values.serviceId,
       supplierId: toOptionalString(values.supplierId),
       purchaseOrderId: toOptionalString(values.purchaseOrderId),
       itemId: toOptionalString(values.itemId),
@@ -210,6 +227,27 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <CardGrid>
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={serviceSelectOptions}
+                    selected={field.value || undefined}
+                    onSelect={(value) => {
+                      form.setValue('serviceId', value)
+                    }}
+                    placeholder="Selectionner un service"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="reference"

@@ -6,6 +6,7 @@ export type ProcurementStatus = (typeof PROCUREMENT_STATUS_TYPES)[number]
 export interface ProcurementRecord {
   id: string
   reference: string
+  serviceName?: string
   vendor: string
   contactName: string
   contactEmail?: string

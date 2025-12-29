@@ -1,15 +1,18 @@
 import { Card } from '@/components/card'
 import {
   listProcurementItems,
+  listProcurementServices,
   listRequisitions
 } from '@/lib/procurement/actions'
 import { RfqForm } from '../_components/rfq.form'
 
 const Page = async () => {
-  const [itemsOptions, requisitionsOptions] = await Promise.all([
-    listProcurementItems(),
-    listRequisitions()
-  ])
+  const [itemsOptions, requisitionsOptions, servicesOptions] =
+    await Promise.all([
+      listProcurementItems(),
+      listRequisitions(),
+      listProcurementServices()
+    ])
 
   return (
     <Card className="space-y-6">
@@ -22,6 +25,7 @@ const Page = async () => {
       <RfqForm
         itemsOptions={itemsOptions}
         requisitionsOptions={requisitionsOptions}
+        servicesOptions={servicesOptions}
       />
     </Card>
   )

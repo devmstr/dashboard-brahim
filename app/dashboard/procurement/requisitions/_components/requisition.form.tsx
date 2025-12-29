@@ -34,7 +34,6 @@ import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
-import { Prisma } from '@prisma/client'
 import type { Attachment } from '@/lib/validations/order'
 
 const REQUISITION_STATUS_TYPES = [
@@ -60,6 +59,7 @@ const REQUISITION_STATUS_LABELS: Record<
 
 const requisitionFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
+  serviceId: z.string().min(1, 'Service requis'),
   title: z.string().optional().nullable(),
   neededBy: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
@@ -89,12 +89,18 @@ type ProcurementItemOption = {
   description?: string | null
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+}
+
 interface RequisitionFormProps {
   requisitionId?: string
   defaultValues?: Partial<RequisitionFormValues> & {
     attachments?: Attachment[]
   }
   itemsOptions: ProcurementItemOption[]
+  servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
 }
@@ -113,6 +119,7 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
   requisitionId,
   defaultValues,
   itemsOptions,
+  servicesOptions,
   showStatus = false,
   submitLabel
 }) => {
@@ -133,6 +140,13 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
     }))
   }, [itemsOptions])
 
+  const serviceSelectOptions = React.useMemo(() => {
+    return servicesOptions.map((service) => ({
+      label: service.name,
+      value: service.id
+    }))
+  }, [servicesOptions])
+
   const initialItems =
     defaultValues?.items && defaultValues.items.length > 0
       ? defaultValues.items
@@ -152,6 +166,7 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
     resolver: zodResolver(requisitionFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? generateId('PR'),
+      serviceId: defaultValues?.serviceId ?? '',
       title: defaultValues?.title ?? '',
       neededBy: defaultValues?.neededBy ?? undefined,
       notes: defaultValues?.notes ?? '',
@@ -207,6 +222,7 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
 
     const payload = {
       reference: values.reference,
+      serviceId: values.serviceId,
       title: toOptionalString(values.title),
       neededBy: values.neededBy ? new Date(values.neededBy) : undefined,
       notes: toOptionalString(values.notes),
@@ -253,6 +269,27 @@ export const RequisitionForm: React.FC<RequisitionFormProps> = ({
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <CardGrid>
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={serviceSelectOptions}
+                    selected={field.value || undefined}
+                    onSelect={(value) => {
+                      form.setValue('serviceId', value)
+                    }}
+                    placeholder="Selectionner un service"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="reference"

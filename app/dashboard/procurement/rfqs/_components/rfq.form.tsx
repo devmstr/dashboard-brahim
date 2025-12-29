@@ -56,6 +56,7 @@ const RFQ_STATUS_LABELS: Record<(typeof RFQ_STATUS_TYPES)[number], string> = {
 
 const rfqFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
+  serviceId: z.string().min(1, 'Service requis'),
   requisitionId: z.string().optional().nullable(),
   neededBy: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
@@ -88,6 +89,11 @@ type RequisitionOption = {
   title?: string | null
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+}
+
 interface RfqFormProps {
   rfqId?: string
   defaultValues?: Partial<RfqFormValues> & {
@@ -95,6 +101,7 @@ interface RfqFormProps {
   }
   itemsOptions: ProcurementItemOption[]
   requisitionsOptions: RequisitionOption[]
+  servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
 }
@@ -114,6 +121,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
   defaultValues,
   itemsOptions,
   requisitionsOptions,
+  servicesOptions,
   showStatus = false,
   submitLabel
 }) => {
@@ -143,6 +151,13 @@ export const RfqForm: React.FC<RfqFormProps> = ({
     }))
   }, [itemsOptions])
 
+  const serviceSelectOptions = React.useMemo(() => {
+    return servicesOptions.map((service) => ({
+      label: service.name,
+      value: service.id
+    }))
+  }, [servicesOptions])
+
   const initialLines =
     defaultValues?.lines && defaultValues.lines.length > 0
       ? defaultValues.lines
@@ -159,6 +174,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
     resolver: zodResolver(rfqFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? generateId('RF'),
+      serviceId: defaultValues?.serviceId ?? '',
       requisitionId: defaultValues?.requisitionId ?? '',
       neededBy: defaultValues?.neededBy ?? undefined,
       notes: defaultValues?.notes ?? '',
@@ -203,6 +219,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
 
     const payload = {
       reference: values.reference,
+      serviceId: values.serviceId,
       requisitionId: toOptionalString(values.requisitionId),
       neededBy: values.neededBy ? new Date(values.neededBy) : undefined,
       notes: toOptionalString(values.notes),
@@ -249,6 +266,27 @@ export const RfqForm: React.FC<RfqFormProps> = ({
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <CardGrid>
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={serviceSelectOptions}
+                    selected={field.value || undefined}
+                    onSelect={(value) => {
+                      form.setValue('serviceId', value)
+                    }}
+                    placeholder="Selectionner un service"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="reference"

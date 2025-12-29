@@ -1,18 +1,24 @@
 import { Card } from '@/components/card'
 import {
   listProcurementItems,
+  listProcurementServices,
   listProcurementSuppliers,
   listPurchaseOrders
 } from '@/lib/procurement/actions'
 import { AssetForm } from '../_components/asset.form'
 
 const Page = async () => {
-  const [suppliersOptions, purchaseOrdersOptions, itemsOptions] =
-    await Promise.all([
-      listProcurementSuppliers(),
-      listPurchaseOrders(),
-      listProcurementItems()
-    ])
+  const [
+    suppliersOptions,
+    purchaseOrdersOptions,
+    itemsOptions,
+    servicesOptions
+  ] = await Promise.all([
+    listProcurementSuppliers(),
+    listPurchaseOrders(),
+    listProcurementItems(),
+    listProcurementServices()
+  ])
 
   return (
     <Card className="space-y-6">
@@ -26,6 +32,7 @@ const Page = async () => {
         suppliersOptions={suppliersOptions}
         purchaseOrdersOptions={purchaseOrdersOptions}
         itemsOptions={itemsOptions}
+        servicesOptions={servicesOptions}
       />
     </Card>
   )

@@ -18,6 +18,9 @@ export type SupplierInvoiceRow = {
   status: string
   invoiceDate: Date | null
   total: number | null
+  Service?: {
+    name: string
+  } | null
   Supplier: {
     name: string
   } | null
@@ -83,6 +86,11 @@ export function SupplierInvoicesTable({
       accessorKey: 'Supplier.name',
       header: 'Fournisseur',
       cell: ({ row }) => row.original.Supplier?.name || '-'
+    },
+    {
+      accessorKey: 'Service.name',
+      header: 'Service',
+      cell: ({ row }) => row.original.Service?.name || '-'
     },
     {
       accessorKey: 'status',

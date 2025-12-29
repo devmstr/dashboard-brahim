@@ -158,8 +158,13 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         ),
         cell: ({ row }) => (
           <div className="space-y-1">
-            <p className="font-semibold">{row.original.reference}</p>
-            <p className="text-xs text-muted-foreground">{row.original.id}</p>
+            <Link
+              href={detailHref(row.original.reference, row.original.id)}
+              className="hover:font-semibold hover:underline hover:text-secondary"
+            >
+              {row.original.reference}
+            </Link>
+            {/* <p className="text-xs text-muted-foreground">{row.original.id}</p> */}
           </div>
         )
       },
@@ -170,6 +175,11 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         cell: ({ row }) => (
           <Badge variant="outline">{typeLabel(row.original.reference)}</Badge>
         )
+      },
+      {
+        accessorKey: 'serviceName',
+        header: 'Service',
+        cell: ({ row }) => row.original.serviceName || '-'
       },
       {
         accessorKey: 'vendor',
@@ -239,9 +249,7 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link
-                href={detailHref(row.original.reference, row.original.id)}
-              >
+              <Link href={detailHref(row.original.reference, row.original.id)}>
                 <Link2 className="mr-2 h-4 w-4" /> Détails
               </Link>
             </Button>
@@ -434,7 +442,7 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
               </DropdownMenu>
               <Button asChild>
                 <Link href="/dashboard/procurement/new">
-                  <Plus className="mr-2 h-4 w-4" /> Nouvelle fiche
+                  <Plus className="mr-2 h-4 w-4" /> Nouvelle demande
                 </Link>
               </Button>
             </div>

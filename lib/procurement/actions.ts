@@ -54,7 +54,10 @@ export const listRequisitions = async () => {
       title: true,
       status: true,
       neededBy: true,
-      createdAt: true
+      createdAt: true,
+      Service: {
+        select: { name: true }
+      }
     }
   })
 }
@@ -136,6 +139,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         status: true,
         neededBy: true,
         createdAt: true,
+        Service: {
+          select: { name: true }
+        },
         _count: { select: { Items: true } }
       }
     }),
@@ -147,6 +153,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         status: true,
         neededBy: true,
         createdAt: true,
+        Service: {
+          select: { name: true }
+        },
         _count: { select: { Lines: true } }
       }
     }),
@@ -168,6 +177,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         deliveredAt: true,
         paymentTerms: true,
         notes: true,
+        Service: {
+          select: { name: true }
+        },
         Supplier: {
           select: {
             name: true,
@@ -186,6 +198,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         status: true,
         receivedAt: true,
         createdAt: true,
+        Service: {
+          select: { name: true }
+        },
         _count: { select: { Items: true } },
         PurchaseOrder: {
           select: {
@@ -217,6 +232,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         total: true,
         currency: true,
         createdAt: true,
+        Service: {
+          select: { name: true }
+        },
         Supplier: {
           select: {
             name: true,
@@ -238,6 +256,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         value: true,
         currency: true,
         createdAt: true,
+        Service: {
+          select: { name: true }
+        },
         Supplier: {
           select: {
             name: true,
@@ -258,6 +279,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         value: true,
         currency: true,
         createdAt: true,
+        Service: {
+          select: { name: true }
+        },
         Supplier: {
           select: {
             name: true,
@@ -273,6 +297,7 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
   const requisitionRows: ProcurementRecord[] = requisitions.map((entry) => ({
     id: entry.id,
     reference: entry.reference,
+    serviceName: entry.Service?.name ?? '-',
     vendor: '-',
     contactName: '-',
     status: requisitionStatusMap[entry.status] ?? 'CREATED',
@@ -286,6 +311,7 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
   const rfqRows: ProcurementRecord[] = rfqs.map((entry) => ({
     id: entry.id,
     reference: entry.reference,
+    serviceName: entry.Service?.name ?? '-',
     vendor: '-',
     contactName: '-',
     status: rfqStatusMap[entry.status] ?? 'CREATED',
@@ -300,9 +326,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
     (entry) => ({
       id: entry.id,
       reference: entry.reference,
+      serviceName: entry.Service?.name ?? '-',
       vendor: entry.Supplier?.name ?? entry.vendor ?? '-',
-      contactName:
-        entry.contactName ?? entry.Supplier?.contactName ?? '-',
+      contactName: entry.contactName ?? entry.Supplier?.contactName ?? '-',
       contactEmail: entry.contactEmail ?? entry.Supplier?.email ?? undefined,
       phone: entry.phone ?? entry.Supplier?.phone ?? undefined,
       status: procurementStatusMap[entry.status] ?? procurementStatusMap.DRAFT,
@@ -320,10 +346,9 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
   const receiptRows: ProcurementRecord[] = receipts.map((entry) => ({
     id: entry.id,
     reference: entry.reference,
+    serviceName: entry.Service?.name ?? '-',
     vendor:
-      entry.PurchaseOrder?.Supplier?.name ??
-      entry.PurchaseOrder?.vendor ??
-      '-',
+      entry.PurchaseOrder?.Supplier?.name ?? entry.PurchaseOrder?.vendor ?? '-',
     contactName:
       entry.PurchaseOrder?.contactName ??
       entry.PurchaseOrder?.Supplier?.contactName ??
@@ -347,6 +372,7 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
   const invoiceRows: ProcurementRecord[] = invoices.map((entry) => ({
     id: entry.id,
     reference: entry.reference,
+    serviceName: entry.Service?.name ?? '-',
     vendor: entry.Supplier?.name ?? '-',
     contactName: entry.Supplier?.contactName ?? '-',
     contactEmail: entry.Supplier?.email ?? undefined,
@@ -356,12 +382,17 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
     total: entry.total ?? 0,
     currency: entry.currency ?? 'DZD',
     createdAt: entry.createdAt.toISOString(),
-    expectedDate: (entry.dueDate ?? entry.invoiceDate ?? entry.createdAt).toISOString()
+    expectedDate: (
+      entry.dueDate ??
+      entry.invoiceDate ??
+      entry.createdAt
+    ).toISOString()
   }))
 
   const contractRows: ProcurementRecord[] = contracts.map((entry) => ({
     id: entry.id,
     reference: entry.reference,
+    serviceName: entry.Service?.name ?? '-',
     vendor: entry.Supplier?.name ?? '-',
     contactName: entry.Supplier?.contactName ?? '-',
     contactEmail: entry.Supplier?.email ?? undefined,
@@ -371,12 +402,17 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
     total: entry.value ?? 0,
     currency: entry.currency ?? 'DZD',
     createdAt: entry.createdAt.toISOString(),
-    expectedDate: (entry.endDate ?? entry.startDate ?? entry.createdAt).toISOString()
+    expectedDate: (
+      entry.endDate ??
+      entry.startDate ??
+      entry.createdAt
+    ).toISOString()
   }))
 
   const assetRows: ProcurementRecord[] = assets.map((entry) => ({
     id: entry.id,
     reference: entry.reference,
+    serviceName: entry.Service?.name ?? '-',
     vendor: entry.Supplier?.name ?? '-',
     contactName: entry.Supplier?.contactName ?? '-',
     contactEmail: entry.Supplier?.email ?? undefined,
@@ -401,6 +437,17 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
 
   return combined.sort((a, b) => {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+}
+
+export const listProcurementServices = async () => {
+  return prisma.procurementService.findMany({
+    where: { isActive: true },
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true
+    }
   })
 }
 
@@ -594,6 +641,9 @@ export const listContracts = async () => {
       endDate: true,
       value: true,
       currency: true,
+      Service: {
+        select: { name: true }
+      },
       Supplier: {
         select: {
           name: true
@@ -624,6 +674,7 @@ export const createContract = async (
       id: data.reference || undefined,
       reference: data.reference,
       supplierId: data.supplierId,
+      serviceId: data.serviceId,
       startDate: data.startDate,
       endDate: data.endDate,
       value: data.value,
@@ -654,6 +705,7 @@ export const updateContract = async (
     data: {
       reference: data.reference,
       supplierId: data.supplierId,
+      serviceId: data.serviceId ?? undefined,
       startDate: data.startDate,
       endDate: data.endDate,
       value: data.value,
@@ -688,6 +740,9 @@ export const listAssets = async () => {
       acquisitionDate: true,
       value: true,
       currency: true,
+      Service: {
+        select: { name: true }
+      },
       Supplier: {
         select: {
           name: true
@@ -721,6 +776,7 @@ export const createAsset = async (input: typeof assetInputSchema._type) => {
       supplierId: data.supplierId,
       purchaseOrderId: data.purchaseOrderId,
       itemId: data.itemId,
+      serviceId: data.serviceId,
       acquisitionDate: data.acquisitionDate,
       value: data.value,
       currency: data.currency,
@@ -753,6 +809,7 @@ export const updateAsset = async (
       supplierId: data.supplierId,
       purchaseOrderId: data.purchaseOrderId,
       itemId: data.itemId,
+      serviceId: data.serviceId ?? undefined,
       acquisitionDate: data.acquisitionDate,
       value: data.value,
       currency: data.currency,
@@ -851,6 +908,7 @@ export const createRequisition = async (
       id: data.reference,
       reference: data.reference,
       title: data.title,
+      serviceId: data.serviceId,
       neededBy: data.neededBy,
       notes: data.notes,
       status: ProcurementRequisitionStatus.DRAFT,
@@ -891,6 +949,7 @@ export const updateRequisition = async (
     data: {
       reference: data.reference,
       title: data.title,
+      serviceId: data.serviceId ?? undefined,
       neededBy: data.neededBy,
       notes: data.notes,
       status: input.status,
@@ -932,7 +991,10 @@ export const listRfqs = async () => {
       reference: true,
       status: true,
       neededBy: true,
-      createdAt: true
+      createdAt: true,
+      Service: {
+        select: { name: true }
+      }
     }
   })
 }
@@ -965,6 +1027,7 @@ export const createRfq = async (input: typeof rfqInputSchema._type) => {
       id: data.reference || undefined,
       reference: data.reference,
       requisitionId: data.requisitionId,
+      serviceId: data.serviceId,
       neededBy: data.neededBy,
       notes: data.notes,
       status: ProcurementRfqStatus.DRAFT,
@@ -1002,6 +1065,7 @@ export const updateRfq = async (
     data: {
       reference: data.reference,
       requisitionId: data.requisitionId,
+      serviceId: data.serviceId ?? undefined,
       neededBy: data.neededBy,
       notes: data.notes,
       status: input.status,
@@ -1043,6 +1107,9 @@ export const listPurchaseOrders = async () => {
       expectedDate: true,
       createdAt: true,
       vendor: true,
+      Service: {
+        select: { name: true }
+      },
       Supplier: {
         select: {
           name: true
@@ -1080,6 +1147,7 @@ export const createPurchaseOrder = async (
       supplierId: data.supplierId,
       requisitionId: data.requisitionId,
       rfqId: data.rfqId,
+      serviceId: data.serviceId,
       vendor: data.vendor,
       contactName: data.contactName,
       contactEmail: data.contactEmail,
@@ -1128,6 +1196,7 @@ export const updatePurchaseOrder = async (
       supplierId: data.supplierId,
       requisitionId: data.requisitionId,
       rfqId: data.rfqId,
+      serviceId: data.serviceId ?? undefined,
       vendor: data.vendor,
       contactName: data.contactName,
       contactEmail: data.contactEmail,
@@ -1177,6 +1246,9 @@ export const listReceipts = async () => {
       status: true,
       receivedAt: true,
       createdAt: true,
+      Service: {
+        select: { name: true }
+      },
       PurchaseOrder: {
         select: {
           reference: true,
@@ -1212,6 +1284,7 @@ export const createReceipt = async (input: typeof receiptInputSchema._type) => {
       id: data.reference || undefined,
       reference: data.reference,
       purchaseOrderId: data.purchaseOrderId,
+      serviceId: data.serviceId,
       receivedAt: data.receivedAt,
       notes: data.notes,
       status: ProcurementReceiptStatus.DRAFT,
@@ -1247,6 +1320,7 @@ export const updateReceipt = async (
     data: {
       reference: data.reference,
       purchaseOrderId: data.purchaseOrderId,
+      serviceId: data.serviceId ?? undefined,
       receivedAt: data.receivedAt,
       notes: data.notes,
       status: input.status,
@@ -1288,6 +1362,9 @@ export const listSupplierInvoices = async () => {
       status: true,
       invoiceDate: true,
       total: true,
+      Service: {
+        select: { name: true }
+      },
       Supplier: {
         select: {
           name: true
@@ -1322,6 +1399,7 @@ export const createSupplierInvoice = async (
       supplierId: data.supplierId,
       purchaseOrderId: data.purchaseOrderId,
       receiptId: data.receiptId,
+      serviceId: data.serviceId,
       invoiceDate: data.invoiceDate,
       dueDate: data.dueDate,
       paidAt: data.paidAt,
@@ -1357,6 +1435,7 @@ export const updateSupplierInvoice = async (
       supplierId: data.supplierId,
       purchaseOrderId: data.purchaseOrderId,
       receiptId: data.receiptId,
+      serviceId: data.serviceId ?? undefined,
       invoiceDate: data.invoiceDate,
       dueDate: data.dueDate,
       paidAt: data.paidAt,
@@ -1421,7 +1500,7 @@ export const createProcurementAttachment = async (
 export const deleteProcurementAttachment = async (attachmentId: string) => {
   const deleted = await deleteAttachment(attachmentId)
   if (!deleted) {
-    throw new Error("Impossible de supprimer la piece jointe.")
+    throw new Error('Impossible de supprimer la piece jointe.')
   }
   return { success: true }
 }

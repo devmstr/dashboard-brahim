@@ -20,6 +20,9 @@ export type AssetRow = {
   acquisitionDate: Date | null
   value: number | null
   currency: string | null
+  Service?: {
+    name: string
+  } | null
   Supplier: {
     name: string
   } | null
@@ -86,6 +89,11 @@ export function AssetsTable({ data, userRole }: AssetsTableProps) {
       accessorKey: 'Supplier.name',
       header: 'Fournisseur',
       cell: ({ row }) => row.original.Supplier?.name || '-'
+    },
+    {
+      accessorKey: 'Service.name',
+      header: 'Service',
+      cell: ({ row }) => row.original.Service?.name || '-'
     },
     {
       accessorKey: 'status',

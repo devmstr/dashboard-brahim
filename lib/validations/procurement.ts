@@ -13,6 +13,7 @@ export const requisitionItemInputSchema = z.object({
 export const requisitionInputSchema = z.object({
   reference: z.string().min(1),
   title: z.string().optional().nullable(),
+  serviceId: z.string().min(1),
   neededBy: z.date().optional().nullable(),
   notes: z.string().optional().nullable(),
   items: z.array(requisitionItemInputSchema).optional()
@@ -28,6 +29,7 @@ export const rfqLineInputSchema = z.object({
 export const rfqInputSchema = z.object({
   reference: z.string().min(1),
   requisitionId: z.string().optional().nullable(),
+  serviceId: z.string().min(1),
   neededBy: z.coerce.date().optional().nullable(),
   notes: z.string().optional().nullable(),
   lines: z.array(rfqLineInputSchema).optional()
@@ -47,6 +49,7 @@ export const purchaseOrderInputSchema = z.object({
   supplierId: z.string().optional().nullable(),
   requisitionId: z.string().optional().nullable(),
   rfqId: z.string().optional().nullable(),
+  serviceId: z.string().min(1),
   vendor: z.string().optional().nullable(),
   contactName: z.string().optional().nullable(),
   contactEmail: z.string().optional().nullable(),
@@ -70,6 +73,7 @@ export const receiptItemInputSchema = z.object({
 export const receiptInputSchema = z.object({
   reference: z.string().min(1),
   purchaseOrderId: z.string().min(1),
+  serviceId: z.string().min(1),
   receivedAt: z.coerce.date().optional().nullable(),
   notes: z.string().optional().nullable(),
   items: z.array(receiptItemInputSchema).optional()
@@ -80,6 +84,7 @@ export const supplierInvoiceInputSchema = z.object({
   supplierId: z.string().min(1),
   purchaseOrderId: z.string().optional().nullable(),
   receiptId: z.string().optional().nullable(),
+  serviceId: z.string().min(1),
   invoiceDate: z.coerce.date().optional().nullable(),
   dueDate: z.coerce.date().optional().nullable(),
   paidAt: z.coerce.date().optional().nullable(),
@@ -105,6 +110,7 @@ export const supplierInputSchema = z.object({
 export const contractInputSchema = z.object({
   reference: z.string().min(1),
   supplierId: z.string().min(1),
+  serviceId: z.string().min(1),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().optional().nullable(),
   value: z.number().optional().nullable(),
@@ -118,6 +124,7 @@ export const assetInputSchema = z.object({
   supplierId: z.string().optional().nullable(),
   purchaseOrderId: z.string().optional().nullable(),
   itemId: z.string().optional().nullable(),
+  serviceId: z.string().min(1),
   acquisitionDate: z.coerce.date().optional().nullable(),
   value: z.number().optional().nullable(),
   currency: z.string().optional().nullable(),

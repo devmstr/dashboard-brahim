@@ -14,6 +14,9 @@ export type RequisitionRow = {
   title: string | null
   status: string
   neededBy: Date | null
+  Service?: {
+    name: string
+  } | null
 }
 
 interface RequisitionsTableProps {
@@ -47,6 +50,11 @@ export function RequisitionsTable({ data, userRole }: RequisitionsTableProps) {
       accessorKey: 'title',
       header: 'Titre',
       cell: ({ row }) => row.original.title || '-'
+    },
+    {
+      accessorKey: 'Service.name',
+      header: 'Service',
+      cell: ({ row }) => row.original.Service?.name || '-'
     },
     {
       accessorKey: 'status',

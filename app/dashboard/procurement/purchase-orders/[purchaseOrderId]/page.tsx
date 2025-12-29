@@ -3,6 +3,7 @@ import { Card } from '@/components/card'
 import {
   getPurchaseOrderById,
   listProcurementItems,
+  listProcurementServices,
   listRequisitions,
   listProcurementSuppliers
 } from '@/lib/procurement/actions'
@@ -16,13 +17,19 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [purchaseOrder, itemsOptions, suppliersOptions, requisitionsOptions] =
-    await Promise.all([
-      getPurchaseOrderById(params.purchaseOrderId),
-      listProcurementItems(),
-      listProcurementSuppliers(),
-      listRequisitions()
-    ])
+  const [
+    purchaseOrder,
+    itemsOptions,
+    suppliersOptions,
+    requisitionsOptions,
+    servicesOptions
+  ] = await Promise.all([
+    getPurchaseOrderById(params.purchaseOrderId),
+    listProcurementItems(),
+    listProcurementSuppliers(),
+    listRequisitions(),
+    listProcurementServices()
+  ])
 
   if (!purchaseOrder) notFound()
 
@@ -31,6 +38,7 @@ const Page = async ({ params }: PageProps) => {
     supplierId: purchaseOrder.supplierId ?? null,
     requisitionId: purchaseOrder.requisitionId ?? '',
     rfqId: purchaseOrder.rfqId ?? '',
+    serviceId: purchaseOrder.serviceId ?? '',
     vendor: purchaseOrder.vendor ?? '',
     contactName: purchaseOrder.contactName ?? '',
     contactEmail: purchaseOrder.contactEmail ?? '',
@@ -74,6 +82,7 @@ const Page = async ({ params }: PageProps) => {
         itemsOptions={itemsOptions}
         suppliersOptions={suppliersOptions}
         requisitionsOptions={requisitionsOptions}
+        servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"
       />

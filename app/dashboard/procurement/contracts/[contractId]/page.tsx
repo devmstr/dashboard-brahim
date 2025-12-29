@@ -1,6 +1,7 @@
 import { Card } from '@/components/card'
 import {
   getContractById,
+  listProcurementServices,
   listProcurementSuppliers
 } from '@/lib/procurement/actions'
 import { notFound } from 'next/navigation'
@@ -14,9 +15,10 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [contract, suppliersOptions] = await Promise.all([
+  const [contract, suppliersOptions, servicesOptions] = await Promise.all([
     getContractById(params.contractId),
-    listProcurementSuppliers()
+    listProcurementSuppliers(),
+    listProcurementServices()
   ])
 
   if (!contract) notFound()
@@ -24,6 +26,7 @@ const Page = async ({ params }: PageProps) => {
   const formDefaults = {
     reference: contract.reference,
     supplierId: contract.supplierId,
+    serviceId: contract.serviceId ?? '',
     startDate: new Date(contract.startDate).toISOString(),
     endDate: contract.endDate ? new Date(contract.endDate).toISOString() : '',
     value: contract.value ?? null,
@@ -51,6 +54,7 @@ const Page = async ({ params }: PageProps) => {
         contractId={contract.id}
         defaultValues={formDefaults}
         suppliersOptions={suppliersOptions}
+        servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"
       />

@@ -20,6 +20,9 @@ export type ContractRow = {
   endDate: Date | null
   value: number | null
   currency: string | null
+  Service?: {
+    name: string
+  } | null
   Supplier: {
     name: string
   } | null
@@ -82,6 +85,11 @@ export function ContractsTable({ data, userRole }: ContractsTableProps) {
       accessorKey: 'Supplier.name',
       header: 'Fournisseur',
       cell: ({ row }) => row.original.Supplier?.name || '-'
+    },
+    {
+      accessorKey: 'Service.name',
+      header: 'Service',
+      cell: ({ row }) => row.original.Service?.name || '-'
     },
     {
       accessorKey: 'status',

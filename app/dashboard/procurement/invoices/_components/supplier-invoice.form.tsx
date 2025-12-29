@@ -60,6 +60,7 @@ const SUPPLIER_INVOICE_STATUS_LABELS: Record<
 const supplierInvoiceFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
   supplierId: z.string().min(1, 'Fournisseur requis'),
+  serviceId: z.string().min(1, 'Service requis'),
   purchaseOrderId: z.string().optional().nullable(),
   receiptId: z.string().optional().nullable(),
   invoiceDate: z.string().optional().nullable(),
@@ -96,6 +97,11 @@ type ReceiptOption = {
   reference: string
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+}
+
 interface SupplierInvoiceFormProps {
   invoiceId?: string
   defaultValues?: Partial<SupplierInvoiceFormValues> & {
@@ -104,6 +110,7 @@ interface SupplierInvoiceFormProps {
   suppliersOptions: SupplierOption[]
   purchaseOrdersOptions: PurchaseOrderOption[]
   receiptsOptions: ReceiptOption[]
+  servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
 }
@@ -124,6 +131,7 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
   suppliersOptions,
   purchaseOrdersOptions,
   receiptsOptions,
+  servicesOptions,
   showStatus = false,
   submitLabel
 }) => {
@@ -156,11 +164,19 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
     }))
   }, [receiptsOptions])
 
+  const serviceSelectOptions = React.useMemo(() => {
+    return servicesOptions.map((service) => ({
+      label: service.name,
+      value: service.id
+    }))
+  }, [servicesOptions])
+
   const form = useForm<SupplierInvoiceFormValues>({
     resolver: zodResolver(supplierInvoiceFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? generateId('SI'),
       supplierId: defaultValues?.supplierId ?? '',
+      serviceId: defaultValues?.serviceId ?? '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
       receiptId: defaultValues?.receiptId ?? '',
       invoiceDate: defaultValues?.invoiceDate ?? undefined,
@@ -184,6 +200,7 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
     const payload = {
       reference: values.reference,
       supplierId: values.supplierId,
+      serviceId: values.serviceId,
       purchaseOrderId: toOptionalString(values.purchaseOrderId),
       receiptId: toOptionalString(values.receiptId),
       invoiceDate: values.invoiceDate || undefined,
@@ -236,6 +253,27 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <CardGrid>
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={serviceSelectOptions}
+                    selected={field.value || undefined}
+                    onSelect={(value) => {
+                      form.setValue('serviceId', value)
+                    }}
+                    placeholder="Selectionner un service"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="reference"

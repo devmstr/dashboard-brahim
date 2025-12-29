@@ -25,6 +25,7 @@ type PurchaseOrderPrintItem = {
   total: number | null
   Item?: {
     id: string
+    sku: string | null
     name: string
   } | null
 }
@@ -204,7 +205,7 @@ export const PurchaseOrderPrint = ({
                 <TableRow key={item.id} className="h-5 p-0">
                   <TableCell className="py-[3px] px-2 h-5">{idx + 1}</TableCell>
                   <TableCell className="py-[3px] px-2 h-5">
-                    {item.Item?.id || '-'}
+                    {item.Item?.sku || '-'}
                   </TableCell>
                   <TableCell className="py-[3px] px-2 h-5">
                     {item.Item?.name || '-'}

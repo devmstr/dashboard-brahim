@@ -49,9 +49,7 @@ const requireSuppliers = async () => {
     take: 4
   })
   if (suppliers.length < 2) {
-    throw new Error(
-      'Pas assez de fournisseurs. Lancez seed:suppliers d’abord.'
-    )
+    throw new Error('Pas assez de fournisseurs. Lancez seed:suppliers d’abord.')
   }
   return suppliers
 }
@@ -73,6 +71,7 @@ async function main() {
   await prisma.procurementRequisition.deleteMany()
   await prisma.procurementContract.deleteMany()
   await prisma.procurementAsset.deleteMany()
+  await prisma.procurementService.deleteMany()
 
   const [userId, items, suppliers] = await Promise.all([
     requireUserId(),
@@ -80,9 +79,30 @@ async function main() {
     requireSuppliers()
   ])
 
+  const services = [
+    'Chaudronnerie',
+    'Tournage',
+    'Fraisage',
+    'Assemblage',
+    'Brasage',
+    'Soudage',
+    'Fabrication du noyau',
+    'Test d’étanchéité',
+    'Contrôle qualité',
+    'Maintenance',
+    'Planification de la production',
+    'Magasin'
+  ].map((name) => ({
+    id: generateId('PS'),
+    name
+  }))
+
+  await prisma.procurementService.createMany({ data: services })
+
   const requisitions = [
     {
       reference: generateId('PR'),
+      serviceId: services[0]?.id,
       title: 'Maintenance ligne production',
       neededBy: addDays(10),
       notes: 'Remplacement consommables et pieces critiques.',
@@ -108,6 +128,7 @@ async function main() {
     },
     {
       reference: generateId('PR'),
+      serviceId: services[1]?.id,
       title: 'Pieces de rechange atelier',
       neededBy: addDays(20),
       notes: 'Priorite aux articles standard.',
@@ -140,6 +161,7 @@ async function main() {
       create: {
         id: requisition.reference,
         reference: requisition.reference,
+        serviceId: requisition.serviceId ?? null,
         title: requisition.title,
         neededBy: requisition.neededBy,
         notes: requisition.notes,
@@ -147,6 +169,7 @@ async function main() {
         createdById: userId,
         Items: {
           create: requisition.items.map((item) => ({
+            id: generateId('PR'), // Added ID for requisition items
             itemId: item.itemId,
             description: item.description,
             quantity: item.quantity,
@@ -157,6 +180,7 @@ async function main() {
         }
       },
       update: {
+        serviceId: requisition.serviceId ?? null,
         title: requisition.title,
         neededBy: requisition.neededBy,
         notes: requisition.notes,
@@ -164,6 +188,7 @@ async function main() {
         Items: {
           deleteMany: {},
           create: requisition.items.map((item) => ({
+            id: generateId('PR'), // Added ID for requisition items
             itemId: item.itemId,
             description: item.description,
             quantity: item.quantity,
@@ -181,6 +206,7 @@ async function main() {
   const rfqs = [
     {
       reference: generateId('RF'),
+      serviceId: services[2]?.id,
       requisitionId: requisitionResults[0]?.id,
       neededBy: addDays(12),
       notes: 'Demande de devis fournisseurs locaux.',
@@ -202,6 +228,7 @@ async function main() {
     },
     {
       reference: generateId('RF'),
+      serviceId: services[3]?.id,
       requisitionId: requisitionResults[1]?.id,
       neededBy: addDays(22),
       notes: 'RFQ pour pieces atelier.',
@@ -224,6 +251,7 @@ async function main() {
       create: {
         id: rfq.reference,
         reference: rfq.reference,
+        serviceId: rfq.serviceId ?? null,
         requisitionId: rfq.requisitionId,
         neededBy: rfq.neededBy,
         notes: rfq.notes,
@@ -231,6 +259,7 @@ async function main() {
         createdById: userId,
         Lines: {
           create: rfq.lines.map((line) => ({
+            id: generateId('RF'), // Added ID for RFQ lines
             itemId: line.itemId,
             description: line.description,
             quantity: line.quantity,
@@ -239,6 +268,7 @@ async function main() {
         }
       },
       update: {
+        serviceId: rfq.serviceId ?? null,
         requisitionId: rfq.requisitionId,
         neededBy: rfq.neededBy,
         notes: rfq.notes,
@@ -246,6 +276,7 @@ async function main() {
         Lines: {
           deleteMany: {},
           create: rfq.lines.map((line) => ({
+            id: generateId('RF'), // Added ID for RFQ lines
             itemId: line.itemId,
             description: line.description,
             quantity: line.quantity,
@@ -261,6 +292,7 @@ async function main() {
   const purchaseOrders = [
     {
       reference: generateId('PO'),
+      serviceId: services[4]?.id,
       supplierId: suppliers[0].id,
       requisitionId: requisitionResults[0]?.id,
       rfqId: rfqResults[0]?.id,
@@ -294,6 +326,7 @@ async function main() {
     },
     {
       reference: generateId('PO'),
+      serviceId: services[5]?.id,
       supplierId: suppliers[1].id,
       requisitionId: requisitionResults[1]?.id,
       rfqId: rfqResults[1]?.id,
@@ -326,6 +359,7 @@ async function main() {
       create: {
         id: order.reference,
         reference: order.reference,
+        serviceId: order.serviceId ?? null,
         supplierId: order.supplierId,
         requisitionId: order.requisitionId,
         rfqId: order.rfqId,
@@ -342,6 +376,7 @@ async function main() {
         createdById: userId,
         Items: {
           create: order.items.map((item) => ({
+            id: generateId('PI'), // Added unique ID with prefix PI for purchase order items
             itemId: item.itemId,
             description: item.description,
             quantity: item.quantity,
@@ -352,6 +387,7 @@ async function main() {
         }
       },
       update: {
+        serviceId: order.serviceId ?? null,
         supplierId: order.supplierId,
         requisitionId: order.requisitionId,
         rfqId: order.rfqId,
@@ -368,6 +404,7 @@ async function main() {
         Items: {
           deleteMany: {},
           create: order.items.map((item) => ({
+            id: generateId('PI'), // Added unique ID with prefix PI for purchase order items
             itemId: item.itemId,
             description: item.description,
             quantity: item.quantity,
@@ -385,6 +422,7 @@ async function main() {
   const receipts = [
     {
       reference: generateId('RC'),
+      serviceId: services[6]?.id,
       purchaseOrderId: purchaseOrderResults[0]?.id,
       receivedAt: addDays(19),
       notes: 'Reception partielle.',
@@ -407,6 +445,7 @@ async function main() {
       create: {
         id: receipt.reference,
         reference: receipt.reference,
+        serviceId: receipt.serviceId ?? null,
         purchaseOrderId: receipt.purchaseOrderId,
         receivedAt: receipt.receivedAt,
         notes: receipt.notes,
@@ -414,6 +453,7 @@ async function main() {
         createdById: userId,
         Items: {
           create: receipt.items.map((item) => ({
+            id: generateId('RC'), // Added ID for receipt items
             itemId: item.itemId,
             quantityReceived: item.quantityReceived,
             condition: item.condition,
@@ -422,6 +462,7 @@ async function main() {
         }
       },
       update: {
+        serviceId: receipt.serviceId ?? null,
         purchaseOrderId: receipt.purchaseOrderId,
         receivedAt: receipt.receivedAt,
         notes: receipt.notes,
@@ -429,6 +470,7 @@ async function main() {
         Items: {
           deleteMany: {},
           create: receipt.items.map((item) => ({
+            id: generateId('RC'), // Added ID for receipt items
             itemId: item.itemId,
             quantityReceived: item.quantityReceived,
             condition: item.condition,
@@ -444,6 +486,7 @@ async function main() {
   const invoices = [
     {
       reference: generateId('SI'),
+      serviceId: services[7]?.id,
       supplierId: suppliers[0].id,
       purchaseOrderId: purchaseOrderResults[0]?.id,
       receiptId: receiptResults[0]?.id,
@@ -464,6 +507,7 @@ async function main() {
       create: {
         id: invoice.reference,
         reference: invoice.reference,
+        serviceId: invoice.serviceId ?? null,
         supplierId: invoice.supplierId,
         purchaseOrderId: invoice.purchaseOrderId,
         receiptId: invoice.receiptId,
@@ -478,6 +522,7 @@ async function main() {
         createdById: userId
       },
       update: {
+        serviceId: invoice.serviceId ?? null,
         supplierId: invoice.supplierId,
         purchaseOrderId: invoice.purchaseOrderId,
         receiptId: invoice.receiptId,
@@ -497,6 +542,7 @@ async function main() {
   const contracts = [
     {
       reference: generateId('CT'),
+      serviceId: services[8]?.id,
       supplierId: suppliers[0].id,
       startDate: addDays(-20),
       endDate: addDays(340),
@@ -513,6 +559,7 @@ async function main() {
       create: {
         id: contract.reference,
         reference: contract.reference,
+        serviceId: contract.serviceId ?? null,
         supplierId: contract.supplierId,
         startDate: contract.startDate,
         endDate: contract.endDate,
@@ -523,6 +570,7 @@ async function main() {
         createdById: userId
       },
       update: {
+        serviceId: contract.serviceId ?? null,
         supplierId: contract.supplierId,
         startDate: contract.startDate,
         endDate: contract.endDate,
@@ -538,6 +586,7 @@ async function main() {
   const assets = [
     {
       reference: generateId('AS'),
+      serviceId: services[9]?.id,
       name: 'Poste de soudure MIG',
       supplierId: suppliers[1].id,
       purchaseOrderId: purchaseOrderResults[1]?.id,
@@ -556,6 +605,7 @@ async function main() {
       create: {
         id: asset.reference,
         reference: asset.reference,
+        serviceId: asset.serviceId ?? null,
         name: asset.name,
         supplierId: asset.supplierId,
         purchaseOrderId: asset.purchaseOrderId,
@@ -568,6 +618,7 @@ async function main() {
         createdById: userId
       },
       update: {
+        serviceId: asset.serviceId ?? null,
         name: asset.name,
         supplierId: asset.supplierId,
         purchaseOrderId: asset.purchaseOrderId,

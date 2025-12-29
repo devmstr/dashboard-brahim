@@ -20,6 +20,9 @@ export type PurchaseOrderRow = {
   status: string
   expectedDate: Date | null
   vendor: string | null
+  Service?: {
+    name: string
+  } | null
   Supplier: {
     name: string
   } | null
@@ -85,6 +88,11 @@ export function PurchaseOrdersTable({
       accessorKey: 'vendor',
       header: 'Fournisseur',
       cell: ({ row }) => row.original.Supplier?.name || row.original.vendor || '-'
+    },
+    {
+      accessorKey: 'Service.name',
+      header: 'Service',
+      cell: ({ row }) => row.original.Service?.name || '-'
     },
     {
       accessorKey: 'status',

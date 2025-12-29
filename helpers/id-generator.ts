@@ -28,7 +28,8 @@ export enum SKU_PREFIX {
   SU = 'SU', // supplier
   RF = 'RF', // rfq
   CT = 'CT', // contract
-  AS = 'AS' // asset
+  AS = 'AS', // asset
+  PS = 'PS' // procurement service
 }
 
 export type PREFIX = keyof typeof SKU_PREFIX

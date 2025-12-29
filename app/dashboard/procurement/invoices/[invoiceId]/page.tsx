@@ -1,6 +1,7 @@
 import { Card } from '@/components/card'
 import {
   getSupplierInvoiceById,
+  listProcurementServices,
   listPurchaseOrders,
   listReceipts,
   listProcurementSuppliers
@@ -16,19 +17,26 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [invoice, suppliersOptions, purchaseOrdersOptions, receiptsOptions] =
-    await Promise.all([
-      getSupplierInvoiceById(params.invoiceId),
-      listProcurementSuppliers(),
-      listPurchaseOrders(),
-      listReceipts()
-    ])
+  const [
+    invoice,
+    suppliersOptions,
+    purchaseOrdersOptions,
+    receiptsOptions,
+    servicesOptions
+  ] = await Promise.all([
+    getSupplierInvoiceById(params.invoiceId),
+    listProcurementSuppliers(),
+    listPurchaseOrders(),
+    listReceipts(),
+    listProcurementServices()
+  ])
 
   if (!invoice) notFound()
 
   const formDefaults = {
     reference: invoice.reference,
     supplierId: invoice.supplierId,
+    serviceId: invoice.serviceId ?? '',
     purchaseOrderId: invoice.purchaseOrderId ?? '',
     receiptId: invoice.receiptId ?? '',
     invoiceDate: invoice.invoiceDate
@@ -65,6 +73,7 @@ const Page = async ({ params }: PageProps) => {
         suppliersOptions={suppliersOptions}
         purchaseOrdersOptions={purchaseOrdersOptions}
         receiptsOptions={receiptsOptions}
+        servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"
       />

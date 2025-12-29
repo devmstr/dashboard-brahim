@@ -56,6 +56,7 @@ const RECEIPT_STATUS_LABELS: Record<
 const receiptFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
   purchaseOrderId: z.string().min(1, 'Bon de commande requis'),
+  serviceId: z.string().min(1, 'Service requis'),
   receivedAt: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   status: z.enum(RECEIPT_STATUS_TYPES).optional(),
@@ -91,6 +92,11 @@ type PurchaseOrderOption = {
   } | null
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+}
+
 interface ReceiptFormProps {
   receiptId?: string
   defaultValues?: Partial<ReceiptFormValues> & {
@@ -98,6 +104,7 @@ interface ReceiptFormProps {
   }
   itemsOptions: ProcurementItemOption[]
   purchaseOrdersOptions: PurchaseOrderOption[]
+  servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
 }
@@ -117,6 +124,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
   defaultValues,
   itemsOptions,
   purchaseOrdersOptions,
+  servicesOptions,
   showStatus = false,
   submitLabel
 }) => {
@@ -146,6 +154,13 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
     }))
   }, [itemsOptions])
 
+  const serviceSelectOptions = React.useMemo(() => {
+    return servicesOptions.map((service) => ({
+      label: service.name,
+      value: service.id
+    }))
+  }, [servicesOptions])
+
   const initialItems =
     defaultValues?.items && defaultValues.items.length > 0
       ? defaultValues.items
@@ -164,6 +179,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
     defaultValues: {
       reference: defaultValues?.reference ?? generateId('RC'),
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
+      serviceId: defaultValues?.serviceId ?? '',
       receivedAt: defaultValues?.receivedAt ?? undefined,
       notes: defaultValues?.notes ?? '',
       status: defaultValues?.status,
@@ -208,6 +224,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
     const payload = {
       reference: values.reference,
       purchaseOrderId: values.purchaseOrderId,
+      serviceId: values.serviceId,
       receivedAt: values.receivedAt || undefined,
       notes: toOptionalString(values.notes),
       items: safeItems
@@ -253,6 +270,27 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <CardGrid>
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={serviceSelectOptions}
+                    selected={field.value || undefined}
+                    onSelect={(value) => {
+                      form.setValue('serviceId', value)
+                    }}
+                    placeholder="Selectionner un service"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="reference"

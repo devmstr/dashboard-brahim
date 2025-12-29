@@ -55,6 +55,7 @@ const CONTRACT_STATUS_LABELS: Record<
 const contractFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
   supplierId: z.string().min(1, 'Fournisseur requis'),
+  serviceId: z.string().min(1, 'Service requis'),
   startDate: z.string(),
   endDate: z.string().optional().nullable(),
   value: z.number().optional().nullable(),
@@ -70,12 +71,18 @@ type SupplierOption = {
   name: string
 }
 
+type ServiceOption = {
+  id: string
+  name: string
+}
+
 interface ContractFormProps {
   contractId?: string
   defaultValues?: Partial<ContractFormValues> & {
     attachments?: Attachment[]
   }
   suppliersOptions: SupplierOption[]
+  servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
 }
@@ -94,6 +101,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
   contractId,
   defaultValues,
   suppliersOptions,
+  servicesOptions,
   showStatus = false,
   submitLabel
 }) => {
@@ -110,11 +118,19 @@ export const ContractForm: React.FC<ContractFormProps> = ({
     }))
   }, [suppliersOptions])
 
+  const serviceSelectOptions = React.useMemo(() => {
+    return servicesOptions.map((service) => ({
+      label: service.name,
+      value: service.id
+    }))
+  }, [servicesOptions])
+
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? generateId('CT'),
       supplierId: defaultValues?.supplierId ?? '',
+      serviceId: defaultValues?.serviceId ?? '',
       startDate: defaultValues?.startDate ?? '',
       endDate: defaultValues?.endDate ?? '',
       value: defaultValues?.value ?? null,
@@ -133,6 +149,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
     const payload = {
       reference: values.reference,
       supplierId: values.supplierId,
+      serviceId: values.serviceId,
       startDate: values.startDate,
       endDate: toOptionalString(values.endDate),
       value: toOptionalNumber(values.value),
@@ -180,6 +197,27 @@ export const ContractForm: React.FC<ContractFormProps> = ({
     <Form {...form}>
       <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
         <CardGrid>
+          <FormField
+            control={form.control}
+            name="serviceId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Service</FormLabel>
+                <FormControl>
+                  <Combobox
+                    options={serviceSelectOptions}
+                    selected={field.value || undefined}
+                    onSelect={(value) => {
+                      form.setValue('serviceId', value)
+                    }}
+                    placeholder="Selectionner un service"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="reference"
