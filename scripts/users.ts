@@ -102,6 +102,38 @@ const users: User[] = [
     role: 'PROCRUTEMENT_AGENT',
     employeeId: 103,
     phone: '0665650868'
+  },
+  {
+    email: 'a.bouchala@okindustrie.com',
+    username: 'Bouchaala',
+    passwordHash: '0770506517',
+    role: 'PROCRUTEMENT_MANAGER',
+    employeeId: 15,
+    phone: '0770506517'
+  },
+  {
+    email: 'a.tabet@okindustrie.com',
+    username: 'Tabet Ahmed',
+    passwordHash: '0770497280',
+    role: 'PROCRUTEMENT_AGENT',
+    employeeId: 806,
+    phone: '0770497280'
+  },
+  {
+    email: 'bensaniabellacem@gmail.com',
+    username: 'Bensania',
+    passwordHash: '0664410743',
+    role: 'PROCRUTEMENT_AGENT',
+    employeeId: 879,
+    phone: '0664410743'
+  },
+  {
+    email: 'n.mehaya@okindustrie.com',
+    username: 'Mehaya',
+    passwordHash: '0770536544',
+    role: 'PROCRUTEMENT_AGENT',
+    employeeId: 896,
+    phone: '0770536544'
   }
 ]
 
