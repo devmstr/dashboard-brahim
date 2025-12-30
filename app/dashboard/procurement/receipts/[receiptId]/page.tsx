@@ -7,7 +7,7 @@ import {
 } from '@/lib/procurement/actions'
 import { notFound } from 'next/navigation'
 import { ReceiptForm } from '../_components/receipt.form'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 interface PageProps {
   params: {
@@ -35,13 +35,14 @@ const Page = async ({ params }: PageProps) => {
       : undefined,
     notes: receipt.notes ?? '',
     status: receipt.status,
-    attachments: receipt.Attachments?.map((attachment) => ({
-      id: attachment.id,
-      name: attachment.name,
-      uniqueName: attachment.uniqueName,
-      url: attachment.url,
-      type: attachment.type
-    })) ?? [],
+    attachments:
+      receipt.Attachments?.map((attachment) => ({
+        id: attachment.id,
+        name: attachment.name,
+        uniqueName: attachment.uniqueName,
+        url: attachment.url,
+        type: attachment.type
+      })) ?? [],
     items: receipt.Items.map((item) => ({
       purchaseOrderItemId: item.purchaseOrderItemId,
       itemId: item.itemId,

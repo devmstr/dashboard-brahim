@@ -83,7 +83,7 @@ export function ReceiptItemDialog({
         const newState = { ...prev, [field]: value }
 
         if (field === 'itemId' && value) {
-          const selected = itemLookup.get(value)
+          const selected = itemLookup.get(value as string)
           if (selected && selected.description && !prev.notes) {
             newState.notes = selected.description
           }

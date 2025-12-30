@@ -1,6 +1,6 @@
 import type React from 'react'
 import { Car, Factory, Info, Tractor, Zap, Users, Package } from 'lucide-react'
-import type { OrderItem } from '@/lib/validations'
+import type { OrderItem } from '@/lib/procurement/validations'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ApiRadiator } from '@/types'

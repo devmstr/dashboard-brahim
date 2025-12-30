@@ -3,7 +3,10 @@
 import { Icons } from '@/components/icons'
 import { getLabelFromRole, getRoleFromLabel, ROLES } from '@/config/accounts'
 import { cn } from '@/lib/utils'
-import { userSignUpSchema, UserSignUpSchemaType } from '@/lib/validations/auth'
+import {
+  userSignUpSchema,
+  UserSignUpSchemaType
+} from '@/lib/procurement/validations/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@ui/button'
 import { Input } from '@ui/input'

@@ -8,7 +8,7 @@ import {
   listProcurementSuppliers
 } from '@/lib/procurement/actions'
 import { PurchaseOrderForm } from '../_components/purchase-order.form'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 interface PageProps {
   params: {

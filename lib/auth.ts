@@ -5,7 +5,7 @@ import prisma from '@/lib/db'
 import { User } from 'next-auth'
 import { JWT } from 'next-auth/jwt'
 import { UserRole } from '@/types'
-import { userLoginSchema } from './validations'
+import { userLoginSchema } from './procurement/validations'
 
 export const authOptions: AuthOptions = {
   // Configure one or more authentication providers

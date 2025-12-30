@@ -4,7 +4,7 @@ import type React from 'react'
 import { useState, useEffect } from 'react'
 import { FileUploadArea } from '@/components/upload-file-area'
 import { toast } from '@/hooks/use-toast'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 import { generateId } from '@/helpers/id-generator'
 
 interface OrderUploaderProps {

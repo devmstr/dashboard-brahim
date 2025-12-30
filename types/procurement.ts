@@ -1,5 +1,5 @@
 import type { PROCUREMENT_STATUS_TYPES } from '@/config/global'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 export type ProcurementStatus = (typeof PROCUREMENT_STATUS_TYPES)[number]
 

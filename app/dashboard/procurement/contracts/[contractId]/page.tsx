@@ -6,7 +6,7 @@ import {
 } from '@/lib/procurement/actions'
 import { notFound } from 'next/navigation'
 import { ContractForm } from '../_components/contract.form'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 interface PageProps {
   params: {
@@ -32,13 +32,14 @@ const Page = async ({ params }: PageProps) => {
     value: contract.value ?? null,
     currency: contract.currency ?? 'DZD',
     notes: contract.notes ?? '',
-    attachments: contract.Attachments?.map((attachment) => ({
-      id: attachment.id,
-      name: attachment.name,
-      uniqueName: attachment.uniqueName,
-      url: attachment.url,
-      type: attachment.type
-    })) ?? [],
+    attachments:
+      contract.Attachments?.map((attachment) => ({
+        id: attachment.id,
+        name: attachment.name,
+        uniqueName: attachment.uniqueName,
+        url: attachment.url,
+        type: attachment.type
+      })) ?? [],
     status: contract.status
   }
 

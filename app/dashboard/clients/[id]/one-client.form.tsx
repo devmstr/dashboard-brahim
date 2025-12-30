@@ -22,7 +22,10 @@ import { Separator } from '@/components/ui/separator'
 import React from 'react'
 import { delay } from '@/lib/utils'
 import { Icons } from '@/components/icons'
-import { ClientSchemaType as Client, clientSchema } from '@/lib/validations'
+import {
+  ClientSchemaType as Client,
+  clientSchema
+} from '@/lib/procurement/validations'
 import { toast } from '@/hooks/use-toast'
 
 interface Props {

@@ -11,7 +11,9 @@
     ".next/types/**/*.ts",
     "./types/*.d.ts",
     "scripts/locations.ts",
-    "scripts/users.mjs"
+    "scripts/users.mjs",
+    "app/api/nesting/route.ts.old",
+    "components/nesting-demo.tsx.old"
   ],
   "exclude": ["node_modules", "components/minimal-tiptap"]
 }

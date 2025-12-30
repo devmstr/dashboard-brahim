@@ -33,7 +33,7 @@ import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 const ASSET_STATUS_TYPES = ['PLANNED', 'ACTIVE', 'DISPOSED'] as const
 

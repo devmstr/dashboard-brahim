@@ -41,7 +41,10 @@ import {
 import { toast } from '@/hooks/use-toast'
 import { generateId } from '@/helpers/id-generator'
 import { generateLabel } from '@/helpers/radiator-label'
-import { orderItemSchema, type OrderItem } from '@/lib/validations/order'
+import {
+  orderItemSchema,
+  type OrderItem
+} from '@/lib/procurement/validations/order'
 import { CarSelectionDropdowns, CarSelectionForm } from './car-selector'
 import { CardGrid } from './card'
 import { Vehicle } from '@/types'

@@ -1,7 +1,7 @@
 'use client'
 import { toast } from '@/hooks/use-toast'
 import { generateId } from '@/helpers/id-generator'
-import { ClientSchemaType as Client } from '@/lib/validations'
+import { ClientSchemaType as Client } from '@/lib/procurement/validations'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ClientTable } from '@/components/client-table'

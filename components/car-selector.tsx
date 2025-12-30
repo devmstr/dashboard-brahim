@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form'
-import { vehicleSchema } from '@/lib/validations'
+import { vehicleSchema } from '@/lib/procurement/validations'
 import type { Vehicle } from '@/types'
 import { Calendar, Car, Edit, Settings, X } from 'lucide-react'
 import { SiMercedes } from 'react-icons/si'

@@ -61,8 +61,7 @@ export function PurchaseOrderItemDialog({
   onSave,
   itemsOptions
 }: PurchaseOrderItemDialogProps) {
-  const [draftItem, setDraftItem] =
-    React.useState<PurchaseOrderItem>(emptyItem)
+  const [draftItem, setDraftItem] = React.useState<PurchaseOrderItem>(emptyItem)
 
   React.useEffect(() => {
     if (open) {
@@ -89,12 +88,15 @@ export function PurchaseOrderItemDialog({
   }, [])
 
   const updateDraft = React.useCallback(
-    <K extends keyof PurchaseOrderItem>(field: K, value: PurchaseOrderItem[K]) => {
+    <K extends keyof PurchaseOrderItem>(
+      field: K,
+      value: PurchaseOrderItem[K]
+    ) => {
       setDraftItem((prev) => {
         const newState = { ...prev, [field]: value }
 
         if (field === 'itemId' && value) {
-          const selected = itemLookup.get(value)
+          const selected = itemLookup.get(value as string)
           if (selected) {
             if (selected.unit) newState.unit = selected.unit
             if (selected.description && !prev.description) {
@@ -113,7 +115,8 @@ export function PurchaseOrderItemDialog({
     if (!draftItem.itemId && !draftItem.description) {
       toast({
         title: 'Erreur',
-        description: 'Veuillez selectionner un article ou saisir une description.',
+        description:
+          'Veuillez selectionner un article ou saisir une description.',
         variant: 'destructive'
       })
       return

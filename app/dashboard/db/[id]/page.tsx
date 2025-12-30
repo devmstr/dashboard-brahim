@@ -3,7 +3,7 @@ import { RadiatorEditForm } from './radiator-edit.from'
 import prisma from '@/lib/db'
 import { parseMetadata } from '@/lib/utils'
 import { notFound } from 'next/navigation'
-import { RadiatorSchemaType } from '@/lib/validations/radiator'
+import { RadiatorSchemaType } from '@/lib/procurement/validations/radiator'
 
 interface Props {
   params: { id: string }

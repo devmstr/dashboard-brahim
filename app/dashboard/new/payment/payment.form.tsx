@@ -17,8 +17,11 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { BANK_TYPES, PAYMENT_TYPES, PAYMENT_TYPES_ARR } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
-import { Order } from '@/lib/validations'
-import { paymentSchema, type PaymentType } from '@/lib/validations/payment'
+import { Order } from '@/lib/procurement/validations'
+import {
+  paymentSchema,
+  type PaymentType
+} from '@/lib/procurement/validations/payment'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import type React from 'react'

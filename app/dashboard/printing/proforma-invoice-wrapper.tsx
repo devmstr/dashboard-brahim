@@ -16,7 +16,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useReactToPrint } from 'react-to-print'
 import { toast } from '@/hooks/use-toast'
-import { InvoiceSchemaType } from '@/lib/validations/invoice'
+import { InvoiceSchemaType } from '@/lib/procurement/validations/invoice'
 import Link from 'next/link'
 
 export interface InvoiceRef {

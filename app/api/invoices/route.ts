@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { InvoiceSchemaType } from '@/lib/validations/invoice'
+import { InvoiceSchemaType } from '@/lib/procurement/validations/invoice'
 import { generateId } from '@/helpers/id-generator'
 import { generateInvoiceReference } from '@/lib/helpers'
 

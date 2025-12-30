@@ -32,7 +32,10 @@ import {
 } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
 
-import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
+import {
+  radiatorSchema,
+  RadiatorSchemaType
+} from '@/lib/procurement/validations/radiator'
 import { useEffect, useState } from 'react'
 import { CarSelectionForm } from '@/components/car-selector'
 import { Vehicle } from '@/types'

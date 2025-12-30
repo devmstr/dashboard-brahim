@@ -1,5 +1,5 @@
 'use client'
-import { Order } from '@/lib/validations'
+import { Order } from '@/lib/procurement/validations'
 import {
   createContext,
   Dispatch,

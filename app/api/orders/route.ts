@@ -1,5 +1,5 @@
 import { generateId } from '@/helpers/id-generator'
-import type { Order } from '@/lib/validations'
+import type { Order } from '@/lib/procurement/validations'
 import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
 

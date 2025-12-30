@@ -8,7 +8,7 @@ import {
 } from '@/lib/procurement/actions'
 import { notFound } from 'next/navigation'
 import { SupplierInvoiceForm } from '../_components/supplier-invoice.form'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 interface PageProps {
   params: {
@@ -42,20 +42,23 @@ const Page = async ({ params }: PageProps) => {
     invoiceDate: invoice.invoiceDate
       ? new Date(invoice.invoiceDate).toISOString()
       : undefined,
-    dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString() : undefined,
+    dueDate: invoice.dueDate
+      ? new Date(invoice.dueDate).toISOString()
+      : undefined,
     paidAt: invoice.paidAt ? new Date(invoice.paidAt).toISOString() : undefined,
     currency: invoice.currency ?? 'DZD',
     subtotal: invoice.subtotal ?? null,
     taxes: invoice.taxes ?? null,
     total: invoice.total ?? null,
     notes: invoice.notes ?? '',
-    attachments: invoice.Attachments?.map((attachment) => ({
-      id: attachment.id,
-      name: attachment.name,
-      uniqueName: attachment.uniqueName,
-      url: attachment.url,
-      type: attachment.type
-    })) ?? [],
+    attachments:
+      invoice.Attachments?.map((attachment) => ({
+        id: attachment.id,
+        name: attachment.name,
+        uniqueName: attachment.uniqueName,
+        url: attachment.url,
+        type: attachment.type
+      })) ?? [],
     status: invoice.status
   }
 

@@ -7,7 +7,7 @@ import {
   listRequisitions
 } from '@/lib/procurement/actions'
 import { RfqForm } from '../_components/rfq.form'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 interface PageProps {
   params: {
@@ -18,11 +18,11 @@ interface PageProps {
 const Page = async ({ params }: PageProps) => {
   const [rfq, itemsOptions, requisitionsOptions, servicesOptions] =
     await Promise.all([
-    getRfqById(params.rfqId),
-    listProcurementItems(),
-    listRequisitions(),
-    listProcurementServices()
-  ])
+      getRfqById(params.rfqId),
+      listProcurementItems(),
+      listRequisitions(),
+      listProcurementServices()
+    ])
 
   if (!rfq) notFound()
 
@@ -33,13 +33,14 @@ const Page = async ({ params }: PageProps) => {
     neededBy: rfq.neededBy ? new Date(rfq.neededBy).toISOString() : undefined,
     notes: rfq.notes ?? '',
     status: rfq.status,
-    attachments: rfq.Attachments?.map((attachment) => ({
-      id: attachment.id,
-      name: attachment.name,
-      uniqueName: attachment.uniqueName,
-      url: attachment.url,
-      type: attachment.type
-    })) ?? [],
+    attachments:
+      rfq.Attachments?.map((attachment) => ({
+        id: attachment.id,
+        name: attachment.name,
+        uniqueName: attachment.uniqueName,
+        url: attachment.url,
+        type: attachment.type
+      })) ?? [],
     lines: rfq.Lines.map((line) => ({
       itemId: line.itemId,
       description: line.description ?? '',

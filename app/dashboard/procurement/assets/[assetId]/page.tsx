@@ -8,7 +8,7 @@ import {
 } from '@/lib/procurement/actions'
 import { notFound } from 'next/navigation'
 import { AssetForm } from '../_components/asset.form'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 
 interface PageProps {
   params: {
@@ -46,13 +46,14 @@ const Page = async ({ params }: PageProps) => {
     value: asset.value ?? null,
     currency: asset.currency ?? 'DZD',
     notes: asset.notes ?? '',
-    attachments: asset.Attachments?.map((attachment) => ({
-      id: attachment.id,
-      name: attachment.name,
-      uniqueName: attachment.uniqueName,
-      url: attachment.url,
-      type: attachment.type
-    })) ?? [],
+    attachments:
+      asset.Attachments?.map((attachment) => ({
+        id: attachment.id,
+        name: attachment.name,
+        uniqueName: attachment.uniqueName,
+        url: attachment.url,
+        type: attachment.type
+      })) ?? [],
     status: asset.status
   }
 

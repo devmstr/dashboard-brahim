@@ -13,7 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import React from 'react'
 import { AddOrderItemForm } from './add-order-item.form'
 import { cn } from '@/lib/utils'
-import { OrderItem } from '@/lib/validations'
+import { OrderItem } from '@/lib/procurement/validations'
 
 interface Props {
   className?: string

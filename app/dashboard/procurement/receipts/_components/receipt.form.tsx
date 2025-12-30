@@ -41,7 +41,7 @@ import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 import { ReceiptItemDialog, type ReceiptItem } from './receipt-item-dialog'
 
 const RECEIPT_STATUS_TYPES = [

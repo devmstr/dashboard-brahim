@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/command'
 import { Building, Loader2, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ClientSchemaType } from '@/lib/validations'
+import { ClientSchemaType } from '@/lib/procurement/validations'
 
 export interface Client {
   name: string | null

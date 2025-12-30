@@ -51,7 +51,7 @@ import ClientAutocomplete, {
   type Client as AutoCompleteClient
 } from '@/components/client-autocomplete'
 import { InvoiceItem } from '@/types'
-import { InvoiceSchemaType } from '@/lib/validations/invoice'
+import { InvoiceSchemaType } from '@/lib/procurement/validations/invoice'
 import { useParams, usePathname } from 'next/navigation'
 import { Selector } from '@/components/selector'
 import { AutoResizeTextarea } from '@/components/auto-resize.textarea'

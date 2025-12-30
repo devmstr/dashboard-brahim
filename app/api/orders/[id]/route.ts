@@ -6,7 +6,7 @@ import { userRoles } from '@/config/global'
 import { checkIsOnDemandRevalidate } from 'next/dist/server/api-utils'
 import { getUserRole } from '@/lib/session'
 import { revalidatePath } from 'next/cache'
-import { OrderItem } from '@/lib/validations'
+import { OrderItem } from '@/lib/procurement/validations'
 import { includes } from 'lodash'
 
 export async function GET(

@@ -2,7 +2,7 @@ import { ClientForm } from '@/app/dashboard/new/(client)/client.form'
 import { Card } from '@/components/card'
 import db from '@/lib/db'
 import { formatPhoneNumber } from '@/lib/utils'
-import { ClientSchemaType as Client } from '@/lib/validations'
+import { ClientSchemaType as Client } from '@/lib/procurement/validations'
 import React from 'react'
 
 interface Props {}

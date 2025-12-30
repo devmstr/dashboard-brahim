@@ -26,7 +26,7 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 import { formatPhoneNumber } from '@/lib/utils'
-import { type ClientSchemaType as Client } from '@/lib/validations'
+import { type ClientSchemaType as Client } from '@/lib/procurement/validations'
 import {
   Building,
   Mail,

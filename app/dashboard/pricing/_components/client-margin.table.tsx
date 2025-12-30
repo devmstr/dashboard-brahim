@@ -49,7 +49,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { usePersistedState } from '@/hooks/use-persisted-state'
 import { useRouter } from 'next/navigation'
-import { ClientSchemaType as Client } from '@/lib/validations'
+import { ClientSchemaType as Client } from '@/lib/procurement/validations'
 
 type ClientMargin = Client & {
   margin: number

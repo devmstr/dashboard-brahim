@@ -89,7 +89,7 @@ export function RfqLineDialog({
         const newState = { ...prev, [field]: value }
 
         if (field === 'itemId' && value) {
-          const selected = itemLookup.get(value)
+          const selected = itemLookup.get(value as string)
           if (selected) {
             if (selected.unit) newState.unit = selected.unit
             if (selected.description && !prev.description) {

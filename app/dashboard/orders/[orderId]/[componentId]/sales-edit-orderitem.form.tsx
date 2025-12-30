@@ -42,7 +42,7 @@ import {
 } from '@/config/global'
 import { toast } from '@/hooks/use-toast'
 import { isContentEmpty } from '@/lib/utils'
-import { orderItemSchema } from '@/lib/validations/order'
+import { orderItemSchema } from '@/lib/procurement/validations/order'
 import { Content } from '@tiptap/react'
 import { useSession } from 'next-auth/react'
 import { OrderItem } from '@/types'

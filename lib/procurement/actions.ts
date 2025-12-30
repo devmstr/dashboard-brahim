@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/db'
 import { generateId } from '@/helpers/id-generator'
 import { getCurrentUser } from '@/lib/session'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 import { deleteAttachment } from '@/lib/upload-service'
 import {
   requisitionInputSchema,
@@ -16,7 +16,7 @@ import {
   contractInputSchema,
   assetInputSchema,
   procurementItemInputSchema
-} from '@/lib/validations/procurement'
+} from '@/lib/procurement/validations/procurement'
 import {
   ProcurementPurchaseOrderStatus,
   ProcurementSupplierInvoiceStatus,

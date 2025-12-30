@@ -8,7 +8,10 @@ import * as z from 'zod'
 
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
-import { userLoginSchema, UserLoginSchemaType } from '@/lib/validations/auth'
+import {
+  userLoginSchema,
+  UserLoginSchemaType
+} from '@/lib/procurement/validations/auth'
 import { Button } from '@ui/button'
 import { Input } from '@ui/input'
 import { toast } from '@ui/use-toast'

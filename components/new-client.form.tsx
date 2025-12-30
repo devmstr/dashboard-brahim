@@ -20,7 +20,7 @@ import {
 import {
   clientSchema as clientSchema,
   type ClientSchemaType as Client
-} from '@/lib/validations/client'
+} from '@/lib/procurement/validations/client'
 import { toast } from '@/hooks/use-toast'
 import { AddressSelector, AddressSelectorData } from './address.selector'
 import { generateId } from '@/helpers/id-generator'

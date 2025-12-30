@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { FileUploadArea } from '@/components/upload-file-area'
-import type { Attachment } from '@/lib/validations/order'
+import type { Attachment } from '@/lib/procurement/validations/order'
 import {
   createProcurementAttachment,
   deleteProcurementAttachment

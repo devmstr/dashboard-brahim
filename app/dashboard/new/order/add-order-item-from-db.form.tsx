@@ -33,8 +33,11 @@ import {
   contentSchema,
   OrderItem,
   orderItemSchema
-} from '@/lib/validations'
-import { radiatorSchema, RadiatorSchemaType } from '@/lib/validations/radiator'
+} from '@/lib/procurement/validations'
+import {
+  radiatorSchema,
+  RadiatorSchemaType
+} from '@/lib/procurement/validations/radiator'
 import { ApiRadiator } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
