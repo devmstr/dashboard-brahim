@@ -19,8 +19,7 @@ const procurementRecords: ProcurementRecord[] = [
     paymentTerms: '50% à la commande, 50% à la livraison',
     notes:
       'Lots de cuivre conformes aux spécifications EN 13602, livraison palette protégée.',
-    notes:
-      'Lots de cuivre conformes aux spécifications EN 13602, livraison palette protégée.',
+
     attachments: [
       {
         id: 'INV-PR-24001-01',
@@ -46,7 +45,6 @@ const procurementRecords: ProcurementRecord[] = [
     createdAt: '2024-04-10T10:30:00Z',
     expectedDate: '2024-05-05T12:00:00Z',
     paymentTerms: 'Net 30',
-    notes: "Inclure certificat d'origine et test de conformité thermique.",
     notes: "Inclure certificat d'origine et test de conformité thermique.",
     attachments: []
   },
