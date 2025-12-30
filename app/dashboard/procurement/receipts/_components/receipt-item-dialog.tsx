@@ -83,7 +83,7 @@ export function ReceiptItemDialog({
         const newState = { ...prev, [field]: value }
 
         if (field === 'itemId' && value) {
-          const selected = itemLookup.get(value)
+          const selected = itemLookup.get(value as string)
           if (selected && selected.description && !prev.notes) {
             newState.notes = selected.description
           }
@@ -138,7 +138,10 @@ export function ReceiptItemDialog({
               type="number"
               value={draftItem.quantityReceived ?? ''}
               onChange={(e) =>
-                updateDraft('quantityReceived', toNullableNumber(e.target.value))
+                updateDraft(
+                  'quantityReceived',
+                  toNullableNumber(e.target.value)
+                )
               }
               className="col-span-3"
             />

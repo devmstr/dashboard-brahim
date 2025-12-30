@@ -10,14 +10,15 @@ const procurementRecords: ProcurementRecord[] = [
     contactName: 'Nadia Benali',
     contactEmail: 'nadia@atlasmetals.dz',
     phone: '+213 555 120 330',
-    status: STATUS_TYPES[3],
+    status: 'CREATED',
     items: 12,
     total: 1845000,
     currency: 'DZD',
     createdAt: '2024-04-02T09:00:00Z',
     expectedDate: '2024-05-18T10:00:00Z',
     paymentTerms: '50% à la commande, 50% à la livraison',
-    notes: "Lots de cuivre conformes aux spécifications EN 13602, livraison palette protégée.",
+    notes:
+      'Lots de cuivre conformes aux spécifications EN 13602, livraison palette protégée.',
     attachments: [
       {
         id: 'INV-PR-24001-01',
@@ -36,14 +37,14 @@ const procurementRecords: ProcurementRecord[] = [
     contactName: 'Khaled Bensalem',
     contactEmail: 'k.bensalem@sudtech.dz',
     phone: '+213 541 933 110',
-    status: STATUS_TYPES[2],
+    status: 'CREATED',
     items: 7,
     total: 965000,
     currency: 'DZD',
     createdAt: '2024-04-10T10:30:00Z',
     expectedDate: '2024-05-05T12:00:00Z',
     paymentTerms: 'Net 30',
-    notes: 'Inclure certificat d\'origine et test de conformité thermique.',
+    notes: "Inclure certificat d'origine et test de conformité thermique.",
     attachments: []
   },
   {
@@ -53,7 +54,7 @@ const procurementRecords: ProcurementRecord[] = [
     contactName: 'Sana Touati',
     contactEmail: 'sana.touati@gcoolant.com',
     phone: '+33 6 33 21 00 81',
-    status: STATUS_TYPES[4],
+    status: 'CREATED',
     items: 4,
     total: 1230000,
     currency: 'EUR',
@@ -70,7 +71,7 @@ const procurementRecords: ProcurementRecord[] = [
     contactName: 'Lina Solberg',
     contactEmail: 'lina.solberg@nordicfasteners.no',
     phone: '+47 482 19 020',
-    status: STATUS_TYPES[5],
+    status: 'CREATED',
     items: 18,
     total: 2100000,
     currency: 'EUR',
@@ -129,4 +130,3 @@ export const addAttachmentToProcurement = async (
   record.updatedAt = new Date().toISOString()
   return record
 }
-
