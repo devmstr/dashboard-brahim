@@ -211,6 +211,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     }))
   }, [servicesOptions])
 
+  const generalServiceId = React.useMemo(() => {
+    return servicesOptions.find((service) => service.name === 'Generale')?.id
+  }, [servicesOptions])
+
   const initialItems =
     defaultValues?.items && defaultValues.items.length > 0
       ? defaultValues.items
@@ -221,7 +225,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     defaultValues: {
       reference: defaultValues?.reference ?? '',
       name: defaultValues?.name ?? '',
-      serviceId: defaultValues?.serviceId ?? '',
+      serviceId: defaultValues?.serviceId || generalServiceId || '',
       supplierId: defaultValues?.supplierId ?? '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
       items: initialItems,

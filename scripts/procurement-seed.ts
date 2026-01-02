@@ -90,6 +90,8 @@ async function main() {
     'Test d’étanchéité',
     'Contrôle qualité',
     'Maintenance',
+    "System d'information",
+    'Generale',
     'Planification de la production',
     'Magasin'
   ].map((name) => ({
@@ -553,7 +555,7 @@ async function main() {
     {
       reference: generateId('CT'),
       serviceId: services[8]?.id,
-      supplierId: suppliers[0].id,
+      category: 'Services (sous-traitance)',
       title: 'Contrat annuel maintenance',
       startDate: addDays(-20),
       endDate: addDays(340),
@@ -571,7 +573,7 @@ async function main() {
         id: contract.reference,
         reference: contract.reference,
         serviceId: contract.serviceId ?? null,
-        supplierId: contract.supplierId,
+        category: contract.category ?? null,
         title: contract.title ?? null,
         startDate: contract.startDate,
         endDate: contract.endDate,
@@ -583,7 +585,7 @@ async function main() {
       },
       update: {
         serviceId: contract.serviceId ?? null,
-        supplierId: contract.supplierId,
+        category: contract.category ?? null,
         title: contract.title ?? null,
         startDate: contract.startDate,
         endDate: contract.endDate,

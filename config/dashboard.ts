@@ -101,14 +101,6 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
   },
 
   {
-    title: "Contrats d'achat",
-    href: '/dashboard/procurement/contracts',
-    icon: 'page',
-    key: 'procurement-contracts',
-    active: true
-  },
-
-  {
     title: 'Immobilisations',
     href: '/dashboard/procurement/assets',
     icon: 'factory',
@@ -145,6 +137,14 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     href: '/dashboard/clients',
     icon: 'clients',
     key: 'clients'
+  },
+  // moved under client to appear last On the Finance view
+  {
+    title: "Contrats d'achat",
+    href: '/dashboard/procurement/contracts',
+    icon: 'page',
+    key: 'procurement-contracts',
+    active: true
   },
   {
     title: 'Véhicule',

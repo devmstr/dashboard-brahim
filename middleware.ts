@@ -57,6 +57,7 @@ export const ROUTE_ROLE_MAP: { [route: string]: UserRole[] } = {
     // 'ENGINEER',
     // 'CONSULTANT'
   ],
+  '/dashboard/procurement/contracts': ['FINANCE', 'FINANCE_MANAGER'],
   '/dashboard/procurement': ['PROCRUTEMENT_AGENT', 'PROCRUTEMENT_MANAGER']
 
   // Add more routes and roles as needed

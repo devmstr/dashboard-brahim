@@ -686,7 +686,6 @@ model ProcurementSupplier {
   RfqQuotes      ProcurementRfqVendorQuote[]
   PurchaseOrders ProcurementPurchaseOrder[]
   Invoices       ProcurementSupplierInvoice[]
-  Contracts      ProcurementContract[]
   Assets         ProcurementAsset[]
 
   @@map("procurement_suppliers")
@@ -999,6 +998,7 @@ model ProcurementContract {
   id        String                    @id @default(cuid())
   reference String                    @unique
   title     String?
+  category  String?
   status    ProcurementContractStatus @default(DRAFT)
   startDate DateTime
   endDate   DateTime?
@@ -1008,11 +1008,9 @@ model ProcurementContract {
   createdAt DateTime                  @default(now())
   updatedAt DateTime                  @updatedAt
 
-  supplierId  String
   createdById String
   serviceId   String?
 
-  Supplier    ProcurementSupplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
   CreatedBy   User                @relation("ProcurementContractCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   Service     ProcurementService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   Attachments Attachment[]        @relation("ProcurementContractAttachments")

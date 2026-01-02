@@ -698,6 +698,7 @@ export const listContracts = async () => {
       id: true,
       reference: true,
       title: true,
+      category: true,
       status: true,
       startDate: true,
       endDate: true,
@@ -705,11 +706,6 @@ export const listContracts = async () => {
       currency: true,
       Service: {
         select: { name: true }
-      },
-      Supplier: {
-        select: {
-          name: true
-        }
       }
     }
   })
@@ -719,7 +715,6 @@ export const getContractById = async (id: string) => {
   return prisma.procurementContract.findUnique({
     where: { id },
     include: {
-      Supplier: true,
       Attachments: true
     }
   })
@@ -736,7 +731,7 @@ export const createContract = async (
       id: data.reference || undefined,
       reference: data.reference,
       title: data.title,
-      supplierId: data.supplierId,
+      category: data.category,
       serviceId: data.serviceId,
       startDate: data.startDate,
       endDate: data.endDate,
@@ -768,7 +763,7 @@ export const updateContract = async (
     data: {
       reference: data.reference,
       title: data.title,
-      supplierId: data.supplierId,
+      category: data.category,
       serviceId: data.serviceId ?? undefined,
       startDate: data.startDate,
       endDate: data.endDate,

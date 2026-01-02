@@ -192,6 +192,10 @@ const RequisitionFormBase: React.FC<RequisitionFormBaseProps> = ({
     }))
   }, [servicesOptions])
 
+  const generalServiceId = React.useMemo(() => {
+    return servicesOptions.find((service) => service.name === 'Generale')?.id
+  }, [servicesOptions])
+
   const initialItems =
     defaultValues?.items && defaultValues.items.length > 0
       ? defaultValues.items
@@ -201,7 +205,7 @@ const RequisitionFormBase: React.FC<RequisitionFormBaseProps> = ({
     resolver: zodResolver(requisitionFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? '',
-      serviceId: defaultValues?.serviceId ?? '',
+      serviceId: defaultValues?.serviceId || generalServiceId || '',
       title: defaultValues?.title ?? '',
       neededBy: defaultValues?.neededBy ?? undefined,
       notes: defaultValues?.notes ?? '',

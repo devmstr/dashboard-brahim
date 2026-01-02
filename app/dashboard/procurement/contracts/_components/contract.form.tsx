@@ -25,6 +25,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
 import { createContract, updateContract } from '@/lib/procurement/actions'
+import { PROCUREMENT_CATEGORY_TYPES_ARR } from '@/config/global'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
@@ -54,7 +55,7 @@ const CONTRACT_STATUS_LABELS: Record<
 const contractFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
   title: z.string().optional().nullable(),
-  supplierId: z.string().min(1, 'Fournisseur requis'),
+  category: z.string().optional().nullable(),
   serviceId: z.string().min(1, 'Service requis'),
   startDate: z.string(),
   endDate: z.string().optional().nullable(),
@@ -66,11 +67,6 @@ const contractFormSchema = z.object({
 
 export type ContractFormValues = z.infer<typeof contractFormSchema>
 
-type SupplierOption = {
-  id: string
-  name: string
-}
-
 type ServiceOption = {
   id: string
   name: string
@@ -81,7 +77,6 @@ interface ContractFormProps {
   defaultValues?: Partial<ContractFormValues> & {
     attachments?: Attachment[]
   }
-  suppliersOptions: SupplierOption[]
   servicesOptions: ServiceOption[]
   showStatus?: boolean
   submitLabel?: string
@@ -100,7 +95,6 @@ const toOptionalNumber = (value: number | null | undefined) => {
 export const ContractForm: React.FC<ContractFormProps> = ({
   contractId,
   defaultValues,
-  suppliersOptions,
   servicesOptions,
   showStatus = false,
   submitLabel
@@ -111,13 +105,6 @@ export const ContractForm: React.FC<ContractFormProps> = ({
     defaultValues?.attachments ?? []
   )
 
-  const supplierSelectOptions = React.useMemo(() => {
-    return suppliersOptions.map((supplier) => ({
-      label: supplier.name,
-      value: supplier.id
-    }))
-  }, [suppliersOptions])
-
   const serviceSelectOptions = React.useMemo(() => {
     return servicesOptions.map((service) => ({
       label: service.name,
@@ -125,13 +112,24 @@ export const ContractForm: React.FC<ContractFormProps> = ({
     }))
   }, [servicesOptions])
 
+  const generalServiceId = React.useMemo(() => {
+    return servicesOptions.find((service) => service.name === 'Generale')?.id
+  }, [servicesOptions])
+
+  const categorySelectOptions = React.useMemo(() => {
+    return PROCUREMENT_CATEGORY_TYPES_ARR.map((category) => ({
+      label: category,
+      value: category
+    }))
+  }, [])
+
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? '',
       title: defaultValues?.title ?? '',
-      supplierId: defaultValues?.supplierId ?? '',
-      serviceId: defaultValues?.serviceId ?? '',
+      category: defaultValues?.category ?? '',
+      serviceId: defaultValues?.serviceId || generalServiceId || '',
       startDate: defaultValues?.startDate ?? '',
       endDate: defaultValues?.endDate ?? '',
       value: defaultValues?.value ?? null,
@@ -150,7 +148,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
     const payload = {
       reference: values.reference,
       title: toOptionalString(values.title),
-      supplierId: values.supplierId,
+      category: toOptionalString(values.category),
       serviceId: values.serviceId,
       startDate: values.startDate ? new Date(values.startDate) : new Date(),
       endDate: values.endDate ? new Date(values.endDate) : undefined,
@@ -245,18 +243,18 @@ export const ContractForm: React.FC<ContractFormProps> = ({
 
           <FormField
             control={form.control}
-            name="supplierId"
+            name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fournisseur</FormLabel>
+                <FormLabel>Categorie</FormLabel>
                 <FormControl>
                   <Combobox
-                    options={supplierSelectOptions}
+                    options={categorySelectOptions}
                     selected={field.value || undefined}
                     onSelect={(value) => {
-                      form.setValue('supplierId', value)
+                      form.setValue('category', value)
                     }}
-                    placeholder="Selectionner un fournisseur"
+                    placeholder="Selectionner une categorie"
                   />
                 </FormControl>
                 <FormMessage />

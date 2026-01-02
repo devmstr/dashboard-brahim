@@ -173,6 +173,10 @@ export const RfqForm: React.FC<RfqFormProps> = ({
     }))
   }, [servicesOptions])
 
+  const generalServiceId = React.useMemo(() => {
+    return servicesOptions.find((service) => service.name === 'Generale')?.id
+  }, [servicesOptions])
+
   const initialLines =
     defaultValues?.lines && defaultValues.lines.length > 0
       ? defaultValues.lines
@@ -182,7 +186,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
     resolver: zodResolver(rfqFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? '',
-      serviceId: defaultValues?.serviceId ?? '',
+      serviceId: defaultValues?.serviceId || generalServiceId || '',
       requisitionId: defaultValues?.requisitionId ?? '',
       neededBy: defaultValues?.neededBy ?? undefined,
       notes: defaultValues?.notes ?? '',

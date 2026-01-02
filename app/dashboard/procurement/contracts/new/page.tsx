@@ -1,16 +1,10 @@
 import { Card } from '@/components/card'
-import {
-  listProcurementServices,
-  listProcurementSuppliers
-} from '@/lib/procurement/actions'
+import { listProcurementServices } from '@/lib/procurement/actions'
 import { generateId } from '@/helpers/id-generator'
 import { ContractForm } from '../_components/contract.form'
 
 const Page = async () => {
-  const [suppliersOptions, servicesOptions] = await Promise.all([
-    listProcurementSuppliers(),
-    listProcurementServices()
-  ])
+  const servicesOptions = await listProcurementServices()
 
   return (
     <Card className="space-y-6">
@@ -22,7 +16,6 @@ const Page = async () => {
       </div>
       <ContractForm
         defaultValues={{ reference: generateId('CT') }}
-        suppliersOptions={suppliersOptions}
         servicesOptions={servicesOptions}
       />
     </Card>

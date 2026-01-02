@@ -171,12 +171,16 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
     }))
   }, [servicesOptions])
 
+  const generalServiceId = React.useMemo(() => {
+    return servicesOptions.find((service) => service.name === 'Generale')?.id
+  }, [servicesOptions])
+
   const form = useForm<SupplierInvoiceFormValues>({
     resolver: zodResolver(supplierInvoiceFormSchema),
     defaultValues: {
       reference: defaultValues?.reference ?? '',
       supplierId: defaultValues?.supplierId ?? '',
-      serviceId: defaultValues?.serviceId ?? '',
+      serviceId: defaultValues?.serviceId || generalServiceId || '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
       receiptId: defaultValues?.receiptId ?? '',
       invoiceDate: defaultValues?.invoiceDate ?? undefined,

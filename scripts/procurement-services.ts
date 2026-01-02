@@ -13,6 +13,8 @@ const services = [
   'Test d etancheite',
   'Controle qualite',
   'Maintenance',
+  "System d'information",
+  'Generale',
   'Planification de la production',
   'Magasin'
 ]

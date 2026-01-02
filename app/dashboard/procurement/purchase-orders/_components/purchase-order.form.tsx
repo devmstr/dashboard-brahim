@@ -211,6 +211,10 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
     }))
   }, [servicesOptions])
 
+  const generalServiceId = React.useMemo(() => {
+    return servicesOptions.find((service) => service.name === 'Generale')?.id
+  }, [servicesOptions])
+
   const itemLookup = React.useMemo(() => {
     return new Map(itemsOptions.map((item) => [item.id, item]))
   }, [itemsOptions])
@@ -227,7 +231,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       supplierId: defaultValues?.supplierId ?? null,
       requisitionId: defaultValues?.requisitionId ?? '',
       rfqId: defaultValues?.rfqId ?? '',
-      serviceId: defaultValues?.serviceId ?? '',
+      serviceId: defaultValues?.serviceId || generalServiceId || '',
       vendor: defaultValues?.vendor ?? '',
       contactName: defaultValues?.contactName ?? '',
       contactEmail: defaultValues?.contactEmail ?? '',

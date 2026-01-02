@@ -21,6 +21,8 @@ const Page: React.FC<Props> = async ({}: Props) => {
       redirect('/dashboard/timeline')
     case 'FINANCE_MANAGER':
       redirect('/dashboard/ledger')
+    case 'FINANCE':
+      redirect('/dashboard/ledger')
     case 'INVENTORY_AGENT':
       redirect('/dashboard/inventory')
     case 'SALES_AGENT':

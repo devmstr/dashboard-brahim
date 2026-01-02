@@ -2,7 +2,6 @@ import { Card } from '@/components/card'
 import {
   getContractById,
   listProcurementServices,
-  listProcurementSuppliers
 } from '@/lib/procurement/actions'
 import { notFound } from 'next/navigation'
 import { ContractForm } from '../_components/contract.form'
@@ -15,9 +14,8 @@ interface PageProps {
 }
 
 const Page = async ({ params }: PageProps) => {
-  const [contract, suppliersOptions, servicesOptions] = await Promise.all([
+  const [contract, servicesOptions] = await Promise.all([
     getContractById(params.contractId),
-    listProcurementSuppliers(),
     listProcurementServices()
   ])
 
@@ -26,7 +24,7 @@ const Page = async ({ params }: PageProps) => {
   const formDefaults = {
     reference: contract.reference,
     title: contract.title ?? '',
-    supplierId: contract.supplierId,
+    category: contract.category ?? '',
     serviceId: contract.serviceId ?? '',
     startDate: new Date(contract.startDate).toISOString(),
     endDate: contract.endDate ? new Date(contract.endDate).toISOString() : '',
@@ -54,7 +52,6 @@ const Page = async ({ params }: PageProps) => {
       <ContractForm
         contractId={contract.id}
         defaultValues={formDefaults}
-        suppliersOptions={suppliersOptions}
         servicesOptions={servicesOptions}
         showStatus
         submitLabel="Mettre a jour"

@@ -105,7 +105,7 @@ export default function FinanceMetadataCards({
 
   return (
     <div>
-      <div className="flex justify-end -mt-2 mb-2">
+      {/* <div className="flex justify-end -mt-2 mb-2">
         <div className="flex items-center gap-2">
           <Label className="text-sm text-muted-foreground">
             Suivre l’usage local du « million » algérien (10 000 dzd = 1 million
@@ -116,7 +116,7 @@ export default function FinanceMetadataCards({
             onCheckedChange={handleConventionToggle}
           />
         </div>
-      </div>
+      </div> */}
       <div className="grow grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
         {bruteHT && (
           <Card>

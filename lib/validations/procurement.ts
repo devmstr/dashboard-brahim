@@ -120,7 +120,7 @@ export const supplierInputSchema = z.object({
 export const contractInputSchema = z.object({
   reference: z.string().min(1),
   title: z.string().optional().nullable(),
-  supplierId: z.string().min(1),
+  category: z.string().optional().nullable(),
   serviceId: z.string().min(1),
   startDate: z.coerce.date(),
   endDate: z.coerce.date().optional().nullable(),

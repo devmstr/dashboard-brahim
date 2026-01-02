@@ -76,8 +76,13 @@ export function ProcurementDataTable<TData>({
   searchPlaceholder = 'Rechercher...',
   columnVisibilityKey,
   userRole = 'GUEST',
-  editRoles = ['PROCRUTEMENT_AGENT', 'PROCRUTEMENT_MANAGER'],
-  deleteRoles = ['PROCRUTEMENT_MANAGER'],
+  editRoles = [
+    'PROCRUTEMENT_AGENT',
+    'PROCRUTEMENT_MANAGER',
+    'FINANCE_MANAGER',
+    'FINANCE'
+  ],
+  deleteRoles = ['PROCRUTEMENT_MANAGER', 'FINANCE_MANAGER'],
   getEditHref,
   onEdit,
   onDelete,
@@ -96,11 +101,7 @@ export function ProcurementDataTable<TData>({
   const canEdit = hasUserRole(userRole, editRoles)
   const canDelete = hasUserRole(userRole, deleteRoles)
 
-  const RowActions = ({
-    original
-  }: {
-    original: TData
-  }) => {
+  const RowActions = ({ original }: { original: TData }) => {
     const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
     const editHref = getEditHref?.(original)
     const hasEditAction = Boolean(editHref || onEdit)

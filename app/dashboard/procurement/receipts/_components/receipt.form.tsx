@@ -164,6 +164,10 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
     }))
   }, [servicesOptions])
 
+  const generalServiceId = React.useMemo(() => {
+    return servicesOptions.find((service) => service.name === 'Generale')?.id
+  }, [servicesOptions])
+
   const initialItems =
     defaultValues?.items && defaultValues.items.length > 0
       ? defaultValues.items
@@ -174,7 +178,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
     defaultValues: {
       reference: defaultValues?.reference ?? '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
-      serviceId: defaultValues?.serviceId ?? '',
+      serviceId: defaultValues?.serviceId || generalServiceId || '',
       receivedAt: defaultValues?.receivedAt ?? undefined,
       notes: defaultValues?.notes ?? '',
       status: defaultValues?.status,

@@ -24,9 +24,6 @@ export type ContractRow = {
   Service?: {
     name: string
   } | null
-  Supplier: {
-    name: string
-  } | null
 }
 
 interface ContractsTableProps {
@@ -86,11 +83,6 @@ export function ContractsTable({ data, userRole }: ContractsTableProps) {
       accessorKey: 'title',
       header: 'Titre',
       cell: ({ row }) => row.original.title || '-'
-    },
-    {
-      accessorKey: 'Supplier.name',
-      header: 'Fournisseur',
-      cell: ({ row }) => row.original.Supplier?.name || '-'
     },
     {
       accessorKey: 'Service.name',
