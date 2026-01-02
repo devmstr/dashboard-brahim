@@ -63,7 +63,7 @@ const Page = async ({ params }: PageProps) => {
       description: item.description ?? '',
       quantity: item.quantity ?? null,
       unit: item.unit ?? '',
-      unitPrice: item.unitPrice ?? null,
+      estimatedUnitCost: item.unitPrice ?? null,
       total: item.total ?? null
     }))
   }

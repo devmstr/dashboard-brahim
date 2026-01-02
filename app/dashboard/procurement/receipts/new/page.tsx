@@ -4,6 +4,7 @@ import {
   listProcurementServices,
   listPurchaseOrders
 } from '@/lib/procurement/actions'
+import { generateId } from '@/helpers/id-generator'
 import { ReceiptForm } from '../_components/receipt.form'
 
 const Page = async () => {
@@ -23,6 +24,7 @@ const Page = async () => {
         </p>
       </div>
       <ReceiptForm
+        defaultValues={{ reference: generateId('RC') }}
         itemsOptions={itemsOptions}
         purchaseOrdersOptions={purchaseOrdersOptions}
         servicesOptions={servicesOptions}

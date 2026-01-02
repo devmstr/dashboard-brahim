@@ -30,7 +30,6 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import { createReceipt, updateReceipt } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -73,7 +72,7 @@ const receiptFormSchema = z.object({
       z.object({
         purchaseOrderItemId: z.string().optional().nullable(),
         itemId: z.string().optional().nullable(),
-        quantityReceived: z.number().optional().nullable(),
+        quantity: z.number().optional().nullable(),
         condition: z.string().optional().nullable(),
         notes: z.string().optional().nullable()
       })
@@ -173,7 +172,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
   const form = useForm<ReceiptFormValues>({
     resolver: zodResolver(receiptFormSchema),
     defaultValues: {
-      reference: defaultValues?.reference ?? generateId('RC'),
+      reference: defaultValues?.reference ?? '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
       serviceId: defaultValues?.serviceId ?? '',
       receivedAt: defaultValues?.receivedAt ?? undefined,
@@ -220,7 +219,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
       setDraftItem({
         purchaseOrderItemId: item.purchaseOrderItemId ?? null,
         itemId: item.itemId ?? null,
-        quantityReceived: item.quantityReceived ?? null,
+        quantity: item.quantity ?? null,
         condition: item.condition ?? '',
         notes: item.notes ?? ''
       })
@@ -261,7 +260,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
         ?.map((item) => ({
           purchaseOrderItemId: item.purchaseOrderItemId || null,
           itemId: item.itemId || null,
-          quantityReceived: toOptionalNumber(item.quantityReceived),
+          quantityReceived: toOptionalNumber(item.quantity),
           condition: toOptionalString(item.condition),
           notes: toOptionalString(item.notes)
         }))
@@ -339,7 +338,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
           )}
           {receivedAtDate && (
             <span className="whitespace-nowrap">
-              <span className="font-medium text-foreground/80">Reçu le:</span>{' '}
+              <span className="font-medium text-foreground/80">Recu le:</span>{' '}
               {formatDate(receivedAtDate, 'PPP', { locale: fr })}
             </span>
           )}
@@ -436,7 +435,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
                   <TableHead className="py-[3px] px-2 h-5">Reference</TableHead>
                   <TableHead className="py-[3px] px-2 h-5">Article</TableHead>
                   <TableHead className="text-left py-[3px] px-2 h-5">
-                    Quantite recue
+                    Quantite
                   </TableHead>
                   <TableHead className="text-left py-[3px] px-2 h-5">
                     Etat
@@ -486,7 +485,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
                           </span>
                         </TableCell>
                         <TableCell className="text-left py-[3px] px-2 h-5">
-                          {item.quantityReceived ?? '-'}
+                          {item.quantity ?? '-'}
                         </TableCell>
                         <TableCell className="text-left py-[3px] px-2 h-5">
                           {item.condition || '-'}
@@ -513,7 +512,11 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
             </Table>
             <Button
               variant="outline"
-              onClick={handleAddItemClick}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                handleAddItemClick()
+              }}
               className={cn(
                 'flex w-full h-24 justify-center gap-1 text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30 hover:bg-gray-100 text-md border-dashed py-4',
                 'h-fit'
@@ -557,7 +560,7 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
           <h3 className="text-sm font-medium">Pieces jointes</h3>
           <ProcurementUploader
             target="receipt"
-            targetId={receiptId}
+            targetId={receiptId ?? reference}
             uploadPath={uploadPath}
             initialAttachments={attachments}
             onAttachmentAdded={(attachment) => {
@@ -572,10 +575,12 @@ export const ReceiptForm: React.FC<ReceiptFormProps> = ({
           />
         </div>
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (receiptId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
+            {submitLabel || (receiptId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
   )

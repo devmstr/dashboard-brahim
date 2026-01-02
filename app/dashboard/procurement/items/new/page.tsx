@@ -1,5 +1,6 @@
 import { Card } from '@/components/card'
 import { ItemForm } from '../_components/item.form'
+import { generateId } from '@/helpers/id-generator'
 
 const Page = async () => {
   return (
@@ -10,7 +11,11 @@ const Page = async () => {
           Creez un nouvel article fournisseur.
         </p>
       </div>
-      <ItemForm />
+      <ItemForm
+        defaultValues={{
+          sku: generateId('PI')
+        }}
+      />
     </Card>
   )
 }

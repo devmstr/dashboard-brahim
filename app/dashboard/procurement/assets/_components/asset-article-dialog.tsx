@@ -10,42 +10,53 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Combobox } from '@/components/combobox'
 import { toast } from '@/hooks/use-toast'
 import { RAW_MATERIAL_UNITS_ARR } from '@/config/global'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 
-export interface PurchaseOrderItem {
+export interface ArticleItem {
   itemId: string | null
+  itemName: string | null
   description: string | null
   quantity: number | null
   unit: string | null
   estimatedUnitCost: number | null
-  total?: number | null
+  currency: string | null
 }
 
 export type ProcurementItemOption = {
   id: string
   name: string
   sku?: string | null
+  category?: string | null
   unit?: string | null
   description?: string | null
 }
 
-interface PurchaseOrderItemDialogProps {
+interface AssetArticleDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  initialData?: PurchaseOrderItem | null
-  onSave: (item: PurchaseOrderItem) => void
+  initialData?: ArticleItem | null
+  onSave: (item: ArticleItem) => void
   itemsOptions: ProcurementItemOption[]
 }
 
-const emptyItem: PurchaseOrderItem = {
+const emptyItem: ArticleItem = {
   itemId: null,
+  itemName: '',
   description: '',
   quantity: null,
   unit: '',
   estimatedUnitCost: null,
-  total: null
+  currency: 'DZD'
 }
 
 const toNullableNumber = (value: string) => {
@@ -54,14 +65,14 @@ const toNullableNumber = (value: string) => {
   return Number.isNaN(numeric) ? null : numeric
 }
 
-export function PurchaseOrderItemDialog({
+export function AssetArticleDialog({
   open,
   onOpenChange,
   initialData,
   onSave,
   itemsOptions
-}: PurchaseOrderItemDialogProps) {
-  const [draftItem, setDraftItem] = React.useState<PurchaseOrderItem>(emptyItem)
+}: AssetArticleDialogProps) {
+  const [draftItem, setDraftItem] = React.useState<ArticleItem>(emptyItem)
 
   React.useEffect(() => {
     if (open) {
@@ -88,54 +99,56 @@ export function PurchaseOrderItemDialog({
   }, [])
 
   const updateDraft = React.useCallback(
-    <K extends keyof PurchaseOrderItem>(
-      field: K,
-      value: PurchaseOrderItem[K]
-    ) => {
+    <K extends keyof ArticleItem>(field: K, value: ArticleItem[K]) => {
       setDraftItem((prev) => {
-        const newState = { ...prev, [field]: value }
+        const next = { ...prev, [field]: value }
 
         if (field === 'itemId' && value) {
           const selected = itemLookup.get(value as string)
           if (selected) {
-            if (selected.unit) newState.unit = selected.unit
-            if (selected.description && !prev.description) {
-              newState.description = selected.description
+            if (selected.unit) next.unit = selected.unit
+            if (selected.description && !prev.description)
+              next.description = selected.description
+            if (selected.name) next.itemName = selected.name
+            if (
+              selected.category !== 'Matieres premieres' &&
+              next.currency !== 'DZD'
+            ) {
+              next.currency = 'DZD'
             }
           }
         }
 
-        return newState
+        return next
       })
     },
     [itemLookup]
   )
 
+  const selectedItemCategory = draftItem.itemId
+    ? itemLookup.get(draftItem.itemId)?.category ?? null
+    : null
+  const allowForeignCurrency = selectedItemCategory === 'Matieres premieres'
+
   const handleSave = React.useCallback(() => {
-    if (!draftItem.itemId && !draftItem.description) {
+    if (!draftItem.itemName && !draftItem.itemId) {
       toast({
         title: 'Erreur',
-        description:
-          'Veuillez selectionner un article ou saisir une description.',
+        description: 'Veuillez selectionner un article ou saisir un nom.',
         variant: 'destructive'
       })
       return
     }
-
-    const quantity = draftItem.quantity ?? 0
-    const unitCost = draftItem.estimatedUnitCost ?? 0
-    const total = quantity && unitCost ? quantity * unitCost : null
-
-    onSave({ ...draftItem, total })
+    onSave(draftItem)
     onOpenChange(false)
   }, [draftItem, onOpenChange, onSave])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[640px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
-            {initialData?.itemId || initialData?.description
+            {initialData?.itemId || initialData?.itemName
               ? 'Modifier Article'
               : 'Ajouter Article'}
           </DialogTitle>
@@ -155,9 +168,19 @@ export function PurchaseOrderItemDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label className="text-right text-sm font-medium">
-              Description
+              Nom article
             </label>
             <Input
+              value={draftItem.itemName ?? ''}
+              onChange={(e) => updateDraft('itemName', e.target.value)}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="text-right text-sm font-medium">
+              Description
+            </label>
+            <Textarea
               value={draftItem.description ?? ''}
               onChange={(e) => updateDraft('description', e.target.value)}
               className="col-span-3"
@@ -188,16 +211,41 @@ export function PurchaseOrderItemDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <label className="text-right text-sm font-medium">
-              Prix unitaire
+              Prix Unitaire
             </label>
             <Input
               type="number"
               value={draftItem.estimatedUnitCost ?? ''}
               onChange={(e) =>
-                updateDraft('estimatedUnitCost', toNullableNumber(e.target.value))
+                updateDraft(
+                  'estimatedUnitCost',
+                  toNullableNumber(e.target.value)
+                )
               }
               className="col-span-3"
             />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="text-right text-sm font-medium">Devise</label>
+            <div className="col-span-3">
+              <Select
+                onValueChange={(value) => updateDraft('currency', value)}
+                value={draftItem.currency || 'DZD'}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DZD">DZD</SelectItem>
+                  <SelectItem value="EUR" disabled={!allowForeignCurrency}>
+                    EUR
+                  </SelectItem>
+                  <SelectItem value="USD" disabled={!allowForeignCurrency}>
+                    USD
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         <DialogFooter>

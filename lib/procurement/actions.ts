@@ -459,6 +459,7 @@ export const listProcurementItems = async () => {
       id: true,
       name: true,
       sku: true,
+      category: true,
       unit: true,
       description: true
     }
@@ -472,6 +473,7 @@ export const listItems = async () => {
       id: true,
       name: true,
       sku: true,
+      category: true,
       description: true,
       unit: true,
       isActive: true,
@@ -495,6 +497,7 @@ export const createItem = async (
     data: {
       name: data.name,
       sku: data.sku ?? generateId('PI'),
+      category: data.category,
       description: data.description,
       unit: data.unit,
       isActive: data.isActive ?? true
@@ -516,6 +519,7 @@ export const updateItem = async (
     data: {
       name: data.name,
       sku: data.sku,
+      category: data.category,
       description: data.description,
       unit: data.unit,
       isActive: data.isActive ?? undefined
@@ -557,6 +561,7 @@ export const listSuppliers = async () => {
       id: true,
       name: true,
       code: true,
+      category: true,
       contactName: true,
       email: true,
       phone: true,
@@ -568,7 +573,16 @@ export const listSuppliers = async () => {
 
 export const getSupplierById = async (id: string) => {
   return prisma.procurementSupplier.findUnique({
-    where: { id }
+    where: { id },
+    include: {
+      Address: {
+        include: {
+          City: true,
+          Province: true,
+          Country: true
+        }
+      }
+    }
   })
 }
 
@@ -576,17 +590,39 @@ export const createSupplier = async (
   input: typeof supplierInputSchema._type
 ) => {
   const data = supplierInputSchema.parse(input)
+  const hasAddress =
+    data.countryId && data.provinceId && data.cityId ? true : false
+  const addressData = hasAddress
+    ? {
+        street: data.street,
+        Province: { connect: { id: data.provinceId as string } },
+        City: { connect: { id: data.cityId as string } },
+        Country: { connect: { code: data.countryId as string } }
+      }
+    : undefined
 
   const supplier = await prisma.procurementSupplier.create({
     data: {
       name: data.name,
       code: data.code,
+      category: data.category,
       contactName: data.contactName,
       email: data.email,
       phone: data.phone,
       website: data.website,
+      fiscalNumber: data.fiscalNumber,
       taxIdNumber: data.taxIdNumber,
+      registrationArticle: data.registrationArticle,
+      statisticalIdNumber: data.statisticalIdNumber,
       tradeRegisterNumber: data.tradeRegisterNumber,
+      approvalNumber: data.approvalNumber,
+      ...(hasAddress && addressData
+        ? {
+            Address: {
+              create: addressData
+            }
+          }
+        : {}),
       notes: data.notes
     }
   })
@@ -600,18 +636,43 @@ export const updateSupplier = async (
   input: Partial<typeof supplierInputSchema._type>
 ) => {
   const data = supplierInputSchema.partial().parse(input)
+  const hasAddress =
+    data.countryId && data.provinceId && data.cityId ? true : false
+  const addressData = hasAddress
+    ? {
+        street: data.street,
+        Province: { connect: { id: data.provinceId as string } },
+        City: { connect: { id: data.cityId as string } },
+        Country: { connect: { code: data.countryId as string } }
+      }
+    : undefined
 
   const supplier = await prisma.procurementSupplier.update({
     where: { id },
     data: {
       name: data.name,
       code: data.code,
+      category: data.category,
       contactName: data.contactName,
       email: data.email,
       phone: data.phone,
       website: data.website,
+      fiscalNumber: data.fiscalNumber,
       taxIdNumber: data.taxIdNumber,
+      registrationArticle: data.registrationArticle,
+      statisticalIdNumber: data.statisticalIdNumber,
       tradeRegisterNumber: data.tradeRegisterNumber,
+      approvalNumber: data.approvalNumber,
+      ...(hasAddress && addressData
+        ? {
+            Address: {
+              upsert: {
+                create: addressData,
+                update: addressData
+              }
+            }
+          }
+        : {}),
       notes: data.notes
     }
   })
@@ -636,6 +697,7 @@ export const listContracts = async () => {
     select: {
       id: true,
       reference: true,
+      title: true,
       status: true,
       startDate: true,
       endDate: true,
@@ -673,6 +735,7 @@ export const createContract = async (
     data: {
       id: data.reference || undefined,
       reference: data.reference,
+      title: data.title,
       supplierId: data.supplierId,
       serviceId: data.serviceId,
       startDate: data.startDate,
@@ -704,6 +767,7 @@ export const updateContract = async (
     where: { id },
     data: {
       reference: data.reference,
+      title: data.title,
       supplierId: data.supplierId,
       serviceId: data.serviceId ?? undefined,
       startDate: data.startDate,
@@ -758,15 +822,70 @@ export const getAssetById = async (id: string) => {
     include: {
       Supplier: true,
       PurchaseOrder: true,
-      Item: true,
+      Items: {
+        include: {
+          Item: true
+        }
+      },
       Attachments: true
     }
   })
 }
 
+const resolveAssetItems = async (
+  items: (typeof assetInputSchema._type)['items']
+) => {
+  if (!items?.length) return []
+
+  return Promise.all(
+    items.map(async (item) => {
+      if (item.itemId) {
+        return {
+          itemId: item.itemId,
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+          estimatedUnitCost: item.estimatedUnitCost,
+          currency: item.currency
+        }
+      }
+
+      if (!item.itemName) {
+        return {
+          itemId: null,
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+          estimatedUnitCost: item.estimatedUnitCost,
+          currency: item.currency
+        }
+      }
+
+      const createdItem = await prisma.procurementItem.create({
+        data: {
+          name: item.itemName,
+          sku: generateId('PI'),
+          unit: item.unit || undefined,
+          description: item.description || undefined
+        }
+      })
+
+      return {
+        itemId: createdItem.id,
+        description: item.description,
+        quantity: item.quantity,
+        unit: item.unit,
+        estimatedUnitCost: item.estimatedUnitCost,
+        currency: item.currency
+      }
+    })
+  )
+}
+
 export const createAsset = async (input: typeof assetInputSchema._type) => {
   const data = assetInputSchema.parse(input)
   const userId = await requireUserId()
+  const resolvedItems = await resolveAssetItems(data.items)
 
   const asset = await prisma.procurementAsset.create({
     data: {
@@ -775,14 +894,25 @@ export const createAsset = async (input: typeof assetInputSchema._type) => {
       name: data.name,
       supplierId: data.supplierId,
       purchaseOrderId: data.purchaseOrderId,
-      itemId: data.itemId,
       serviceId: data.serviceId,
       acquisitionDate: data.acquisitionDate,
       value: data.value,
       currency: data.currency,
       notes: data.notes,
       status: ProcurementAssetStatus.PLANNED,
-      createdById: userId
+      createdById: userId,
+      Items: resolvedItems.length
+        ? {
+            create: resolvedItems.map((item) => ({
+              itemId: item.itemId,
+              description: item.description,
+              quantity: item.quantity,
+              unit: item.unit,
+              estimatedUnitCost: item.estimatedUnitCost,
+              currency: item.currency
+            }))
+          }
+        : undefined
     }
   })
 
@@ -797,6 +927,7 @@ export const updateAsset = async (
   }
 ) => {
   const data = assetInputSchema.partial().parse(input)
+  const resolvedItems = await resolveAssetItems(data.items)
   if (data.reference && data.reference !== id) {
     throw new Error("La reference doit correspondre a l'identifiant.")
   }
@@ -808,13 +939,25 @@ export const updateAsset = async (
       name: data.name,
       supplierId: data.supplierId,
       purchaseOrderId: data.purchaseOrderId,
-      itemId: data.itemId,
       serviceId: data.serviceId ?? undefined,
       acquisitionDate: data.acquisitionDate,
       value: data.value,
       currency: data.currency,
       notes: data.notes,
-      status: input.status
+      status: input.status,
+      Items: data.items
+        ? {
+            deleteMany: {},
+            create: resolvedItems.map((item) => ({
+              itemId: item.itemId,
+              description: item.description,
+              quantity: item.quantity,
+              unit: item.unit,
+              estimatedUnitCost: item.estimatedUnitCost,
+              currency: item.currency
+            }))
+          }
+        : undefined
     }
   })
 
@@ -1038,7 +1181,9 @@ export const createRfq = async (input: typeof rfqInputSchema._type) => {
               itemId: line.itemId,
               description: line.description,
               quantity: line.quantity,
-              unit: line.unit
+              unit: line.unit,
+              estimatedUnitCost: line.estimatedUnitCost,
+              currency: line.currency
             }))
           }
         : undefined
@@ -1076,7 +1221,9 @@ export const updateRfq = async (
               itemId: line.itemId,
               description: line.description,
               quantity: line.quantity,
-              unit: line.unit
+              unit: line.unit,
+              estimatedUnitCost: line.estimatedUnitCost,
+              currency: line.currency
             }))
           }
         : undefined

@@ -22,18 +22,31 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import { createAsset, updateAsset } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fr } from 'date-fns/locale'
+import { Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm } from 'react-hook-form'
 import * as z from 'zod'
 import type { Attachment } from '@/lib/validations/order'
+import {
+  AssetArticleDialog,
+  type ArticleItem,
+  type ProcurementItemOption
+} from './asset-article-dialog'
 
 const ASSET_STATUS_TYPES = ['PLANNED', 'ACTIVE', 'DISPOSED'] as const
 
@@ -50,7 +63,19 @@ const assetFormSchema = z.object({
   serviceId: z.string().min(1, 'Service requis'),
   supplierId: z.string().optional().nullable(),
   purchaseOrderId: z.string().optional().nullable(),
-  itemId: z.string().optional().nullable(),
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().optional().nullable(),
+        itemName: z.string().optional().nullable(),
+        description: z.string().optional().nullable(),
+        quantity: z.number().optional().nullable(),
+        unit: z.string().optional().nullable(),
+        estimatedUnitCost: z.number().optional().nullable(),
+        currency: z.string().optional().nullable()
+      })
+    )
+    .optional(),
   acquisitionDate: z.string().optional().nullable(),
   value: z.number().optional().nullable(),
   currency: z.string().optional().nullable(),
@@ -72,12 +97,6 @@ type PurchaseOrderOption = {
   Supplier?: {
     name: string
   } | null
-}
-
-type ProcurementItemOption = {
-  id: string
-  name: string
-  sku?: string | null
 }
 
 type ServiceOption = {
@@ -108,6 +127,44 @@ const toOptionalNumber = (value: number | null | undefined) => {
   return Number.isNaN(value) ? null : value
 }
 
+const formatPrice = (
+  price: number | null | undefined,
+  currency?: string | null
+) => {
+  if (price === null || price === undefined) return '-'
+  const resolvedCurrency = currency || 'DZD'
+  return new Intl.NumberFormat('fr-DZ', {
+    style: 'currency',
+    currency: resolvedCurrency,
+    minimumFractionDigits: 2
+  }).format(price)
+}
+
+const buildSafeItems = (items: AssetFormValues['items']) => {
+  return (
+    items
+      ?.map((item) => ({
+        itemId: item.itemId || null,
+        itemName: toOptionalString(item.itemName),
+        description: toOptionalString(item.description),
+        quantity: toOptionalNumber(item.quantity),
+        unit: toOptionalString(item.unit),
+        estimatedUnitCost: toOptionalNumber(item.estimatedUnitCost),
+        currency: toOptionalString(item.currency)
+      }))
+      .filter((item) => {
+        return Boolean(
+          item.itemId ||
+            item.itemName ||
+            item.description ||
+            item.quantity ||
+            item.unit ||
+            item.estimatedUnitCost
+        )
+      }) ?? []
+  )
+}
+
 export const AssetForm: React.FC<AssetFormProps> = ({
   assetId,
   defaultValues,
@@ -123,6 +180,9 @@ export const AssetForm: React.FC<AssetFormProps> = ({
   const [attachments, setAttachments] = React.useState<Attachment[]>(
     defaultValues?.attachments ?? []
   )
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  const [editingIndex, setEditingIndex] = React.useState<number | null>(null)
+  const [draftItem, setDraftItem] = React.useState<ArticleItem | null>(null)
 
   const supplierSelectOptions = React.useMemo(() => {
     return suppliersOptions.map((supplier) => ({
@@ -140,11 +200,8 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     }))
   }, [purchaseOrdersOptions])
 
-  const itemSelectOptions = React.useMemo(() => {
-    return itemsOptions.map((item) => ({
-      label: item.sku ? `${item.name} (${item.sku})` : item.name,
-      value: item.id
-    }))
+  const itemLookup = React.useMemo(() => {
+    return new Map(itemsOptions.map((item) => [item.id, item]))
   }, [itemsOptions])
 
   const serviceSelectOptions = React.useMemo(() => {
@@ -154,15 +211,20 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     }))
   }, [servicesOptions])
 
+  const initialItems =
+    defaultValues?.items && defaultValues.items.length > 0
+      ? defaultValues.items
+      : []
+
   const form = useForm<AssetFormValues>({
     resolver: zodResolver(assetFormSchema),
     defaultValues: {
-      reference: defaultValues?.reference ?? generateId('AS'),
+      reference: defaultValues?.reference ?? '',
       name: defaultValues?.name ?? '',
       serviceId: defaultValues?.serviceId ?? '',
       supplierId: defaultValues?.supplierId ?? '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
-      itemId: defaultValues?.itemId ?? '',
+      items: initialItems,
       acquisitionDate: defaultValues?.acquisitionDate ?? undefined,
       value: defaultValues?.value ?? null,
       currency: defaultValues?.currency ?? 'DZD',
@@ -176,14 +238,61 @@ export const AssetForm: React.FC<AssetFormProps> = ({
     return `procurement/assets/${reference || 'draft'}`
   }, [reference])
 
+  const { fields, append, remove, update } = useFieldArray({
+    control: form.control,
+    name: 'items'
+  })
+
+  const watchedItems = form.watch('items')
+
+  const handleAddItemClick = React.useCallback(() => {
+    setDraftItem(null)
+    setEditingIndex(null)
+    setIsDialogOpen(true)
+  }, [])
+
+  const handleEditItemClick = React.useCallback((index: number, item: ArticleItem) => {
+    setDraftItem({
+      itemId: item.itemId ?? null,
+      itemName: item.itemName ?? '',
+      description: item.description ?? '',
+      quantity: item.quantity ?? null,
+      unit: item.unit ?? '',
+      estimatedUnitCost: item.estimatedUnitCost ?? null,
+      currency: item.currency ?? 'DZD'
+    })
+    setEditingIndex(index)
+    setIsDialogOpen(true)
+  }, [])
+
+  const handleDialogSave = React.useCallback(
+    (itemData: ArticleItem) => {
+      if (editingIndex !== null) {
+        update(editingIndex, itemData)
+      } else {
+        append(itemData)
+      }
+    },
+    [append, editingIndex, update]
+  )
+
+  const handleDialogOpen = React.useCallback((open: boolean) => {
+    setIsDialogOpen(open)
+    if (!open) {
+      setEditingIndex(null)
+      setDraftItem(null)
+    }
+  }, [])
+
   const onSubmit = (values: AssetFormValues) => {
+    const safeItems = buildSafeItems(values.items)
     const payload = {
       reference: values.reference,
       name: values.name,
       serviceId: values.serviceId,
       supplierId: toOptionalString(values.supplierId),
       purchaseOrderId: toOptionalString(values.purchaseOrderId),
-      itemId: toOptionalString(values.itemId),
+      items: safeItems,
       acquisitionDate: values.acquisitionDate
         ? new Date(values.acquisitionDate)
         : undefined,
@@ -275,20 +384,6 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
           <FormField
             control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Designation</FormLabel>
-                <FormControl>
-                  <Input placeholder="Nom de l'actif" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="supplierId"
             render={({ field }) => (
               <FormItem>
@@ -307,7 +402,26 @@ export const AssetForm: React.FC<AssetFormProps> = ({
               </FormItem>
             )}
           />
+        </CardGrid>
 
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Designation</FormLabel>
+              <FormControl>
+                <Textarea
+                  className="col-span-3 min-h-24"
+                  placeholder="Designation de l'actif"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <CardGrid>
           <FormField
             control={form.control}
             name="purchaseOrderId"
@@ -331,31 +445,10 @@ export const AssetForm: React.FC<AssetFormProps> = ({
 
           <FormField
             control={form.control}
-            name="itemId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Article</FormLabel>
-                <FormControl>
-                  <Combobox
-                    options={itemSelectOptions}
-                    selected={field.value || undefined}
-                    onSelect={(value) => {
-                      form.setValue('itemId', value)
-                    }}
-                    placeholder="Selectionner un article"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="acquisitionDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Acquisition</FormLabel>
+                <FormLabel>Date acquisition</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value || undefined}
@@ -454,6 +547,127 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           )}
         </CardGrid>
 
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">Articles</h3>
+          </div>
+
+          <div className="border rounded-t-md">
+            <Table className="font-poppins text-[0.9rem] w-full font-regular hide-scrollbar-print text-foreground">
+              <TableHeader className="print:table-header-group bg-gray-100 border-y">
+                <TableRow className="text-black">
+                  <TableHead className="px-2 py-1 h-5 w-8 text-left font-medium">
+                    N°
+                  </TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">
+                    Reference
+                  </TableHead>
+                  <TableHead className="py-[3px] px-2 h-5">
+                    Article
+                  </TableHead>
+                  <TableHead className="text-left py-[3px] px-2 h-5">
+                    Quantite
+                  </TableHead>
+                  <TableHead className="text-right py-[3px] px-2 h-5">
+                    Prix Unitaire
+                  </TableHead>
+                  <TableHead className="text-right py-[3px] px-2 h-5">
+                    Total
+                  </TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {fields.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-16 text-center">
+                      Aucun article ajoute.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  fields.map((fieldItem, idx) => {
+                    const item = watchedItems?.[idx] || fieldItem
+                    const itemRef = item.itemId
+                      ? itemLookup.get(item.itemId)?.sku ||
+                        itemLookup.get(item.itemId)?.id ||
+                        '-'
+                      : '-'
+
+                    const lineTotal =
+                      (item.quantity ?? 0) * (item.estimatedUnitCost ?? 0)
+
+                    return (
+                      <TableRow key={fieldItem.id} className="h-5 p-0">
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {idx + 1}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          {itemRef}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5">
+                          <span
+                            className="cursor-pointer hover:underline"
+                            onClick={() =>
+                              handleEditItemClick(idx, item as ArticleItem)
+                            }
+                          >
+                            {item.itemName || '-'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-left py-[3px] px-2 h-5">
+                          {item.quantity
+                            ? `${item.quantity} ${item.unit || ''}`
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-right py-[3px] px-2 h-5">
+                          {formatPrice(item.estimatedUnitCost, item.currency)}
+                        </TableCell>
+                        <TableCell className="text-right py-[3px] px-2 h-5">
+                          {formatPrice(lineTotal, item.currency)}
+                        </TableCell>
+                        <TableCell className="py-[3px] px-2 h-5 text-right">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => remove(idx)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+            <Button
+              variant="outline"
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                handleAddItemClick()
+              }}
+              className={cn(
+                'flex w-full h-24 justify-center gap-1 text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30 hover:bg-gray-100 text-md border-dashed broder-dash py-4',
+                'h-fit'
+              )}
+            >
+              <Icons.plus className="w-6 h-6 transition-transform duration-200 group-hover:scale-110" />
+              <span className="text-base font-medium">Ajouter Un Article</span>
+            </Button>
+          </div>
+        </div>
+
+        <AssetArticleDialog
+          open={isDialogOpen}
+          onOpenChange={handleDialogOpen}
+          initialData={draftItem}
+          onSave={handleDialogSave}
+          itemsOptions={itemsOptions}
+        />
+
         <FormField
           control={form.control}
           name="notes"
@@ -478,7 +692,7 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           <h3 className="text-sm font-medium">Pieces jointes</h3>
           <ProcurementUploader
             target="asset"
-            targetId={assetId}
+            targetId={assetId ?? reference}
             uploadPath={uploadPath}
             initialAttachments={attachments}
             onAttachmentAdded={(attachment) => {
@@ -493,10 +707,12 @@ export const AssetForm: React.FC<AssetFormProps> = ({
           />
         </div>
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (assetId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
+            {submitLabel || (assetId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
   )

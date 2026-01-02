@@ -16,6 +16,7 @@ export type ItemRow = {
   id: string
   name: string
   sku: string | null
+  category: string | null
   unit: string | null
   description: string | null
   isActive: boolean
@@ -81,6 +82,11 @@ export function ItemsTable({ data, userRole }: ItemsTableProps) {
       )
     },
 
+    {
+      accessorKey: 'category',
+      header: 'Categorie',
+      cell: ({ row }) => row.original.category || '-'
+    },
     {
       accessorKey: 'unit',
       header: 'Unite',

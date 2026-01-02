@@ -16,10 +16,12 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import { createItem, updateItem } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
-import { RAW_MATERIAL_UNITS_ARR } from '@/config/global'
+import {
+  PROCUREMENT_CATEGORY_TYPES_ARR,
+  RAW_MATERIAL_UNITS_ARR
+} from '@/config/global'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
@@ -29,6 +31,7 @@ import * as z from 'zod'
 const itemFormSchema = z.object({
   name: z.string().min(1, 'Nom requis'),
   sku: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   unit: z.string().optional().nullable(),
   isActive: z.boolean().optional().nullable()
@@ -59,7 +62,8 @@ export const ItemForm: React.FC<ItemFormProps> = ({
     resolver: zodResolver(itemFormSchema),
     defaultValues: {
       name: defaultValues?.name ?? '',
-      sku: defaultValues?.sku ?? generateId('PI'),
+      sku: defaultValues?.sku ?? '',
+      category: defaultValues?.category ?? '',
       description: defaultValues?.description ?? '',
       unit: defaultValues?.unit ?? '',
       isActive: defaultValues?.isActive ?? true
@@ -73,11 +77,18 @@ export const ItemForm: React.FC<ItemFormProps> = ({
       value: unit
     }))
   }, [])
+  const categorySelectOptions = React.useMemo(() => {
+    return PROCUREMENT_CATEGORY_TYPES_ARR.map((category) => ({
+      label: category,
+      value: category
+    }))
+  }, [])
 
   const onSubmit = (values: ItemFormValues) => {
     const payload = {
       name: values.name,
       sku: toOptionalString(values.sku),
+      category: toOptionalString(values.category),
       description: toOptionalString(values.description),
       unit: toOptionalString(values.unit),
       isActive: values.isActive ?? true
@@ -141,21 +152,28 @@ export const ItemForm: React.FC<ItemFormProps> = ({
         </div>
 
         <input type="hidden" {...form.register('sku')} />
+
         <CardGrid>
           <FormField
             control={form.control}
-            name="name"
+            name="isActive"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nom</FormLabel>
+              <FormItem className="col-span-3 flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                <div className="space-y-0.5">
+                  <FormLabel>Actif</FormLabel>
+                  <div className="text-sm text-muted-foreground">
+                    Disponible dans les selections
+                  </div>
+                </div>
                 <FormControl>
-                  <Input placeholder="Designation" {...field} />
+                  <Switch
+                    checked={field.value ?? true}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
-                <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="unit"
@@ -176,24 +194,40 @@ export const ItemForm: React.FC<ItemFormProps> = ({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
-            name="isActive"
+            name="category"
             render={({ field }) => (
-              <FormItem className="col-span-3 flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                <div className="space-y-0.5">
-                  <FormLabel>Actif</FormLabel>
-                  <div className="text-sm text-muted-foreground">
-                    Disponible dans les selections
-                  </div>
-                </div>
+              <FormItem>
+                <FormLabel>Categorie</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value ?? true}
-                    onCheckedChange={field.onChange}
+                  <Combobox
+                    options={categorySelectOptions}
+                    selected={field.value || ''}
+                    onSelect={(value) => {
+                      form.setValue('category', value)
+                    }}
+                    placeholder="Selectionner une categorie"
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="col-span-3">
+                <FormLabel>Designation</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    className="min-h-32"
+                    placeholder="Designation"
+                  />
+                </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -219,10 +253,12 @@ export const ItemForm: React.FC<ItemFormProps> = ({
           )}
         />
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (itemId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
+            {submitLabel || (itemId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
   )

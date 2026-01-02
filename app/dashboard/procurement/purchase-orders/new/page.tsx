@@ -5,6 +5,7 @@ import {
   listRequisitions,
   listProcurementSuppliers
 } from '@/lib/procurement/actions'
+import { generateId } from '@/helpers/id-generator'
 import { PurchaseOrderForm } from '../_components/purchase-order.form'
 
 const Page = async () => {
@@ -29,6 +30,7 @@ const Page = async () => {
         </p>
       </div>
       <PurchaseOrderForm
+        defaultValues={{ reference: generateId('PO') }}
         itemsOptions={itemsOptions}
         suppliersOptions={suppliersOptions}
         requisitionsOptions={requisitionsOptions}

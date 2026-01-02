@@ -149,6 +149,21 @@ export const CATEGORY_TYPES = [
 ] as const
 export const CATEGORY_TYPES_ARR: string[] = [...CATEGORY_TYPES]
 
+// Procurement categories
+export const PROCUREMENT_CATEGORY_TYPES = [
+  'Matieres premieres',
+  'Composants',
+  'Consommables de fabrication',
+  'Outillage et equipements',
+  'Emballage et expedition',
+  'Maintenance et pieces de rechange',
+  'Services (sous-traitance)',
+  'Fournitures generales'
+] as const
+export const PROCUREMENT_CATEGORY_TYPES_ARR: string[] = [
+  ...PROCUREMENT_CATEGORY_TYPES
+]
+
 // Car energy types
 export const CAR_ENERGY_TYPES = ['Diesel', 'Essence'] as const
 export const CAR_ENERGY_TYPES_ARR: string[] = [...CAR_ENERGY_TYPES]

@@ -30,7 +30,6 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import { createRequisition, updateRequisition } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -123,11 +122,15 @@ const toOptionalNumber = (value: number | null | undefined) => {
   return Number.isNaN(value) ? null : value
 }
 
-const formatPrice = (price: number | null | undefined) => {
+const formatPrice = (
+  price: number | null | undefined,
+  currency?: string | null
+) => {
   if (price === null || price === undefined) return '-'
+  const resolvedCurrency = currency || 'DZD'
   return new Intl.NumberFormat('fr-DZ', {
     style: 'currency',
-    currency: 'DZD',
+    currency: resolvedCurrency,
     minimumFractionDigits: 2
   }).format(price)
 }
@@ -324,20 +327,6 @@ const RequisitionFormBase: React.FC<RequisitionFormBaseProps> = ({
     if (!createdAt) return null
     return new Date(createdAt)
   }, [createdAt])
-
-  React.useEffect(() => {
-    const currentReference = form.getValues('reference')
-    if (!currentReference) {
-      form.setValue('reference', generateId('PR'), { shouldDirty: false })
-    }
-
-    const currentCreatedAt = form.getValues('createdAt')
-    if (!currentCreatedAt) {
-      form.setValue('createdAt', new Date().toISOString(), {
-        shouldDirty: false
-      })
-    }
-  }, [form])
 
   return (
     <Form {...form}>
@@ -543,10 +532,10 @@ const RequisitionFormBase: React.FC<RequisitionFormBaseProps> = ({
                             : '-'}
                         </TableCell>
                         <TableCell className="text-right py-[3px] px-2 h-5">
-                          {formatPrice(item.estimatedUnitCost)}
+                          {formatPrice(item.estimatedUnitCost, item.currency)}
                         </TableCell>
                         <TableCell className="text-right py-[3px] px-2 h-5">
-                          {formatPrice(lineTotal)}
+                          {formatPrice(lineTotal, item.currency)}
                         </TableCell>
                         {allowItemActions && (
                           <TableCell className="py-[3px] px-2 h-5 text-right">
@@ -570,7 +559,11 @@ const RequisitionFormBase: React.FC<RequisitionFormBaseProps> = ({
             {allowItemActions && (
               <Button
                 variant={'outline'}
-                onClick={handleAddItemClick}
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  handleAddItemClick()
+                }}
                 className={cn(
                   'flex w-full h-24 justify-center gap-1  text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30  hover:bg-gray-100 text-md border-dashed broder-dash py-4',
                   'h-fit'
@@ -599,7 +592,7 @@ const RequisitionFormBase: React.FC<RequisitionFormBaseProps> = ({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Note internes</FormLabel>
+              <FormLabel>Notes internes</FormLabel>
               <FormControl>
                 <Textarea
                   className="min-h-24"

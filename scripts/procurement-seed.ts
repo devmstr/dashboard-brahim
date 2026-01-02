@@ -216,13 +216,17 @@ async function main() {
           itemId: items[0].id,
           description: items[0].description,
           quantity: 10,
-          unit: items[0].unit
+          unit: items[0].unit,
+          estimatedUnitCost: 4800,
+          currency: 'DZD'
         },
         {
           itemId: items[1].id,
           description: items[1].description,
           quantity: 5,
-          unit: items[1].unit
+          unit: items[1].unit,
+          estimatedUnitCost: 12500,
+          currency: 'DZD'
         }
       ]
     },
@@ -238,7 +242,9 @@ async function main() {
           itemId: items[2].id,
           description: items[2].description,
           quantity: 25,
-          unit: items[2].unit
+          unit: items[2].unit,
+          estimatedUnitCost: 1900,
+          currency: 'DZD'
         }
       ]
     }
@@ -263,7 +269,9 @@ async function main() {
             itemId: line.itemId,
             description: line.description,
             quantity: line.quantity,
-            unit: line.unit
+            unit: line.unit,
+            estimatedUnitCost: line.estimatedUnitCost,
+            currency: line.currency
           }))
         }
       },
@@ -280,7 +288,9 @@ async function main() {
             itemId: line.itemId,
             description: line.description,
             quantity: line.quantity,
-            unit: line.unit
+            unit: line.unit,
+            estimatedUnitCost: line.estimatedUnitCost,
+            currency: line.currency
           }))
         }
       }
@@ -544,6 +554,7 @@ async function main() {
       reference: generateId('CT'),
       serviceId: services[8]?.id,
       supplierId: suppliers[0].id,
+      title: 'Contrat annuel maintenance',
       startDate: addDays(-20),
       endDate: addDays(340),
       value: 520000,
@@ -561,6 +572,7 @@ async function main() {
         reference: contract.reference,
         serviceId: contract.serviceId ?? null,
         supplierId: contract.supplierId,
+        title: contract.title ?? null,
         startDate: contract.startDate,
         endDate: contract.endDate,
         value: contract.value,
@@ -572,6 +584,7 @@ async function main() {
       update: {
         serviceId: contract.serviceId ?? null,
         supplierId: contract.supplierId,
+        title: contract.title ?? null,
         startDate: contract.startDate,
         endDate: contract.endDate,
         value: contract.value,
@@ -590,12 +603,21 @@ async function main() {
       name: 'Poste de soudure MIG',
       supplierId: suppliers[1].id,
       purchaseOrderId: purchaseOrderResults[1]?.id,
-      itemId: items[2].id,
       acquisitionDate: addDays(-5),
       value: 320000,
       currency: 'DZD',
       notes: 'Materiel atelier.',
-      status: ProcurementAssetStatus.ACTIVE
+      status: ProcurementAssetStatus.ACTIVE,
+      items: [
+        {
+          itemId: items[2].id,
+          description: 'Materiel atelier.',
+          quantity: 1,
+          unit: items[2].unit ?? null,
+          estimatedUnitCost: 320000,
+          currency: 'DZD'
+        }
+      ]
     }
   ]
 
@@ -609,25 +631,48 @@ async function main() {
         name: asset.name,
         supplierId: asset.supplierId,
         purchaseOrderId: asset.purchaseOrderId,
-        itemId: asset.itemId,
         acquisitionDate: asset.acquisitionDate,
         value: asset.value,
         currency: asset.currency,
         notes: asset.notes,
         status: asset.status,
-        createdById: userId
+        createdById: userId,
+        Items: asset.items?.length
+          ? {
+              create: asset.items.map((item) => ({
+                itemId: item.itemId,
+                description: item.description,
+                quantity: item.quantity,
+                unit: item.unit,
+                estimatedUnitCost: item.estimatedUnitCost,
+                currency: item.currency
+              }))
+            }
+          : undefined
       },
       update: {
         serviceId: asset.serviceId ?? null,
         name: asset.name,
         supplierId: asset.supplierId,
         purchaseOrderId: asset.purchaseOrderId,
-        itemId: asset.itemId,
         acquisitionDate: asset.acquisitionDate,
         value: asset.value,
         currency: asset.currency,
         notes: asset.notes,
-        status: asset.status
+        status: asset.status,
+        Items: asset.items
+          ? {
+              deleteMany: {},
+              create: asset.items.map((item) => ({
+                itemId: item.itemId,
+                description: item.description,
+                quantity: item.quantity,
+                unit: item.unit,
+                estimatedUnitCost: item.estimatedUnitCost,
+                currency: item.currency
+              }))
+            }
+          : undefined
       }
     })
     console.log(`Asset: ${result.reference}`)

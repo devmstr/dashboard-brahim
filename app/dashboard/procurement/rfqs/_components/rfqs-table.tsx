@@ -37,7 +37,7 @@ export function RfqsTable({ data, userRole }: RfqsTableProps) {
         await deleteRfq(row.id)
         toast({
           title: 'Supprime',
-          description: 'Le RFQ a ete supprime.',
+          description: 'La demande de devis a ete supprimee.',
           variant: 'success'
         })
         router.refresh()
@@ -47,7 +47,7 @@ export function RfqsTable({ data, userRole }: RfqsTableProps) {
           description:
             error instanceof Error
               ? error.message
-              : 'Impossible de supprimer le RFQ.',
+              : 'Impossible de supprimer la demande de devis.',
           variant: 'destructive'
         })
       }
@@ -97,7 +97,7 @@ export function RfqsTable({ data, userRole }: RfqsTableProps) {
   return (
     <ProcurementDataTable
       title="Appels d'offres / Devis"
-      description="Centralisez les RFQs et les devis fournisseurs."
+      description="Centralisez les demandes de devis et les devis fournisseurs."
       data={data}
       columns={columns}
       searchPlaceholder="Rechercher par reference, statut..."

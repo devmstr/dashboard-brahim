@@ -14,16 +14,33 @@ const Page = async ({ params }: PageProps) => {
 
   if (!supplier) notFound()
 
+  const { Address, ...supplierRecord } = supplier
   const formDefaults = {
-    name: supplier.name,
-    code: supplier.code ?? '',
-    contactName: supplier.contactName ?? '',
-    email: supplier.email ?? '',
-    phone: supplier.phone ?? '',
-    website: supplier.website ?? '',
-    taxIdNumber: supplier.taxIdNumber ?? '',
-    tradeRegisterNumber: supplier.tradeRegisterNumber ?? '',
-    notes: supplier.notes ?? ''
+    name: supplierRecord.name,
+    code: supplierRecord.code ?? '',
+    category: supplierRecord.category ?? '',
+    contactName: supplierRecord.contactName ?? '',
+    email: supplierRecord.email ?? '',
+    phone: supplierRecord.phone ?? '',
+    website: supplierRecord.website ?? '',
+    fiscalNumber: supplierRecord.fiscalNumber ?? '',
+    taxIdNumber: supplierRecord.taxIdNumber ?? '',
+    registrationArticle: supplierRecord.registrationArticle ?? '',
+    statisticalIdNumber: supplierRecord.statisticalIdNumber ?? '',
+    tradeRegisterNumber: supplierRecord.tradeRegisterNumber ?? '',
+    approvalNumber: supplierRecord.approvalNumber ?? '',
+    notes: supplierRecord.notes ?? '',
+    ...(Address && {
+      addressId: Address.id ?? undefined,
+      street: Address.street ?? undefined,
+      cityId: Address.cityId ?? undefined,
+      provinceId: Address.provinceId ?? undefined,
+      countryId: Address.countryId ?? undefined,
+      country: Address.Country?.name ?? undefined,
+      province: Address.Province?.name ?? undefined,
+      city: Address.City?.name ?? undefined,
+      zip: Address.City?.zipCode ?? undefined
+    })
   }
 
   return (

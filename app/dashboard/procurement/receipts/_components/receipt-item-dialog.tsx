@@ -16,7 +16,7 @@ import { toast } from '@/hooks/use-toast'
 export interface ReceiptItem {
   purchaseOrderItemId?: string | null
   itemId: string | null
-  quantityReceived: number | null
+  quantity: number | null
   condition: string | null
   notes: string | null
 }
@@ -40,7 +40,7 @@ interface ReceiptItemDialogProps {
 const emptyItem: ReceiptItem = {
   purchaseOrderItemId: null,
   itemId: null,
-  quantityReceived: null,
+  quantity: null,
   condition: '',
   notes: ''
 }
@@ -131,15 +131,13 @@ export function ReceiptItemDialog({
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <label className="text-right text-sm font-medium">
-              Quantite recue
-            </label>
+            <label className="text-right text-sm font-medium">Quantite</label>
             <Input
               type="number"
-              value={draftItem.quantityReceived ?? ''}
+              value={draftItem.quantity ?? ''}
               onChange={(e) =>
                 updateDraft(
-                  'quantityReceived',
+                  'quantity',
                   toNullableNumber(e.target.value)
                 )
               }

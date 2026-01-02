@@ -3,6 +3,7 @@ import {
   listProcurementServices,
   listProcurementSuppliers
 } from '@/lib/procurement/actions'
+import { generateId } from '@/helpers/id-generator'
 import { ContractForm } from '../_components/contract.form'
 
 const Page = async () => {
@@ -20,6 +21,7 @@ const Page = async () => {
         </p>
       </div>
       <ContractForm
+        defaultValues={{ reference: generateId('CT') }}
         suppliersOptions={suppliersOptions}
         servicesOptions={servicesOptions}
       />

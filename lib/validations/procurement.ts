@@ -1,14 +1,22 @@
 import * as z from 'zod'
 
-export const requisitionItemInputSchema = z.object({
+const lineItemBaseSchema = z.object({
   itemId: z.string().optional().nullable(),
-  itemName: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   quantity: z.number().optional().nullable(),
-  unit: z.string().optional().nullable(),
+  unit: z.string().optional().nullable()
+})
+
+const costedLineItemSchema = lineItemBaseSchema.extend({
   estimatedUnitCost: z.number().optional().nullable(),
   currency: z.string().optional().nullable()
 })
+
+const namedCostedLineItemSchema = costedLineItemSchema.extend({
+  itemName: z.string().optional().nullable()
+})
+
+export const requisitionItemInputSchema = namedCostedLineItemSchema
 
 export const requisitionInputSchema = z.object({
   reference: z.string().min(1),
@@ -19,12 +27,7 @@ export const requisitionInputSchema = z.object({
   items: z.array(requisitionItemInputSchema).optional()
 })
 
-export const rfqLineInputSchema = z.object({
-  itemId: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  quantity: z.number().optional().nullable(),
-  unit: z.string().optional().nullable()
-})
+export const rfqLineInputSchema = costedLineItemSchema
 
 export const rfqInputSchema = z.object({
   reference: z.string().min(1),
@@ -35,11 +38,7 @@ export const rfqInputSchema = z.object({
   lines: z.array(rfqLineInputSchema).optional()
 })
 
-export const purchaseOrderItemInputSchema = z.object({
-  itemId: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  quantity: z.number().optional().nullable(),
-  unit: z.string().optional().nullable(),
+export const purchaseOrderItemInputSchema = lineItemBaseSchema.extend({
   unitPrice: z.number().optional().nullable(),
   total: z.number().optional().nullable()
 })
@@ -98,17 +97,29 @@ export const supplierInvoiceInputSchema = z.object({
 export const supplierInputSchema = z.object({
   name: z.string().min(1),
   code: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
   contactName: z.string().optional().nullable(),
   email: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   website: z.string().optional().nullable(),
+  fiscalNumber: z.string().optional().nullable(),
   taxIdNumber: z.string().optional().nullable(),
+  registrationArticle: z.string().optional().nullable(),
+  statisticalIdNumber: z.string().optional().nullable(),
   tradeRegisterNumber: z.string().optional().nullable(),
+  approvalNumber: z.string().optional().nullable(),
+  addressId: z.string().optional().nullable(),
+  street: z.string().optional().nullable(),
+  cityId: z.string().optional().nullable(),
+  provinceId: z.string().optional().nullable(),
+  countryId: z.string().optional().nullable(),
+  zip: z.string().optional().nullable(),
   notes: z.string().optional().nullable()
 })
 
 export const contractInputSchema = z.object({
   reference: z.string().min(1),
+  title: z.string().optional().nullable(),
   supplierId: z.string().min(1),
   serviceId: z.string().min(1),
   startDate: z.coerce.date(),
@@ -118,22 +129,25 @@ export const contractInputSchema = z.object({
   notes: z.string().optional().nullable()
 })
 
+export const assetItemInputSchema = namedCostedLineItemSchema
+
 export const assetInputSchema = z.object({
   reference: z.string().min(1),
   name: z.string().min(1),
   supplierId: z.string().optional().nullable(),
   purchaseOrderId: z.string().optional().nullable(),
-  itemId: z.string().optional().nullable(),
   serviceId: z.string().min(1),
   acquisitionDate: z.coerce.date().optional().nullable(),
   value: z.number().optional().nullable(),
   currency: z.string().optional().nullable(),
-  notes: z.string().optional().nullable()
+  notes: z.string().optional().nullable(),
+  items: z.array(assetItemInputSchema).optional()
 })
 
 export const procurementItemInputSchema = z.object({
   name: z.string().min(1),
   sku: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
   description: z.string().optional().nullable(),
   unit: z.string().optional().nullable(),
   isActive: z.boolean().optional().nullable()

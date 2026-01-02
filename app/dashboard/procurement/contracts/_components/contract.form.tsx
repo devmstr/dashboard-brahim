@@ -24,7 +24,6 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import { createContract, updateContract } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -54,6 +53,7 @@ const CONTRACT_STATUS_LABELS: Record<
 
 const contractFormSchema = z.object({
   reference: z.string().min(1, 'Reference requise'),
+  title: z.string().optional().nullable(),
   supplierId: z.string().min(1, 'Fournisseur requis'),
   serviceId: z.string().min(1, 'Service requis'),
   startDate: z.string(),
@@ -128,7 +128,8 @@ export const ContractForm: React.FC<ContractFormProps> = ({
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractFormSchema),
     defaultValues: {
-      reference: defaultValues?.reference ?? generateId('CT'),
+      reference: defaultValues?.reference ?? '',
+      title: defaultValues?.title ?? '',
       supplierId: defaultValues?.supplierId ?? '',
       serviceId: defaultValues?.serviceId ?? '',
       startDate: defaultValues?.startDate ?? '',
@@ -148,6 +149,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
   const onSubmit = (values: ContractFormValues) => {
     const payload = {
       reference: values.reference,
+      title: toOptionalString(values.title),
       supplierId: values.supplierId,
       serviceId: values.serviceId,
       startDate: values.startDate ? new Date(values.startDate) : new Date(),
@@ -261,13 +263,33 @@ export const ContractForm: React.FC<ContractFormProps> = ({
               </FormItem>
             )}
           />
+        </CardGrid>
 
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Titre / Designation</FormLabel>
+              <FormControl>
+                <Textarea
+                  className="min-h-24"
+                  placeholder="Ex: Contrat annuel de maintenance"
+                  {...field}
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <CardGrid>
           <FormField
             control={form.control}
             name="startDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Debut</FormLabel>
+                <FormLabel>Date debut</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value || undefined}
@@ -288,7 +310,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
             name="endDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fin</FormLabel>
+                <FormLabel>Date fin</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value || undefined}
@@ -411,7 +433,7 @@ export const ContractForm: React.FC<ContractFormProps> = ({
           <h3 className="text-sm font-medium">Pieces jointes</h3>
           <ProcurementUploader
             target="contract"
-            targetId={contractId}
+            targetId={contractId ?? reference}
             uploadPath={uploadPath}
             initialAttachments={attachments}
             onAttachmentAdded={(attachment) => {
@@ -426,10 +448,12 @@ export const ContractForm: React.FC<ContractFormProps> = ({
           />
         </div>
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (contractId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
+            {submitLabel || (contractId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
   )

@@ -15,6 +15,7 @@ import * as React from 'react'
 export type ContractRow = {
   id: string
   reference: string
+  title?: string | null
   status: string
   startDate: Date
   endDate: Date | null
@@ -82,6 +83,11 @@ export function ContractsTable({ data, userRole }: ContractsTableProps) {
       )
     },
     {
+      accessorKey: 'title',
+      header: 'Titre',
+      cell: ({ row }) => row.original.title || '-'
+    },
+    {
       accessorKey: 'Supplier.name',
       header: 'Fournisseur',
       cell: ({ row }) => row.original.Supplier?.name || '-'
@@ -125,7 +131,7 @@ export function ContractsTable({ data, userRole }: ContractsTableProps) {
       description="Suivez les contrats fournisseurs."
       data={data}
       columns={columns}
-      searchPlaceholder="Rechercher par reference, fournisseur, statut..."
+      searchPlaceholder="Rechercher par reference, titre, fournisseur, statut..."
       columnVisibilityKey="procurement-contracts-columns"
       userRole={userRole}
       getEditHref={(row) => `/dashboard/procurement/contracts/${row.id}`}

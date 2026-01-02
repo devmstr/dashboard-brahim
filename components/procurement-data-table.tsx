@@ -24,8 +24,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -97,115 +96,130 @@ export function ProcurementDataTable<TData>({
   const canEdit = hasUserRole(userRole, editRoles)
   const canDelete = hasUserRole(userRole, deleteRoles)
 
+  const RowActions = ({
+    original
+  }: {
+    original: TData
+  }) => {
+    const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
+    const editHref = getEditHref?.(original)
+    const hasEditAction = Boolean(editHref || onEdit)
+    const hasDeleteAction = Boolean(onDelete)
+    const extraActions = rowActions?.(original)
+    const showEdit = hasEditAction
+    const showDelete = true
+
+    return (
+      <div className="flex justify-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
+            <Icons.ellipsis className="h-4 w-4" />
+            <span className="sr-only">Ouvrir</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {showEdit ? (
+              editHref && canEdit ? (
+                <DropdownMenuItem asChild>
+                  <Link
+                    className={cn(
+                      buttonVariants({ variant: 'ghost' }),
+                      'flex w-full items-center gap-2 justify-start px-2 py-1.5 h-8 ocus-visible:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0'
+                    )}
+                    href={editHref}
+                  >
+                    <Icons.edit className="h-4 w-4" />
+                    Modifier
+                  </Link>
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  disabled={!canEdit}
+                  onClick={
+                    canEdit && onEdit ? () => onEdit(original) : undefined
+                  }
+                >
+                  <Icons.edit className="mr-2 h-4 w-4" />
+                  Modifier
+                </DropdownMenuItem>
+              )
+            ) : (
+              <DropdownMenuItem disabled>
+                <Icons.edit className="mr-2 h-4 w-4" />
+                Modifier
+              </DropdownMenuItem>
+            )}
+
+            {extraActions ? <DropdownMenuSeparator /> : null}
+            {extraActions}
+
+            {showDelete ? (
+              <>
+                <DropdownMenuSeparator />
+                {hasDeleteAction && canDelete ? (
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault()
+                      setIsDeleteOpen(true)
+                    }}
+                  >
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem disabled>
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </DropdownMenuItem>
+                )}
+              </>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {hasDeleteAction && canDelete ? (
+          <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Supprimer cet enregistrement ?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Cette action est irreversible.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button
+                    className={cn(
+                      buttonVariants({ variant: 'outline' }),
+                      'text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
+                    )}
+                    onClick={() => {
+                      if (!onDelete) return
+                      onDelete(original)
+                      setIsDeleteOpen(false)
+                    }}
+                  >
+                    <Icons.trash className="mr-2 h-4 w-4" />
+                    Supprimer
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : null}
+      </div>
+    )
+  }
+
   const actionColumn: ColumnDef<TData> = React.useMemo(
     () => ({
       id: 'actions',
       enableHiding: false,
       header: () => <span className="flex justify-center">Actions</span>,
       cell: ({ row }) => {
-        const original = row.original
-        const editHref = getEditHref?.(original)
-        const hasEditAction = Boolean(editHref || onEdit)
-        const hasDeleteAction = Boolean(onDelete)
-        const extraActions = rowActions?.(original)
-        const showEdit = hasEditAction
-        const showDelete = true
-
-        return (
-          <div className="flex justify-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex h-8 w-8 items-center justify-center rounded-md border transition-colors hover:bg-muted">
-                <Icons.ellipsis className="h-4 w-4" />
-                <span className="sr-only">Ouvrir</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {showEdit ? (
-                  editHref && canEdit ? (
-                    <DropdownMenuItem asChild>
-                      <Link
-                        className={cn(
-                          buttonVariants({ variant: 'ghost' }),
-                          'flex w-full items-center gap-2 justify-start px-2 py-1.5 h-8 ocus-visible:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0'
-                        )}
-                        href={editHref}
-                      >
-                        <Icons.edit className="h-4 w-4" />
-                        Modifier
-                      </Link>
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      disabled={!canEdit}
-                      onClick={
-                        canEdit && onEdit ? () => onEdit(original) : undefined
-                      }
-                    >
-                      <Icons.edit className="mr-2 h-4 w-4" />
-                      Modifier
-                    </DropdownMenuItem>
-                  )
-                ) : (
-                  <DropdownMenuItem disabled>
-                    <Icons.edit className="mr-2 h-4 w-4" />
-                    Modifier
-                  </DropdownMenuItem>
-                )}
-
-                {extraActions ? <DropdownMenuSeparator /> : null}
-                {extraActions}
-
-                {showDelete ? (
-                  <>
-                    <DropdownMenuSeparator />
-                    {hasDeleteAction && canDelete ? (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <DropdownMenuItem>
-                            <Icons.trash className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              Supprimer cet enregistrement ?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Cette action est irreversible.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction asChild>
-                              <Button
-                                className={cn(
-                                  buttonVariants({ variant: 'outline' }),
-                                  'text-red-500 focus:ring-red-500 hover:bg-red-500 hover:text-white border-red-500'
-                                )}
-                                onClick={() => {
-                                  if (!canDelete || !onDelete) return
-                                  onDelete(original)
-                                }}
-                              >
-                                <Icons.trash className="mr-2 h-4 w-4" />
-                                Supprimer
-                              </Button>
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    ) : (
-                      <DropdownMenuItem disabled>
-                        <Icons.trash className="mr-2 h-4 w-4" />
-                        Supprimer
-                      </DropdownMenuItem>
-                    )}
-                  </>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )
+        return <RowActions original={row.original} />
       }
     }),
     [canDelete, canEdit, getEditHref, onDelete, onEdit, rowActions]

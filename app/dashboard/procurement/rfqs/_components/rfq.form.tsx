@@ -31,7 +31,6 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import { createRfq, updateRfq } from '@/lib/procurement/actions'
 import { cn } from '@/lib/utils'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -75,7 +74,9 @@ const rfqFormSchema = z.object({
         itemId: z.string().optional().nullable(),
         description: z.string().optional().nullable(),
         quantity: z.number().optional().nullable(),
-        unit: z.string().optional().nullable()
+        unit: z.string().optional().nullable(),
+        estimatedUnitCost: z.number().optional().nullable(),
+        currency: z.string().optional().nullable()
       })
     )
     .optional()
@@ -124,6 +125,16 @@ const toOptionalNumber = (value: number | null | undefined) => {
   return Number.isNaN(value) ? null : value
 }
 
+const formatPrice = (price: number | null | undefined, currency?: string | null) => {
+  if (price === null || price === undefined) return '-'
+  const resolvedCurrency = currency || 'DZD'
+  return new Intl.NumberFormat('fr-DZ', {
+    style: 'currency',
+    currency: resolvedCurrency,
+    minimumFractionDigits: 2
+  }).format(price)
+}
+
 export const RfqForm: React.FC<RfqFormProps> = ({
   rfqId,
   defaultValues,
@@ -170,7 +181,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
   const form = useForm<RfqFormValues>({
     resolver: zodResolver(rfqFormSchema),
     defaultValues: {
-      reference: defaultValues?.reference ?? generateId('RF'),
+      reference: defaultValues?.reference ?? '',
       serviceId: defaultValues?.serviceId ?? '',
       requisitionId: defaultValues?.requisitionId ?? '',
       neededBy: defaultValues?.neededBy ?? undefined,
@@ -204,7 +215,9 @@ export const RfqForm: React.FC<RfqFormProps> = ({
         itemId: line.itemId ?? null,
         description: line.description ?? '',
         quantity: line.quantity ?? null,
-        unit: line.unit ?? ''
+        unit: line.unit ?? '',
+        estimatedUnitCost: line.estimatedUnitCost ?? null,
+        currency: line.currency ?? 'DZD'
       })
       setEditingIndex(index)
       setIsDialogOpen(true)
@@ -238,11 +251,17 @@ export const RfqForm: React.FC<RfqFormProps> = ({
           itemId: line.itemId || null,
           description: toOptionalString(line.description),
           quantity: toOptionalNumber(line.quantity),
-          unit: toOptionalString(line.unit)
+          unit: toOptionalString(line.unit),
+          estimatedUnitCost: toOptionalNumber(line.estimatedUnitCost),
+          currency: toOptionalString(line.currency)
         }))
         .filter((line) => {
           return Boolean(
-            line.itemId || line.description || line.quantity || line.unit
+            line.itemId ||
+              line.description ||
+              line.quantity ||
+              line.unit ||
+              line.estimatedUnitCost
           )
         }) ?? []
 
@@ -264,7 +283,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
           })
           toast({
             title: 'Enregistre',
-            description: 'Le RFQ a ete mis a jour.',
+            description: 'La demande de devis a ete mise a jour.',
             variant: 'success'
           })
           router.refresh()
@@ -274,7 +293,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
         const created = await createRfq(payload)
         toast({
           title: 'Cree',
-          description: 'Le RFQ a ete cree.',
+          description: 'La demande de devis a ete creee.',
           variant: 'success'
         })
         router.push(`/dashboard/procurement/rfqs/${created.id}`)
@@ -284,7 +303,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
           description:
             error instanceof Error
               ? error.message
-              : "Impossible d'enregistrer le RFQ.",
+              : "Impossible d'enregistrer la demande de devis.",
           variant: 'destructive'
         })
       }
@@ -365,7 +384,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
             name="neededBy"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Besoin</FormLabel>
+                <FormLabel>Besoin le</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value || undefined}
@@ -432,13 +451,19 @@ export const RfqForm: React.FC<RfqFormProps> = ({
                   <TableHead className="text-left py-[3px] px-2 h-5">
                     Unite
                   </TableHead>
+                  <TableHead className="text-right py-[3px] px-2 h-5">
+                    Prix Unitaire
+                  </TableHead>
+                  <TableHead className="text-right py-[3px] px-2 h-5">
+                    Total
+                  </TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {fields.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-16 text-center">
+                    <TableCell colSpan={8} className="h-16 text-center">
                       Aucune ligne ajoutee.
                     </TableCell>
                   </TableRow>
@@ -454,6 +479,8 @@ export const RfqForm: React.FC<RfqFormProps> = ({
                       line.itemId && itemLookup.get(line.itemId)?.name
                         ? itemLookup.get(line.itemId)?.name
                         : line.description || '-'
+                    const lineTotal =
+                      (line.quantity ?? 0) * (line.estimatedUnitCost ?? 0)
 
                     return (
                       <TableRow key={fieldItem.id} className="h-5 p-0">
@@ -480,6 +507,12 @@ export const RfqForm: React.FC<RfqFormProps> = ({
                         </TableCell>
                         <TableCell className="text-left py-[3px] px-2 h-5">
                           {line.unit || '-'}
+                        </TableCell>
+                        <TableCell className="text-right py-[3px] px-2 h-5">
+                          {formatPrice(line.estimatedUnitCost, line.currency)}
+                        </TableCell>
+                        <TableCell className="text-right py-[3px] px-2 h-5">
+                          {formatPrice(lineTotal, line.currency)}
                         </TableCell>
                         <TableCell className="py-[3px] px-2 h-5 text-right">
                           <Button
@@ -544,7 +577,7 @@ export const RfqForm: React.FC<RfqFormProps> = ({
           <h3 className="text-sm font-medium">Pieces jointes</h3>
           <ProcurementUploader
             target="rfq"
-            targetId={rfqId}
+            targetId={rfqId ?? reference}
             uploadPath={uploadPath}
             initialAttachments={attachments}
             onAttachmentAdded={(attachment) => {
@@ -559,10 +592,12 @@ export const RfqForm: React.FC<RfqFormProps> = ({
           />
         </div>
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (rfqId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
+            {submitLabel || (rfqId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
   )

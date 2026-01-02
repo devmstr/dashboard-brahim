@@ -45,11 +45,11 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 import { usePersistedState } from '@/hooks/use-persisted-state'
-import { StatusBudge } from './status-badge'
+import { ProcurementTypeBadge, StatusBudge } from './status-badge'
 import type { ProcurementRecord } from '@/types/procurement'
 import { cn } from '@/lib/utils'
-import { Badge } from './ui/badge'
 import { DateRange, DateRangeFilter } from '@/components/DateRangeFilter'
 import { Icons } from './icons'
 import { usePathname, useRouter } from 'next/navigation'
@@ -83,7 +83,7 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
 
   const typeLabel = (reference: string) => {
     if (reference.startsWith('PR')) return "Demande d'achat"
-    if (reference.startsWith('RF')) return 'RFQ'
+    if (reference.startsWith('RF')) return 'Demande de devis'
     if (reference.startsWith('PO')) return 'Bon de commande'
     if (reference.startsWith('RC')) return 'Reception'
     if (reference.startsWith('SI')) return 'Facture fournisseur'
@@ -173,7 +173,7 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         accessorFn: (row) => typeLabel(row.reference),
         header: 'Type',
         cell: ({ row }) => (
-          <Badge variant="outline">{typeLabel(row.original.reference)}</Badge>
+          <ProcurementTypeBadge type={typeLabel(row.original.reference)} />
         )
       },
       {
@@ -217,7 +217,10 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
         accessorKey: 'items',
         header: 'Articles',
         cell: ({ row }) => (
-          <Badge variant="secondary" className="font-semibold">
+          <Badge
+            variant="secondary"
+            className="rounded-full border border-[#0d8bf2] bg-[#e6f9ff] px-2 py-0.5 text-xs font-semibold text-[#0d8bf2]"
+          >
             {row.original.items} Article(s)
           </Badge>
         )
@@ -440,11 +443,6 @@ export const ProcurementTable: React.FC<ProcurementTableProps> = ({ data }) => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button asChild>
-                <Link href="/dashboard/procurement/new">
-                  <Plus className="mr-2 h-4 w-4" /> Nouvelle demande
-                </Link>
-              </Button>
             </div>
           </div>
         </div>

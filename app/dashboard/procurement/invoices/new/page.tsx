@@ -5,6 +5,7 @@ import {
   listReceipts,
   listProcurementSuppliers
 } from '@/lib/procurement/actions'
+import { generateId } from '@/helpers/id-generator'
 import { SupplierInvoiceForm } from '../_components/supplier-invoice.form'
 
 const Page = async () => {
@@ -29,6 +30,7 @@ const Page = async () => {
         </p>
       </div>
       <SupplierInvoiceForm
+        defaultValues={{ reference: generateId('SI') }}
         suppliersOptions={suppliersOptions}
         purchaseOrdersOptions={purchaseOrdersOptions}
         receiptsOptions={receiptsOptions}

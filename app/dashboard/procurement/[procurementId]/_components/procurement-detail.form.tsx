@@ -34,7 +34,7 @@ import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
 const procurementSchema = z.object({
-  reference: z.string().min(2, 'Référence requise'),
+  reference: z.string().min(2, 'Reference requise'),
   vendor: z.string().min(2, 'Fournisseur requis'),
   contactName: z.string().min(2, 'Contact requis'),
   contactEmail: z.string().email('Email invalide').optional().or(z.literal('')),
@@ -115,7 +115,7 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
             name="reference"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Référence</FormLabel>
+                <FormLabel>Reference</FormLabel>
                 <FormControl>
                   <Input placeholder="PO-2024-001" {...field} />
                 </FormControl>
@@ -175,7 +175,7 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Téléphone</FormLabel>
+                <FormLabel>Telephone</FormLabel>
                 <FormControl>
                   <Input placeholder="+213" {...field} />
                 </FormControl>
@@ -241,7 +241,7 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
             name="expectedDate"
             render={({ field }) => (
               <FormItem className="">
-                <FormLabel>Échéance</FormLabel>
+                <FormLabel>Date echeance</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={form.getValues('expectedDate')}
@@ -268,7 +268,7 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
             name="items"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Postes</FormLabel>
+                <FormLabel>Articles</FormLabel>
                 <FormControl>
                   <Input type="number" min={1} {...field} />
                 </FormControl>
@@ -324,7 +324,7 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
               <FormItem className="md:col-span-2">
                 <FormLabel>Conditions de paiement</FormLabel>
                 <FormControl>
-                  <Input placeholder="ex: Net 30" {...field} />
+                  <Input placeholder="Ex: 30 jours" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -351,10 +351,12 @@ export const ProcurementDetailForm: React.FC<ProcurementDetailFormProps> = ({
           )}
         />
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}{' '}
-          Sauvegarder
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}{' '}
+            Sauvegarder
+          </Button>
+        </div>
       </form>
     </Form>
   )

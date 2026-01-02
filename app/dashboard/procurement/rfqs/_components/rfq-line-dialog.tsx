@@ -10,6 +10,13 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Combobox } from '@/components/combobox'
 import { toast } from '@/hooks/use-toast'
 import { RAW_MATERIAL_UNITS_ARR } from '@/config/global'
@@ -19,12 +26,15 @@ export interface RfqLineItem {
   description: string | null
   quantity: number | null
   unit: string | null
+  estimatedUnitCost: number | null
+  currency: string | null
 }
 
 export type ProcurementItemOption = {
   id: string
   name: string
   sku?: string | null
+  category?: string | null
   unit?: string | null
   description?: string | null
 }
@@ -41,7 +51,9 @@ const emptyItem: RfqLineItem = {
   itemId: null,
   description: '',
   quantity: null,
-  unit: ''
+  unit: '',
+  estimatedUnitCost: null,
+  currency: 'DZD'
 }
 
 const toNullableNumber = (value: string) => {
@@ -95,6 +107,12 @@ export function RfqLineDialog({
             if (selected.description && !prev.description) {
               newState.description = selected.description
             }
+            if (
+              selected.category !== 'Matieres premieres' &&
+              newState.currency !== 'DZD'
+            ) {
+              newState.currency = 'DZD'
+            }
           }
         }
 
@@ -103,6 +121,11 @@ export function RfqLineDialog({
     },
     [itemLookup]
   )
+
+  const selectedItemCategory = draftItem.itemId
+    ? itemLookup.get(draftItem.itemId)?.category ?? null
+    : null
+  const allowForeignCurrency = selectedItemCategory === 'Matieres premieres'
 
   const handleSave = React.useCallback(() => {
     if (!draftItem.itemId && !draftItem.description) {
@@ -173,6 +196,41 @@ export function RfqLineDialog({
                 onSelect={(value) => updateDraft('unit', value)}
                 placeholder="Selectionner une unite"
               />
+            </div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="text-right text-sm font-medium">
+              Prix Unitaire
+            </label>
+            <Input
+              type="number"
+              value={draftItem.estimatedUnitCost ?? ''}
+              onChange={(e) =>
+                updateDraft('estimatedUnitCost', toNullableNumber(e.target.value))
+              }
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="text-right text-sm font-medium">Devise</label>
+            <div className="col-span-3">
+              <Select
+                onValueChange={(value) => updateDraft('currency', value)}
+                value={draftItem.currency || 'DZD'}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DZD">DZD</SelectItem>
+                  <SelectItem value="EUR" disabled={!allowForeignCurrency}>
+                    EUR
+                  </SelectItem>
+                  <SelectItem value="USD" disabled={!allowForeignCurrency}>
+                    USD
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { Card } from '@/components/card'
+import { generateId } from '@/helpers/id-generator'
 import { SupplierForm } from '../_components/supplier.form'
 
 const Page = async () => {
@@ -10,7 +11,11 @@ const Page = async () => {
           Creez un nouveau fournisseur.
         </p>
       </div>
-      <SupplierForm />
+      <SupplierForm
+        defaultValues={{
+          code: generateId('SU')
+        }}
+      />
     </Card>
   )
 }

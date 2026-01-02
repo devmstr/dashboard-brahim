@@ -25,6 +25,7 @@ const Page = async ({ params }: PageProps) => {
 
   const formDefaults = {
     reference: contract.reference,
+    title: contract.title ?? '',
     supplierId: contract.supplierId,
     serviceId: contract.serviceId ?? '',
     startDate: new Date(contract.startDate).toISOString(),

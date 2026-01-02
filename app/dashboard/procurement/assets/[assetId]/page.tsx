@@ -39,7 +39,6 @@ const Page = async ({ params }: PageProps) => {
     serviceId: asset.serviceId ?? '',
     supplierId: asset.supplierId ?? '',
     purchaseOrderId: asset.purchaseOrderId ?? '',
-    itemId: asset.itemId ?? '',
     acquisitionDate: asset.acquisitionDate
       ? new Date(asset.acquisitionDate).toISOString()
       : undefined,
@@ -53,7 +52,16 @@ const Page = async ({ params }: PageProps) => {
       url: attachment.url,
       type: attachment.type
     })) ?? [],
-    status: asset.status
+    status: asset.status,
+    items: asset.Items?.map((item) => ({
+      itemId: item.itemId,
+      itemName: item.Item?.name ?? '',
+      description: item.description ?? '',
+      quantity: item.quantity ?? null,
+      unit: item.unit ?? '',
+      estimatedUnitCost: item.estimatedUnitCost ?? null,
+      currency: item.currency ?? 'DZD'
+    })) ?? []
   }
 
   return (

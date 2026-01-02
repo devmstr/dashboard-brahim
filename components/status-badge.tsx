@@ -8,6 +8,10 @@ interface StatusBudgeProps {
     | (typeof PROCUREMENT_STATUS_TYPES)[number]
 }
 
+interface ProcurementTypeBadgeProps {
+  type?: string
+}
+
 // Merge French labels for both procurement and invoice statuses
 const FrStatus: Record<string, string> = {
   // Procurement statuses (existing)
@@ -24,6 +28,38 @@ const FrStatus: Record<string, string> = {
   APPROVED: 'Validée',
   PAID: 'Payée'
 } as const
+
+const TYPE_CONFIG: Record<
+  string,
+  {
+    className: string
+  }
+> = {
+  "Demande d'achat": {
+    className: 'bg-[#e6f9ff] text-[#0d8bf2] border-[#0d8bf2]'
+  },
+  'Demande de devis': {
+    className: 'bg-[#f1e8ff] text-[#7b2cbf] border-[#7b2cbf]'
+  },
+  'Bon de commande': {
+    className: 'bg-[#e6f9ed] text-[#1aaa55] border-[#1aaa55]'
+  },
+  Reception: {
+    className: 'bg-[#fff0d4] text-[#ffa500] border-[#ffa500]'
+  },
+  'Facture fournisseur': {
+    className: 'bg-[#fff2f4] text-[#c62828] border-[#c62828]'
+  },
+  Contrat: {
+    className: 'bg-[#f0f0f0] text-[#6b7280] border-[#6b7280]'
+  },
+  Immobilisation: {
+    className: 'bg-[#e8f5e8] text-[#2e7d32] border-[#2e7d32]'
+  },
+  Autre: {
+    className: 'bg-[#f8f9fa] text-[#a0a0a0] border-[#a0a0a0]'
+  }
+}
 
 // Merge status config for both procurement and invoice
 const STATUS_CONFIG: Record<
@@ -96,6 +132,25 @@ export const StatusBudge: React.FC<StatusBudgeProps> = ({ variant }) => {
       )}
     >
       <Icon className="w-5 h-5 p-[0.12rem]" /> {FrStatus[variant]}
+    </div>
+  )
+}
+
+export const ProcurementTypeBadge: React.FC<ProcurementTypeBadgeProps> = ({
+  type
+}) => {
+  if (!type) return null
+
+  const config = TYPE_CONFIG[type] ?? TYPE_CONFIG.Autre
+
+  return (
+    <div
+      className={cn(
+        config.className,
+        'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium'
+      )}
+    >
+      {type}
     </div>
   )
 }

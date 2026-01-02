@@ -35,28 +35,28 @@ model Session {
 }
 
 model User {
-  id           String       @id @default(cuid())
-  role         String?
-  username     String?      @unique
-  phone        String?      @unique
-  email        String?      @unique
-  passwordHash String
-  employeeId   Int          @unique
-  image        String?
-  Accounts     Account[]
-  Sessions     Session[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  Permissions  Permission[]
-  ProcurementRequisitionsCreated ProcurementRequisition[] @relation("ProcurementRequisitionCreatedBy")
-  ProcurementRequisitionsApproved ProcurementRequisition[] @relation("ProcurementRequisitionApprovedBy")
-  ProcurementRfqsCreated ProcurementRfq[] @relation("ProcurementRfqCreatedBy")
-  ProcurementPurchaseOrdersCreated ProcurementPurchaseOrder[] @relation("ProcurementPurchaseOrderCreatedBy")
-  ProcurementPurchaseOrdersApproved ProcurementPurchaseOrder[] @relation("ProcurementPurchaseOrderApprovedBy")
-  ProcurementReceiptsCreated ProcurementReceipt[] @relation("ProcurementReceiptCreatedBy")
+  id                                 String                       @id @default(cuid())
+  role                               String?
+  username                           String?                      @unique
+  phone                              String?                      @unique
+  email                              String?                      @unique
+  passwordHash                       String
+  employeeId                         Int                          @unique
+  image                              String?
+  Accounts                           Account[]
+  Sessions                           Session[]
+  createdAt                          DateTime                     @default(now())
+  updatedAt                          DateTime                     @updatedAt
+  Permissions                        Permission[]
+  ProcurementRequisitionsCreated     ProcurementRequisition[]     @relation("ProcurementRequisitionCreatedBy")
+  ProcurementRequisitionsApproved    ProcurementRequisition[]     @relation("ProcurementRequisitionApprovedBy")
+  ProcurementRfqsCreated             ProcurementRfq[]             @relation("ProcurementRfqCreatedBy")
+  ProcurementPurchaseOrdersCreated   ProcurementPurchaseOrder[]   @relation("ProcurementPurchaseOrderCreatedBy")
+  ProcurementPurchaseOrdersApproved  ProcurementPurchaseOrder[]   @relation("ProcurementPurchaseOrderApprovedBy")
+  ProcurementReceiptsCreated         ProcurementReceipt[]         @relation("ProcurementReceiptCreatedBy")
   ProcurementSupplierInvoicesCreated ProcurementSupplierInvoice[] @relation("ProcurementSupplierInvoiceCreatedBy")
-  ProcurementContractsCreated ProcurementContract[] @relation("ProcurementContractCreatedBy")
-  ProcurementAssetsCreated ProcurementAsset[] @relation("ProcurementAssetCreatedBy")
+  ProcurementContractsCreated        ProcurementContract[]        @relation("ProcurementContractCreatedBy")
+  ProcurementAssetsCreated           ProcurementAsset[]           @relation("ProcurementAssetCreatedBy")
 }
 
 model VerificationRequest {
@@ -117,6 +117,7 @@ model Address {
   Province Province @relation(fields: [provinceId], references: [id], onDelete: Cascade)
   Country  Country  @relation(fields: [countryId], references: [id], onDelete: Cascade)
   Client   Client?
+  ProcurementSupplier ProcurementSupplier?
 
   @@map("addresses")
 }
@@ -393,30 +394,30 @@ model Client {
 }
 
 model Attachment {
-  id          String     @id @default(cuid())
-  url         String // URL of the uploaded file
-  type        String // MIME type like 'image/jpeg', 'application/pdf', etc.
-  name        String // Original file name
-  uniqueName  String     @unique // Unique file serial
-  Order       Order?     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  orderId     String?
-  createdAt   DateTime   @default(now())
-  OrderItem   OrderItem? @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  orderItemId String? // Made optional to fix the issue @map("orderId")
-  ProcurementRequisition ProcurementRequisition? @relation("ProcurementRequisitionAttachments", fields: [procurementRequisitionId], references: [id], onDelete: Cascade)
-  procurementRequisitionId String?
-  ProcurementRfq ProcurementRfq? @relation("ProcurementRfqAttachments", fields: [procurementRfqId], references: [id], onDelete: Cascade)
-  procurementRfqId String?
-  ProcurementPurchaseOrder ProcurementPurchaseOrder? @relation("ProcurementPurchaseOrderAttachments", fields: [procurementPurchaseOrderId], references: [id], onDelete: Cascade)
-  procurementPurchaseOrderId String?
-  ProcurementReceipt ProcurementReceipt? @relation("ProcurementReceiptAttachments", fields: [procurementReceiptId], references: [id], onDelete: Cascade)
-  procurementReceiptId String?
-  ProcurementSupplierInvoice ProcurementSupplierInvoice? @relation("ProcurementSupplierInvoiceAttachments", fields: [procurementSupplierInvoiceId], references: [id], onDelete: Cascade)
+  id                           String                      @id @default(cuid())
+  url                          String // URL of the uploaded file
+  type                         String // MIME type like 'image/jpeg', 'application/pdf', etc.
+  name                         String // Original file name
+  uniqueName                   String                      @unique // Unique file serial
+  Order                        Order?                      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId                      String?
+  createdAt                    DateTime                    @default(now())
+  OrderItem                    OrderItem?                  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  orderItemId                  String? // Made optional to fix the issue @map("orderId")
+  ProcurementRequisition       ProcurementRequisition?     @relation("ProcurementRequisitionAttachments", fields: [procurementRequisitionId], references: [id], onDelete: Cascade)
+  procurementRequisitionId     String?
+  ProcurementRfq               ProcurementRfq?             @relation("ProcurementRfqAttachments", fields: [procurementRfqId], references: [id], onDelete: Cascade)
+  procurementRfqId             String?
+  ProcurementPurchaseOrder     ProcurementPurchaseOrder?   @relation("ProcurementPurchaseOrderAttachments", fields: [procurementPurchaseOrderId], references: [id], onDelete: Cascade)
+  procurementPurchaseOrderId   String?
+  ProcurementReceipt           ProcurementReceipt?         @relation("ProcurementReceiptAttachments", fields: [procurementReceiptId], references: [id], onDelete: Cascade)
+  procurementReceiptId         String?
+  ProcurementSupplierInvoice   ProcurementSupplierInvoice? @relation("ProcurementSupplierInvoiceAttachments", fields: [procurementSupplierInvoiceId], references: [id], onDelete: Cascade)
   procurementSupplierInvoiceId String?
-  ProcurementContract ProcurementContract? @relation("ProcurementContractAttachments", fields: [procurementContractId], references: [id], onDelete: Cascade)
-  procurementContractId String?
-  ProcurementAsset ProcurementAsset? @relation("ProcurementAssetAttachments", fields: [procurementAssetId], references: [id], onDelete: Cascade)
-  procurementAssetId String?
+  ProcurementContract          ProcurementContract?        @relation("ProcurementContractAttachments", fields: [procurementContractId], references: [id], onDelete: Cascade)
+  procurementContractId        String?
+  ProcurementAsset             ProcurementAsset?           @relation("ProcurementAssetAttachments", fields: [procurementAssetId], references: [id], onDelete: Cascade)
+  procurementAssetId           String?
 
   @@map("attachments") // Added map directive for consistency
 }
@@ -660,35 +661,45 @@ enum ProcurementAssetStatus {
 }
 
 model ProcurementSupplier {
-  id                  String                        @id @default(cuid())
+  id                  String  @id @default(cuid())
   name                String
-  code                String?                       @unique
+  code                String? @unique
+  category            String?
   contactName         String?
   email               String?
   phone               String?
   website             String?
+  fiscalNumber        String?
   taxIdNumber         String?
+  registrationArticle String?
+  statisticalIdNumber String?
   tradeRegisterNumber String?
-  notes               String?
-  createdAt           DateTime                      @default(now())
-  updatedAt           DateTime                      @updatedAt
+  approvalNumber      String?
 
-  RfqQuotes     ProcurementRfqVendorQuote[]
+  addressId String?  @unique
+  Address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull)
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  RfqQuotes      ProcurementRfqVendorQuote[]
   PurchaseOrders ProcurementPurchaseOrder[]
-  Invoices      ProcurementSupplierInvoice[]
-  Contracts     ProcurementContract[]
-  Assets        ProcurementAsset[]
+  Invoices       ProcurementSupplierInvoice[]
+  Contracts      ProcurementContract[]
+  Assets         ProcurementAsset[]
 
   @@map("procurement_suppliers")
 }
 
 model ProcurementItem {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
-  sku         String? @unique
+  sku         String?  @unique
+  category    String?
   description String?
   unit        String?
-  isActive    Boolean @default(true)
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -696,7 +707,7 @@ model ProcurementItem {
   RfqLines           ProcurementRfqLine[]
   PurchaseOrderItems ProcurementPurchaseOrderItem[]
   ReceiptItems       ProcurementReceiptItem[]
-  Assets             ProcurementAsset[]
+  AssetItems         ProcurementAssetItem[]
 
   @@map("procurement_items")
 }
@@ -720,42 +731,42 @@ model ProcurementService {
 }
 
 model ProcurementRequisition {
-  id          String                      @id @default(cuid())
-  reference   String                      @unique
-  title       String?
-  status      ProcurementRequisitionStatus @default(DRAFT)
-  neededBy    DateTime?
-  notes       String?
-  createdAt   DateTime                    @default(now())
-  updatedAt   DateTime                    @updatedAt
+  id        String                       @id @default(cuid())
+  reference String                       @unique
+  title     String?
+  status    ProcurementRequisitionStatus @default(DRAFT)
+  neededBy  DateTime?
+  notes     String?
+  createdAt DateTime                     @default(now())
+  updatedAt DateTime                     @updatedAt
 
-  createdById String
+  createdById  String
   approvedById String?
-  serviceId   String?
+  serviceId    String?
 
-  CreatedBy  User @relation("ProcurementRequisitionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  ApprovedBy User? @relation("ProcurementRequisitionApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  CreatedBy  User                @relation("ProcurementRequisitionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  ApprovedBy User?               @relation("ProcurementRequisitionApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
   Service    ProcurementService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
   Items          ProcurementRequisitionItem[]
   Rfqs           ProcurementRfq[]
   PurchaseOrders ProcurementPurchaseOrder[]
-  Attachments    Attachment[] @relation("ProcurementRequisitionAttachments")
+  Attachments    Attachment[]                 @relation("ProcurementRequisitionAttachments")
 
   @@map("procurement_requisitions")
 }
 
 model ProcurementRequisitionItem {
-  id            String  @id @default(cuid())
-  requisitionId String
-  itemId        String?
-  description   String?
-  quantity      Float?
-  unit          String?
+  id                String   @id @default(cuid())
+  requisitionId     String
+  itemId            String?
+  description       String?
+  quantity          Float?
+  unit              String?
   estimatedUnitCost Float?
-  currency      String? @default("DZD")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  currency          String?  @default("DZD")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   Requisition ProcurementRequisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
   Item        ProcurementItem?       @relation(fields: [itemId], references: [id], onDelete: SetNull)
@@ -764,13 +775,13 @@ model ProcurementRequisitionItem {
 }
 
 model ProcurementRfq {
-  id            String               @id @default(cuid())
-  reference     String               @unique
-  status        ProcurementRfqStatus @default(DRAFT)
-  neededBy      DateTime?
-  notes         String?
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
+  id        String               @id @default(cuid())
+  reference String               @unique
+  status    ProcurementRfqStatus @default(DRAFT)
+  neededBy  DateTime?
+  notes     String?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
 
   requisitionId String?
   createdById   String
@@ -780,21 +791,23 @@ model ProcurementRfq {
   CreatedBy   User                    @relation("ProcurementRfqCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   Service     ProcurementService?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
-  Lines        ProcurementRfqLine[]
-  VendorQuotes ProcurementRfqVendorQuote[]
+  Lines          ProcurementRfqLine[]
+  VendorQuotes   ProcurementRfqVendorQuote[]
   PurchaseOrders ProcurementPurchaseOrder[]
-  Attachments  Attachment[] @relation("ProcurementRfqAttachments")
+  Attachments    Attachment[]                @relation("ProcurementRfqAttachments")
 
   @@map("procurement_rfqs")
 }
 
 model ProcurementRfqLine {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   rfqId       String
   itemId      String?
   description String?
   quantity    Float?
   unit        String?
+  estimatedUnitCost Float?
+  currency          String?  @default("DZD")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -829,41 +842,41 @@ model ProcurementRfqVendorQuote {
 }
 
 model ProcurementRfqVendorQuoteLine {
-  id         String  @id @default(cuid())
-  quoteId    String
-  rfqLineId  String
-  quantity   Float?
-  unitPrice  Float?
-  total      Float?
+  id           String   @id @default(cuid())
+  quoteId      String
+  rfqLineId    String
+  quantity     Float?
+  unitPrice    Float?
+  total        Float?
   leadTimeDays Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  Quote  ProcurementRfqVendorQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-  RfqLine ProcurementRfqLine       @relation(fields: [rfqLineId], references: [id], onDelete: Cascade)
+  Quote   ProcurementRfqVendorQuote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  RfqLine ProcurementRfqLine        @relation(fields: [rfqLineId], references: [id], onDelete: Cascade)
 
   @@map("procurement_rfq_vendor_quote_lines")
 }
 
 model ProcurementPurchaseOrder {
-  id            String                        @id @default(cuid())
-  reference     String                        @unique
-  status        ProcurementPurchaseOrderStatus @default(DRAFT)
-  vendor        String?
-  contactName   String?
-  contactEmail  String?
-  phone         String?
-  itemsCount    Int?
-  currency      String?                       @default("DZD")
-  subtotal      Float?
-  taxes         Float?
-  total         Float?
-  expectedDate  DateTime?
-  deliveredAt   DateTime?
-  paymentTerms  String?
-  notes         String?
-  createdAt     DateTime                      @default(now())
-  updatedAt     DateTime                      @updatedAt
+  id           String                         @id @default(cuid())
+  reference    String                         @unique
+  status       ProcurementPurchaseOrderStatus @default(DRAFT)
+  vendor       String?
+  contactName  String?
+  contactEmail String?
+  phone        String?
+  itemsCount   Int?
+  currency     String?                        @default("DZD")
+  subtotal     Float?
+  taxes        Float?
+  total        Float?
+  expectedDate DateTime?
+  deliveredAt  DateTime?
+  paymentTerms String?
+  notes        String?
+  createdAt    DateTime                       @default(now())
+  updatedAt    DateTime                       @updatedAt
 
   supplierId    String?
   requisitionId String?
@@ -872,34 +885,34 @@ model ProcurementPurchaseOrder {
   approvedById  String?
   serviceId     String?
 
-  Supplier    ProcurementSupplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
-  Requisition ProcurementRequisition?  @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
-  Rfq         ProcurementRfq?           @relation(fields: [rfqId], references: [id], onDelete: SetNull)
-  CreatedBy   User?                     @relation("ProcurementPurchaseOrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-  ApprovedBy  User?                     @relation("ProcurementPurchaseOrderApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
-  Service     ProcurementService?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  Supplier    ProcurementSupplier?    @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  Requisition ProcurementRequisition? @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
+  Rfq         ProcurementRfq?         @relation(fields: [rfqId], references: [id], onDelete: SetNull)
+  CreatedBy   User?                   @relation("ProcurementPurchaseOrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  ApprovedBy  User?                   @relation("ProcurementPurchaseOrderApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  Service     ProcurementService?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
-  Items     ProcurementPurchaseOrderItem[]
-  Receipts  ProcurementReceipt[]
-  Invoices  ProcurementSupplierInvoice[]
-  Assets    ProcurementAsset[]
-  Attachments Attachment[] @relation("ProcurementPurchaseOrderAttachments")
+  Items       ProcurementPurchaseOrderItem[]
+  Receipts    ProcurementReceipt[]
+  Invoices    ProcurementSupplierInvoice[]
+  Assets      ProcurementAsset[]
+  Attachments Attachment[]                   @relation("ProcurementPurchaseOrderAttachments")
 
   @@map("procurements")
 }
 
 model ProcurementPurchaseOrderItem {
-  id              String  @id @default(cuid())
-  purchaseOrderId String
-  itemId          String?
-  description     String?
-  quantity        Float?
-  unit            String?
-  unitPrice       Float?
-  total           Float?
-  receivedQuantity Float? @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(cuid())
+  purchaseOrderId  String
+  itemId           String?
+  description      String?
+  quantity         Float?
+  unit             String?
+  unitPrice        Float?
+  total            Float?
+  receivedQuantity Float?   @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   PurchaseOrder ProcurementPurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
   Item          ProcurementItem?         @relation(fields: [itemId], references: [id], onDelete: SetNull)
@@ -910,126 +923,144 @@ model ProcurementPurchaseOrderItem {
 }
 
 model ProcurementReceipt {
-  id            String                    @id @default(cuid())
-  reference     String                    @unique
-  status        ProcurementReceiptStatus  @default(DRAFT)
-  receivedAt    DateTime?
-  notes         String?
-  createdAt     DateTime                  @default(now())
-  updatedAt     DateTime                  @updatedAt
+  id         String                   @id @default(cuid())
+  reference  String                   @unique
+  status     ProcurementReceiptStatus @default(DRAFT)
+  receivedAt DateTime?
+  notes      String?
+  createdAt  DateTime                 @default(now())
+  updatedAt  DateTime                 @updatedAt
 
   purchaseOrderId String
   createdById     String
   serviceId       String?
 
   PurchaseOrder ProcurementPurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  CreatedBy    User                      @relation("ProcurementReceiptCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  Service      ProcurementService?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  CreatedBy     User                     @relation("ProcurementReceiptCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service       ProcurementService?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
-  Items ProcurementReceiptItem[]
-  Invoices ProcurementSupplierInvoice[]
-  Attachments Attachment[] @relation("ProcurementReceiptAttachments")
+  Items       ProcurementReceiptItem[]
+  Invoices    ProcurementSupplierInvoice[]
+  Attachments Attachment[]                 @relation("ProcurementReceiptAttachments")
 
   @@map("procurement_receipts")
 }
 
 model ProcurementReceiptItem {
-  id            String  @id @default(cuid())
-  receiptId     String
+  id                  String   @id @default(cuid())
+  receiptId           String
   purchaseOrderItemId String?
-  itemId        String?
-  quantityReceived Float?
-  condition     String?
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  itemId              String?
+  quantityReceived    Float?
+  condition           String?
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  Receipt          ProcurementReceipt          @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  Receipt           ProcurementReceipt            @relation(fields: [receiptId], references: [id], onDelete: Cascade)
   PurchaseOrderItem ProcurementPurchaseOrderItem? @relation(fields: [purchaseOrderItemId], references: [id], onDelete: SetNull)
-  Item             ProcurementItem?            @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  Item              ProcurementItem?              @relation(fields: [itemId], references: [id], onDelete: SetNull)
 
   @@map("procurement_receipt_items")
 }
 
 model ProcurementSupplierInvoice {
-  id            String                         @id @default(cuid())
-  reference     String                         @unique
-  status        ProcurementSupplierInvoiceStatus @default(DRAFT)
-  invoiceDate   DateTime?
-  dueDate       DateTime?
-  paidAt        DateTime?
-  currency      String?                        @default("DZD")
-  subtotal      Float?
-  taxes         Float?
-  total         Float?
-  notes         String?
-  createdAt     DateTime                       @default(now())
-  updatedAt     DateTime                       @updatedAt
+  id          String                           @id @default(cuid())
+  reference   String                           @unique
+  status      ProcurementSupplierInvoiceStatus @default(DRAFT)
+  invoiceDate DateTime?
+  dueDate     DateTime?
+  paidAt      DateTime?
+  currency    String?                          @default("DZD")
+  subtotal    Float?
+  taxes       Float?
+  total       Float?
+  notes       String?
+  createdAt   DateTime                         @default(now())
+  updatedAt   DateTime                         @updatedAt
 
-  supplierId    String
+  supplierId      String
   purchaseOrderId String?
-  receiptId     String?
-  createdById   String
-  serviceId     String?
+  receiptId       String?
+  createdById     String
+  serviceId       String?
 
-  Supplier      ProcurementSupplier      @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  Supplier      ProcurementSupplier       @relation(fields: [supplierId], references: [id], onDelete: Restrict)
   PurchaseOrder ProcurementPurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
-  Receipt       ProcurementReceipt?      @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+  Receipt       ProcurementReceipt?       @relation(fields: [receiptId], references: [id], onDelete: SetNull)
   CreatedBy     User                      @relation("ProcurementSupplierInvoiceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
   Service       ProcurementService?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  Attachments   Attachment[] @relation("ProcurementSupplierInvoiceAttachments")
+  Attachments   Attachment[]              @relation("ProcurementSupplierInvoiceAttachments")
 
   @@map("procurement_supplier_invoices")
 }
 
 model ProcurementContract {
-  id          String                   @id @default(cuid())
-  reference   String                   @unique
-  status      ProcurementContractStatus @default(DRAFT)
-  startDate   DateTime
-  endDate     DateTime?
-  value       Float?
-  currency    String?                  @default("DZD")
-  notes       String?
-  createdAt   DateTime                 @default(now())
-  updatedAt   DateTime                 @updatedAt
+  id        String                    @id @default(cuid())
+  reference String                    @unique
+  title     String?
+  status    ProcurementContractStatus @default(DRAFT)
+  startDate DateTime
+  endDate   DateTime?
+  value     Float?
+  currency  String?                   @default("DZD")
+  notes     String?
+  createdAt DateTime                  @default(now())
+  updatedAt DateTime                  @updatedAt
 
   supplierId  String
   createdById String
   serviceId   String?
 
-  Supplier  ProcurementSupplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
-  CreatedBy User                @relation("ProcurementContractCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  Service   ProcurementService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  Attachments Attachment[] @relation("ProcurementContractAttachments")
+  Supplier    ProcurementSupplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  CreatedBy   User                @relation("ProcurementContractCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service     ProcurementService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  Attachments Attachment[]        @relation("ProcurementContractAttachments")
 
   @@map("procurement_contracts")
 }
 
 model ProcurementAsset {
-  id          String                @id @default(cuid())
-  reference   String                @unique
-  name        String
-  status      ProcurementAssetStatus @default(PLANNED)
+  id              String                 @id @default(cuid())
+  reference       String                 @unique
+  name            String
+  status          ProcurementAssetStatus @default(PLANNED)
   acquisitionDate DateTime?
-  value       Float?
-  currency    String?               @default("DZD")
-  notes       String?
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
+  value           Float?
+  currency        String?                @default("DZD")
+  notes           String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
 
-  supplierId  String?
+  supplierId      String?
   purchaseOrderId String?
-  itemId      String?
-  createdById String
-  serviceId   String?
+  createdById     String
+  serviceId       String?
 
-  Supplier     ProcurementSupplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  Supplier      ProcurementSupplier?      @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   PurchaseOrder ProcurementPurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
-  Item         ProcurementItem?         @relation(fields: [itemId], references: [id], onDelete: SetNull)
-  CreatedBy    User                     @relation("ProcurementAssetCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
-  Service      ProcurementService?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  Attachments Attachment[] @relation("ProcurementAssetAttachments")
+  CreatedBy     User                      @relation("ProcurementAssetCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  Service       ProcurementService?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  Attachments   Attachment[]              @relation("ProcurementAssetAttachments")
+  Items         ProcurementAssetItem[]
 
   @@map("procurement_assets")
+}
+
+model ProcurementAssetItem {
+  id                String   @id @default(cuid())
+  assetId           String
+  itemId            String?
+  description       String?
+  quantity          Float?
+  unit              String?
+  estimatedUnitCost Float?
+  currency          String?  @default("DZD")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  Asset ProcurementAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  Item  ProcurementItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@map("procurement_asset_items")
 }

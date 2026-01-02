@@ -14,6 +14,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Combobox } from '@/components/combobox'
 import { toast } from '@/hooks/use-toast'
 import { RAW_MATERIAL_UNITS_ARR } from '@/config/global'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 
 // Types specific to this component to avoid circular dependencies
 export interface ArticleItem {
@@ -30,6 +37,7 @@ export type ProcurementItemOption = {
   id: string
   name: string
   sku?: string | null
+  category?: string | null
   unit?: string | null
   description?: string | null
 }
@@ -105,6 +113,12 @@ export function RequisitionArticleDialog({
             if (selected.description && !prev.description)
               newState.description = selected.description
             if (selected.name) newState.itemName = selected.name
+            if (
+              selected.category !== 'Matieres premieres' &&
+              newState.currency !== 'DZD'
+            ) {
+              newState.currency = 'DZD'
+            }
           }
         }
         return newState
@@ -112,6 +126,11 @@ export function RequisitionArticleDialog({
     },
     [itemLookup]
   )
+
+  const selectedItemCategory = draftItem.itemId
+    ? itemLookup.get(draftItem.itemId)?.category ?? null
+    : null
+  const allowForeignCurrency = selectedItemCategory === 'Matieres premieres'
 
   const handleSave = React.useCallback(() => {
     // Basic validation
@@ -208,6 +227,28 @@ export function RequisitionArticleDialog({
               }
               className="col-span-3"
             />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <label className="text-right text-sm font-medium">Devise</label>
+            <div className="col-span-3">
+              <Select
+                onValueChange={(value) => updateDraft('currency', value)}
+                value={draftItem.currency || 'DZD'}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DZD">DZD</SelectItem>
+                  <SelectItem value="EUR" disabled={!allowForeignCurrency}>
+                    EUR
+                  </SelectItem>
+                  <SelectItem value="USD" disabled={!allowForeignCurrency}>
+                    USD
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
         <DialogFooter>

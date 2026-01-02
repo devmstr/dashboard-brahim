@@ -16,6 +16,7 @@ export type SupplierRow = {
   id: string
   name: string
   code: string | null
+  category: string | null
   contactName: string | null
   email: string | null
   phone: string | null
@@ -80,6 +81,11 @@ export function SuppliersTable({ data, userRole }: SuppliersTableProps) {
           {row.original.name}
         </Link>
       )
+    },
+    {
+      accessorKey: 'category',
+      header: 'Categorie',
+      cell: ({ row }) => row.original.category || '-'
     },
 
     {

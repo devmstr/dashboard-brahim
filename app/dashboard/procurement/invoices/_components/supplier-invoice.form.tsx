@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import {
   createSupplierInvoice,
   updateSupplierInvoice
@@ -175,7 +174,7 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
   const form = useForm<SupplierInvoiceFormValues>({
     resolver: zodResolver(supplierInvoiceFormSchema),
     defaultValues: {
-      reference: defaultValues?.reference ?? generateId('SI'),
+      reference: defaultValues?.reference ?? '',
       supplierId: defaultValues?.supplierId ?? '',
       serviceId: defaultValues?.serviceId ?? '',
       purchaseOrderId: defaultValues?.purchaseOrderId ?? '',
@@ -389,7 +388,7 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
             name="dueDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Echeance</FormLabel>
+                <FormLabel>Date echeance</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value || undefined}
@@ -410,7 +409,7 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
             name="paidAt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Paiement</FormLabel>
+                <FormLabel>Date paiement</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value || undefined}
@@ -585,7 +584,7 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
           <h3 className="text-sm font-medium">Pieces jointes</h3>
           <ProcurementUploader
             target="supplierInvoice"
-            targetId={invoiceId}
+            targetId={invoiceId ?? reference}
             uploadPath={uploadPath}
             initialAttachments={attachments}
             onAttachmentAdded={(attachment) => {
@@ -600,10 +599,12 @@ export const SupplierInvoiceForm: React.FC<SupplierInvoiceFormProps> = ({
           />
         </div>
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (invoiceId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
+            {submitLabel || (invoiceId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
   )

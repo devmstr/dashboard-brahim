@@ -45,7 +45,7 @@ const Page = async ({ params }: PageProps) => {
     items: receipt.Items.map((item) => ({
       purchaseOrderItemId: item.purchaseOrderItemId,
       itemId: item.itemId,
-      quantityReceived: item.quantityReceived ?? null,
+      quantity: item.quantityReceived ?? null,
       condition: item.condition ?? '',
       notes: item.notes ?? ''
     }))

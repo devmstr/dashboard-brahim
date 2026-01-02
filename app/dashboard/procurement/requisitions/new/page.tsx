@@ -3,6 +3,7 @@ import {
   listProcurementItems,
   listProcurementServices
 } from '@/lib/procurement/actions'
+import { generateId } from '@/helpers/id-generator'
 import { RequisitionCreateForm } from '../_components/requisition.form'
 
 const Page = async () => {
@@ -20,6 +21,10 @@ const Page = async () => {
         </p>
       </div>
       <RequisitionCreateForm
+        defaultValues={{
+          reference: generateId('PR'),
+          createdAt: new Date().toISOString()
+        }}
         itemsOptions={itemsOptions}
         servicesOptions={servicesOptions}
       />

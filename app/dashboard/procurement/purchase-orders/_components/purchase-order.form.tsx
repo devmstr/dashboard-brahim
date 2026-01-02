@@ -32,7 +32,6 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { toast } from '@/hooks/use-toast'
-import { generateId } from '@/helpers/id-generator'
 import {
   createPurchaseOrder,
   updatePurchaseOrder
@@ -96,7 +95,7 @@ const purchaseOrderFormSchema = z.object({
         description: z.string().optional().nullable(),
         quantity: z.number().optional().nullable(),
         unit: z.string().optional().nullable(),
-        unitPrice: z.number().optional().nullable(),
+        estimatedUnitCost: z.number().optional().nullable(),
         total: z.number().optional().nullable()
       })
     )
@@ -224,7 +223,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
   const form = useForm<PurchaseOrderFormValues>({
     resolver: zodResolver(purchaseOrderFormSchema),
     defaultValues: {
-      reference: defaultValues?.reference ?? generateId('PO'),
+      reference: defaultValues?.reference ?? '',
       supplierId: defaultValues?.supplierId ?? null,
       requisitionId: defaultValues?.requisitionId ?? '',
       rfqId: defaultValues?.rfqId ?? '',
@@ -267,7 +266,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
         description: item.description ?? '',
         quantity: item.quantity ?? null,
         unit: item.unit ?? '',
-        unitPrice: item.unitPrice ?? null,
+        estimatedUnitCost: item.estimatedUnitCost ?? null,
         total: item.total ?? null
       })
       setEditingIndex(index)
@@ -300,7 +299,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
       values.items
         ?.map((item) => {
           const quantity = toOptionalNumber(item.quantity)
-          const unitPrice = toOptionalNumber(item.unitPrice)
+          const unitPrice = toOptionalNumber(item.estimatedUnitCost)
           const total =
             quantity && unitPrice ? quantity * unitPrice : item.total ?? null
 
@@ -539,7 +538,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
             name="expectedDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Livraison</FormLabel>
+                <FormLabel>Date livraison</FormLabel>
                 <FormControl>
                   <DatePicker
                     date={field.value || undefined}
@@ -640,7 +639,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
                 <FormLabel>Conditions de paiement</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="ex: Net 30"
+                    placeholder="Ex: 30 jours"
                     {...field}
                     value={field.value || ''}
                   />
@@ -700,7 +699,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
                         ? itemLookup.get(item.itemId)?.name
                         : item.description || '-'
                     const lineTotal =
-                      (item.quantity ?? 0) * (item.unitPrice ?? 0)
+                      (item.quantity ?? 0) * (item.estimatedUnitCost ?? 0)
 
                     return (
                       <TableRow key={fieldItem.id} className="h-5 p-0">
@@ -732,7 +731,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
                           {item.unit || '-'}
                         </TableCell>
                         <TableCell className="text-right py-[3px] px-2 h-5">
-                          {formatPrice(item.unitPrice)}
+                          {formatPrice(item.estimatedUnitCost)}
                         </TableCell>
                         <TableCell className="text-right py-[3px] px-2 h-5">
                           {formatPrice(lineTotal)}
@@ -756,7 +755,11 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
             </Table>
             <Button
               variant="outline"
-              onClick={handleAddItemClick}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                handleAddItemClick()
+              }}
               className={cn(
                 'flex w-full h-24 justify-center gap-1 text-muted-foreground rounded-none rounded-b-md border-muted-foreground/30 hover:bg-gray-100 text-md border-dashed py-4',
                 'h-fit'
@@ -800,7 +803,7 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           <h3 className="text-sm font-medium">Pieces jointes</h3>
           <ProcurementUploader
             target="purchaseOrder"
-            targetId={purchaseOrderId}
+            targetId={purchaseOrderId ?? reference}
             uploadPath={uploadPath}
             initialAttachments={attachments}
             onAttachmentAdded={(attachment) => {
@@ -815,10 +818,12 @@ export const PurchaseOrderForm: React.FC<PurchaseOrderFormProps> = ({
           />
         </div>
 
-        <Button type="submit" disabled={isSaving} className="gap-2">
-          {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
-          {submitLabel || (purchaseOrderId ? 'Mettre a jour' : 'Creer')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving} className="gap-2">
+            {isSaving && <Icons.spinner className="h-4 w-4 animate-spin" />}
+            {submitLabel || (purchaseOrderId ? 'Mettre a jour' : 'Creer')}
+          </Button>
+        </div>
       </form>
     </Form>
   )

@@ -7,6 +7,7 @@ const suppliers = [
   {
     name: 'Atlas Metals',
     code: generateId('PO'),
+    category: 'Matieres premieres',
     contactName: 'Karim A.',
     email: 'contact@atlasmetals.dz',
     phone: '+213 21 45 67 10',
@@ -15,6 +16,7 @@ const suppliers = [
   {
     name: 'Sahara Industrial',
     code: generateId('PO'),
+    category: 'Composants',
     contactName: 'Nadia B.',
     email: 'sales@sahara-industrial.com',
     phone: '+213 23 11 02 55',
@@ -23,6 +25,7 @@ const suppliers = [
   {
     name: 'Mediterranée Supplies',
     code: generateId('PO'),
+    category: 'Consommables de fabrication',
     contactName: 'Hassan M.',
     email: 'info@medsupplies.dz',
     phone: '+213 24 30 18 44',
@@ -31,6 +34,7 @@ const suppliers = [
   {
     name: 'NordTech Equipements',
     code: generateId('PO'),
+    category: 'Outillage et equipements',
     contactName: 'Leila S.',
     email: 'support@nordtech.dz',
     phone: '+213 25 58 92 10',
@@ -39,6 +43,7 @@ const suppliers = [
   {
     name: 'Oran Logistics',
     code: generateId('PO'),
+    category: 'Emballage et expedition',
     contactName: 'Yacine K.',
     email: 'orders@oran-logistics.com',
     phone: '+213 41 22 11 90',
@@ -58,6 +63,7 @@ async function main() {
       await prisma.procurementSupplier.update({
         where: { id: existing.id },
         data: {
+          category: supplier.category,
           contactName: supplier.contactName,
           email: supplier.email,
           phone: supplier.phone,

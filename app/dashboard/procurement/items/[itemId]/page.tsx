@@ -17,6 +17,7 @@ const Page = async ({ params }: PageProps) => {
   const formDefaults = {
     name: item.name,
     sku: item.sku ?? '',
+    category: item.category ?? '',
     description: item.description ?? '',
     unit: item.unit ?? '',
     isActive: item.isActive
