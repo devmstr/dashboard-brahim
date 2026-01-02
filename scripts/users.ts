@@ -78,6 +78,14 @@ const users: User[] = [
     employeeId: 100,
     phone: '0'
   },
+  {
+    email: 'admin@test.com',
+    username: 'Admin',
+    passwordHash: '12345678',
+    role: 'ADMIN',
+    employeeId: 11,
+    phone: '0000000000'
+  },
 
   {
     email: 'inventory_agent@test.com',
@@ -139,21 +147,23 @@ const users: User[] = [
 
 async function main() {
   console.log(`Start seeding ...`)
-  // Clear existing users
-  await prisma.user.deleteMany()
-  console.log(`Deleted all existing users.`)
-
-  // Create new users
-
   for (const data of users) {
     try {
-      const user = await prisma.user.create({
-        data: {
-          id: generateId('EM'), // Generate SKU for employee
+      const user = await prisma.user.upsert({
+        where: { email: data.email },
+        create: {
+          id: generateId('EM'),
           ...data
+        },
+        update: {
+          username: data.username,
+          passwordHash: data.passwordHash,
+          role: data.role,
+          employeeId: data.employeeId,
+          phone: data.phone
         }
       })
-      console.log(`User ${user.username} created successfully!`)
+      console.log(`User ${user.username} upserted successfully!`)
     } catch (error) {
       console.log({ message: `User Creation error !`, error })
     }

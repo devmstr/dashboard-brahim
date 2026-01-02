@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import prisma from '@/lib/db'
+import { safeLogAudit } from '@/lib/audit'
 import { generateId } from '@/helpers/id-generator'
 import { getCurrentUser } from '@/lib/session'
 import type { Attachment } from '@/lib/validations/order'
@@ -43,6 +44,11 @@ const requireUserId = async () => {
     throw new Error('Utilisateur non authentifie')
   }
   return user.sub
+}
+
+const getAuditActorId = async () => {
+  const user = await getCurrentUser()
+  return user?.sub ?? null
 }
 
 export const listRequisitions = async () => {
@@ -258,14 +264,6 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
         createdAt: true,
         Service: {
           select: { name: true }
-        },
-        Supplier: {
-          select: {
-            name: true,
-            contactName: true,
-            email: true,
-            phone: true
-          }
         }
       }
     }),
@@ -393,10 +391,10 @@ export const listProcurements = async (): Promise<ProcurementRecord[]> => {
     id: entry.id,
     reference: entry.reference,
     serviceName: entry.Service?.name ?? '-',
-    vendor: entry.Supplier?.name ?? '-',
-    contactName: entry.Supplier?.contactName ?? '-',
-    contactEmail: entry.Supplier?.email ?? undefined,
-    phone: entry.Supplier?.phone ?? undefined,
+    vendor: '-',
+    contactName: '-',
+    contactEmail: undefined,
+    phone: undefined,
     status: contractStatusMap[entry.status] ?? 'CREATED',
     items: 0,
     total: entry.value ?? 0,
@@ -504,6 +502,14 @@ export const createItem = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_ITEM',
+    entityId: item.id,
+    description: `Creation d'article ${item.name}`
+  })
+
   revalidatePath('/dashboard/procurement/items')
   return item
 }
@@ -526,6 +532,14 @@ export const updateItem = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_ITEM',
+    entityId: item.id,
+    description: `Mise a jour de l'article ${item.name}`
+  })
+
   revalidatePath('/dashboard/procurement/items')
   revalidatePath(`/dashboard/procurement/items/${id}`)
   return item
@@ -534,6 +548,14 @@ export const updateItem = async (
 export const deleteItem = async (id: string) => {
   const item = await prisma.procurementItem.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_ITEM',
+    entityId: item.id,
+    description: `Suppression de l'article ${item.name}`
   })
 
   revalidatePath('/dashboard/procurement/items')
@@ -627,6 +649,14 @@ export const createSupplier = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_SUPPLIER',
+    entityId: supplier.id,
+    description: `Creation du fournisseur ${supplier.name}`
+  })
+
   revalidatePath('/dashboard/procurement/suppliers')
   return supplier
 }
@@ -677,6 +707,14 @@ export const updateSupplier = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_SUPPLIER',
+    entityId: supplier.id,
+    description: `Mise a jour du fournisseur ${supplier.name}`
+  })
+
   revalidatePath('/dashboard/procurement/suppliers')
   revalidatePath(`/dashboard/procurement/suppliers/${id}`)
   return supplier
@@ -685,6 +723,14 @@ export const updateSupplier = async (
 export const deleteSupplier = async (id: string) => {
   const supplier = await prisma.procurementSupplier.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_SUPPLIER',
+    entityId: supplier.id,
+    description: `Suppression du fournisseur ${supplier.name}`
   })
 
   revalidatePath('/dashboard/procurement/suppliers')
@@ -743,6 +789,14 @@ export const createContract = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: userId,
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_CONTRACT',
+    entityId: contract.id,
+    description: `Creation du contrat ${contract.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/contracts')
   return contract
 }
@@ -774,6 +828,14 @@ export const updateContract = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_CONTRACT',
+    entityId: contract.id,
+    description: `Mise a jour du contrat ${contract.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/contracts')
   revalidatePath(`/dashboard/procurement/contracts/${id}`)
   return contract
@@ -782,6 +844,14 @@ export const updateContract = async (
 export const deleteContract = async (id: string) => {
   const contract = await prisma.procurementContract.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_CONTRACT',
+    entityId: contract.id,
+    description: `Suppression du contrat ${contract.reference}`
   })
 
   revalidatePath('/dashboard/procurement/contracts')
@@ -865,6 +935,14 @@ const resolveAssetItems = async (
         }
       })
 
+      await safeLogAudit({
+        actorId: await getAuditActorId(),
+        action: 'CREATE',
+        entityType: 'PROCUREMENT_ITEM',
+        entityId: createdItem.id,
+        description: `Creation d'article ${createdItem.name}`
+      })
+
       return {
         itemId: createdItem.id,
         description: item.description,
@@ -909,6 +987,14 @@ export const createAsset = async (input: typeof assetInputSchema._type) => {
           }
         : undefined
     }
+  })
+
+  await safeLogAudit({
+    actorId: userId,
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_ASSET',
+    entityId: asset.id,
+    description: `Creation de l'immobilisation ${asset.reference}`
   })
 
   revalidatePath('/dashboard/procurement/assets')
@@ -956,6 +1042,14 @@ export const updateAsset = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_ASSET',
+    entityId: asset.id,
+    description: `Mise a jour de l'immobilisation ${asset.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/assets')
   revalidatePath(`/dashboard/procurement/assets/${id}`)
   return asset
@@ -964,6 +1058,14 @@ export const updateAsset = async (
 export const deleteAsset = async (id: string) => {
   const asset = await prisma.procurementAsset.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_ASSET',
+    entityId: asset.id,
+    description: `Suppression de l'immobilisation ${asset.reference}`
   })
 
   revalidatePath('/dashboard/procurement/assets')
@@ -1022,6 +1124,14 @@ const resolveRequisitionItems = async (
         }
       })
 
+      await safeLogAudit({
+        actorId: await getAuditActorId(),
+        action: 'CREATE',
+        entityType: 'PROCUREMENT_ITEM',
+        entityId: createdItem.id,
+        description: `Creation d'article ${createdItem.name}`
+      })
+
       return {
         itemId: createdItem.id,
         description: item.description,
@@ -1066,6 +1176,14 @@ export const createRequisition = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: userId,
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_REQUISITION',
+    entityId: requisition.id,
+    description: `Creation de la demande ${requisition.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/requisitions')
   return requisition
 }
@@ -1107,6 +1225,14 @@ export const updateRequisition = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_REQUISITION',
+    entityId: requisition.id,
+    description: `Mise a jour de la demande ${requisition.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/requisitions')
   revalidatePath(`/dashboard/procurement/requisitions/${id}`)
   return requisition
@@ -1115,6 +1241,14 @@ export const updateRequisition = async (
 export const deleteRequisition = async (id: string) => {
   const requisition = await prisma.procurementRequisition.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_REQUISITION',
+    entityId: requisition.id,
+    description: `Suppression de la demande ${requisition.reference}`
   })
 
   revalidatePath('/dashboard/procurement/requisitions')
@@ -1185,6 +1319,14 @@ export const createRfq = async (input: typeof rfqInputSchema._type) => {
     }
   })
 
+  await safeLogAudit({
+    actorId: userId,
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_RFQ',
+    entityId: rfq.id,
+    description: `Creation de la demande de devis ${rfq.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/rfqs')
   return rfq
 }
@@ -1225,6 +1367,14 @@ export const updateRfq = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_RFQ',
+    entityId: rfq.id,
+    description: `Mise a jour de la demande de devis ${rfq.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/rfqs')
   revalidatePath(`/dashboard/procurement/rfqs/${id}`)
   return rfq
@@ -1233,6 +1383,14 @@ export const updateRfq = async (
 export const deleteRfq = async (id: string) => {
   const rfq = await prisma.procurementRfq.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_RFQ',
+    entityId: rfq.id,
+    description: `Suppression de la demande de devis ${rfq.reference}`
   })
 
   revalidatePath('/dashboard/procurement/rfqs')
@@ -1316,6 +1474,14 @@ export const createPurchaseOrder = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: userId,
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_PURCHASE_ORDER',
+    entityId: purchaseOrder.id,
+    description: `Creation du bon de commande ${purchaseOrder.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/purchase-orders')
   return purchaseOrder
 }
@@ -1365,6 +1531,14 @@ export const updatePurchaseOrder = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_PURCHASE_ORDER',
+    entityId: purchaseOrder.id,
+    description: `Mise a jour du bon de commande ${purchaseOrder.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/purchase-orders')
   revalidatePath(`/dashboard/procurement/purchase-orders/${id}`)
   return purchaseOrder
@@ -1373,6 +1547,14 @@ export const updatePurchaseOrder = async (
 export const deletePurchaseOrder = async (id: string) => {
   const purchaseOrder = await prisma.procurementPurchaseOrder.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_PURCHASE_ORDER',
+    entityId: purchaseOrder.id,
+    description: `Suppression du bon de commande ${purchaseOrder.reference}`
   })
 
   revalidatePath('/dashboard/procurement/purchase-orders')
@@ -1445,6 +1627,14 @@ export const createReceipt = async (input: typeof receiptInputSchema._type) => {
     }
   })
 
+  await safeLogAudit({
+    actorId: userId,
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_RECEIPT',
+    entityId: receipt.id,
+    description: `Creation du recu ${receipt.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/receipts')
   return receipt
 }
@@ -1481,6 +1671,14 @@ export const updateReceipt = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_RECEIPT',
+    entityId: receipt.id,
+    description: `Mise a jour du recu ${receipt.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/receipts')
   revalidatePath(`/dashboard/procurement/receipts/${id}`)
   return receipt
@@ -1489,6 +1687,14 @@ export const updateReceipt = async (
 export const deleteReceipt = async (id: string) => {
   const receipt = await prisma.procurementReceipt.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_RECEIPT',
+    entityId: receipt.id,
+    description: `Suppression du recu ${receipt.reference}`
   })
 
   revalidatePath('/dashboard/procurement/receipts')
@@ -1555,6 +1761,14 @@ export const createSupplierInvoice = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: userId,
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_SUPPLIER_INVOICE',
+    entityId: invoice.id,
+    description: `Creation de la facture ${invoice.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/invoices')
   return invoice
 }
@@ -1590,6 +1804,14 @@ export const updateSupplierInvoice = async (
     }
   })
 
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'UPDATE',
+    entityType: 'PROCUREMENT_SUPPLIER_INVOICE',
+    entityId: invoice.id,
+    description: `Mise a jour de la facture ${invoice.reference}`
+  })
+
   revalidatePath('/dashboard/procurement/invoices')
   revalidatePath(`/dashboard/procurement/invoices/${id}`)
   return invoice
@@ -1598,6 +1820,14 @@ export const updateSupplierInvoice = async (
 export const deleteSupplierInvoice = async (id: string) => {
   const invoice = await prisma.procurementSupplierInvoice.delete({
     where: { id }
+  })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_SUPPLIER_INVOICE',
+    entityId: invoice.id,
+    description: `Suppression de la facture ${invoice.reference}`
   })
 
   revalidatePath('/dashboard/procurement/invoices')
@@ -1631,12 +1861,23 @@ export const createProcurementAttachment = async (
       ? { procurementContractId: targetId }
       : { procurementAssetId: targetId }
 
-  return prisma.attachment.create({
+  const created = await prisma.attachment.create({
     data: {
       ...data,
       ...relationData
     }
   })
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'CREATE',
+    entityType: 'PROCUREMENT_ATTACHMENT',
+    entityId: created.id,
+    description: `Ajout d'une piece jointe`,
+    metadata: { target, targetId }
+  })
+
+  return created
 }
 
 export const deleteProcurementAttachment = async (attachmentId: string) => {
@@ -1644,5 +1885,14 @@ export const deleteProcurementAttachment = async (attachmentId: string) => {
   if (!deleted) {
     throw new Error('Impossible de supprimer la piece jointe.')
   }
+
+  await safeLogAudit({
+    actorId: await getAuditActorId(),
+    action: 'DELETE',
+    entityType: 'PROCUREMENT_ATTACHMENT',
+    entityId: attachmentId,
+    description: `Suppression d'une piece jointe`
+  })
+
   return { success: true }
 }

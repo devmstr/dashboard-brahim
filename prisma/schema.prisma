@@ -48,6 +48,7 @@ model User {
   createdAt                          DateTime                     @default(now())
   updatedAt                          DateTime                     @updatedAt
   Permissions                        Permission[]
+  AuditLogs                          AuditLog[]                   @relation("AuditLogActor")
   ProcurementRequisitionsCreated     ProcurementRequisition[]     @relation("ProcurementRequisitionCreatedBy")
   ProcurementRequisitionsApproved    ProcurementRequisition[]     @relation("ProcurementRequisitionApprovedBy")
   ProcurementRfqsCreated             ProcurementRfq[]             @relation("ProcurementRfqCreatedBy")
@@ -57,6 +58,21 @@ model User {
   ProcurementSupplierInvoicesCreated ProcurementSupplierInvoice[] @relation("ProcurementSupplierInvoiceCreatedBy")
   ProcurementContractsCreated        ProcurementContract[]        @relation("ProcurementContractCreatedBy")
   ProcurementAssetsCreated           ProcurementAsset[]           @relation("ProcurementAssetCreatedBy")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  description String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  Actor User? @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
 }
 
 model VerificationRequest {

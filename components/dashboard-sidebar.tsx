@@ -10,6 +10,7 @@ import { Icons } from './icons'
 import { useSidebarState } from './open-sidebar-provider'
 import { getCurrentUser } from '@/lib/session'
 import { useSession } from 'next-auth/react'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface DashboardSidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   items?: SidebarNavItem[]
@@ -51,125 +52,131 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           </Fade>
         )}
       </div>
-      <div className="h-full flex flex-col justify-start mt-6 w-full">
+      <div className="relative flex-1 flex flex-col mt-6 w-full overflow-hidden">
         {items && items.length > 0 && (
-          <nav
-            className={cn(
-              'flex flex-col gap-2 w-full',
-              open ? 'items-start px-0' : 'items-center px-2'
-            )}
+          <ScrollArea
+            className={cn('h-full w-full', open ? 'pr-1' : 'pr-0')}
+            thumbClassName="bg-transparent hover:bg-secondary/30 transition-colors duration-300 ease-in-out"
           >
-            {items
-              .filter((item) => item.title !== 'Paramètres')
-              .map((item, index) => {
-                const delay = index === 0 ? 80 : index * 80
+            <nav
+              className={cn(
+                'flex flex-col gap-2 w-full',
+                open ? 'items-start px-0' : 'items-center px-2'
+              )}
+            >
+              {items
+                .filter((item) => item.title !== 'Paramètres')
+                .map((item, index) => {
+                  const delay = index === 0 ? 80 : index * 80
 
-                const isDisabled = item.active === false || item.disabled
+                  const isDisabled = item.active === false || item.disabled
 
-                const normalizedHref = item.href?.replace(/\/$/, '')
+                  const normalizedHref = item.href?.replace(/\/$/, '')
 
-                const normalizedPath = pathname?.replace(/\/$/, '')
+                  const normalizedPath = pathname?.replace(/\/$/, '')
 
-                const active =
-                  !isDisabled &&
-                  (normalizedHref === '/dashboard'
-                    ? normalizedPath === '/dashboard'
-                    : normalizedHref
+                  const active =
+                    !isDisabled &&
+                    (normalizedHref === '/dashboard'
+                      ? normalizedPath === '/dashboard'
+                      : normalizedHref
                       ? item.matchChildren
                         ? normalizedPath?.startsWith(normalizedHref)
                         : normalizedPath === normalizedHref
                       : false)
 
-                const Icon = Icons[item.icon as keyof typeof Icons]
+                  const Icon = Icons[item.icon as keyof typeof Icons]
 
-                return (
-                  item.href &&
-                  (isDisabled ? (
-                    <div
-                      key={index}
-                      aria-disabled="true"
-                      className={cn(
-                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
-                        active
-                          ? 'text-primary bg-secondary opacity-100'
-                          : 'opacity-80',
-                        'cursor-not-allowed opacity-60'
-                      )}
-                    >
-                      <Icon
+                  return (
+                    item.href &&
+                    (isDisabled ? (
+                      <div
+                        key={index}
+                        aria-disabled="true"
                         className={cn(
-                          'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
-                          open ? 'mr-2' : 'mr-0'
+                          'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
+                          active
+                            ? 'text-primary bg-secondary opacity-100'
+                            : 'opacity-80',
+                          'cursor-not-allowed opacity-60'
                         )}
-                      />
-                      {open ? (
-                        <Fade
-                          className="text-md sm:text-sm"
-                          from="top"
-                          amount={0.4}
-                          duration={300}
-                          delay={delay}
-                          easing="easeOut"
-                        >
-                          <span>{item.title}</span>
-                        </Fade>
-                      ) : (
-                        <span
+                      >
+                        <Icon
                           className={cn(
-                            'absolute z-40 scale-0 group-hover:scale-100 transition-all duration-300 ease-in-out ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100 shadow-lg text-nowrap',
-                            active &&
-                              'bg-secondary text-primary group-hover:text-primary'
+                            'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
+                            open ? 'mr-2' : 'mr-0'
                           )}
-                        >
-                          {item.title}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <Link
-                      key={index}
-                      href={item.href}
-                      className={cn(
-                        'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
-                        active
-                          ? 'text-primary bg-secondary opacity-100'
-                          : 'opacity-80 hover:opacity-100 hover:text-secondary'
-                      )}
-                    >
-                      <Icon
+                        />
+                        {open ? (
+                          <Fade
+                            className="text-md sm:text-sm"
+                            from="top"
+                            amount={0.4}
+                            duration={300}
+                            delay={delay}
+                            easing="easeOut"
+                          >
+                            <span>{item.title}</span>
+                          </Fade>
+                        ) : (
+                          <span
+                            className={cn(
+                              'absolute z-40 scale-0 group-hover:scale-100 transition-all duration-300 ease-in-out ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100 shadow-lg text-nowrap',
+                              active &&
+                                'bg-secondary text-primary group-hover:text-primary'
+                            )}
+                          >
+                            {item.title}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <Link
+                        key={index}
+                        href={item.href}
                         className={cn(
-                          'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
-                          open ? 'mr-2' : 'mr-0'
+                          'relative group flex items-center text-gray-400 font-medium fill-current bg-slate-700/25 w-full p-3 rounded-lg',
+                          active
+                            ? 'text-primary bg-secondary opacity-100'
+                            : 'opacity-80 hover:opacity-100 hover:text-secondary'
                         )}
-                      />
-                      {open ? (
-                        <Fade
-                          className="text-md sm:text-sm"
-                          from="top"
-                          amount={0.4}
-                          duration={300}
-                          delay={delay}
-                          easing="easeOut"
-                        >
-                          <span>{item.title}</span>
-                        </Fade>
-                      ) : (
-                        <span
+                      >
+                        <Icon
                           className={cn(
-                            'absolute z-40 scale-0 group-hover:scale-100 transition-all duration-300 ease-in-out ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100 shadow-lg text-nowrap',
-                            active &&
-                              'bg-secondary text-primary group-hover:text-primary'
+                            'flex h-[1.4rem] w-[1.4rem] min-h-[1.4rem] min-w-[1.4rem]',
+                            open ? 'mr-2' : 'mr-0'
                           )}
-                        >
-                          {item.title}
-                        </span>
-                      )}
-                    </Link>
-                  ))
-                )
-              })}
-          </nav>
+                        />
+                        {open ? (
+                          <Fade
+                            className="text-md sm:text-sm"
+                            from="top"
+                            amount={0.4}
+                            duration={300}
+                            delay={delay}
+                            easing="easeOut"
+                          >
+                            <span>{item.title}</span>
+                          </Fade>
+                        ) : (
+                          <span
+                            className={cn(
+                              'absolute z-40 scale-0 group-hover:scale-100 transition-all duration-300 ease-in-out ml-14 bg-primary p-3 rounded-lg text-gray-400 group-hover:text-secondary opacity-100 shadow-lg text-nowrap',
+                              active &&
+                                'bg-secondary text-primary group-hover:text-primary'
+                            )}
+                          >
+                            {item.title}
+                          </span>
+                        )}
+                      </Link>
+                    ))
+                  )
+                })}
+            </nav>
+          </ScrollArea>
         )}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-primary to-transparent" />
       </div>
       <div
         className={cn(
@@ -191,10 +198,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               (normalizedHref === '/dashboard'
                 ? normalizedPath === '/dashboard'
                 : normalizedHref
-                  ? item.matchChildren
-                    ? normalizedPath?.startsWith(normalizedHref)
-                    : normalizedPath === normalizedHref
-                  : false)
+                ? item.matchChildren
+                  ? normalizedPath?.startsWith(normalizedHref)
+                  : normalizedPath === normalizedHref
+                : false)
 
             return (
               item.href &&

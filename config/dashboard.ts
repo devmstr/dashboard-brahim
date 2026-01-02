@@ -121,6 +121,12 @@ export const LAYOUT_LINKS: SidebarNavItem[] = [
     key: 'ledger'
   },
   {
+    title: "Journal d'audit",
+    href: '/dashboard/audit-logs',
+    icon: 'fileText',
+    key: 'audit-logs'
+  },
+  {
     title: 'Les Marges',
     href: '/dashboard/pricing',
     icon: 'priceMargin',

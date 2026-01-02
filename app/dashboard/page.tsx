@@ -8,7 +8,7 @@ const Page: React.FC<Props> = async ({}: Props) => {
   const user = await getCurrentUser()
   switch (user?.role) {
     case 'ADMIN':
-      redirect('/dashboard/admin')
+      redirect('/dashboard/audit-logs')
     case 'SALES_MANAGER':
       redirect('/dashboard/ledger')
     case 'CONSULTANT':
