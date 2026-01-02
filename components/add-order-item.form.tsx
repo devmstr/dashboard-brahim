@@ -630,7 +630,7 @@ export const AddOrderItemForm: React.FC<OrderItemFormProps> = ({
                     render={({ field }) => (
                       <FormItem className="group">
                         <FormLabel className="capitalize">
-                          Longueur
+                          Longueur/Entre Collecteurs
                           <span className="text-xs ml-1 text-muted-foreground/50 lowercase">
                             (mm)
                           </span>
